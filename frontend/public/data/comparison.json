@@ -1,0 +1,16 @@
+{
+  "B-03": {
+    "rows": [
+      { "label": "CAPEX", "current": "—", "a": "RM1.2m", "b": "RM0.8m", "c": "RM0.1m" },
+      { "label": "Projected utilisation", "current": "35%", "a": "78%", "b": "60%", "c": "35%" },
+      { "label": "Financial (NPV)", "current": "—", "a": "RM2.1m", "b": "RM1.8m", "c": "RM0.3m" },
+      { "label": "Environmental", "current": "45", "a": "72", "b": "68", "c": "50" },
+      { "label": "Social", "current": "62", "a": "81", "b": "70", "c": "62" },
+      { "label": "Performance score", "current": "28", "a": "74", "b": "66", "c": "31" },
+      { "label": "Change in score", "current": "—", "a": "+46", "b": "+38", "c": "+3" },
+      { "label": "Time to impact", "current": "—", "a": "8mo", "b": "6mo", "c": "0mo" }
+    ],
+    "recommended": "Option A — Repurpose",
+    "reason": "Highest performance improvement, moderate CAPEX, strong environmental and social co-benefits."
+  }
+}

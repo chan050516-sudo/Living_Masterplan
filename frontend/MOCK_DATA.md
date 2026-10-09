@@ -40,3 +40,7 @@ Replace with the backend API URL. Owner of that API: TBC.
 ## 6. public/data/options.json (invented)
 Fake AI response for B-03 only. Replace with Module C's output
 via POST /ask. The 600ms setTimeout in ask() is fake latency: remove it.
+
+## 7. public/data/comparison.json (invented)
+Fake simulation results for B-03. Replace with POST /simulate output
+from Modules B and C.

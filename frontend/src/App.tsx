@@ -18,6 +18,20 @@ type AiAnswer = {
   options: AiOption[]
 }
 
+type ComparisonRow = {
+  label: string
+  current: string
+  a: string
+  b: string
+  c: string
+}
+
+type Comparison = {
+  rows: ComparisonRow[]
+  recommended: string
+  reason: string
+}
+
 type Asset = {
   id: string
   name: string
@@ -38,7 +52,16 @@ export default function App() {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState<AiAnswer | null>(null)
   const [loading, setLoading] = useState(false)
-    const [preview, setPreview] = useState<AiOption | null>(null)
+  const [preview, setPreview] = useState<AiOption | null>(null)
+  const [comparison, setComparison] = useState<Comparison | null>(null)
+
+  async function simulate() {
+    if (!selected) return
+    const res = await fetch('/data/comparison.json')
+    const all = await res.json()
+    setComparison(all[selected.id] ?? null)
+    console.log('simulate', { id: selected.id, found: !!all[selected.id] })
+  }
 
   function showPreview(o: AiOption) {
     setPreview(o)
@@ -173,6 +196,40 @@ export default function App() {
         <button onClick={() => setYear('3y')} style={{ fontWeight: year === '3y' ? 700 : 400 }}>+3 years</button>
       </div>
       <div style={{ display: 'flex', flex: 1 }}>
+            {comparison && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', padding: 24, borderRadius: 8, maxWidth: 760, width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
+            <h2 style={{ marginTop: 0 }}>Scenario comparison</h2>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Metric</th>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Current</th>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Option A</th>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Option B</th>
+                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Option C</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.rows.map((r) => (
+                  <tr key={r.label}>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.label}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.current}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.a}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.b}</td>
+                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.c}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{ marginTop: 16, padding: 12, background: '#e8f5e9', borderRadius: 6 }}>
+              <strong>Recommended: {comparison.recommended}</strong>
+              <div style={{ fontSize: 13, marginTop: 4 }}>{comparison.reason}</div>
+            </div>
+            <button onClick={() => setComparison(null)} style={{ marginTop: 16 }}>Close</button>
+          </div>
+        </div>
+      )}
         <div ref={mapContainer} style={{ flex: 1 }} />
         <div style={{ width: 340, padding: 20, overflowY: 'auto', background: '#fff', borderLeft: '1px solid #ddd' }}>
           {selected ? (
@@ -209,6 +266,7 @@ export default function App() {
                       <div style={{ fontSize: 13, margin: '4px 0' }}>{o.summary}</div>
                       <div style={{ fontSize: 13, color: '#777' }}>CAPEX {o.capex} · Score after {o.score_after}</div>
                       <button onClick={() => showPreview(o)} style={{ marginTop: 8 }}>Preview on map</button>
+                      <button onClick={simulate} style={{ marginTop: 8, marginLeft: 6 }}>Simulate</button>
                     </div>
                   ))}
                 </>
