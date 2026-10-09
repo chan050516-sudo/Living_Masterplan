@@ -10,6 +10,7 @@ type AiOption = {
   summary: string
   capex: string
   score_after: number
+  changes: string[]
 }
 
 type AiAnswer = {
@@ -37,6 +38,35 @@ export default function App() {
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState<AiAnswer | null>(null)
   const [loading, setLoading] = useState(false)
+    const [preview, setPreview] = useState<AiOption | null>(null)
+
+  function showPreview(o: AiOption) {
+    setPreview(o)
+    const map = mapRef.current
+    if (!map || !map.getLayer('assets-fill') || !selected) return
+    map.setPaintProperty('assets-fill', 'fill-color', [
+      'case',
+      ['==', ['get', 'id'], selected.id], '#1e88e5',
+      [
+        'step', ['get', year === 'now' ? 'score' : 'score_3y'],
+        '#e53935', 40,
+        '#fdd835', 60,
+        '#43a047',
+      ],
+    ])
+  }
+
+  function clearPreview() {
+    setPreview(null)
+    const map = mapRef.current
+    if (!map || !map.getLayer('assets-fill')) return
+    map.setPaintProperty('assets-fill', 'fill-color', [
+      'step', ['get', year === 'now' ? 'score' : 'score_3y'],
+      '#e53935', 40,
+      '#fdd835', 60,
+      '#43a047',
+    ])
+  }
 
   async function ask() {
     if (!selected) return
@@ -178,12 +208,31 @@ export default function App() {
                       <strong>{o.title}</strong>
                       <div style={{ fontSize: 13, margin: '4px 0' }}>{o.summary}</div>
                       <div style={{ fontSize: 13, color: '#777' }}>CAPEX {o.capex} · Score after {o.score_after}</div>
+                      <button onClick={() => showPreview(o)} style={{ marginTop: 8 }}>Preview on map</button>
                     </div>
                   ))}
                 </>
               )}
 
-              <button onClick={() => { setSelected(null); setAnswer(null); setQuestion('') }} style={{ marginTop: 10 }}>Close</button>
+                            <button onClick={() => { setSelected(null); setAnswer(null); setQuestion(''); clearPreview() }} style={{ marginTop: 10 }}>Close</button>
+              {preview && (
+                <div style={{ marginTop: 10, padding: 12, background: '#e3f2fd', borderRadius: 6 }}>
+                  <strong>Preview: {preview.title}</strong>
+                  <ul style={{ paddingLeft: 18, margin: '8px 0' }}>
+                    {preview.changes.map((c) => <li key={c} style={{ fontSize: 13 }}>{c}</li>)}
+                  </ul>
+                  <button onClick={clearPreview}>Clear preview</button>
+                </div>
+              )}
+                            {preview && (
+                <div style={{ marginTop: 10, padding: 12, background: '#e3f2fd', borderRadius: 6 }}>
+                  <strong>Preview: {preview.title}</strong>
+                  <ul style={{ paddingLeft: 18, margin: '8px 0' }}>
+                    {preview.changes.map((c) => <li key={c} style={{ fontSize: 13 }}>{c}</li>)}
+                  </ul>
+                  <button onClick={clearPreview}>Clear preview</button>
+                </div>
+              )}
             </>
           ) : (
             <>

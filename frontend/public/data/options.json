@@ -7,21 +7,34 @@
         "title": "Option A — Repurpose",
         "summary": "Convert to community facility",
         "capex": "RM1.2m",
-        "score_after": 74
+        "score_after": 74,
+                "changes": [
+          "B-03: Commercial → Community Facility",
+          "Phase 3: Cancelled",
+          "Nearby pedestrian route: Upgraded"
+        ]
       },
       {
         "id": "B",
         "title": "Option B — Retrofit + Green",
         "summary": "Improve building performance and add a green corridor",
         "capex": "RM0.8m",
-        "score_after": 66
+        "score_after": 66,
+                "changes": [
+          "B-03: Retrofitted, energy use reduced",
+          "Green corridor added along the north edge"
+        ]
       },
       {
         "id": "C",
         "title": "Option C — Delay + Replan",
         "summary": "Postpone Phase 3 expansion until demand threshold is met",
         "capex": "RM0.1m",
-        "score_after": 31
+        "score_after": 31,
+                "changes": [
+          "Phase 3: Delayed to 2031",
+          "B-03: No change"
+        ]
       }
     ]
   }
