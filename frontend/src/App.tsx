@@ -1,12 +1,22 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 
 maplibregl.setWorkerUrl(workerUrl)
 
+type Asset = {
+  id: string
+  name: string
+  type: string
+  score: number
+  occupancy: number
+  vacancy_months: number
+}
+
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
+  const [selected, setSelected] = useState<Asset | null>(null)
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -53,10 +63,40 @@ export default function App() {
         source: 'assets',
         paint: { 'line-color': '#222', 'line-width': 2 },
       })
+
+      map.on('click', 'assets-fill', (e) => {
+        const props = e.features?.[0]?.properties
+        if (props) setSelected(props as Asset)
+      })
+
+      map.on('mouseenter', 'assets-fill', () => {
+        map.getCanvas().style.cursor = 'pointer'
+      })
+      map.on('mouseleave', 'assets-fill', () => {
+        map.getCanvas().style.cursor = ''
+      })
     })
 
     return () => map.remove()
   }, [])
 
-  return <div ref={mapContainer} style={{ width: '100vw', height: '100vh' }} />
+  return (
+    <div style={{ display: 'flex', width: '100vw', height: '100vh' }}>
+      <div ref={mapContainer} style={{ flex: 1 }} />
+      <div style={{ width: 340, padding: 20, overflowY: 'auto', background: '#fff', borderLeft: '1px solid #ddd', fontFamily: 'sans-serif' }}>
+        {selected ? (
+          <>
+            <h2 style={{ marginTop: 0 }}>{selected.name}</h2>
+            <p style={{ fontSize: 32, margin: '8px 0' }}>{selected.score}<span style={{ fontSize: 16, color: '#777' }}> / 100</span></p>
+            <p>Type: {selected.type}</p>
+            <p>Occupancy: {selected.occupancy}%</p>
+            <p>Vacant for: {selected.vacancy_months} months</p>
+            <button onClick={() => setSelected(null)}>Close</button>
+          </>
+        ) : (
+          <p style={{ color: '#777' }}>Click an asset on the map.</p>
+        )}
+      </div>
+    </div>
+  )
 }

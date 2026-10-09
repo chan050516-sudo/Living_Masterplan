@@ -3,22 +3,22 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "id": "B-03", "type": "commercial", "score": 28 },
+      "properties": { "id": "B-03", "name": "B-03 Commercial Lot", "type": "commercial", "score": 28, "occupancy": 21, "vacancy_months": 14 },
       "geometry": { "type": "Polygon", "coordinates": [[[101.4990,3.1900],[101.5000,3.1900],[101.5000,3.1910],[101.4990,3.1910],[101.4990,3.1900]]] }
     },
     {
       "type": "Feature",
-      "properties": { "id": "F-02", "type": "facility", "score": 55 },
+      "properties": { "id": "F-02", "name": "F-02 Community Facility", "type": "facility", "score": 55, "occupancy": 48, "vacancy_months": 0 },
       "geometry": { "type": "Polygon", "coordinates": [[[101.5010,3.1900],[101.5020,3.1900],[101.5020,3.1910],[101.5010,3.1910],[101.5010,3.1900]]] }
     },
     {
       "type": "Feature",
-      "properties": { "id": "P-05", "type": "parcel", "score": 45 },
+      "properties": { "id": "P-05", "name": "P-05 Undeveloped Parcel", "type": "parcel", "score": 45, "occupancy": 0, "vacancy_months": 0 },
       "geometry": { "type": "Polygon", "coordinates": [[[101.4990,3.1920],[101.5000,3.1920],[101.5000,3.1930],[101.4990,3.1930],[101.4990,3.1920]]] }
     },
     {
       "type": "Feature",
-      "properties": { "id": "A-02", "type": "residential", "score": 78 },
+      "properties": { "id": "A-02", "name": "A-02 Residential", "type": "residential", "score": 78, "occupancy": 91, "vacancy_months": 0 },
       "geometry": { "type": "Polygon", "coordinates": [[[101.5010,3.1920],[101.5020,3.1920],[101.5020,3.1930],[101.5010,3.1930],[101.5010,3.1920]]] }
     }
   ]
