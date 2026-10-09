@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "id": "B-03", "type": "commercial", "score": 28 },
+      "geometry": { "type": "Polygon", "coordinates": [[[101.4990,3.1900],[101.5000,3.1900],[101.5000,3.1910],[101.4990,3.1910],[101.4990,3.1900]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "F-02", "type": "facility", "score": 55 },
+      "geometry": { "type": "Polygon", "coordinates": [[[101.5010,3.1900],[101.5020,3.1900],[101.5020,3.1910],[101.5010,3.1910],[101.5010,3.1900]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "P-05", "type": "parcel", "score": 45 },
+      "geometry": { "type": "Polygon", "coordinates": [[[101.4990,3.1920],[101.5000,3.1920],[101.5000,3.1930],[101.4990,3.1930],[101.4990,3.1920]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "A-02", "type": "residential", "score": 78 },
+      "geometry": { "type": "Polygon", "coordinates": [[[101.5010,3.1920],[101.5020,3.1920],[101.5020,3.1930],[101.5010,3.1930],[101.5010,3.1920]]] }
+    }
+  ]
+}
