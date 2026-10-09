@@ -1,0 +1,28 @@
+{
+  "B-03": {
+    "analysis": "B-03 is primarily affected by accessibility friction and demand-supply mismatch. Three candidate strategies have been generated.",
+    "options": [
+      {
+        "id": "A",
+        "title": "Option A — Repurpose",
+        "summary": "Convert to community facility",
+        "capex": "RM1.2m",
+        "score_after": 74
+      },
+      {
+        "id": "B",
+        "title": "Option B — Retrofit + Green",
+        "summary": "Improve building performance and add a green corridor",
+        "capex": "RM0.8m",
+        "score_after": 66
+      },
+      {
+        "id": "C",
+        "title": "Option C — Delay + Replan",
+        "summary": "Postpone Phase 3 expansion until demand threshold is met",
+        "capex": "RM0.1m",
+        "score_after": 31
+      }
+    ]
+  }
+}

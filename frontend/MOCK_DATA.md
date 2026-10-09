@@ -36,3 +36,7 @@ Replace with the backend API URL. Owner of that API: TBC.
 - AI options (Module C output) - no mock yet
 - Scenario comparison table - no mock yet
 - Intervened GeoJSON from C5 - need a sample from Module C
+
+## 6. public/data/options.json (invented)
+Fake AI response for B-03 only. Replace with Module C's output
+via POST /ask. The 600ms setTimeout in ask() is fake latency: remove it.

@@ -4,6 +4,18 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 
 maplibregl.setWorkerUrl(workerUrl)
+type AiOption = {
+  id: string
+  title: string
+  summary: string
+  capex: string
+  score_after: number
+}
+
+type AiAnswer = {
+  analysis: string
+  options: AiOption[]
+}
 
 type Asset = {
   id: string
@@ -22,6 +34,20 @@ export default function App() {
   const [selected, setSelected] = useState<Asset | null>(null)
   const [year, setYear] = useState<'now' | '3y'>('now')
   const [assets, setAssets] = useState<Asset[]>([])
+  const [question, setQuestion] = useState('')
+  const [answer, setAnswer] = useState<AiAnswer | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function ask() {
+    if (!selected) return
+    setLoading(true)
+    const res = await fetch('/data/options.json')
+    const all = await res.json()
+    setTimeout(() => {
+      setAnswer(all[selected.id] ?? null)
+      setLoading(false)
+    }, 600)
+  }
 
   useEffect(() => {
     fetch('/data/assets.geojson')
@@ -127,7 +153,37 @@ export default function App() {
               <p>Type: {selected.type}</p>
               <p>Occupancy: {occ}%</p>
               <p>Vacant for: {selected.vacancy_months} months</p>
-              <button onClick={() => setSelected(null)}>Close</button>
+                            <hr style={{ margin: '16px 0', border: 0, borderTop: '1px solid #eee' }} />
+
+              {!answer && (
+                <>
+                  <p style={{ fontSize: 13, color: '#777' }}>Ask a question about {selected.id}</p>
+                  <input
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    placeholder="What should we do with this asset?"
+                    style={{ width: '100%', padding: 8, boxSizing: 'border-box', marginBottom: 8 }}
+                  />
+                  <button onClick={ask} disabled={loading}>{loading ? 'Thinking…' : 'Ask'}</button>
+                </>
+              )}
+
+              {answer && (
+                <>
+                  <p style={{ fontSize: 13, color: '#777' }}>Your question</p>
+                  <p style={{ fontStyle: 'italic' }}>{question || 'What should we do with this asset?'}</p>
+                  <p>{answer.analysis}</p>
+                  {answer.options.map((o) => (
+                    <div key={o.id} style={{ padding: 12, marginBottom: 10, border: '1px solid #ddd', borderRadius: 6 }}>
+                      <strong>{o.title}</strong>
+                      <div style={{ fontSize: 13, margin: '4px 0' }}>{o.summary}</div>
+                      <div style={{ fontSize: 13, color: '#777' }}>CAPEX {o.capex} · Score after {o.score_after}</div>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              <button onClick={() => { setSelected(null); setAnswer(null); setQuestion('') }} style={{ marginTop: 10 }}>Close</button>
             </>
           ) : (
             <>
