@@ -21,6 +21,13 @@ export default function App() {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const [selected, setSelected] = useState<Asset | null>(null)
   const [year, setYear] = useState<'now' | '3y'>('now')
+  const [assets, setAssets] = useState<Asset[]>([])
+
+  useEffect(() => {
+    fetch('/data/assets.geojson')
+      .then((r) => r.json())
+      .then((d) => setAssets(d.features.map((f: { properties: Asset }) => f.properties)))
+  }, [])
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -123,7 +130,29 @@ export default function App() {
               <button onClick={() => setSelected(null)}>Close</button>
             </>
           ) : (
-            <p style={{ color: '#777' }}>Click an asset on the map.</p>
+            <>
+              <h3 style={{ marginTop: 0 }}>Deadspace candidates</h3>
+              {assets
+                .filter((a) => (year === 'now' ? a.score : a.score_3y) < 60)
+                .sort((a, b) => (year === 'now' ? a.score - b.score : a.score_3y - b.score_3y))
+                .map((a) => {
+                  const s = year === 'now' ? a.score : a.score_3y
+                  return (
+                    <div
+                      key={a.id}
+                      onClick={() => setSelected(a)}
+                      style={{ padding: 12, marginBottom: 10, border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer' }}
+                    >
+                      <strong>{a.name}</strong>
+                      <div style={{ color: s < 40 ? '#e53935' : '#f9a825' }}>Score: {s}</div>
+                      {a.vacancy_months > 0 && (
+                        <div style={{ color: '#777', fontSize: 13 }}>Vacant {a.vacancy_months} months</div>
+                      )}
+                    </div>
+                  )
+                })}
+              <p style={{ color: '#777', fontSize: 13 }}>Or click any asset on the map.</p>
+            </>
           )}
         </div>
       </div>
