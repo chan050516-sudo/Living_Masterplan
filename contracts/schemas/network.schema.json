@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/network.schema.json",
+  "title": "network.geojson",
+  "description": "Spatial layer: pedestrian / road network edges. Used by B3 accessibility.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "parcels.schema.json#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["LineString", "MultiLineString"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/NetworkProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "NetworkProperties": {
+      "type": "object",
+      "required": ["edge_id", "edge_type", "from_node", "to_node", "length_m", "access_type"],
+      "properties": {
+        "edge_id": { "type": "string", "pattern": "^E-" },
+        "edge_type": { "enum": ["pedestrian", "road", "transit"] },
+        "from_node": { "type": "string", "pattern": "^N-" },
+        "to_node": { "type": "string", "pattern": "^N-" },
+        "length_m": { "type": "number", "minimum": 0 },
+        "walk_speed_kmh": { "type": "number", "minimum": 0, "default": 4.5 },
+        "access_type": { "enum": ["public", "private", "restricted"] }
+      }
+    }
+  }
+}

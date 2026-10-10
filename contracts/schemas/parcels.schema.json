@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/parcels.schema.json",
+  "title": "parcels.geojson",
+  "description": "Spatial layer: parcel polygons. Geometry only. Business data lives in assets.csv.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["Polygon", "MultiPolygon"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/ParcelProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Metadata": {
+      "type": "object",
+      "required": ["schema_version", "region_id", "storage_crs", "analysis_crs", "generated_at"],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "region_id": { "type": "string" },
+        "storage_crs": { "const": "EPSG:4326" },
+        "analysis_crs": { "const": "EPSG:32647" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "ParcelProperties": {
+      "type": "object",
+      "required": ["parcel_id", "asset_id", "land_use", "area_m2", "geometry_source", "geometry_confidence"],
+      "properties": {
+        "parcel_id": { "type": "string", "pattern": "^P-" },
+        "asset_id": { "type": "string" },
+        "land_use": {
+          "enum": ["commercial", "community_facility", "residential", "mixed_use",
+                   "green_space", "undeveloped", "infrastructure", "unknown"]
+        },
+        "area_m2": { "type": "number", "minimum": 0 },
+        "development_phase": { "type": ["integer", "null"] },
+        "geometry_source": { "enum": ["OpenStreetMap", "Microsoft Building Footprints", "Manual", "Derived"] },
+        "geometry_confidence": { "enum": ["high", "medium", "low"] }
+      }
+    }
+  }
+}

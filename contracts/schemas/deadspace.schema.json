@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/deadspace.schema.json",
+  "title": "Deadspace",
+  "description": "Output of B6. Three-layer detection with contributing factors and evidence.",
+  "type": "object",
+  "required": [
+    "asset_id", "year", "status", "score",
+    "layer1", "layer2", "layer3",
+    "contributing_factors", "evidence", "model_version"
+  ],
+  "properties": {
+    "asset_id": { "type": "string" },
+    "year": { "type": "integer" },
+    "status": {
+      "enum": [
+        "deadspace_candidate", "underperforming_facility",
+        "development_risk", "improvement_opportunity",
+        "monitor", "healthy"
+      ]
+    },
+    "score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "layer1": {
+      "type": "object",
+      "required": ["triggered", "reasons"],
+      "properties": {
+        "triggered": { "type": "boolean" },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "layer2": {
+      "type": "object",
+      "required": ["triggered", "reasons"],
+      "properties": {
+        "triggered": { "type": "boolean" },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "layer3": {
+      "type": "object",
+      "required": ["actionable", "candidate_interventions"],
+      "properties": {
+        "actionable": { "type": "boolean" },
+        "candidate_interventions": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "contributing_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["factor", "contribution"],
+        "properties": {
+          "factor": { "type": "string" },
+          "contribution": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "model_version": { "type": "string" }
+  }
+}

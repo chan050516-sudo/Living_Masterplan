@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/development_candidates.schema.json",
+  "title": "development_candidates.csv",
+  "description": "v1.1 NEW. Pre-defined development options for undeveloped parcels. LLM picks from this list.",
+  "type": "object",
+  "required": [
+    "candidate_id", "parcel_id", "development_type", "expected_capex_rm",
+    "expected_completion_year", "expected_utilisation", "feasibility_status"
+  ],
+  "properties": {
+    "candidate_id": { "type": "string", "pattern": "^CAND-" },
+    "parcel_id": { "type": "string", "pattern": "^P-" },
+    "development_type": {
+      "enum": ["childcare_centre", "community_hub", "mixed_use_commercial",
+               "affordable_housing", "market_rate_housing", "retail_podium",
+               "light_industrial", "public_facility", "green_space",
+               "transit_oriented_development", "other"]
+    },
+    "target_gfa_m2": { "type": ["number", "null"] },
+    "target_units": { "type": ["integer", "null"] },
+    "target_demographic": { "type": ["string", "null"] },
+    "expected_capex_rm": { "type": "number", "minimum": 0 },
+    "expected_completion_year": { "type": "integer" },
+    "expected_demand_coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "expected_utilisation": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "expected_carbon_tco2e": { "type": ["number", "null"] },
+    "expected_accessibility_delta": { "type": ["number", "null"] },
+    "feasibility_status": { "enum": ["feasible", "infeasible", "constraint_flagged"] },
+    "constraint_notes": { "type": ["string", "null"] }
+  }
+}

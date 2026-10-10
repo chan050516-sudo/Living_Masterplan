@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/green_blue.schema.json",
+  "title": "green_blue.geojson",
+  "description": "Spatial layer: green space, parks, water bodies, drainage.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "parcels.schema.json#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["Polygon", "MultiPolygon", "LineString"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/GreenBlueProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "GreenBlueProperties": {
+      "type": "object",
+      "required": ["green_id", "asset_id", "green_type", "area_m2", "geometry_source"],
+      "properties": {
+        "green_id": { "type": "string", "pattern": "^G-" },
+        "asset_id": { "type": "string" },
+        "green_type": {
+          "enum": ["park", "pocket_park", "green_corridor", "canopy",
+                   "water_body", "drainage", "public_space"]
+        },
+        "area_m2": { "type": "number", "minimum": 0 },
+        "canopy_m2": { "type": ["number", "null"], "minimum": 0 },
+        "geometry_source": { "enum": ["OpenStreetMap", "Manual", "Derived"] }
+      }
+    }
+  }
+}

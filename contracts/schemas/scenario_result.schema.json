@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/scenario_result.schema.json",
+  "title": "ScenarioResult",
+  "description": "Output of B4. Multi-year simulation results + comparison + map diff.",
+  "type": "object",
+  "required": ["scenario_id", "scenario_name", "interventions", "years", "comparison", "map_diff", "model_version"],
+  "properties": {
+    "scenario_id": { "type": "string", "pattern": "^SC-" },
+    "scenario_name": { "type": "string" },
+    "interventions": { "type": "array" },
+    "years": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "assets": { "type": "object" },
+          "scores": { "type": "object" }
+        }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "required": [
+        "capex", "projected_utilisation", "npv",
+        "environmental_score", "social_score",
+        "performance_score", "delta_score", "time_to_impact_months"
+      ],
+      "properties": {
+        "capex": { "type": "number" },
+        "projected_utilisation": { "type": "number" },
+        "npv": { "type": "number" },
+        "environmental_score": { "type": "number" },
+        "social_score": { "type": "number" },
+        "performance_score": { "type": "number" },
+        "delta_score": { "type": "number" },
+        "time_to_impact_months": { "type": "number" }
+      }
+    },
+    "map_diff": {
+      "type": "object",
+      "required": ["changed_assets", "spillover_assets", "negative_assets"],
+      "properties": {
+        "changed_assets": { "type": "array" },
+        "spillover_assets": { "type": "array" },
+        "negative_assets": { "type": "array" }
+      }
+    },
+    "model_version": { "type": "string" }
+  }
+}
