@@ -1,0 +1,36 @@
+# L / U / H bounds for normalization. All values are scenario assumptions
+# unless the "note" says otherwise. B3 reads this file — never hard-code.
+
+version: "0.2.0"
+
+commercial:
+  occupancy_rate:               { L: 0.40, U: 0.85, note: "market research" }
+  vacancy_duration_months:      { L: 0.00, U: 18.0, note: "developer historical" }
+  dsr:                          { L: 0.60, U: 1.20, note: "planning assumption" }
+  accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
+  thermal_exposure:             { L: 0.00, U: 100.0, note: "normalized" }
+  noi_yield:                    { L: 0.02, U: 0.08, note: "market research" }
+
+community_facility:
+  utilisation_rate:             { L: 0.30, U: 0.80, H: 1.00, note: "target range" }
+  service_coverage:             { L: 0.50, U: 1.00, note: "planning standard" }
+  cost_per_user_rm:             { L: 0.00, U: 200.0, note: "RM per user" }
+  accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
+
+green_space:
+  green_coverage:               { L: 0.05, U: 0.40, note: "planning standard" }
+  canopy_coverage:              { L: 0.05, U: 0.40, note: "planning standard" }
+  green_per_capita_m2:          { L: 2.0,  U: 20.0, note: "m2 per person" }
+  accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
+  thermal_exposure:             { L: 0.00, U: 100.0, note: "normalized" }
+
+undeveloped_parcel:
+  development_feasibility:      { L: 0.00, U: 1.00, note: "ratio" }
+  demand_supply_gap:            { L: -1000.0, U: 2000.0, note: "units" }
+  accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
+  risk_score:                   { L: 0.00, U: 100.0, note: "normalized" }
+
+residential:
+  sell_through:                 { L: 0.50, U: 1.00, note: "market research" }
+  occupancy_rate:               { L: 0.60, U: 0.95, note: "market research" }
+  energy_intensity_kwh_m2:      { L: 50.0, U: 200.0, note: "kWh/m2/year" }

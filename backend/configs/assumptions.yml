@@ -1,0 +1,57 @@
+# Global assumptions. All Tier 3 unless noted.
+
+version: "0.2.0"
+
+population:
+  base_year: 2026
+  base_population: 8200
+  growth_rate:
+    low:    0.010
+    medium: 0.020
+    high:   0.035
+  household_size: 3.8
+
+demand:
+  residential_target_per_household: 1.0
+  commercial_per_capita:
+    convenience_retail: 0.15
+    f_and_b:            0.10
+    medical:            0.03
+    office:             0.20
+  facility_service_per_capita:
+    community_hall: 0.05
+    clinic:         0.02
+    library:        0.03
+
+supply:
+  committed_only: false
+  include_proposed: true
+
+occupancy:
+  lambda: 0.35
+  initial_occupancy_default: 0.60
+
+environmental:
+  emission_factor_energy: 0.58       # kgCO2e per kWh
+  material_intensity: 0.45           # tCO2e per m2 for new construction
+  energy_intensity_default: 120      # kWh/m2/year
+
+accessibility:
+  walking_speed_m_per_min: 80
+  catchment_minutes: [5, 10, 15]
+
+time_to_impact_months:
+  repurpose:            8
+  retrofit:             6
+  green_corridor:       12
+  pedestrian_upgrade:   3
+  new_development:      36
+  delay_development:    0
+
+construction_defaults:
+  repurpose:            { start_offset: 1, duration_months: 18, during_status: "unavailable" }
+  retrofit:             { start_offset: 0, duration_months: 12, during_status: "partial" }
+  green_corridor:       { start_offset: 0, duration_months: 12, during_status: "operational" }
+  pedestrian_upgrade:   { start_offset: 0, duration_months: 6,  during_status: "partial" }
+  new_development:      { start_offset: 0, duration_months: 36, during_status: "unavailable" }
+  delay_development:    { start_offset: 0, duration_months: 0,  during_status: "operational" }

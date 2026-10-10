@@ -1,0 +1,115 @@
+# Field-level Tier / Source / Unit map.
+# This is the single source of truth for provenance.
+# UI reads this to render Tier labels. Validators read this to check units.
+#
+# tier:   1 = Observed | 2 = Estimated | 3 = Scenario | null = metadata
+# source: observed | derived | assumed | simulated | identity | system
+# unit:   string
+
+version: "0.2.0"
+
+assets:
+  asset_id:                 { tier: null, source: identity, unit: null }
+  asset_type:               { tier: null, source: identity, unit: null }
+  parcel_id:                { tier: null, source: identity, unit: null }
+  building_id:              { tier: null, source: identity, unit: null }
+  asset_name:               { tier: null, source: identity, unit: null }
+  land_use:                 { tier: null, source: identity, unit: null }
+  development_phase:        { tier: null, source: identity, unit: null }
+  status:                   { tier: null, source: identity, unit: null }
+  completion_year:          { tier: null, source: identity, unit: year }
+  target_demographic:       { tier: null, source: identity, unit: null }
+  floor_area_m2:            { tier: 1, source: observed, unit: m2 }
+  lettable_area_m2:         { tier: 1, source: observed, unit: m2 }
+  land_area_m2:             { tier: 1, source: derived, unit: m2 }
+  capex_initial_rm:         { tier: 1, source: observed, unit: RM }
+  opex_annual_rm:           { tier: 1, source: observed, unit: RM }
+  maintenance_annual_rm:    { tier: 1, source: observed, unit: RM }
+  capacity:                 { tier: 1, source: observed, unit: count }
+  data_completeness:        { tier: null, source: derived, unit: ratio }
+  data_sources:             { tier: null, source: identity, unit: null }
+
+asset_metrics:
+  year:                     { tier: null, source: identity, unit: year }
+
+  occupancy_rate:           { tier: 1, source: observed, unit: ratio }
+  vacancy_rate:             { tier: 1, source: derived, unit: ratio }
+  vacancy_duration_months:  { tier: 1, source: observed, unit: month }
+  footfall_daily:           { tier: 1, source: observed, unit: person/day }
+  utilisation_rate:         { tier: 1, source: observed, unit: ratio }
+
+  rental_income_rm:         { tier: 1, source: observed, unit: RM }
+  noi_rm:                   { tier: 2, source: derived, unit: RM }
+  noi_yield:                { tier: 2, source: derived, unit: ratio }
+
+  accessibility_score:      { tier: 2, source: derived, unit: 0-100 }
+  service_coverage:         { tier: 2, source: derived, unit: ratio }
+
+  effective_demand:         { tier: 3, source: assumed, unit: count }
+  effective_supply:         { tier: 3, source: assumed, unit: count }
+  dsr:                      { tier: 2, source: derived, unit: ratio }
+
+  carbon_operational_tco2e: { tier: 2, source: derived, unit: tCO2e }
+  energy_kwh:               { tier: 1, source: observed, unit: kWh }
+
+  green_coverage:           { tier: 2, source: derived, unit: ratio }
+  canopy_coverage:          { tier: 2, source: derived, unit: ratio }
+  thermal_exposure:         { tier: 2, source: derived, unit: 0-100 }
+
+  financial_score:          { tier: 2, source: derived, unit: 0-100 }
+  environmental_score:      { tier: 2, source: derived, unit: 0-100 }
+  social_score:             { tier: 2, source: derived, unit: 0-100 }
+  performance_score:        { tier: 2, source: derived, unit: 0-100 }
+  delta_score:              { tier: 3, source: simulated, unit: score }
+
+development_projects:
+  project_id:               { tier: null, source: identity, unit: null }
+  project_status:           { tier: null, source: identity, unit: null }
+  planned_start_year:       { tier: 3, source: assumed, unit: year }
+  planned_delivery_year:    { tier: 3, source: assumed, unit: year }
+  gfa_m2:                   { tier: 2, source: derived, unit: m2 }
+  units:                    { tier: 2, source: derived, unit: count }
+  capex_rm:                 { tier: 3, source: assumed, unit: RM }
+
+development_candidates:
+  candidate_id:             { tier: null, source: identity, unit: null }
+  development_type:         { tier: null, source: identity, unit: null }
+  target_gfa_m2:            { tier: 3, source: assumed, unit: m2 }
+  target_units:             { tier: 3, source: assumed, unit: count }
+  target_demographic:       { tier: null, source: identity, unit: null }
+  expected_capex_rm:        { tier: 3, source: assumed, unit: RM }
+  expected_completion_year: { tier: 3, source: assumed, unit: year }
+  expected_demand_coverage: { tier: 3, source: assumed, unit: ratio }
+  expected_utilisation:     { tier: 3, source: assumed, unit: ratio }
+  expected_carbon_tco2e:    { tier: 3, source: assumed, unit: tCO2e }
+  expected_accessibility_delta: { tier: 3, source: assumed, unit: score }
+  feasibility_status:       { tier: null, source: system, unit: null }
+  constraint_notes:         { tier: null, source: system, unit: null }
+
+interventions:
+  scenario_id:              { tier: null, source: identity, unit: null }
+  intervention_id:          { tier: null, source: identity, unit: null }
+  target_asset_id:          { tier: null, source: identity, unit: null }
+  intervention_type:        { tier: null, source: identity, unit: null }
+  parameters_json:          { tier: null, source: identity, unit: null }
+  expected_derived_json:    { tier: 3, source: assumed, unit: mixed }
+  expected_source:          { tier: null, source: identity, unit: null }
+  construction_start_year:  { tier: 3, source: assumed, unit: year }
+  construction_duration_months: { tier: 3, source: assumed, unit: month }
+  activation_year:          { tier: 3, source: assumed, unit: year }
+  during_construction_status: { tier: 3, source: assumed, unit: null }
+  capex_delta_rm:           { tier: 2, source: derived, unit: RM }
+  opex_delta_rm:            { tier: 2, source: derived, unit: RM }
+  validation_status:        { tier: null, source: system, unit: null }
+  status:                   { tier: null, source: system, unit: null }
+
+# UI label mapping
+ui:
+  tier_labels:
+    1: "Observed"
+    2: "Estimated"
+    3: "Scenario"
+  tier_colors:
+    1: "blue"
+    2: "yellow"
+    3: "red"
