@@ -160,6 +160,53 @@ This is the single source of truth for:
 |---------|------------|--------|
 | 0.2.0   | 2026-10-10 | Redesigned to v1.1 Model Schema (Part 3.5) |
 | 0.1.0   | 2026-10-09 | Initial envelope-based schemas |
-```
 
 ---
+
+
+## 10. v0.3.0 Changes (2026-10-10)
+
+Three schema additions, all justified by algorithm layer upgrades:
+
+| Change | File | Reason |
+|--------|------|--------|
+| Add `canopy_coverage_ratio` | `network.schema.json` | Canopy-adjusted walkability. Enables Planet narrative: shaded corridors reduce perceived walking impedance. |
+| Add `population.schema.json` | new | Demographic-weighted demand. Used by Huff gravity model and affinity mismatch detection. |
+| Add `footfall_conversion_rm_per_person` | `asset_metrics.schema.json` | Detects "traffic without value" — high footfall but low revenue = Layer 2 Low Value Realisation. |
+| Add `maintenance_surge_rm` | `asset_metrics.schema.json` | Aging escalation. Old assets with rising maintenance → retrofit/repurpose trigger. |
+
+Deferred to v0.4.0:
+- `tenants.csv` (tenant diversity index)
+- `pedestrian_flow` fields (congestion analysis)
+- `environmental_observations.csv` (rainfall, flood risk, solar exposure)
+
+### 10.1 Canopy-Adjusted Walkability
+
+The `canopy_coverage_ratio` field on each network edge modifies the *effective* walking distance:
+d_effective = length_m * (1 - gamma * canopy_coverage_ratio)
+
+text
+
+Default `gamma = 0.3`. This means a fully shaded edge is perceived as 30% shorter than an unshaded edge of the same physical length.
+
+### 10.2 Huff Gravity Model
+
+Population clusters from `population.geojson` are the demand nodes. Commercial assets from `assets.csv` are the supply nodes. Attractiveness `S_i = lettable_area_m2`.
+
+For each demand node `j` and each supply node `i`:
+P(i|j) = (S_i^alpha / d_ij^beta) / sum_k (S_k^alpha / d_kj^beta)
+effective_demand_i = sum_j (P(i|j) * population_j)
+
+text
+
+Defaults: `alpha = 1.0`, `beta = 2.0`.
+
+### 10.3 Population-Based Demand
+
+`population.geojson` replaces the flat `capacity` proxy. Each cluster has age bands and household size. B3 uses:
+
+- Total population → Huff gravity demand weight
+- Age distribution → affinity mismatch (Phase 2)
+- Median income → affordable rent capacity (Phase 2)
+
+```

@@ -55,3 +55,26 @@ construction_defaults:
   pedestrian_upgrade:   { start_offset: 0, duration_months: 6,  during_status: "partial" }
   new_development:      { start_offset: 0, duration_months: 36, during_status: "unavailable" }
   delay_development:    { start_offset: 0, duration_months: 0,  during_status: "operational" }
+
+# v0.3.0 additions
+
+accessibility:
+  walking_speed_m_per_min: 80
+  catchment_minutes: [5, 10, 15]
+  canopy_impedance_gamma: 0.30       # NEW — perceived distance reduction per unit canopy
+  falloff_threshold_m: 800            # NEW — Gaussian falloff characteristic distance
+
+huff:
+  alpha: 1.0                          # NEW — attractiveness exponent
+  beta: 2.0                           # NEW — distance decay exponent
+
+occupancy_dynamics:
+  lambda: 0.35
+  critical_threshold: 0.30            # NEW — below this, death spiral accelerates
+  kappa: 0.50                         # NEW — death spiral acceleration coefficient
+
+asset_aging:
+  alpha: 0.03                         # NEW — annual maintenance escalation rate
+
+deadspace_spillover:
+  theta: 0.10                         # NEW — lagged spillover coefficient (Phase 3)

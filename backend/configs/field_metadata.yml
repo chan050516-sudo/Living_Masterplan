@@ -62,6 +62,23 @@ asset_metrics:
   performance_score:        { tier: 2, source: derived, unit: 0-100 }
   delta_score:              { tier: 3, source: simulated, unit: score }
 
+  footfall_conversion_rm_per_person: { tier: 2, source: derived, unit: "RM/person/day" }
+  maintenance_surge_rm: { tier: 2, source: derived, unit: RM }
+
+population:
+  population_id:      { tier: null, source: identity, unit: null }
+  asset_id:           { tier: null, source: identity, unit: null }
+  total_population:   { tier: 1, source: observed, unit: count }
+  age_0_14:           { tier: 1, source: observed, unit: count }
+  age_15_64:          { tier: 1, source: observed, unit: count }
+  age_65_plus:        { tier: 1, source: observed, unit: count }
+  median_income_rm:   { tier: 1, source: observed, unit: RM }
+  household_size:     { tier: 1, source: observed, unit: person }
+  source:             { tier: null, source: identity, unit: null }
+
+network:
+  canopy_coverage_ratio: { tier: 1, source: observed, unit: ratio }
+
 development_projects:
   project_id:               { tier: null, source: identity, unit: null }
   project_status:           { tier: null, source: identity, unit: null }

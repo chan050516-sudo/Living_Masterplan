@@ -1,6 +1,6 @@
 asset_id,asset_type,parcel_id,building_id,asset_name,land_use,development_phase,status,completion_year,target_demographic,floor_area_m2,lettable_area_m2,land_area_m2,capex_initial_rm,opex_annual_rm,maintenance_annual_rm,capacity,data_completeness,data_sources
-B-03,commercial,P-B03,BLD-B03,Commercial Lot B-03,commercial,2,existing,2024,mixed,6800,5200,2400,45000000,820000,180000,80,0.78,"property_records;osm;mock_business"
-F-02,community_facility,P-F02,BLD-F02,Community Facility F-02,community_facility,2,existing,2024,families,1200,1200,1800,6000000,280000,90000,200,0.82,"property_records;osm;mock_facility"
-P-05,undeveloped_parcel,P-05,,Undeveloped Parcel P-05,undeveloped,,planned,,unknown,0,0,3600,0,0,0,0,0.55,"osm"
-G-01,green_space,P-G01,,Green Space G-01,green_space,,existing,,public,0,0,5200,3000000,80000,40000,0,0.74,"osm;mock_environmental"
-R-01,residential,P-R01,BLD-R01,Residential Catchment R-01,residential,1,existing,2023,families,42000,40000,14000,180000000,3200000,800000,480,0.81,"property_records;osm"
+B-03,commercial,P-B03,BLD-B03,Commercial Lot B-03,commercial,2.0,existing,2024.0,mixed,6800,5200,2400,45000000,820000,180000,80,0.78,property_records;osm;mock_business
+F-02,community_facility,P-F02,BLD-F02,Community Facility F-02,community_facility,2.0,existing,2024.0,families,1200,1200,1800,6000000,280000,90000,200,0.82,property_records;osm;mock_facility
+P-05,undeveloped_parcel,P-05,,Undeveloped Parcel P-05,undeveloped,,planned,,unknown,0,0,3600,0,0,0,0,0.55,osm
+G-01,green_space,P-G01,,Green Space G-01,green_space,,existing,,public,0,0,5200,3000000,80000,40000,0,0.74,osm;mock_environmental
+R-01,residential,P-R01,BLD-R01,Residential Catchment R-01,residential,1.0,existing,2023.0,families,42000,40000,14000,180000000,3200000,800000,480,0.81,property_records;osm

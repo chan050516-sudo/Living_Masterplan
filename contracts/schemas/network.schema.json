@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/network.schema.json",
   "title": "network.geojson",
-  "description": "Spatial layer: pedestrian / road network edges. Used by B3 accessibility.",
+  "description": "Spatial layer: pedestrian / road network edges. canopy_coverage_ratio is required for canopy-adjusted walkability.",
   "type": "object",
   "required": ["type", "metadata", "features"],
   "properties": {
@@ -32,7 +32,10 @@
   "$defs": {
     "NetworkProperties": {
       "type": "object",
-      "required": ["edge_id", "edge_type", "from_node", "to_node", "length_m", "access_type"],
+      "required": [
+        "edge_id", "edge_type", "from_node", "to_node",
+        "length_m", "access_type", "canopy_coverage_ratio"
+      ],
       "properties": {
         "edge_id": { "type": "string", "pattern": "^E-" },
         "edge_type": { "enum": ["pedestrian", "road", "transit"] },
@@ -40,7 +43,13 @@
         "to_node": { "type": "string", "pattern": "^N-" },
         "length_m": { "type": "number", "minimum": 0 },
         "walk_speed_kmh": { "type": "number", "minimum": 0, "default": 4.5 },
-        "access_type": { "enum": ["public", "private", "restricted"] }
+        "access_type": { "enum": ["public", "private", "restricted"] },
+        "canopy_coverage_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fraction of edge shaded by canopy. 0 = no shade, 1 = fully shaded."
+        }
       }
     }
   }

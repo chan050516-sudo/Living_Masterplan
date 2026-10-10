@@ -2,7 +2,6 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/asset_metrics.schema.json",
   "title": "asset_metrics.csv",
-  "description": "Time-series schema for asset_metrics.csv — one row per asset per year. B3/B4/B5 write here.",
   "type": "object",
   "required": ["asset_id", "year", "metric_source", "model_version"],
   "properties": {
@@ -13,11 +12,13 @@
     "vacancy_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "vacancy_duration_months": { "type": ["number", "null"], "minimum": 0 },
     "footfall_daily": { "type": ["number", "null"], "minimum": 0 },
+    "footfall_conversion_rm_per_person": { "type": ["number", "null"] },
     "utilisation_rate": { "type": ["number", "null"], "minimum": 0 },
 
     "rental_income_rm": { "type": ["number", "null"] },
     "noi_rm": { "type": ["number", "null"] },
     "noi_yield": { "type": ["number", "null"] },
+    "maintenance_surge_rm": { "type": ["number", "null"] },
 
     "accessibility_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
     "service_coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
@@ -39,9 +40,7 @@
     "performance_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
     "delta_score": { "type": ["number", "null"] },
 
-    "metric_source": {
-      "enum": ["observed", "derived", "assumed", "simulated"]
-    },
+    "metric_source": { "enum": ["observed", "derived", "assumed", "simulated"] },
     "model_version": { "type": "string" }
   }
 }

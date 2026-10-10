@@ -1,0 +1,17 @@
+version: "0.3.0"
+base: "mock"
+
+geometry:
+  parcels:      "geometry/parcels.geojson"
+  buildings:    "geometry/buildings.geojson"
+  network:      "geometry/network.geojson"
+  green_blue:   "geometry/green_blue.geojson"
+  amenities:    "geometry/amenities.geojson"
+  population:   "geometry/population.geojson"
+
+business:
+  assets:                  "business/assets.csv"
+  asset_metrics:           "business/asset_metrics.csv"
+  development_projects:    "business/development_projects.csv"
+  development_candidates:  "business/development_candidates.csv"
+  interventions:           "business/interventions.csv"
