@@ -1,0 +1,25 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "schema_version": "0.2.0",
+    "region_id": "elmina_west",
+    "storage_crs": "EPSG:4326",
+    "analysis_crs": "EPSG:32647",
+    "generated_at": "2026-10-10T00:00:00+08:00"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "A-T01",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [101.5205, 3.1595]
+      },
+      "properties": {
+        "amenity_id": "A-T01",
+        "amenity_type": "bus_stop",
+        "capacity": 200
+      }
+    }
+  ]
+}

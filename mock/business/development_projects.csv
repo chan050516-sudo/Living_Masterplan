@@ -1,0 +1,2 @@
+project_id,parcel_id,asset_id,project_name,project_status,planned_start_year,planned_delivery_year,gfa_m2,units,land_use,capex_rm,scenario_dependency
+PRJ-P3,P-PHASE3,,Phase 3 Expansion,proposed,2027,2030,12000,80,commercial,2700000,current_plan
