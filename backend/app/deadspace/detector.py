@@ -1,0 +1,50 @@
+"""B6 — per-asset deadspace detection."""
+
+from .layer1 import evaluate as layer1_eval
+from .layer2 import evaluate as layer2_eval
+from .layer3 import evaluate as layer3_eval
+from .factors import compute_factors
+from .evidence import build_evidence
+from .status import decide_status
+
+
+def detect_deadspace_for_asset(
+    asset,
+    metrics,
+    score_record,
+    assumptions,
+) -> dict:
+    """
+    asset:         Series from assets.csv
+    metrics:       Series from asset_metrics (enriched)
+    score_record:  dict produced by B5 (has component_scores, weights_used)
+    assumptions:   loaded assumptions.yml (used for thresholds)
+    """
+    atype = asset["asset_type"]
+    ds_cfg = assumptions.get("deadspace", {})
+    l1_t = ds_cfg.get("layer1", {})
+    l2_t = ds_cfg.get("layer2", {})
+
+    layer1 = layer1_eval(atype, metrics.to_dict(), thresholds=l1_t)
+    layer2 = layer2_eval(atype, asset.to_dict(), metrics.to_dict(), thresholds=l2_t)
+    layer3 = layer3_eval(atype)
+
+    status = decide_status(atype, layer1, layer2, layer3)
+
+    component_scores = score_record.get("component_scores", {})
+    weights_used = score_record.get("weights_used", {})
+    factors = compute_factors(component_scores, weights_used)
+    evidence = build_evidence(atype, metrics.to_dict())
+
+    return {
+        "asset_id": asset["asset_id"],
+        "year": int(metrics["year"]),
+        "status": status,
+        "score": float(score_record["overall_score"]),
+        "layer1": layer1,
+        "layer2": layer2,
+        "layer3": layer3,
+        "contributing_factors": factors,
+        "evidence": evidence,
+        "model_version": "0.3.0",
+    }

@@ -78,3 +78,21 @@ asset_aging:
 
 deadspace_spillover:
   theta: 0.10                         # NEW — lagged spillover coefficient (Phase 3)
+
+
+# v0.3.0 — Deadspace thresholds
+deadspace:
+  layer1:
+    overall_score_below: 40.0
+    occupancy_rate_below: 0.50
+    vacancy_duration_above_months: 12.0
+    utilisation_rate_below: 0.40
+    dsr_below: 0.80
+    demand_supply_gap_below: 0.0
+
+  layer2:
+    noi_below: 0.0
+    footfall_conversion_below: 0.5
+    service_coverage_below: 0.60
+    maintenance_surge_ratio_above: 1.5
+    accessibility_below: 50.0

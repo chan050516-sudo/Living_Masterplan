@@ -1,0 +1,258 @@
+[
+  {
+    "asset_id": "B-03",
+    "year": 2026,
+    "status": "deadspace_candidate",
+    "score": 0.0,
+    "layer1": {
+      "triggered": true,
+      "reasons": [
+        "low_overall_score",
+        "low_occupancy",
+        "long_vacancy",
+        "dsr_below_threshold"
+      ]
+    },
+    "layer2": {
+      "triggered": true,
+      "reasons": [
+        "negative_noi"
+      ]
+    },
+    "layer3": {
+      "actionable": true,
+      "candidate_interventions": [
+        "repurpose",
+        "retrofit",
+        "pedestrian_upgrade",
+        "green_corridor"
+      ]
+    },
+    "contributing_factors": [
+      {
+        "factor": "financial",
+        "contribution": 0.3958
+      },
+      {
+        "factor": "occupancy",
+        "contribution": 0.2827
+      },
+      {
+        "factor": "demand",
+        "contribution": 0.2262
+      },
+      {
+        "factor": "environment",
+        "contribution": 0.0905
+      },
+      {
+        "factor": "accessibility",
+        "contribution": 0.0048
+      }
+    ],
+    "evidence": [
+      "Occupancy: 21.0%",
+      "Vacancy: 14 months",
+      "Effective demand: 1,820",
+      "Effective supply: 5,200",
+      "DSR: 0.35",
+      "NOI (RM): -50,962",
+      "Footfall conversion (RM/person/day): 8.22",
+      "Maintenance surge (RM): 190,962",
+      "Accessibility score: 95.8",
+      "Thermal exposure: 80.0"
+    ],
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "F-02",
+    "year": 2026,
+    "status": "underperforming_facility",
+    "score": 83.39,
+    "layer1": {
+      "triggered": true,
+      "reasons": [
+        "low_utilisation"
+      ]
+    },
+    "layer2": {
+      "triggered": false,
+      "reasons": []
+    },
+    "layer3": {
+      "actionable": true,
+      "candidate_interventions": [
+        "retrofit",
+        "pedestrian_upgrade",
+        "repurpose"
+      ]
+    },
+    "contributing_factors": [
+      {
+        "factor": "utilisation",
+        "contribution": 0.4723
+      },
+      {
+        "factor": "coverage",
+        "contribution": 0.2895
+      },
+      {
+        "factor": "cost_efficiency",
+        "contribution": 0.1224
+      },
+      {
+        "factor": "accessibility",
+        "contribution": 0.1157
+      }
+    ],
+    "evidence": [
+      "Utilisation: 22.0%",
+      "Service coverage: 91.8%",
+      "Cost per user (RM): 23.04",
+      "Accessibility score: 91.8"
+    ],
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "P-05",
+    "year": 2026,
+    "status": "development_risk",
+    "score": 0.0,
+    "layer1": {
+      "triggered": true,
+      "reasons": [
+        "low_overall_score",
+        "negative_demand_supply_gap"
+      ]
+    },
+    "layer2": {
+      "triggered": true,
+      "reasons": [
+        "weak_future_demand"
+      ]
+    },
+    "layer3": {
+      "actionable": true,
+      "candidate_interventions": [
+        "new_development",
+        "delay_development",
+        "green_space"
+      ]
+    },
+    "contributing_factors": [
+      {
+        "factor": "demand",
+        "contribution": 0.9033
+      },
+      {
+        "factor": "accessibility",
+        "contribution": 0.0967
+      },
+      {
+        "factor": "development_feasibility",
+        "contribution": 0.0
+      }
+    ],
+    "evidence": [
+      "Developable area (m2): 3,600",
+      "Potential GFA (m2): 5,400",
+      "Demand-supply gap: -4,326",
+      "Infrastructure cost (RM): 720,000",
+      "Accessibility score: 86.6"
+    ],
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "G-01",
+    "year": 2026,
+    "status": "deadspace_candidate",
+    "score": 7.14,
+    "layer1": {
+      "triggered": true,
+      "reasons": [
+        "low_overall_score"
+      ]
+    },
+    "layer2": {
+      "triggered": false,
+      "reasons": []
+    },
+    "layer3": {
+      "actionable": true,
+      "candidate_interventions": [
+        "green_corridor",
+        "pedestrian_upgrade"
+      ]
+    },
+    "contributing_factors": [
+      {
+        "factor": "canopy",
+        "contribution": 0.3825
+      },
+      {
+        "factor": "thermal",
+        "contribution": 0.3012
+      },
+      {
+        "factor": "usage",
+        "contribution": 0.2988
+      },
+      {
+        "factor": "accessibility",
+        "contribution": 0.0176
+      },
+      {
+        "factor": "green_coverage",
+        "contribution": 0.0
+      }
+    ],
+    "evidence": [
+      "Green coverage: 100.0%",
+      "Canopy coverage: 8.0%",
+      "Green space per capita (m2): 2.86",
+      "Accessibility score: 95.8",
+      "Thermal exposure: 72.0"
+    ],
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "R-01",
+    "year": 2026,
+    "status": "healthy",
+    "score": 92.99,
+    "layer1": {
+      "triggered": false,
+      "reasons": []
+    },
+    "layer2": {
+      "triggered": false,
+      "reasons": []
+    },
+    "layer3": {
+      "actionable": true,
+      "candidate_interventions": [
+        "retrofit",
+        "pedestrian_upgrade"
+      ]
+    },
+    "contributing_factors": [
+      {
+        "factor": "occupancy",
+        "contribution": 0.5556
+      },
+      {
+        "factor": "demand",
+        "contribution": 0.4444
+      },
+      {
+        "factor": "accessibility",
+        "contribution": 0.0
+      }
+    ],
+    "evidence": [
+      "Occupancy: 92.0%",
+      "Accessibility score: 100.0"
+    ],
+    "model_version": "0.3.0"
+  }
+]
