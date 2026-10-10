@@ -1,0 +1,122 @@
+[
+  {
+    "asset_id": "B-03",
+    "asset_type": "commercial",
+    "overall_score": 0.0,
+    "financial_score": 0.0,
+    "environmental_score": 20.0,
+    "social_score": 31.93,
+    "component_scores": {
+      "financial": 0.0,
+      "occupancy": 0.0,
+      "demand": 0.0,
+      "accessibility": 95.8,
+      "environment": 20.0
+    },
+    "weights_used": {
+      "financial": 0.35,
+      "occupancy": 0.25,
+      "demand": 0.2,
+      "accessibility": 0.1,
+      "environment": 0.1
+    },
+    "data_completeness": 1.0,
+    "confidence": "high",
+    "year": 2026,
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "F-02",
+    "asset_type": "community_facility",
+    "overall_score": 83.39,
+    "financial_score": 88.48,
+    "environmental_score": null,
+    "social_score": 82.94,
+    "component_scores": {
+      "utilisation": 73.33,
+      "coverage": 83.65,
+      "accessibility": 91.83,
+      "cost_efficiency": 88.48
+    },
+    "weights_used": {
+      "utilisation": 0.29411764705882354,
+      "coverage": 0.29411764705882354,
+      "accessibility": 0.23529411764705885,
+      "cost_efficiency": 0.17647058823529413
+    },
+    "data_completeness": 0.8,
+    "confidence": "medium",
+    "year": 2026,
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "P-05",
+    "asset_type": "undeveloped_parcel",
+    "overall_score": 0.0,
+    "financial_score": 100.0,
+    "environmental_score": null,
+    "social_score": 43.31,
+    "component_scores": {
+      "development_feasibility": 100.0,
+      "demand": 0.0,
+      "accessibility": 86.62
+    },
+    "weights_used": {
+      "development_feasibility": 0.39999999999999997,
+      "demand": 0.3333333333333333,
+      "accessibility": 0.26666666666666666
+    },
+    "data_completeness": 0.6,
+    "confidence": "medium",
+    "year": 2026,
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "G-01",
+    "asset_type": "green_space",
+    "overall_score": 7.14,
+    "financial_score": null,
+    "environmental_score": 35.33,
+    "social_score": 95.8,
+    "component_scores": {
+      "green_coverage": 100.0,
+      "canopy": 8.57,
+      "accessibility": 95.8,
+      "thermal": 28.0,
+      "usage": 4.76
+    },
+    "weights_used": {
+      "green_coverage": 0.25,
+      "canopy": 0.2,
+      "accessibility": 0.2,
+      "thermal": 0.2,
+      "usage": 0.15
+    },
+    "data_completeness": 1.0,
+    "confidence": "high",
+    "year": 2026,
+    "model_version": "0.3.0"
+  },
+  {
+    "asset_id": "R-01",
+    "asset_type": "residential",
+    "overall_score": 92.99,
+    "financial_score": null,
+    "environmental_score": null,
+    "social_score": 94.29,
+    "component_scores": {
+      "occupancy": 91.43,
+      "demand": 91.43,
+      "accessibility": 100.0
+    },
+    "weights_used": {
+      "occupancy": 0.45454545454545453,
+      "demand": 0.36363636363636365,
+      "accessibility": 0.18181818181818182
+    },
+    "data_completeness": 0.6,
+    "confidence": "medium",
+    "year": 2026,
+    "model_version": "0.3.0"
+  }
+]

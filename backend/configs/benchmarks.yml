@@ -34,3 +34,4 @@ residential:
   sell_through:                 { L: 0.50, U: 1.00, note: "market research" }
   occupancy_rate:               { L: 0.60, U: 0.95, note: "market research" }
   energy_intensity_kwh_m2:      { L: 50.0, U: 200.0, note: "kWh/m2/year" }
+  noi_yield:                    { L: 0.02, U: 0.08, note: "market research" }   # NEW
