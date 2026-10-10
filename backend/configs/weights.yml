@@ -60,6 +60,6 @@ objectives:
 # v0.3.0 additions
 
 scoring_options:
-  hard_gate_threshold: 20             # NEW — if any component < 20, cap overall
-  hard_gate_multiplier: 1.5           # NEW — overall <= multiplier * min(component)
-  use_geometric_mean: false           # NEW — if true, use Cobb-Douglas instead of WLC
+  hard_gate_threshold: 5
+  hard_gate_multiplier: 1.5
+  use_geometric_mean: false

@@ -2,16 +2,16 @@
   {
     "asset_id": "B-03",
     "asset_type": "commercial",
-    "overall_score": 0.0,
-    "financial_score": 0.0,
-    "environmental_score": 20.0,
-    "social_score": 31.93,
+    "overall_score": 27.87,
+    "financial_score": 26.24,
+    "environmental_score": 33.33,
+    "social_score": 40.33,
     "component_scores": {
-      "financial": 0.0,
-      "occupancy": 0.0,
-      "demand": 0.0,
+      "financial": 26.24,
+      "occupancy": 14.67,
+      "demand": 10.53,
       "accessibility": 95.8,
-      "environment": 20.0
+      "environment": 33.33
     },
     "weights_used": {
       "financial": 0.35,

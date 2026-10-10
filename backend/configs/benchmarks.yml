@@ -4,12 +4,12 @@
 version: "0.2.0"
 
 commercial:
-  occupancy_rate:               { L: 0.40, U: 0.85, note: "market research" }
-  vacancy_duration_months:      { L: 0.00, U: 18.0, note: "developer historical" }
-  dsr:                          { L: 0.60, U: 1.20, note: "planning assumption" }
-  accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
-  thermal_exposure:             { L: 0.00, U: 100.0, note: "normalized" }
-  noi_yield:                    { L: 0.02, U: 0.08, note: "market research" }
+  occupancy_rate:               { L: 0.10, U: 0.85, note: "market research — L allows distressed assets" }
+  vacancy_duration_months:      { L: 0.00, U: 18.0 }
+  dsr:                          { L: 0.25, U: 1.20, note: "planning assumption" }
+  accessibility_score:          { L: 0.00, U: 100.0 }
+  thermal_exposure:             { L: 0.00, U: 120.0, note: "allows moderate exposure" }
+  noi_yield:                    { L: -0.03, U: 0.08, note: "negative = distressed; -3% is sector floor" }
 
 community_facility:
   utilisation_rate:             { L: 0.30, U: 0.80, H: 1.00, note: "target range" }
