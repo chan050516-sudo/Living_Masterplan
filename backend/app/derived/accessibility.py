@@ -1,30 +1,31 @@
-"""Canopy-adjusted walkability with Gaussian falloff."""
+"""Canopy-adjusted walkability with Gaussian falloff.
+
+The canopy adjustment (Fix 1+4) is applied at graph construction time:
+edges store `effective_length_m = length_m * (1 - gamma * canopy)`. All
+distance queries in this module therefore use the effective weight directly.
+"""
 
 import math
 from typing import List, Tuple, Optional
 import networkx as nx
 
 
-def effective_distance(G: nx.Graph, source: str, target: str, gamma: float = 0.3) -> Optional[float]:
+def effective_distance(G: nx.Graph, source: str, target: str) -> Optional[float]:
     """
-    Shortest path where each edge contributes:
-        d_eff = length_m * (1 - gamma * canopy_coverage_ratio)
-    Returns None if unreachable.
+    Single-pair shortest path length using the effective (canopy-adjusted)
+    edge weight.
+
+    NOTE: for batch queries, prefer a precomputed distance_matrix
+    (see derived.engine._compute_distance_matrix) to avoid recomputation.
     """
     if source not in G or target not in G:
         return None
     try:
-        path = nx.shortest_path(G, source=source, target=target, weight="length_m")
+        return nx.shortest_path_length(
+            G, source=source, target=target, weight="effective_length_m"
+        )
     except nx.NetworkXNoPath:
         return None
-
-    total = 0.0
-    for u, v in zip(path[:-1], path[1:]):
-        edge = G.edges[u, v]
-        d_phys = edge["length_m"]
-        canopy = edge.get("canopy", 0.0)
-        total += d_phys * (1.0 - gamma * canopy)
-    return total
 
 
 def gaussian_falloff(d_effective: Optional[float], d_threshold: float) -> float:
@@ -35,23 +36,30 @@ def gaussian_falloff(d_effective: Optional[float], d_threshold: float) -> float:
 
 
 def asset_accessibility(
-    G: nx.Graph,
+    distance_matrix: dict,
     asset_node: str,
     demand_nodes: List[Tuple[str, float]],
     d_threshold: float = 800.0,
-    gamma: float = 0.3,
 ) -> float:
     """
-    Weighted accessibility score 0-100.
-    demand_nodes: list of (node_id, weight). Weight = population.
+    Weighted accessibility score in [0, 100].
+
+    distance_matrix : { node: { node: effective_distance } }
+                      precomputed via nx.all_pairs_dijkstra_path_length
+    asset_node      : the asset's nearest walk node
+    demand_nodes    : list of (node_id, weight), weight = population
     """
+    if asset_node not in distance_matrix:
+        return 0.0
+
     total_weight = sum(w for _, w in demand_nodes)
     if total_weight <= 0:
         return 0.0
 
+    row = distance_matrix[asset_node]
     score = 0.0
     for node, w in demand_nodes:
-        d_eff = effective_distance(G, asset_node, node, gamma=gamma)
+        d_eff = row.get(node)
         f = gaussian_falloff(d_eff, d_threshold)
         score += w * f
 

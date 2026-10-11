@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 import geopandas as gpd
+import networkx as nx
 import pandas as pd
 
 from ..config import load_paths, load_benchmarks, load_assumptions
@@ -31,6 +32,14 @@ DERIVERS = {
 }
 
 
+def compute_distance_matrix(G: nx.Graph) -> dict:
+    """
+    Fix 1+4: all-pairs shortest paths using the canopy-adjusted edge weight.
+    Returns { node: { node: effective_distance } }.
+    """
+    return dict(nx.all_pairs_dijkstra_path_length(G, weight="effective_length_m"))
+
+
 def _compute_canopy_coverage(
     asset_id: str,
     asset_geom,
@@ -41,15 +50,8 @@ def _compute_canopy_coverage(
     Compute the canopy coverage ratio [0, 1] for a single asset.
 
     Strategy:
-      1. If green_blue has features explicitly tagged with this asset_id,
-         use them. (Typical for green space assets which own their polygon.)
-      2. Otherwise, spatially clip green_blue features to the asset's geometry.
-         (Typical for commercial/facility assets with trees in the same plot.)
-
-    Returns None when inputs are missing or land_area is invalid.
-
-    Note: The strategy is data-driven. When the input dataset changes,
-    the same logic applies; no asset-specific hardcoding.
+      1. Explicit asset_id match in green_blue.
+      2. Spatial overlay of green_blue onto the asset geometry.
     """
     if green_blue_gdf is None or green_blue_gdf.empty:
         return None
@@ -65,14 +67,12 @@ def _compute_canopy_coverage(
     canopy_m2 = 0.0
     has_data = False
 
-    # Strategy 1: explicit asset_id match in green_blue
     if "asset_id" in green_blue_gdf.columns:
         by_id = green_blue_gdf[green_blue_gdf["asset_id"] == asset_id]
         if not by_id.empty:
             canopy_m2 = float(by_id["canopy_m2"].fillna(0).sum())
             has_data = True
 
-    # Strategy 2: spatial overlay against the asset's polygon
     if not has_data and asset_geom is not None:
         try:
             clipped = gpd.clip(green_blue_gdf, asset_geom)
@@ -89,10 +89,7 @@ def _compute_canopy_coverage(
 
 
 def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.DataFrame:
-    """
-    Load all data, compute derived metrics for every asset, return a DataFrame
-    ready to merge back into asset_metrics.csv.
-    """
+    """Load all data, compute derived metrics for every asset."""
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     paths = load_paths()
     benchmarks = load_benchmarks()
@@ -101,20 +98,24 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     geometry = load_geometry(repo_root, paths)
     business = load_business(repo_root, paths)
 
-    # --- Walk graph ---
+    # --- Read gamma once ---
+    gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
+
+    # --- Walk graph with canopy-adjusted weights (Fix 1+4) ---
     network_analysis = geometry["network"]["analysis"]
-    G = build_walk_graph(network_analysis)
+    G = build_walk_graph(network_analysis, gamma=gamma)
     nodes_gdf = extract_nodes(network_analysis)
 
-    # --- Green/blue layer for canopy computation ---
+    # --- All-pairs distance matrix (Fix 1+4) ---
+    distance_matrix = compute_distance_matrix(G)
+
     green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
 
-    # --- Assign nearest node to each asset + compute canopy ---
+    # --- Assign nearest node + compute canopy ---
     asset_nodes = {}
     asset_canopy = {}
     for _, asset in business["assets"].iterrows():
         aid = asset["asset_id"]
-
         parcels = geometry["parcels"]["analysis"]
         match = parcels[parcels["asset_id"] == aid]
         if match.empty:
@@ -122,11 +123,7 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             continue
 
         asset_geom = match.iloc[0].geometry
-
-        # Nearest walk node
         asset_nodes[aid] = find_nearest_node(asset_geom, nodes_gdf)
-
-        # Canopy coverage (P0.4)
         asset_canopy[aid] = _compute_canopy_coverage(
             asset_id=aid,
             asset_geom=asset_geom,
@@ -134,7 +131,7 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             land_area_m2=asset.get("land_area_m2"),
         )
 
-    # --- Assign nearest node to each population cluster ---
+    # --- Nearest node for each population cluster ---
     pop_analysis = geometry["population"]["analysis"]
     pop_nodes = []
     for idx, pop in pop_analysis.iterrows():
@@ -144,7 +141,6 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     for idx, node in pop_nodes:
         pop_analysis.at[idx, "_nearest_node"] = node
 
-    # --- Demand nodes for Huff / accessibility ---
     demand_nodes = []
     for _, pop in pop_analysis.iterrows():
         demand_nodes.append({
@@ -153,7 +149,6 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             "population": float(pop["total_population"]),
         })
 
-    # --- Supply nodes for Huff ---
     supply_nodes = []
     for _, asset in business["assets"].iterrows():
         if asset["asset_type"] != "commercial":
@@ -164,22 +159,20 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
         })
 
-    # --- Huff gravity ---
-    gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
+    # --- Huff gravity (uses distance_matrix) ---
     alpha = assumptions.get("huff", {}).get("alpha", 1.0)
     beta = assumptions.get("huff", {}).get("beta", 2.0)
-
     huff_results = huff_gravity(
-        G, demand_nodes, supply_nodes, alpha=alpha, beta=beta, gamma=gamma,
+        distance_matrix, demand_nodes, supply_nodes, alpha=alpha, beta=beta,
     )
 
-    # --- Accessibility per asset ---
+    # --- Accessibility (uses distance_matrix) ---
     d_threshold = assumptions.get("accessibility", {}).get("falloff_threshold_m", 800.0)
     demand_weighted = [(d["node"], d["population"]) for d in demand_nodes if d["node"]]
     accessibility_scores = {}
     for asset_id, node in asset_nodes.items():
         accessibility_scores[asset_id] = asset_accessibility(
-            G, node, demand_weighted, d_threshold=d_threshold, gamma=gamma,
+            distance_matrix, node, demand_weighted, d_threshold=d_threshold,
         )
 
     # --- Derive metrics per asset ---
@@ -206,6 +199,7 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             graph=G,
             year=year,
             canopy_coverage=asset_canopy.get(asset["asset_id"]),
+            distance_matrix=distance_matrix,
         )
         rows.append(deriver(ctx))
 

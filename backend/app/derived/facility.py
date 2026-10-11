@@ -1,7 +1,8 @@
-"""Community facility derived metrics — F-02."""
+"""Community facility derived metrics."""
 
 import math
 from .context import DerivationContext
+from .accessibility import effective_distance, gaussian_falloff
 
 
 def derive_facility(ctx: DerivationContext) -> dict:
@@ -30,11 +31,8 @@ def derive_facility(ctx: DerivationContext) -> dict:
 
     utilisation = _get("utilisation_rate")
     accessibility = ctx.accessibility_score
-
-    # Service coverage: target population served / target population
     service_coverage = _service_coverage(ctx)
 
-    # Cost per user
     opex = asset.get("opex_annual_rm")
     maintenance = asset.get("maintenance_annual_rm")
     annual_users = None
@@ -58,21 +56,16 @@ def derive_facility(ctx: DerivationContext) -> dict:
         "cost_per_user_rm": cost_per_user,
         "accessibility_score": accessibility,
         "metric_source": "derived",
-        "model_version": "0.3.0",
+        "model_version": "0.3.2",
     }
 
 
 def _service_coverage(ctx: DerivationContext) -> float:
     """
-    Fraction of target population within 10-min walk.
-    Uses demand nodes from population.geojson and the graph.
+    Fraction of target population within walking catchment.
+
+    Uses the precomputed distance matrix when available (Fix 1+4).
     """
-    from .accessibility import effective_distance, gaussian_falloff
-
-    G = ctx.graph
-    asset_id = ctx.asset["asset_id"]
-
-    # Find the asset's nearest node (from context — set by engine)
     asset_node = ctx.asset.get("_walk_node")
     if not asset_node:
         return 0.0
@@ -84,21 +77,34 @@ def _service_coverage(ctx: DerivationContext) -> float:
     if pop_gdf is None or pop_gdf.empty:
         return 0.0
 
-    # Sum population weighted by proximity
-    total_pop = 0.0
-    covered_pop = 0.0
-    gamma = ctx.assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
     threshold = ctx.assumptions.get("accessibility", {}).get("falloff_threshold_m", 800.0)
 
-    for _, pop in pop_gdf.iterrows():
-        pop_node = pop.get("_nearest_node")
-        if not pop_node:
-            continue
-        pop_count = float(pop.get("total_population", 0))
-        total_pop += pop_count
-        d_eff = effective_distance(G, asset_node, pop_node, gamma=gamma)
-        f = gaussian_falloff(d_eff, threshold)
-        covered_pop += pop_count * f
+    total_pop = 0.0
+    covered_pop = 0.0
+
+    if ctx.distance_matrix is not None and asset_node in ctx.distance_matrix:
+        row = ctx.distance_matrix[asset_node]
+        for _, pop in pop_gdf.iterrows():
+            pop_node = pop.get("_nearest_node")
+            if not pop_node:
+                continue
+            pop_count = float(pop.get("total_population", 0))
+            total_pop += pop_count
+            d_eff = row.get(pop_node)
+            f = gaussian_falloff(d_eff, threshold)
+            covered_pop += pop_count * f
+    else:
+        # Fallback: single-pair queries
+        G = ctx.graph
+        for _, pop in pop_gdf.iterrows():
+            pop_node = pop.get("_nearest_node")
+            if not pop_node:
+                continue
+            pop_count = float(pop.get("total_population", 0))
+            total_pop += pop_count
+            d_eff = effective_distance(G, asset_node, pop_node)
+            f = gaussian_falloff(d_eff, threshold)
+            covered_pop += pop_count * f
 
     if total_pop <= 0:
         return 0.0

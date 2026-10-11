@@ -77,7 +77,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "derived",
-          "model_version": "0.3.0",
+          "model_version": "0.3.2",
           "utilisation_rate": 0.22,
           "service_coverage": 0.9182604855289411,
           "cost_per_user_rm": 23.038605230386054,
@@ -224,7 +224,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2026,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -248,7 +248,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2026,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -270,7 +270,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2026,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -296,7 +296,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2026,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "R-01": {
           "asset_id": "R-01",
@@ -318,7 +318,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2026,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         }
       }
     },
@@ -343,7 +343,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 0.2574,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -380,7 +380,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 1.0,
           "service_coverage": 0.9182604855289411,
           "cost_per_user_rm": 5.068493150684931,
@@ -417,7 +417,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -454,7 +454,7 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -475,8 +475,8 @@
         "R-01": {
           "asset_id": "R-01",
           "year": 2027,
-          "occupancy_rate": 0.773,
-          "vacancy_rate": 0.22699999999999998,
+          "occupancy_rate": 0.92,
+          "vacancy_rate": 0.07999999999999996,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -491,8 +491,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.773,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.92,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -535,7 +535,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2027,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -559,7 +559,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2027,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -581,7 +581,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2027,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -607,18 +607,18 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2027,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "R-01": {
           "asset_id": "R-01",
           "asset_type": "residential",
-          "overall_score": 58.62,
+          "overall_score": 92.99,
           "financial_score": null,
           "environmental_score": null,
-          "social_score": 66.29,
+          "social_score": 94.29,
           "component_scores": {
-            "occupancy": 49.43,
-            "demand": 49.43,
+            "occupancy": 91.43,
+            "demand": 91.43,
             "accessibility": 100.0
           },
           "weights_used": {
@@ -629,7 +629,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2027,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         }
       }
     },
@@ -654,7 +654,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 0.29385162,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -675,8 +675,8 @@
         "F-02": {
           "asset_id": "F-02",
           "year": 2028,
-          "occupancy_rate": 0.825,
-          "vacancy_rate": 0.17500000000000004,
+          "occupancy_rate": 0.6540903397260274,
+          "vacancy_rate": 0.34590966027397263,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -691,10 +691,10 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.825,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.6540903397260274,
           "service_coverage": 0.9182604855289411,
-          "cost_per_user_rm": 6.143628061436281,
+          "cost_per_user_rm": 7.748919136778451,
           "developable_area_m2": NaN,
           "potential_gfa_m2": NaN,
           "demand_supply_gap": NaN,
@@ -712,8 +712,8 @@
         "P-05": {
           "asset_id": "P-05",
           "year": 2028,
-          "occupancy_rate": 0.825,
-          "vacancy_rate": 0.17500000000000004,
+          "occupancy_rate": 1.0,
+          "vacancy_rate": 0.0,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -728,8 +728,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.825,
+          "model_version": "0.3.2",
+          "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": 3600.0,
@@ -749,8 +749,8 @@
         "G-01": {
           "asset_id": "G-01",
           "year": 2028,
-          "occupancy_rate": 0.825,
-          "vacancy_rate": 0.17500000000000004,
+          "occupancy_rate": 1.0,
+          "vacancy_rate": 0.0,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -765,8 +765,8 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.825,
+          "model_version": "0.3.2",
+          "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -786,8 +786,8 @@
         "R-01": {
           "asset_id": "R-01",
           "year": 2028,
-          "occupancy_rate": 0.67745,
-          "vacancy_rate": 0.32255,
+          "occupancy_rate": 0.92,
+          "vacancy_rate": 0.07999999999999996,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -802,8 +802,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.67745,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.92,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -846,20 +846,20 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2028,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "F-02": {
           "asset_id": "F-02",
           "asset_type": "community_facility",
-          "overall_score": 89.05,
-          "financial_score": 96.93,
+          "overall_score": 92.58,
+          "financial_score": 96.13,
           "environmental_score": null,
-          "social_score": 87.66,
+          "social_score": 91.83,
           "component_scores": {
-            "utilisation": 87.5,
+            "utilisation": 100.0,
             "coverage": 83.65,
             "accessibility": 91.83,
-            "cost_efficiency": 96.93
+            "cost_efficiency": 96.13
           },
           "weights_used": {
             "utilisation": 0.29411764705882354,
@@ -870,7 +870,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -892,7 +892,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -918,18 +918,18 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2028,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "R-01": {
           "asset_id": "R-01",
           "asset_type": "residential",
-          "overall_score": 36.29,
+          "overall_score": 92.99,
           "financial_score": null,
           "environmental_score": null,
-          "social_score": 48.09,
+          "social_score": 94.29,
           "component_scores": {
-            "occupancy": 22.13,
-            "demand": 22.13,
+            "occupancy": 91.43,
+            "demand": 91.43,
             "accessibility": 100.0
           },
           "weights_used": {
@@ -940,7 +940,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         }
       }
     },
@@ -965,7 +965,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 0.18790930280257748,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -986,8 +986,8 @@
         "F-02": {
           "asset_id": "F-02",
           "year": 2030,
-          "occupancy_rate": 0.6373125,
-          "vacancy_rate": 0.36268750000000005,
+          "occupancy_rate": 0.28337489112832875,
+          "vacancy_rate": 0.7166251088716713,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1002,10 +1002,10 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.6373125,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.28337489112832875,
           "service_coverage": 0.9182604855289411,
-          "cost_per_user_rm": 7.9529165843835345,
+          "cost_per_user_rm": 17.88617590818807,
           "developable_area_m2": NaN,
           "potential_gfa_m2": NaN,
           "demand_supply_gap": NaN,
@@ -1023,8 +1023,8 @@
         "P-05": {
           "asset_id": "P-05",
           "year": 2030,
-          "occupancy_rate": 0.6373125,
-          "vacancy_rate": 0.36268750000000005,
+          "occupancy_rate": 1.0,
+          "vacancy_rate": 0.0,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1039,8 +1039,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.6373125,
+          "model_version": "0.3.2",
+          "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": 3600.0,
@@ -1060,8 +1060,8 @@
         "G-01": {
           "asset_id": "G-01",
           "year": 2030,
-          "occupancy_rate": 0.6373125,
-          "vacancy_rate": 0.36268750000000005,
+          "occupancy_rate": 1.0,
+          "vacancy_rate": 0.0,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1076,8 +1076,8 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.6373125,
+          "model_version": "0.3.2",
+          "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -1097,8 +1097,8 @@
         "R-01": {
           "asset_id": "R-01",
           "year": 2030,
-          "occupancy_rate": 0.574972625,
-          "vacancy_rate": 0.425027375,
+          "occupancy_rate": 0.92,
+          "vacancy_rate": 0.07999999999999996,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1113,8 +1113,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.574972625,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.92,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -1157,20 +1157,20 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2030,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "F-02": {
           "asset_id": "F-02",
           "asset_type": "community_facility",
-          "overall_score": 92.57,
-          "financial_score": 96.02,
+          "overall_score": 90.06,
+          "financial_score": 91.06,
           "environmental_score": null,
-          "social_score": 91.83,
+          "social_score": 89.98,
           "component_scores": {
-            "utilisation": 100.0,
+            "utilisation": 94.46,
             "coverage": 83.65,
             "accessibility": 91.83,
-            "cost_efficiency": 96.02
+            "cost_efficiency": 91.06
           },
           "weights_used": {
             "utilisation": 0.29411764705882354,
@@ -1181,7 +1181,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2030,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -1203,7 +1203,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2030,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -1229,18 +1229,18 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2030,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "R-01": {
           "asset_id": "R-01",
           "asset_type": "residential",
-          "overall_score": 0.0,
+          "overall_score": 92.99,
           "financial_score": null,
           "environmental_score": null,
-          "social_score": 33.33,
+          "social_score": 94.29,
           "component_scores": {
-            "occupancy": 0.0,
-            "demand": 0.0,
+            "occupancy": 91.43,
+            "demand": 91.43,
             "accessibility": 100.0
           },
           "weights_used": {
@@ -1251,7 +1251,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2030,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         }
       }
     },
@@ -1276,7 +1276,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
+          "model_version": "0.3.2",
           "utilisation_rate": 0.11706710667274409,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -1297,8 +1297,8 @@
         "F-02": {
           "asset_id": "F-02",
           "year": 2033,
-          "occupancy_rate": 0.5377094453125,
-          "vacancy_rate": 0.4622905546875,
+          "occupancy_rate": 0.06704559878170205,
+          "vacancy_rate": 0.932954401218298,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1313,10 +1313,10 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.5377094453125,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.06704559878170205,
           "service_coverage": 0.9182604855289411,
-          "cost_per_user_rm": 9.426081678255217,
+          "cost_per_user_rm": 75.59770130754973,
           "developable_area_m2": NaN,
           "potential_gfa_m2": NaN,
           "demand_supply_gap": NaN,
@@ -1334,8 +1334,8 @@
         "P-05": {
           "asset_id": "P-05",
           "year": 2033,
-          "occupancy_rate": 0.5377094453125,
-          "vacancy_rate": 0.4622905546875,
+          "occupancy_rate": 1.0,
+          "vacancy_rate": 0.0,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1350,8 +1350,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.5377094453125,
+          "model_version": "0.3.2",
+          "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": 3600.0,
@@ -1371,8 +1371,8 @@
         "G-01": {
           "asset_id": "G-01",
           "year": 2033,
-          "occupancy_rate": 0.5377094453125,
-          "vacancy_rate": 0.4622905546875,
+          "occupancy_rate": 1.0,
+          "vacancy_rate": 0.0,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1387,8 +1387,8 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.5377094453125,
+          "model_version": "0.3.2",
+          "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -1408,8 +1408,8 @@
         "R-01": {
           "asset_id": "R-01",
           "year": 2033,
-          "occupancy_rate": 0.520589357140625,
-          "vacancy_rate": 0.47941064285937496,
+          "occupancy_rate": 0.92,
+          "vacancy_rate": 0.07999999999999996,
           "vacancy_duration_months": NaN,
           "footfall_daily": NaN,
           "rental_income_per_visit_proxy": NaN,
@@ -1424,8 +1424,8 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.1",
-          "utilisation_rate": 0.520589357140625,
+          "model_version": "0.3.2",
+          "utilisation_rate": 0.92,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
           "developable_area_m2": NaN,
@@ -1468,20 +1468,20 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2033,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "F-02": {
           "asset_id": "F-02",
           "asset_type": "community_facility",
-          "overall_score": 92.44,
-          "financial_score": 95.29,
+          "overall_score": 63.76,
+          "financial_score": 62.2,
           "environmental_score": null,
-          "social_score": 91.83,
+          "social_score": 65.94,
           "component_scores": {
-            "utilisation": 100.0,
+            "utilisation": 22.35,
             "coverage": 83.65,
             "accessibility": 91.83,
-            "cost_efficiency": 95.29
+            "cost_efficiency": 62.2
           },
           "weights_used": {
             "utilisation": 0.29411764705882354,
@@ -1492,7 +1492,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2033,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -1514,7 +1514,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2033,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -1540,18 +1540,18 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2033,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         },
         "R-01": {
           "asset_id": "R-01",
           "asset_type": "residential",
-          "overall_score": 0.0,
+          "overall_score": 92.99,
           "financial_score": null,
           "environmental_score": null,
-          "social_score": 33.33,
+          "social_score": 94.29,
           "component_scores": {
-            "occupancy": 0.0,
-            "demand": 0.0,
+            "occupancy": 91.43,
+            "demand": 91.43,
             "accessibility": 100.0
           },
           "weights_used": {
@@ -1562,21 +1562,21 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2033,
-          "model_version": "0.3.1"
+          "model_version": "0.3.2"
         }
       }
     }
   },
   "comparison": {
     "capex": 0.0,
-    "projected_utilisation": 0.520589357140625,
+    "projected_utilisation": 0.06704559878170205,
     "npv": 0.0,
     "environmental_score": 0.0,
-    "social_score": 33.33,
-    "performance_score": 0.0,
-    "carbon_10y_tco2e": 25577.999999999996,
-    "delta_score": -92.99,
-    "time_to_impact_months": 0
+    "social_score": 65.94,
+    "performance_score": 63.76,
+    "carbon_10y_tco2e": 730.8,
+    "delta_score": -19.630000000000003,
+    "time_to_impact_months": 24
   },
   "map_diff": {
     "changed_assets": [
@@ -1589,5 +1589,5 @@
     "spillover_assets": [],
     "negative_assets": []
   },
-  "model_version": "0.3.1"
+  "model_version": "0.3.2"
 }
