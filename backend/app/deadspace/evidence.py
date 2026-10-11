@@ -1,6 +1,6 @@
 """Human-readable evidence strings for the diagnosis card.
 
-Each string MUST be safe to display in UI without further formatting.
+Phase 3 change: adds catchment profile evidence, drops score references.
 """
 
 
@@ -16,13 +16,16 @@ def _fmt(v, decimals=2):
     return f"{round(f, decimals)}"
 
 
-def build_evidence(asset_type: str, metrics: dict) -> list:
+def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
     lines = []
 
     def _add(label, key, suffix="", decimals=2):
         v = _fmt(metrics.get(key), decimals)
         if v is not None:
             lines.append(f"{label}: {v}{suffix}")
+
+    if subtype:
+        lines.append(f"Subtype: {subtype}")
 
     if asset_type == "commercial":
         occ = metrics.get("occupancy_rate")
@@ -31,14 +34,19 @@ def build_evidence(asset_type: str, metrics: dict) -> list:
         vac = metrics.get("vacancy_duration_months")
         if vac is not None:
             lines.append(f"Vacancy: {int(vac)} months")
-        _add("Effective demand", "effective_demand")
-        _add("Effective supply", "effective_supply")
+        _add("NOI (RM, annual)", "noi_rm")
+        _add("NOI yield (annual)", "noi_yield", decimals=4)
         _add("DSR", "dsr")
-        _add("NOI (RM)", "noi_rm")
-        _add("Rental income per visit (RM/person/day)", "rental_income_per_visit_proxy")
-        _add("Maintenance surge (RM)", "maintenance_surge_rm")
-        _add("Accessibility score", "accessibility_score", decimals=1)
-        _add("Shade proxy score", "shade_proxy_score", decimals=1)
+        _add("Demographic mismatch", "demographic_mismatch", decimals=2)
+        _add("Neighborhood diversity", "neighborhood_diversity", decimals=2)
+
+        wcov = metrics.get("coverage_ratio_5min_walk")
+        if wcov is not None:
+            lines.append(f"Walk 5-min coverage: {round(wcov * 100, 1)}%")
+        dcov = metrics.get("coverage_ratio_10min_drive")
+        if dcov is not None:
+            lines.append(f"Drive 10-min coverage: {round(dcov * 100, 1)}%")
+        _add("Median walk distance (m)", "median_walk_distance_m")
 
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
@@ -48,7 +56,10 @@ def build_evidence(asset_type: str, metrics: dict) -> list:
         if cov is not None:
             lines.append(f"Service coverage: {round(cov * 100, 1)}%")
         _add("Cost per user (RM)", "cost_per_user_rm")
-        _add("Accessibility score", "accessibility_score", decimals=1)
+
+        wcov = metrics.get("coverage_ratio_5min_walk")
+        if wcov is not None:
+            lines.append(f"Walk 5-min coverage: {round(wcov * 100, 1)}%")
 
     elif asset_type == "green_space":
         g = metrics.get("green_coverage")
@@ -58,20 +69,16 @@ def build_evidence(asset_type: str, metrics: dict) -> list:
         if c is not None:
             lines.append(f"Canopy coverage: {round(c * 100, 1)}%")
         _add("Green space per capita (m2)", "green_per_capita_m2")
-        _add("Accessibility score", "accessibility_score", decimals=1)
-        _add("Shade proxy score", "shade_proxy_score", decimals=1)
 
     elif asset_type == "undeveloped_parcel":
         _add("Developable area (m2)", "developable_area_m2")
         _add("Potential GFA (m2)", "potential_gfa_m2")
         _add("Demand-supply gap", "demand_supply_gap")
         _add("Infrastructure cost (RM)", "infrastructure_cost_rm")
-        _add("Accessibility score", "accessibility_score", decimals=1)
 
     elif asset_type == "residential":
         occ = metrics.get("occupancy_rate")
         if occ is not None:
             lines.append(f"Occupancy: {round(occ * 100, 1)}%")
-        _add("Accessibility score", "accessibility_score", decimals=1)
 
     return lines

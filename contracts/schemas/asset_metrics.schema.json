@@ -8,7 +8,11 @@
     "asset_id": { "type": "string" },
     "year": { "type": "integer", "minimum": 2000, "maximum": 2100 },
 
-        "catchment_population_5min_walk": { "type": ["number", "null"] },
+    "subtype": { "type": ["string", "null"] },
+    "demographic_mismatch": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "neighborhood_diversity": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+
+    "catchment_population_5min_walk": { "type": ["number", "null"] },
     "catchment_population_10min_walk": { "type": ["number", "null"] },
     "catchment_population_15min_walk": { "type": ["number", "null"] },
     "coverage_ratio_5min_walk": { "type": ["number", "null"] },

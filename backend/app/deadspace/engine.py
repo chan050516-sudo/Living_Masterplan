@@ -1,4 +1,7 @@
-"""B6 unified entry point — run detection on every asset."""
+"""B6 unified entry point — run detection on every asset.
+
+Phase 3 change: no longer loads scores. Reads enriched metrics directly.
+"""
 
 import json
 import logging
@@ -20,16 +23,6 @@ def detect_all_deadspace(repo_root: Path = None, year: int = 2026) -> list:
     base = repo_root / paths["base"]
     metrics_df = pd.read_csv(base / "business" / "asset_metrics_enriched.csv")
     assets_df = pd.read_csv(base / "business" / "assets.csv")
-    scores_path = base / "business" / f"scores_{year}.json"
-
-    if not scores_path.exists():
-        raise FileNotFoundError(
-            f"Scores JSON not found: {scores_path}. Run Phase 2 first."
-        )
-
-    with open(scores_path, "r", encoding="utf-8") as f:
-        scores = json.load(f)
-    scores_by_id = {s["asset_id"]: s for s in scores}
 
     results = []
     for _, asset in assets_df.iterrows():
@@ -41,16 +34,10 @@ def detect_all_deadspace(repo_root: Path = None, year: int = 2026) -> list:
             log.warning("No metrics for %s year %d — skipping", aid, year)
             continue
 
-        score_record = scores_by_id.get(aid)
-        if score_record is None:
-            log.warning("No score for %s — skipping", aid)
-            continue
-
         results.append(
             detect_deadspace_for_asset(
                 asset=asset,
                 metrics=row.iloc[0],
-                score_record=score_record,
                 assumptions=assumptions,
             )
         )
@@ -67,5 +54,7 @@ def write_deadspace_json(records: list, repo_root: Path = None, year: int = 2026
 
 
 def deadspace_list(records: list) -> list:
-    """Filter to only those that triggered a non-healthy status."""
-    return [r for r in records if r["status"] != "healthy"]
+    """Return only non-healthy assets, sorted by urgency (descending)."""
+    non_healthy = [r for r in records if r["status"] != "healthy"]
+    non_healthy.sort(key=lambda r: r["urgency_index"], reverse=True)
+    return non_healthy

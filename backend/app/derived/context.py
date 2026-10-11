@@ -19,14 +19,17 @@ class DerivationContext:
     benchmarks: dict
     assumptions: dict
     accessibility_score: Optional[float]
-    huff_effective_demand: Optional[float]
+    huff_effective_demand: Optional[float]           # persons (legacy)
+    huff_effective_demand_m2: Optional[float]        # m² (Phase 2, per-subtype)
     maintenance_surge_rm: Optional[float]
     graph: nx.Graph
     year: int
     canopy_coverage: Optional[float] = None
     distance_matrix: Optional[dict] = None
-
-    # NEW (Phase 1): per-mode accessibility profiles.
-    # Populated by engine after the distance matrix is computed.
     walking_profile: Optional[dict] = None
     driving_profile: Optional[dict] = None
+
+    # Phase 2 additions
+    catchment_population_profile: Optional[dict] = None   # age structure
+    neighborhood_diversity: Optional[float] = None
+    demographic_mismatch: Optional[float] = None

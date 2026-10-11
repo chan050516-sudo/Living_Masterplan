@@ -3,15 +3,21 @@
     "asset_id": "B-03",
     "year": 2026,
     "status": "deadspace_candidate",
-    "score": 0.0,
+    "flags": [
+      "low_occupancy",
+      "long_vacancy",
+      "dsr_below_threshold",
+      "negative_noi"
+    ],
+    "urgency_index": 8.0,
     "layer1": {
       "triggered": true,
       "reasons": [
-        "low_overall_score",
         "low_occupancy",
         "long_vacancy",
         "dsr_below_threshold"
-      ]
+      ],
+      "urgency_contribution": 5.0
     },
     "layer2": {
       "triggered": true,
@@ -30,50 +36,46 @@
     },
     "contributing_factors": [
       {
-        "factor": "financial",
-        "contribution": 0.3328
+        "factor": "negative_noi",
+        "contribution": 0.375
       },
       {
-        "factor": "occupancy",
-        "contribution": 0.275
+        "factor": "low_occupancy",
+        "contribution": 0.25
       },
       {
-        "factor": "demand",
-        "contribution": 0.2578
+        "factor": "long_vacancy",
+        "contribution": 0.25
       },
       {
-        "factor": "environment",
-        "contribution": 0.1289
-      },
-      {
-        "factor": "accessibility",
-        "contribution": 0.0054
+        "factor": "dsr_below_threshold",
+        "contribution": 0.125
       }
     ],
     "evidence": [
+      "Subtype: convenience_retail",
       "Occupancy: 21.0%",
       "Vacancy: 14 months",
-      "Effective demand: 1,820",
-      "Effective supply: 5,200",
-      "DSR: 0.17",
-      "NOI (RM): -50,962",
-      "Rental income per visit (RM/person/day): 8.22",
-      "Maintenance surge (RM): 190,962",
-      "Accessibility score: 95.8",
-      "Shade proxy score: 0.0"
+      "NOI (RM, annual): -50,962",
+      "NOI yield (annual): -0.0011",
+      "DSR: 0.02"
     ],
-    "model_version": "0.3.0"
+    "model_version": "0.4.0"
   },
   {
     "asset_id": "F-02",
     "year": 2026,
     "status": "underperforming_facility",
-    "score": 83.39,
+    "flags": [
+      "low_utilisation"
+    ],
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_utilisation"
-      ]
+      ],
+      "urgency_contribution": 2.0
     },
     "layer2": {
       "triggered": false,
@@ -89,47 +91,31 @@
     },
     "contributing_factors": [
       {
-        "factor": "utilisation",
-        "contribution": 0.4723
-      },
-      {
-        "factor": "coverage",
-        "contribution": 0.2895
-      },
-      {
-        "factor": "cost_efficiency",
-        "contribution": 0.1224
-      },
-      {
-        "factor": "accessibility",
-        "contribution": 0.1157
+        "factor": "low_utilisation",
+        "contribution": 1.0
       }
     ],
     "evidence": [
+      "Subtype: community_hall",
       "Utilisation: 22.0%",
-      "Service coverage: 91.8%",
-      "Cost per user (RM): 23.04",
-      "Accessibility score: 91.8"
+      "Service coverage: 100.0%"
     ],
-    "model_version": "0.3.0"
+    "model_version": "0.4.0"
   },
   {
     "asset_id": "P-05",
     "year": 2026,
-    "status": "development_risk",
-    "score": 0.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_overall_score",
-        "negative_demand_supply_gap"
-      ]
+      "triggered": false,
+      "reasons": [],
+      "urgency_contribution": 0.0
     },
     "layer2": {
-      "triggered": true,
-      "reasons": [
-        "weak_future_demand"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer3": {
       "actionable": true,
@@ -139,39 +125,22 @@
         "green_space"
       ]
     },
-    "contributing_factors": [
-      {
-        "factor": "demand",
-        "contribution": 0.9033
-      },
-      {
-        "factor": "accessibility",
-        "contribution": 0.0967
-      },
-      {
-        "factor": "development_feasibility",
-        "contribution": 0.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
-      "Developable area (m2): 3,600",
-      "Potential GFA (m2): 5,400",
-      "Demand-supply gap: -4,326",
-      "Infrastructure cost (RM): 720,000",
-      "Accessibility score: 86.6"
+      "Subtype: vacant"
     ],
-    "model_version": "0.3.0"
+    "model_version": "0.4.0"
   },
   {
     "asset_id": "G-01",
     "year": 2026,
-    "status": "improvement_opportunity",
-    "score": 7.14,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_overall_score"
-      ]
+      "triggered": false,
+      "reasons": [],
+      "urgency_contribution": 0.0
     },
     "layer2": {
       "triggered": false,
@@ -184,45 +153,24 @@
         "pedestrian_upgrade"
       ]
     },
-    "contributing_factors": [
-      {
-        "factor": "thermal",
-        "contribution": 0.3551
-      },
-      {
-        "factor": "canopy",
-        "contribution": 0.3529
-      },
-      {
-        "factor": "usage",
-        "contribution": 0.2757
-      },
-      {
-        "factor": "accessibility",
-        "contribution": 0.0162
-      },
-      {
-        "factor": "green_coverage",
-        "contribution": 0.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
+      "Subtype: park",
       "Green coverage: 100.0%",
-      "Canopy coverage: 8.0%",
-      "Green space per capita (m2): 2.86",
-      "Accessibility score: 95.8",
-      "Shade proxy score: 8.0"
+      "Canopy coverage: 8.0%"
     ],
-    "model_version": "0.3.0"
+    "model_version": "0.4.0"
   },
   {
     "asset_id": "R-01",
     "year": 2026,
     "status": "healthy",
-    "score": 92.99,
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
-      "reasons": []
+      "reasons": [],
+      "urgency_contribution": 0.0
     },
     "layer2": {
       "triggered": false,
@@ -235,24 +183,11 @@
         "pedestrian_upgrade"
       ]
     },
-    "contributing_factors": [
-      {
-        "factor": "occupancy",
-        "contribution": 0.5556
-      },
-      {
-        "factor": "demand",
-        "contribution": 0.4444
-      },
-      {
-        "factor": "accessibility",
-        "contribution": 0.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
-      "Occupancy: 92.0%",
-      "Accessibility score: 100.0"
+      "Subtype: terrace",
+      "Occupancy: 92.0%"
     ],
-    "model_version": "0.3.0"
+    "model_version": "0.4.0"
   }
 ]

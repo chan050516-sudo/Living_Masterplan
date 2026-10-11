@@ -28,6 +28,7 @@ assets = pd.DataFrame([
     {
         "asset_id": "B-03",
         "asset_type": "commercial",
+        "subtype": "convenience_retail",
         "parcel_id": "P-B03",
         "building_id": "BLD-B03",
         "asset_name": "Commercial Lot B-03",
@@ -49,6 +50,7 @@ assets = pd.DataFrame([
     {
         "asset_id": "F-02",
         "asset_type": "community_facility",
+        "subtype": "community_hall",
         "parcel_id": "P-F02",
         "building_id": "BLD-F02",
         "asset_name": "Community Facility F-02",
@@ -70,6 +72,7 @@ assets = pd.DataFrame([
     {
         "asset_id": "P-05",
         "asset_type": "undeveloped_parcel",
+        "subtype": "vacant", 
         "parcel_id": "P-05",
         "building_id": None,
         "asset_name": "Undeveloped Parcel P-05",
@@ -91,6 +94,7 @@ assets = pd.DataFrame([
     {
         "asset_id": "G-01",
         "asset_type": "green_space",
+        "subtype": "park", 
         "parcel_id": "P-G01",
         "building_id": None,
         "asset_name": "Green Space G-01",
@@ -112,6 +116,7 @@ assets = pd.DataFrame([
     {
         "asset_id": "R-01",
         "asset_type": "residential",
+        "subtype": "terrace",
         "parcel_id": "P-R01",
         "building_id": "BLD-R01",
         "asset_name": "Residential Catchment R-01",

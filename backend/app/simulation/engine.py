@@ -25,7 +25,6 @@ from ..config import load_paths, load_weights, load_benchmarks, load_assumptions
 from ..derived.engine import compute_derived_metrics
 from ..derived.network_graph import build_walk_graph, extract_nodes, find_nearest_node
 from ..derived.huff import huff_gravity
-from ..scoring.score import score_asset
 from .time_anchors import resolve_phase, interventions_for_asset, Phase
 from .interventions import apply_intervention, apply_construction_state
 from .population import project_population
@@ -115,9 +114,6 @@ def simulate_scenario(
         # ---- Base year: use B3 output as-is ----
         if year == base_year:
             state_by_year[year] = _state_from_df(current_derived, assets_df)
-            scores_by_year[year] = _score_current(
-                assets_df, current_derived, weights, benchmarks, scoring_options, year,
-            )
             continue
 
         # ---- Fix 2: resolve effective asset state for every asset ----
@@ -293,13 +289,9 @@ def simulate_scenario(
             year_state[aid] = metric_row
 
         state_by_year[year] = year_state
-        scores_by_year[year] = _score_year(
-            assets_df, year_state, weights, benchmarks, scoring_options, year,
-        )
 
-    comparison = _build_comparison(
-        state_by_year, scores_by_year, base_year, years[-1], scenario_interventions,
-    )
+    # --- Build comparison (metric-based, no score) ---
+    comparison = _build_comparison(state_by_year, base_year, years[-1])
     map_diff = _build_map_diff(assets_df, scenario_interventions)
 
     return {
@@ -307,15 +299,12 @@ def simulate_scenario(
         "scenario_name": _scenario_name(scenario_id),
         "interventions": scenario_interventions.to_dict("records"),
         "years": {
-            str(y): {
-                "assets": state_by_year.get(y, {}),
-                "scores": scores_by_year.get(y, {}),
-            }
+            str(y): {"assets": state_by_year.get(y, {})}
             for y in years
         },
         "comparison": comparison,
         "map_diff": map_diff,
-        "model_version": "0.3.2",
+        "model_version": "0.4.0",
     }
 
 
@@ -423,111 +412,59 @@ def _get_prev_metrics(prev_state, asset_id):
     return {}
 
 
-def _score_current(assets_df, derived_df, weights, benchmarks, scoring_options, year):
-    scores = {}
-    for _, asset in assets_df.iterrows():
-        row = derived_df[derived_df["asset_id"] == asset["asset_id"]]
-        if row.empty:
+def _build_comparison(state_by_year, base_year, final_year):
+    """
+    Return a metric-level comparison between the base year and the
+    final year. No overall score is produced.
+
+    Focus asset selection: use the asset with the largest change in
+    occupancy between the two years; fall back to any asset if no
+    change is detected.
+    """
+    before_state = state_by_year.get(base_year, {})
+    after_state = state_by_year.get(final_year, {})
+
+    # Pick focus asset by largest occupancy delta
+    focus_asset = None
+    best_delta = 0.0
+    for aid, before in before_state.items():
+        after = after_state.get(aid, {})
+        b = before.get("occupancy_rate") or 0.0
+        a = after.get("occupancy_rate") or 0.0
+        delta = abs(a - b)
+        if delta > best_delta:
+            best_delta = delta
+            focus_asset = aid
+
+    if focus_asset is None:
+        focus_asset = next(iter(after_state), None)
+
+    if focus_asset is None:
+        return {"focus_asset_id": None, "metrics": {}}
+
+    before = before_state.get(focus_asset, {})
+    after = after_state.get(focus_asset, {})
+
+    metric_keys = [
+        ("occupancy_rate", "ratio"),
+        ("noi_rm", "RM"),
+        ("noi_yield", "ratio"),
+        ("coverage_ratio_5min_walk", "ratio"),
+        ("coverage_ratio_10min_drive", "ratio"),
+        ("carbon_operational_tco2e", "tCO2e"),
+    ]
+
+    metrics = {}
+    for key, unit in metric_keys:
+        b = before.get(key)
+        a = after.get(key)
+        if b is None and a is None:
             continue
-        r = score_asset(asset, row.iloc[0], weights, benchmarks, scoring_options)
-        if r:
-            r["year"] = year
-            r["model_version"] = "0.3.2"
-            scores[asset["asset_id"]] = r
-    return scores
-
-
-def _score_year(assets_df, year_state, weights, benchmarks, scoring_options, year):
-    scores = {}
-    for _, asset in assets_df.iterrows():
-        aid = asset["asset_id"]
-        if aid not in year_state:
-            continue
-        effective_asset = dict(asset)
-        effective_asset["asset_type"] = year_state[aid].get(
-            "_effective_asset_type", asset["asset_type"],
-        )
-        effective_asset["capacity"] = year_state[aid].get(
-            "_effective_capacity", asset.get("capacity"),
-        )
-        effective_asset["lettable_area_m2"] = year_state[aid].get(
-            "_effective_lettable", asset.get("lettable_area_m2"),
-        )
-
-        r = score_asset(effective_asset, year_state[aid], weights, benchmarks, scoring_options)
-        if r:
-            r["year"] = year
-            r["model_version"] = "0.3.2"
-            scores[aid] = r
-    return scores
-
-
-def _build_comparison(state_by_year, scores_by_year, base_year, final_year, interventions_df):
-    """Focus asset: explicit intervention target, else largest |delta|."""
-    target = None
-    if not interventions_df.empty:
-        for _, intv in interventions_df.iterrows():
-            aid = intv.get("target_asset_id")
-            if aid and intv.get("intervention_type") != "no_op":
-                target = aid
-                break
-
-    base_scores = scores_by_year.get(base_year, {})
-    final_scores = scores_by_year.get(final_year, {})
-
-    if target is None or target not in base_scores:
-        best_asset, best_delta = None, 0.0
-        for aid in final_scores:
-            b = base_scores.get(aid, {}).get("overall_score", 0.0)
-            f = final_scores.get(aid, {}).get("overall_score", 0.0)
-            delta = abs(f - b)
-            if delta > best_delta:
-                best_delta = delta
-                best_asset = aid
-        target = best_asset
-
-    base_score = base_scores.get(target, {}).get("overall_score", 0.0) if target else 0.0
-    final_score = final_scores.get(target, {}).get("overall_score", 0.0) if target else 0.0
-
-    capex = (
-        float(interventions_df["capex_delta_rm"].fillna(0).sum())
-        if not interventions_df.empty else 0.0
-    )
-
-    final_state = state_by_year.get(final_year, {}).get(target, {}) if target else {}
-
-    carbon_10y = _compute_10y_carbon(state_by_year, target)
-
-    projected_util = (
-        final_state.get("utilisation_rate")
-        or final_state.get("occupancy_rate")
-        or 0.0
-    )
-
-    tti = 0
-    if target:
-        for y in sorted(scores_by_year.keys()):
-            if y <= base_year:
-                continue
-            s = scores_by_year[y].get(target, {}).get("overall_score", 0.0)
-            if s - base_score > 5:
-                tti = (y - base_year) * 12
-                break
+        metrics[key] = {"before": b, "after": a, "unit": unit}
 
     return {
-        "capex": capex,
-        "projected_utilisation": float(projected_util),
-        "npv": 0.0,
-        "environmental_score": float(
-            final_scores.get(target, {}).get("environmental_score") or 0.0
-        ) if target else 0.0,
-        "social_score": float(
-            final_scores.get(target, {}).get("social_score") or 0.0
-        ) if target else 0.0,
-        "performance_score": float(final_score),
-        "carbon_10y_tco2e": carbon_10y,
-        "delta_score": float(final_score - base_score),
-        "time_to_impact_months": tti,
+        "focus_asset_id": focus_asset,
+        "metrics": metrics,
     }
 
 

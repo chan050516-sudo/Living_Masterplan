@@ -16,8 +16,13 @@ def load_paths() -> dict:
     return _load("paths.yml")
 
 
+def load_peer_benchmarks() -> dict:
+    return _load("peer_benchmarks.yml")
+
+
 def load_benchmarks() -> dict:
-    return _load("benchmarks.yml")
+    """Deprecated alias. Use load_peer_benchmarks."""
+    return load_peer_benchmarks()
 
 
 def load_weights() -> dict:

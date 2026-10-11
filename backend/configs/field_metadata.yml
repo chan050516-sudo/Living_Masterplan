@@ -86,14 +86,17 @@ asset_metrics:
   canopy_coverage:          { tier: 2, source: derived, unit: ratio }
   shade_proxy_score:        { tier: 2, source: derived, unit: 0-100 }
 
-  financial_score:          { tier: 2, source: derived, unit: 0-100 }
-  environmental_score:      { tier: 2, source: derived, unit: 0-100 }
-  social_score:             { tier: 2, source: derived, unit: 0-100 }
-  performance_score:        { tier: 2, source: derived, unit: 0-100 }
-  delta_score:              { tier: 3, source: simulated, unit: score }
-
   rental_income_per_visit_proxy: { tier: 2, source: derived, unit: "RM/person/day" }
   maintenance_surge_rm: { tier: 2, source: derived, unit: RM }
+
+  # Phase 2 — subtype and behavior
+  subtype:                          { tier: null, source: identity, unit: null }
+  energy_kwh:                       { tier: 2, source: derived, unit: kWh }
+  carbon_operational_tco2e:         { tier: 2, source: derived, unit: tCO2e }
+
+  # Analysis indicators
+  demographic_mismatch:             { tier: 2, source: derived, unit: ratio }
+  neighborhood_diversity:           { tier: 2, source: derived, unit: ratio }
 
 population:
   population_id:      { tier: null, source: identity, unit: null }
