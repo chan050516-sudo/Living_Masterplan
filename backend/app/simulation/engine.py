@@ -362,6 +362,13 @@ def _build_comparison(state_by_year, scores_by_year, base_year, final_year, inte
     capex = float(interventions_df["capex_delta_rm"].fillna(0).sum()) if not interventions_df.empty else 0.0
 
     final_state = state_by_year.get(final_year, {}).get(target, {}) if target else {}
+
+    # Carbon: 10-year total
+    operational = float(final_state.get("carbon_operational_tco2e") or 0.0)
+    embodied = 0.0
+    carbon_10y = operational * 10 + embodied
+
+    # Projected utilisation: prefer utilisation, fall back to occupancy
     projected_util = (
         final_state.get("utilisation_rate")
         or final_state.get("occupancy_rate")
@@ -382,12 +389,16 @@ def _build_comparison(state_by_year, scores_by_year, base_year, final_year, inte
 
     return {
         "capex": capex,
-        "projected_utilisation": float(final_state.get("occupancy_rate") or final_state.get("utilisation_rate") or 0.0),
-        "npv": 0.0,   # placeholder — Phase 5
-        "environmental_score": float(scores_by_year.get(final_year, {}).get(target, {}).get("environmental_score") or 0.0),
-        "social_score": float(scores_by_year.get(final_year, {}).get(target, {}).get("social_score") or 0.0),
         "projected_utilisation": float(projected_util),
+        "npv": 0.0,
+        "environmental_score": float(
+            scores_by_year.get(final_year, {}).get(target, {}).get("environmental_score") or 0.0
+        ),
+        "social_score": float(
+            scores_by_year.get(final_year, {}).get(target, {}).get("social_score") or 0.0
+        ),
         "performance_score": float(final_score),
+        "carbon_10y_tco2e": carbon_10y,        # ← 数值，不是 schema
         "delta_score": float(final_score - base_score),
         "time_to_impact_months": tti,
     }

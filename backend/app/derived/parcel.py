@@ -25,9 +25,9 @@ def derive_parcel(ctx: DerivationContext) -> dict:
     # Demand-supply gap
     total_pop = _total_population(ctx)
     # Proxy: demand = population * commercial_per_capita_sum
-    demand = total_pop * _commercial_demand_coefficient(ctx)
-    supply = _commercial_supply(ctx)
-    gap = demand - supply
+    demand = total_pop * _commercial_demand_coefficient(ctx)   # m²
+    supply = _commercial_supply(ctx)                            # m²
+    gap = demand - supply                                        # m²
 
     # Infrastructure cost: distance-based
     infrastructure_cost = _infrastructure_cost(ctx)
@@ -65,7 +65,8 @@ def _total_population(ctx: DerivationContext) -> float:
 
 
 def _commercial_demand_coefficient(ctx: DerivationContext) -> float:
-    coeffs = ctx.assumptions.get("demand", {}).get("commercial_per_capita", {})
+    """m²/person — sum of per-capita commercial demand across categories."""
+    coeffs = ctx.assumptions.get("demand", {}).get("commercial_per_capita_m2", {})
     return sum(coeffs.values()) if coeffs else 0.48
 
 

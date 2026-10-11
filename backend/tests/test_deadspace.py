@@ -56,13 +56,11 @@ def test_layer2_commercial_negative_noi():
     asset = {"maintenance_annual_rm": 180000}
     metrics = {
         "noi_rm": -50962,
-        "footfall_conversion_rm_per_person": 8.2,
         "maintenance_surge_rm": 190962,
     }
     r = layer2_eval("commercial", asset, metrics)
     assert r["triggered"] is True
     assert "negative_noi" in r["reasons"]
-    # ratio = 190962/180000 = 1.06 < 1.5 → not triggered
     assert "maintenance_surge_high" not in r["reasons"]
 
 
@@ -70,8 +68,7 @@ def test_layer2_commercial_maintenance_surge():
     asset = {"maintenance_annual_rm": 100000}
     metrics = {
         "noi_rm": 500000,
-        "footfall_conversion_rm_per_person": 5.0,
-        "maintenance_surge_rm": 200000,  # ratio 2.0
+        "maintenance_surge_rm": 200000,
     }
     r = layer2_eval("commercial", asset, metrics)
     assert "maintenance_surge_high" in r["reasons"]

@@ -35,10 +35,10 @@ def build_evidence(asset_type: str, metrics: dict) -> list:
         _add("Effective supply", "effective_supply")
         _add("DSR", "dsr")
         _add("NOI (RM)", "noi_rm")
-        _add("Footfall conversion (RM/person/day)", "footfall_conversion_rm_per_person")
+        _add("Rental income per visit (RM/person/day)", "rental_income_per_visit_proxy")
         _add("Maintenance surge (RM)", "maintenance_surge_rm")
         _add("Accessibility score", "accessibility_score", decimals=1)
-        _add("Thermal exposure", "thermal_exposure", decimals=1)
+        _add("Shade proxy score", "shade_proxy_score", decimals=1)
 
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
@@ -59,7 +59,7 @@ def build_evidence(asset_type: str, metrics: dict) -> list:
             lines.append(f"Canopy coverage: {round(c * 100, 1)}%")
         _add("Green space per capita (m2)", "green_per_capita_m2")
         _add("Accessibility score", "accessibility_score", decimals=1)
-        _add("Thermal exposure", "thermal_exposure", decimals=1)
+        _add("Shade proxy score", "shade_proxy_score", decimals=1)
 
     elif asset_type == "undeveloped_parcel":
         _add("Developable area (m2)", "developable_area_m2")

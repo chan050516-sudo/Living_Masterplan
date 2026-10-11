@@ -12,7 +12,7 @@
     "vacancy_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "vacancy_duration_months": { "type": ["number", "null"], "minimum": 0 },
     "footfall_daily": { "type": ["number", "null"], "minimum": 0 },
-    "footfall_conversion_rm_per_person": { "type": ["number", "null"] },
+    "rental_income_per_visit_proxy": { "type": ["number", "null"] },
     "utilisation_rate": { "type": ["number", "null"], "minimum": 0 },
 
     "rental_income_rm": { "type": ["number", "null"] },
@@ -24,6 +24,7 @@
     "service_coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
 
     "effective_demand": { "type": ["number", "null"] },
+    "effective_demand_m2": { "type": ["number", "null"] },
     "effective_supply": { "type": ["number", "null"] },
     "dsr": { "type": ["number", "null"] },
 
@@ -32,7 +33,7 @@
 
     "green_coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "canopy_coverage": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
-    "thermal_exposure": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "shade_proxy_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
 
     "financial_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
     "environmental_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },

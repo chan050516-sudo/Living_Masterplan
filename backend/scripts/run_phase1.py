@@ -56,23 +56,17 @@ FIELDS_COMMERCIAL = [
     ("Vacancy rate", "vacancy_rate"),
     ("Vacancy duration (months)", "vacancy_duration_months"),
     ("Footfall (daily)", "footfall_daily"),
-    ("Footfall conversion (RM/p/day)", "footfall_conversion_rm_per_person"),
+    ("Rental income per visit (RM/p/d)", "rental_income_per_visit_proxy"),
     ("Rental income (RM)", "rental_income_rm"),
     ("NOI (RM)", "noi_rm"),
     ("NOI yield", "noi_yield"),
     ("Maintenance surge (RM)", "maintenance_surge_rm"),
     ("Accessibility score", "accessibility_score"),
-    ("Effective demand (Huff)", "effective_demand"),
-    ("Effective supply", "effective_supply"),
+    ("Effective demand (persons)", "effective_demand"),
+    ("Effective demand (m2)", "effective_demand_m2"),
+    ("Effective supply (m2)", "effective_supply"),
     ("DSR", "dsr"),
-    ("Thermal exposure", "thermal_exposure"),
-]
-
-FIELDS_FACILITY = [
-    ("Utilisation rate", "utilisation_rate"),
-    ("Service coverage", "service_coverage"),
-    ("Cost per user (RM)", "cost_per_user_rm"),
-    ("Accessibility score", "accessibility_score"),
+    ("Shade proxy score", "shade_proxy_score"),
 ]
 
 FIELDS_GREEN = [
@@ -80,7 +74,14 @@ FIELDS_GREEN = [
     ("Canopy coverage", "canopy_coverage"),
     ("Green per capita (m2)", "green_per_capita_m2"),
     ("Accessibility score", "accessibility_score"),
-    ("Thermal exposure", "thermal_exposure"),
+    ("Shade proxy score", "shade_proxy_score"),
+]
+
+FIELDS_FACILITY = [
+    ("Utilisation rate", "utilisation_rate"),
+    ("Service coverage", "service_coverage"),
+    ("Cost per user (RM)", "cost_per_user_rm"),
+    ("Accessibility score", "accessibility_score"),
 ]
 
 FIELDS_PARCEL = [

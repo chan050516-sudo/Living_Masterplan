@@ -142,12 +142,14 @@ print(f"Wrote {MOCK_BUSINESS / 'assets.csv'} ({len(assets)} rows, {len(assets.co
 metric_cols = [
     "asset_id", "year",
     "occupancy_rate", "vacancy_rate", "vacancy_duration_months",
-    "footfall_daily", "utilisation_rate",
+    "footfall_daily", "rental_income_per_visit_proxy",   # renamed
+    "utilisation_rate",
     "rental_income_rm", "noi_rm", "noi_yield",
     "accessibility_score", "service_coverage",
-    "effective_demand", "effective_supply", "dsr",
+    "effective_demand", "effective_demand_m2",           # added
+    "effective_supply", "dsr",
     "carbon_operational_tco2e", "energy_kwh",
-    "green_coverage", "canopy_coverage", "thermal_exposure",
+    "green_coverage", "canopy_coverage", "shade_proxy_score",   # renamed
     "financial_score", "environmental_score", "social_score",
     "performance_score", "delta_score",
     "metric_source", "model_version",
@@ -159,7 +161,7 @@ metrics_rows = [
         "asset_id": "B-03", "year": 2026,
         "occupancy_rate": 0.21, "vacancy_duration_months": 14,
         "footfall_daily": 320,
-        "rental_income_rm": 960_000,       # so NOI can be computed
+        "rental_income_rm": 960_000,
         "effective_demand": 2100, "effective_supply": 3400,
         "metric_source": "observed", "model_version": "v0.3.0",
     },

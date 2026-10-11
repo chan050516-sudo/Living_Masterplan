@@ -21,11 +21,16 @@ def decide_status(asset_type: str, layer1: dict, layer2: dict, layer3: dict) -> 
     if asset_type == "undeveloped_parcel" and (l1 or l2):
         return "development_risk"
 
-    if asset_type == "green_space" and l2:
-        # Low access but meaningful ecological value
+    # green_space: any trigger → improvement opportunity (not deadspace)
+    if asset_type == "green_space" and (l1 or l2):
         return "improvement_opportunity"
 
-    # Fallback
+    if asset_type == "residential":
+        # Residential reached here means l1 or l2 triggered.
+        # Never mark as healthy; use monitor (needs attention).
+        return "monitor"
+
+    # Commercial/facility fallback
     if l1:
         return "deadspace_candidate"
 

@@ -7,7 +7,6 @@ value it was built for".
 
 DEFAULTS = {
     "noi_below": 0.0,
-    "footfall_conversion_below": 0.5,
     "service_coverage_below": 0.60,
     "maintenance_surge_ratio_above": 1.5,
     "accessibility_below": 50.0,
@@ -22,10 +21,6 @@ def evaluate(asset_type: str, asset: dict, metrics: dict, thresholds: dict = Non
         noi = metrics.get("noi_rm")
         if noi is not None and noi < t["noi_below"]:
             reasons.append("negative_noi")
-
-        fc = metrics.get("footfall_conversion_rm_per_person")
-        if fc is not None and fc < t["footfall_conversion_below"]:
-            reasons.append("low_footfall_conversion")
 
         # Maintenance surge ratio
         surge = metrics.get("maintenance_surge_rm")

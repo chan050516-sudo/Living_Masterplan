@@ -16,9 +16,8 @@ def test_b03_commercial_derived():
     assert row["vacancy_duration_months"] == 14
 
     # NOI = rental_income - opex - maintenance_surge
-    # rental_income = None in mock → NOI should be None
-    # (because rental_income_rm is empty for B-03)
-    # If mock has value, we can assert. For now, structure check:
+    # Mock B-03: rental_income=960k, opex=820k, maintenance_surge≈190k
+    # → NOI ≈ -50k (negative, distress signal)
     assert "noi_rm" in row.index
     assert "accessibility_score" in row.index
     assert row["accessibility_score"] is not None

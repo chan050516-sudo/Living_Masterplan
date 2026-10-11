@@ -6,9 +6,9 @@ version: "0.2.0"
 commercial:
   occupancy_rate:               { L: 0.10, U: 0.85, note: "market research — L allows distressed assets" }
   vacancy_duration_months:      { L: 0.00, U: 18.0 }
-  dsr:                          { L: 0.25, U: 1.20, note: "planning assumption" }
+  dsr:                          { L: 0.50, U: 1.20, note: "dimensionless: demand_m2 / supply_m2" }
   accessibility_score:          { L: 0.00, U: 100.0 }
-  thermal_exposure:             { L: 0.00, U: 120.0, note: "allows moderate exposure" }
+  shade_proxy_score:            { L: 0.0, U: 100.0, note: "0 = no shade, 100 = fully shaded" }
   noi_yield:                    { L: -0.03, U: 0.08, note: "negative = distressed; -3% is sector floor" }
 
 community_facility:
@@ -16,13 +16,12 @@ community_facility:
   service_coverage:             { L: 0.50, U: 1.00, note: "planning standard" }
   cost_per_user_rm:             { L: 0.00, U: 200.0, note: "RM per user" }
   accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
-
 green_space:
   green_coverage:               { L: 0.05, U: 0.40, note: "planning standard" }
   canopy_coverage:              { L: 0.05, U: 0.40, note: "planning standard" }
   green_per_capita_m2:          { L: 2.0,  U: 20.0, note: "m2 per person" }
   accessibility_score:          { L: 0.00, U: 100.0, note: "normalized" }
-  thermal_exposure:             { L: 0.00, U: 100.0, note: "normalized" }
+  shade_proxy_score:            { L: 0.00, U: 100.0, note: "normalized" }
 
 undeveloped_parcel:
   development_feasibility:      { L: 0.00, U: 1.00, note: "ratio" }

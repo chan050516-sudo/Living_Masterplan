@@ -31,8 +31,11 @@ def resolve_commercial(asset, metrics, benchmarks):
         "demand":        s_benefit(_safe_get(metrics, "dsr"),
                                    b["dsr"]["L"], b["dsr"]["U"]),
         "accessibility": _safe_get(metrics, "accessibility_score"),
-        "environment":   s_cost(_safe_get(metrics, "thermal_exposure"),
-                                b["thermal_exposure"]["L"], b["thermal_exposure"]["U"]),
+        "environment": s_benefit(
+            _safe_get(metrics, "shade_proxy_score"),
+            b["shade_proxy_score"]["L"],
+            b["shade_proxy_score"]["U"],
+        ),
     }
 
 
@@ -59,8 +62,9 @@ def resolve_green(asset, metrics, benchmarks):
         "canopy":         s_benefit(_safe_get(metrics, "canopy_coverage"),
                                     b["canopy_coverage"]["L"], b["canopy_coverage"]["U"]),
         "accessibility":  _safe_get(metrics, "accessibility_score"),
-        "thermal":        s_cost(_safe_get(metrics, "thermal_exposure"),
-                                 b["thermal_exposure"]["L"], b["thermal_exposure"]["U"]),
+       "thermal": s_benefit(_safe_get(metrics, "shade_proxy_score"),
+                                    b["shade_proxy_score"]["L"],
+                                    b["shade_proxy_score"]["U"]),
         "usage":          s_benefit(_safe_get(metrics, "green_per_capita_m2"),
                                     b["green_per_capita_m2"]["L"], b["green_per_capita_m2"]["U"]),
     }

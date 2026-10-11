@@ -1,0 +1,137 @@
+version: "0.4.0"
+description: >
+  Documents each scoring dimension: what it measures, which underlying
+  metric it uses, whether it can be compensated by other dimensions,
+  and what a low score means. Used for technical review and Q&A.
+
+commercial:
+  financial:
+    metric: noi_yield
+    meaning: "Current and expected financial return on initial CAPEX"
+    normalized_by: s_benefit
+    compensable: true
+    low_means: "Asset is losing money or underperforming market yield"
+  occupancy:
+    metric: occupancy_rate
+    meaning: "Actual leasing performance (current state)"
+    normalized_by: s_benefit
+    compensable: true
+    low_means: "Persistent vacancy / weak tenant demand"
+  demand:
+    metric: dsr
+    meaning: "Future demand vs supply (dimensionless ratio)"
+    normalized_by: s_benefit
+    compensable: true
+    low_means: "Oversupply relative to catchment demand"
+  accessibility:
+    metric: accessibility_score
+    meaning: "Walk-network accessibility (population-weighted)"
+    normalized_by: identity
+    compensable: true
+    low_means: "Poor walk connectivity"
+  environment:
+    metric: shade_proxy_score
+    meaning: "Shade availability proxy (not temperature)"
+    normalized_by: s_benefit
+    compensable: true
+    low_means: "Exposed, no tree cover"
+
+community_facility:
+  utilisation:
+    metric: utilisation_rate
+    meaning: "Capacity utilisation (target range 0.30–0.80)"
+    normalized_by: s_target
+    compensable: true
+  coverage:
+    metric: service_coverage
+    meaning: "Fraction of target population within walk catchment"
+    normalized_by: s_benefit
+    compensable: true
+  accessibility:
+    metric: accessibility_score
+    normalized_by: identity
+    compensable: true
+  cost_efficiency:
+    metric: cost_per_user_rm
+    meaning: "Annual cost per unique user"
+    normalized_by: s_cost
+    compensable: true
+  environment:
+    metric: shade_proxy_score
+    normalized_by: s_benefit
+    compensable: true
+
+green_space:
+  green_coverage:
+    metric: green_coverage
+    normalized_by: s_benefit
+    compensable: true
+  canopy:
+    metric: canopy_coverage
+    normalized_by: s_benefit
+    compensable: true
+  accessibility:
+    metric: accessibility_score
+    normalized_by: identity
+    compensable: true
+  thermal:
+    metric: shade_proxy_score
+    meaning: "Shade availability (higher = better)"
+    normalized_by: s_benefit
+    compensable: true
+  usage:
+    metric: green_per_capita_m2
+    normalized_by: s_benefit
+    compensable: true
+
+undeveloped_parcel:
+  development_feasibility:
+    metric: developable_ratio  # developable_area / land_area
+    normalized_by: s_benefit
+    compensable: true
+  demand:
+    metric: demand_supply_gap   # m²
+    normalized_by: s_benefit
+    compensable: true
+  accessibility:
+    metric: accessibility_score
+    normalized_by: identity
+    compensable: true
+  environment:
+    metric: shade_proxy_score
+    normalized_by: s_benefit
+    compensable: true
+  risk:
+    metric: null   # not implemented
+    compensable: true
+
+residential:
+  financial:
+    metric: noi_yield
+    normalized_by: s_benefit
+  occupancy:
+    metric: occupancy_rate
+    normalized_by: s_benefit
+  demand:
+    metric: occupancy_rate    # proxy
+    normalized_by: s_benefit
+  accessibility:
+    metric: accessibility_score
+    normalized_by: identity
+  environment:
+    metric: energy_intensity_kwh_m2
+    normalized_by: s_cost
+
+# Dependency graph — avoid double-counting
+dependencies:
+  - "population → huff → effective_demand → effective_demand_m2 → dsr → S_demand"
+  - "population → demand_simulation → O_target → occupancy → S_occupancy"
+  - "rental_income − opex − maintenance_surge → NOI → NOI_yield → S_financial"
+  - "canopy_coverage_ratio → d_effective → accessibility → S_accessibility"
+  - "canopy_coverage → shade_proxy_score → S_environment"
+
+notes:
+  - "S_occupancy uses occupancy_rate (Tier 1) — actual state"
+  - "S_demand uses dsr (Tier 2) — future demand signal"
+  - "S_financial uses noi_yield (Tier 2) — financial return"
+  - "These three dimensions do NOT share the same source metric"

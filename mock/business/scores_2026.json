@@ -2,16 +2,16 @@
   {
     "asset_id": "B-03",
     "asset_type": "commercial",
-    "overall_score": 27.87,
+    "overall_score": 0.0,
     "financial_score": 26.24,
-    "environmental_score": 33.33,
-    "social_score": 40.33,
+    "environmental_score": 0.0,
+    "social_score": 36.82,
     "component_scores": {
       "financial": 26.24,
       "occupancy": 14.67,
-      "demand": 10.53,
+      "demand": 0.0,
       "accessibility": 95.8,
-      "environment": 33.33
+      "environment": 0.0
     },
     "weights_used": {
       "financial": 0.35,
@@ -76,13 +76,13 @@
     "asset_type": "green_space",
     "overall_score": 7.14,
     "financial_score": null,
-    "environmental_score": 35.33,
+    "environmental_score": 30.33,
     "social_score": 95.8,
     "component_scores": {
       "green_coverage": 100.0,
       "canopy": 8.57,
       "accessibility": 95.8,
-      "thermal": 28.0,
+      "thermal": 8.0,
       "usage": 4.76
     },
     "weights_used": {

@@ -33,6 +33,7 @@
         "environmental_score": { "type": "number" },
         "social_score": { "type": "number" },
         "performance_score": { "type": "number" },
+        "carbon_10y_tco2e": { "type": "number" },
         "delta_score": { "type": "number" },
         "time_to_impact_months": { "type": "number" }
       }

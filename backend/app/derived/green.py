@@ -30,7 +30,7 @@ def derive_green(ctx: DerivationContext) -> dict:
     accessibility = ctx.accessibility_score
 
     # Thermal exposure: f(surface_temp, canopy, impervious)
-    thermal = _thermal_exposure(canopy_coverage)
+    shade = _shade_proxy_score(canopy_coverage)
 
     return {
         "asset_id": asset["asset_id"],
@@ -39,7 +39,7 @@ def derive_green(ctx: DerivationContext) -> dict:
         "canopy_coverage": canopy_coverage,
         "green_per_capita_m2": green_per_capita,
         "accessibility_score": accessibility,
-        "thermal_exposure": thermal,
+        "shade_proxy_score": shade,     # replaces "thermal_exposure"
         "metric_source": "derived",
         "model_version": "0.3.0",
     }
@@ -76,7 +76,7 @@ def _total_population(ctx: DerivationContext) -> float:
     return float(pop["total_population"].sum())
 
 
-def _thermal_exposure(canopy_coverage) -> float:
+def _shade_proxy_score(canopy_coverage) -> float:
     if canopy_coverage is None:
-        return 80.0
-    return max(0.0, min(100.0, 80.0 - 100.0 * canopy_coverage))
+        return 0.0
+    return max(0.0, min(100.0, 100.0 * canopy_coverage))

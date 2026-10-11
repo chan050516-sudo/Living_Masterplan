@@ -31,23 +31,23 @@
     "contributing_factors": [
       {
         "factor": "financial",
-        "contribution": 0.3958
+        "contribution": 0.3328
       },
       {
         "factor": "occupancy",
-        "contribution": 0.2827
+        "contribution": 0.275
       },
       {
         "factor": "demand",
-        "contribution": 0.2262
+        "contribution": 0.2578
       },
       {
         "factor": "environment",
-        "contribution": 0.0905
+        "contribution": 0.1289
       },
       {
         "factor": "accessibility",
-        "contribution": 0.0048
+        "contribution": 0.0054
       }
     ],
     "evidence": [
@@ -55,12 +55,12 @@
       "Vacancy: 14 months",
       "Effective demand: 1,820",
       "Effective supply: 5,200",
-      "DSR: 0.35",
+      "DSR: 0.17",
       "NOI (RM): -50,962",
-      "Footfall conversion (RM/person/day): 8.22",
+      "Rental income per visit (RM/person/day): 8.22",
       "Maintenance surge (RM): 190,962",
       "Accessibility score: 95.8",
-      "Thermal exposure: 80.0"
+      "Shade proxy score: 0.0"
     ],
     "model_version": "0.3.0"
   },
@@ -186,20 +186,20 @@
     },
     "contributing_factors": [
       {
-        "factor": "canopy",
-        "contribution": 0.3825
+        "factor": "thermal",
+        "contribution": 0.3551
       },
       {
-        "factor": "thermal",
-        "contribution": 0.3012
+        "factor": "canopy",
+        "contribution": 0.3529
       },
       {
         "factor": "usage",
-        "contribution": 0.2988
+        "contribution": 0.2757
       },
       {
         "factor": "accessibility",
-        "contribution": 0.0176
+        "contribution": 0.0162
       },
       {
         "factor": "green_coverage",
@@ -211,7 +211,7 @@
       "Canopy coverage: 8.0%",
       "Green space per capita (m2): 2.86",
       "Accessibility score: 95.8",
-      "Thermal exposure: 72.0"
+      "Shade proxy score: 8.0"
     ],
     "model_version": "0.3.0"
   },

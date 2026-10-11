@@ -1,6 +1,6 @@
-asset_id,year,occupancy_rate,vacancy_rate,vacancy_duration_months,footfall_daily,utilisation_rate,rental_income_rm,noi_rm,noi_yield,accessibility_score,service_coverage,effective_demand,effective_supply,dsr,carbon_operational_tco2e,energy_kwh,green_coverage,canopy_coverage,thermal_exposure,financial_score,environmental_score,social_score,performance_score,delta_score,metric_source,model_version,footfall_conversion_rm_per_person,maintenance_surge_rm,cost_per_user_rm,developable_area_m2,potential_gfa_m2,demand_supply_gap,infrastructure_cost_rm,green_per_capita_m2,energy_intensity_kwh_m2
-B-03,2026,0.21,0.79,14.0,320.0,,960000.0,-50962.0,-0.0011324888888888,95.80398354369962,,1820.0,5200.0,0.35,,,,,80.0,26.24,33.33,40.33,27.87,,derived,0.3.0,8.219178082191782,190962.0,,,,,,,
-F-02,2026,,,,,0.22,,,,91.82604855289412,0.9182604855289412,,,,,,,,,88.48,,82.94,83.39,,derived,0.3.0,,,23.03860523038605,,,,,,
-P-05,2026,,,,,,,,,86.62042009841349,,,,,,,,,,100.0,,43.31,0.0,,derived,0.3.0,,,,3600.0,5400.0,-4326.4,720000.0,,
-G-01,2026,,,,,,,,,95.80398354369962,,,,,,,1.0,0.08,72.0,,35.33,95.8,7.14,,derived,0.3.0,,,,,,,,2.857142857142857,
-R-01,2026,0.92,,,,,,,,100.0,,,,,,,,,,,,94.29,92.99,,derived,0.3.0,,,,,,,,,
+asset_id,year,occupancy_rate,vacancy_rate,vacancy_duration_months,footfall_daily,utilisation_rate,rental_income_rm,noi_rm,noi_yield,accessibility_score,service_coverage,effective_demand,effective_supply,dsr,carbon_operational_tco2e,energy_kwh,green_coverage,canopy_coverage,thermal_exposure,financial_score,environmental_score,social_score,performance_score,delta_score,metric_source,model_version,rental_income_per_visit_proxy,maintenance_surge_rm,effective_demand_m2,shade_proxy_score,cost_per_user_rm,developable_area_m2,potential_gfa_m2,demand_supply_gap,infrastructure_cost_rm,green_per_capita_m2,energy_intensity_kwh_m2
+B-03,2026,0.21,0.79,14.0,320.0,,960000.0,-50962.0,-0.0011324888888888,95.80398354369962,,1820.0,5200.0,0.168,,,,,,26.24,0.0,36.82,0.0,,derived,0.3.0,8.219178082191782,190962.0,873.6,0.0,,,,,,,
+F-02,2026,,,,,0.22,,,,91.82604855289412,0.9182604855289412,,,,,,,,,88.48,,82.94,83.39,,derived,0.3.0,,,,,23.03860523038605,,,,,,
+P-05,2026,,,,,,,,,86.62042009841349,,,,,,,,,,100.0,,43.31,0.0,,derived,0.3.0,,,,,,3600.0,5400.0,-4326.4,720000.0,,
+G-01,2026,,,,,,,,,95.80398354369962,,,,,,,1.0,0.08,,,30.33,95.8,7.14,,derived,0.3.0,,,,8.0,,,,,,2.857142857142857,
+R-01,2026,0.92,,,,,,,,100.0,,,,,,,,,,,,94.29,92.99,,derived,0.3.0,,,,,,,,,,,

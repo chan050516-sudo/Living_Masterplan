@@ -46,6 +46,7 @@ asset_metrics:
   service_coverage:         { tier: 2, source: derived, unit: ratio }
 
   effective_demand:         { tier: 3, source: assumed, unit: count }
+  effective_demand_m2:      { tier: 2, source: derived, unit: "m2" }
   effective_supply:         { tier: 3, source: assumed, unit: count }
   dsr:                      { tier: 2, source: derived, unit: ratio }
 
@@ -54,7 +55,7 @@ asset_metrics:
 
   green_coverage:           { tier: 2, source: derived, unit: ratio }
   canopy_coverage:          { tier: 2, source: derived, unit: ratio }
-  thermal_exposure:         { tier: 2, source: derived, unit: 0-100 }
+  shade_proxy_score:        { tier: 2, source: derived, unit: 0-100 }
 
   financial_score:          { tier: 2, source: derived, unit: 0-100 }
   environmental_score:      { tier: 2, source: derived, unit: 0-100 }
@@ -62,7 +63,7 @@ asset_metrics:
   performance_score:        { tier: 2, source: derived, unit: 0-100 }
   delta_score:              { tier: 3, source: simulated, unit: score }
 
-  footfall_conversion_rm_per_person: { tier: 2, source: derived, unit: "RM/person/day" }
+  rental_income_per_visit_proxy: { tier: 2, source: derived, unit: "RM/person/day" }
   maintenance_surge_rm: { tier: 2, source: derived, unit: RM }
 
 population:

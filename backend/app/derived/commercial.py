@@ -61,26 +61,37 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     if noi is not None and capex is not None and float(capex) > 0:
         noi_yield = noi / float(capex)
 
-    # --- DSR from Huff ---
-    effective_demand = ctx.huff_effective_demand
+    # --- DSR from Huff (unit-corrected) ---
+    # Huff returns effective_demand in persons. Convert to m² using per-capita
+    # commercial demand coefficient, so DSR is dimensionless (m² / m²).
+    huff_demand_persons = ctx.huff_effective_demand
+    per_capita_m2 = assumptions.get("demand", {}).get(
+        "commercial_per_capita_m2", {}
+    )
+    e_k = sum(per_capita_m2.values()) if per_capita_m2 else 0.48  # m²/person
+
+    effective_demand_m2 = None
+    if huff_demand_persons is not None:
+        effective_demand_m2 = huff_demand_persons * e_k
+
     effective_supply = asset.get("lettable_area_m2")
     dsr = None
-    if effective_demand is not None and effective_supply is not None and float(effective_supply) > 0:
-        dsr = effective_demand / float(effective_supply)
+    if (effective_demand_m2 is not None
+            and effective_supply is not None
+            and float(effective_supply) > 0):
+        dsr = effective_demand_m2 / float(effective_supply)
 
-    # --- Footfall conversion ---
+    # --- Footfall conversion (renamed: this is a rental income proxy, not a
+    # true sales conversion rate). ---
     footfall = _get("footfall_daily")
-    footfall_conversion = None
+    rental_income_per_visit = None
     if rental_income is not None and footfall and footfall > 0:
-        # Approximate: rental income / (footfall * 30 days)
-        footfall_conversion = rental_income / (footfall * 365.0)
+        rental_income_per_visit = rental_income / (footfall * 365.0)
 
     # --- Accessibility ---
     accessibility = ctx.accessibility_score
 
-    # --- Thermal exposure (0-100, higher = worse) ---
-    # Placeholder: 70 base, minus canopy coverage bonus
-    thermal = _thermal_exposure(ctx)
+    shade = _shade_proxy_score(ctx)
 
     return {
         "asset_id": asset["asset_id"],
@@ -89,33 +100,33 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         "vacancy_rate": vacancy_rate,
         "vacancy_duration_months": vacancy_duration,
         "footfall_daily": footfall,
-        "footfall_conversion_rm_per_person": footfall_conversion,
+        "rental_income_per_visit_proxy": rental_income_per_visit,   # renamed
         "rental_income_rm": rental_income,
         "noi_rm": noi,
         "noi_yield": noi_yield,
         "maintenance_surge_rm": maintenance_surge,
         "accessibility_score": accessibility,
-        "effective_demand": effective_demand,
+        "effective_demand": huff_demand_persons,      # persons (raw Huff output)
+        "effective_demand_m2": effective_demand_m2,   # NEW: m² (for DSR)
         "effective_supply": effective_supply,
-        "dsr": dsr,
-        "thermal_exposure": thermal,
+        "dsr": dsr,   # dimensionless
+        "shade_proxy_score": shade,     # replaces "thermal_exposure"
         "metric_source": "derived",
         "model_version": "0.3.0",
     }
 
 
-def _thermal_exposure(ctx: DerivationContext) -> float:
+def _shade_proxy_score(ctx: DerivationContext) -> float:
     """
-    Simple thermal proxy: high when canopy is low.
-    0 = cool, 100 = hot.
+    Proxy for shade availability. 0 = no shade, 100 = fully shaded.
+    NOT a temperature model. Higher is better.
     """
     canopy = ctx.asset.get("canopy_ratio")
     try:
         canopy = float(canopy) if canopy is not None else 0.0
     except (TypeError, ValueError):
         canopy = 0.0
-    # Placeholder formula: 80 - 100 * canopy, clipped 0-100
-    return max(0.0, min(100.0, 80.0 - 100.0 * canopy))
+    return max(0.0, min(100.0, 100.0 * canopy))
 
 
 def _isnan(v) -> bool:
