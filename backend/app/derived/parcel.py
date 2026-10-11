@@ -1,4 +1,4 @@
-"""Undeveloped parcel derived metrics — P-05."""
+"""Undeveloped parcel derived metrics."""
 
 import math
 from .context import DerivationContext
@@ -16,22 +16,17 @@ def derive_parcel(ctx: DerivationContext) -> dict:
     if land_area_f > 0:
         developable = max(0.0, land_area_f - restricted)
 
-    # FAR from benchmarks or assumption
     far = _far_for_land_use(ctx)
     potential_gfa = None
     if developable is not None and far:
         potential_gfa = developable * far
 
-    # Demand-supply gap
     total_pop = _total_population(ctx)
-    # Proxy: demand = population * commercial_per_capita_sum
     demand = total_pop * _commercial_demand_coefficient(ctx)   # m²
     supply = _commercial_supply(ctx)                            # m²
     gap = demand - supply                                        # m²
 
-    # Infrastructure cost: distance-based
     infrastructure_cost = _infrastructure_cost(ctx)
-
     accessibility = ctx.accessibility_score
 
     return {
@@ -43,17 +38,31 @@ def derive_parcel(ctx: DerivationContext) -> dict:
         "infrastructure_cost_rm": infrastructure_cost,
         "accessibility_score": accessibility,
         "metric_source": "derived",
-        "model_version": "0.3.0",
+        "model_version": "0.3.1",
     }
 
 
 def _restricted_area(ctx: DerivationContext) -> float:
-    # For demo: no restricted area
+    """
+    Area (m²) within the parcel that cannot be developed.
+
+    NOTE (P2): Currently returns 0. Real implementation should read from a
+    constraints layer (protected zones, drainage easements, road setbacks).
+    The output field is labelled accordingly and should not be interpreted
+    as a definitive development-feasibility verdict.
+    """
     return 0.0
 
 
 def _far_for_land_use(ctx: DerivationContext) -> float:
-    # Planning assumption: FAR = 1.5 for undeveloped parcels in this zone
+    """
+    Floor Area Ratio for the parcel.
+
+    NOTE (P2): Hardcoded to 1.5 for the demo. Real implementation should read
+    from zoning regulations, ideally via a parcel-level `far` attribute or a
+    separate zoning lookup. The derived `potential_gfa_m2` is labelled as
+    "under assumed FAR".
+    """
     return 1.5
 
 
@@ -78,7 +87,13 @@ def _commercial_supply(ctx: DerivationContext) -> float:
 
 
 def _infrastructure_cost(ctx: DerivationContext) -> float:
-    # Placeholder: RM 200 per m2 of developable area
+    """
+    Rough infrastructure connection cost (RM).
+
+    NOTE (P2): Currently a placeholder of RM 200/m² of land. Real implementation
+    should estimate distance to the nearest utility network times a per-metre
+    connection cost.
+    """
     land_area = ctx.asset.get("land_area_m2")
     if not land_area:
         return 0.0

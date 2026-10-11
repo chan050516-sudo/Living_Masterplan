@@ -1,6 +1,6 @@
 {
   "scenario_id": "SC-REPURPOSE",
-  "scenario_name": "Option A \u2014 Repurpose",
+  "scenario_name": "Option A - Repurpose",
   "interventions": [
     {
       "scenario_id": "SC-REPURPOSE",
@@ -59,7 +59,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "derived",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": NaN,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -70,7 +70,10 @@
           "green_coverage": NaN,
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "commercial",
+          "_effective_capacity": "80",
+          "_effective_lettable": "5200"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -102,7 +105,10 @@
           "green_coverage": NaN,
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "community_facility",
+          "_effective_capacity": "200",
+          "_effective_lettable": "1200"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -123,7 +129,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "derived",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": NaN,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -134,7 +140,10 @@
           "green_coverage": NaN,
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "undeveloped_parcel",
+          "_effective_capacity": "0",
+          "_effective_lettable": "0"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -155,7 +164,7 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "derived",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": NaN,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -166,7 +175,10 @@
           "green_coverage": 1.0,
           "canopy_coverage": 0.08,
           "green_per_capita_m2": 2.857142857142857,
-          "energy_intensity_kwh_m2": NaN
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "green_space",
+          "_effective_capacity": "0",
+          "_effective_lettable": "0"
         },
         "R-01": {
           "asset_id": "R-01",
@@ -198,7 +210,10 @@
           "green_coverage": NaN,
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "residential",
+          "_effective_capacity": "480",
+          "_effective_lettable": "40000"
         }
       },
       "scores": {
@@ -226,7 +241,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2026,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -250,7 +265,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2026,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -272,7 +287,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2026,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -298,7 +313,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2026,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "R-01": {
           "asset_id": "R-01",
@@ -320,7 +335,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2026,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         }
       }
     },
@@ -345,7 +360,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -357,11 +372,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 473.2799999999999,
-          "energy_kwh": 816000.0,
           "_effective_asset_type": "commercial",
           "_effective_capacity": 80,
-          "_effective_lettable": 5200
+          "_effective_lettable": 5200,
+          "carbon_operational_tco2e": 473.2799999999999,
+          "energy_kwh": 816000.0
         },
         "F-02": {
           "asset_id": "F-02",
@@ -382,7 +397,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 1.0,
           "service_coverage": 0.9182604855289411,
           "cost_per_user_rm": 5.068493150684931,
@@ -394,11 +409,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 83.52,
-          "energy_kwh": 144000.0,
           "_effective_asset_type": "community_facility",
           "_effective_capacity": 200,
-          "_effective_lettable": 1200
+          "_effective_lettable": 1200,
+          "carbon_operational_tco2e": 83.52,
+          "energy_kwh": 144000.0
         },
         "P-05": {
           "asset_id": "P-05",
@@ -419,7 +434,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -431,11 +446,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
           "_effective_asset_type": "undeveloped_parcel",
           "_effective_capacity": 0,
-          "_effective_lettable": 0
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
         },
         "G-01": {
           "asset_id": "G-01",
@@ -456,7 +471,7 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 1.0,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -468,11 +483,11 @@
           "canopy_coverage": 0.08,
           "green_per_capita_m2": 2.857142857142857,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
           "_effective_asset_type": "green_space",
           "_effective_capacity": 0,
-          "_effective_lettable": 0
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
         },
         "R-01": {
           "asset_id": "R-01",
@@ -493,7 +508,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.773,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -505,11 +520,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 2923.2,
-          "energy_kwh": 5040000.0,
           "_effective_asset_type": "residential",
           "_effective_capacity": 480,
-          "_effective_lettable": 40000
+          "_effective_lettable": 40000,
+          "carbon_operational_tco2e": 2923.2,
+          "energy_kwh": 5040000.0
         }
       },
       "scores": {
@@ -537,7 +552,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2027,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -561,7 +576,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2027,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -583,7 +598,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2027,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -609,7 +624,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2027,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "R-01": {
           "asset_id": "R-01",
@@ -631,7 +646,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2027,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         }
       }
     },
@@ -656,7 +671,7 @@
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.78,
           "service_coverage": 0.72,
           "cost_per_user_rm": 18.616087109237792,
@@ -668,11 +683,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 145.0,
-          "energy_kwh": 816000.0,
           "_effective_asset_type": "community_facility",
           "_effective_capacity": 200,
-          "_effective_lettable": 5200
+          "_effective_lettable": 5200,
+          "carbon_operational_tco2e": 145.0,
+          "energy_kwh": 816000.0
         },
         "F-02": {
           "asset_id": "F-02",
@@ -693,7 +708,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.825,
           "service_coverage": 0.9182604855289411,
           "cost_per_user_rm": 6.143628061436281,
@@ -705,11 +720,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 83.52,
-          "energy_kwh": 144000.0,
           "_effective_asset_type": "community_facility",
           "_effective_capacity": 200,
-          "_effective_lettable": 1200
+          "_effective_lettable": 1200,
+          "carbon_operational_tco2e": 83.52,
+          "energy_kwh": 144000.0
         },
         "P-05": {
           "asset_id": "P-05",
@@ -730,7 +745,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.825,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -742,11 +757,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
           "_effective_asset_type": "undeveloped_parcel",
           "_effective_capacity": 0,
-          "_effective_lettable": 0
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
         },
         "G-01": {
           "asset_id": "G-01",
@@ -767,7 +782,7 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.825,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -779,11 +794,11 @@
           "canopy_coverage": 0.08,
           "green_per_capita_m2": 2.857142857142857,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
           "_effective_asset_type": "green_space",
           "_effective_capacity": 0,
-          "_effective_lettable": 0
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
         },
         "R-01": {
           "asset_id": "R-01",
@@ -804,7 +819,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.67745,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -816,11 +831,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 2923.2,
-          "energy_kwh": 5040000.0,
           "_effective_asset_type": "residential",
           "_effective_capacity": 480,
-          "_effective_lettable": 40000
+          "_effective_lettable": 40000,
+          "carbon_operational_tco2e": 2923.2,
+          "energy_kwh": 5040000.0
         }
       },
       "scores": {
@@ -846,7 +861,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -870,7 +885,7 @@
           "data_completeness": 0.8,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -892,7 +907,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -918,7 +933,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2028,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "R-01": {
           "asset_id": "R-01",
@@ -940,7 +955,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2028,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         }
       }
     },
@@ -949,8 +964,8 @@
         "B-03": {
           "asset_id": "B-03",
           "year": 2030,
-          "occupancy_rate": 0.16252557079949997,
-          "vacancy_rate": 0.8374744292005001,
+          "occupancy_rate": 0.0591512837983052,
+          "vacancy_rate": 0.9408487162016947,
           "vacancy_duration_months": 14.0,
           "footfall_daily": 320.0,
           "rental_income_per_visit_proxy": 8.219178082191782,
@@ -959,13 +974,13 @@
           "noi_yield": -0.0011324888888888888,
           "maintenance_surge_rm": 190962.0,
           "accessibility_score": 100.0,
-          "effective_demand": 1970.0265312,
+          "effective_demand": 595.5894164093023,
           "effective_demand_m2": 873.6,
           "effective_supply": 5200.0,
           "dsr": 0.168,
           "shade_proxy_score": 0.0,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.78,
           "service_coverage": 0.72,
           "cost_per_user_rm": 18.616087109237792,
@@ -977,324 +992,15 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "community_facility",
+          "_effective_capacity": 200,
+          "_effective_lettable": 5200,
           "carbon_operational_tco2e": 145.0,
-          "energy_kwh": 816000.0,
-          "_effective_asset_type": "community_facility",
-          "_effective_capacity": 200,
-          "_effective_lettable": 5200
+          "energy_kwh": 816000.0
         },
         "F-02": {
           "asset_id": "F-02",
           "year": 2030,
-          "occupancy_rate": 0.7112499999999999,
-          "vacancy_rate": 0.28875000000000006,
-          "vacancy_duration_months": NaN,
-          "footfall_daily": NaN,
-          "rental_income_per_visit_proxy": NaN,
-          "rental_income_rm": NaN,
-          "noi_rm": NaN,
-          "noi_yield": NaN,
-          "maintenance_surge_rm": NaN,
-          "accessibility_score": 91.82604855289411,
-          "effective_demand": null,
-          "effective_demand_m2": NaN,
-          "effective_supply": NaN,
-          "dsr": NaN,
-          "shade_proxy_score": NaN,
-          "metric_source": "simulated",
-          "model_version": "0.3.0",
-          "utilisation_rate": 0.7112499999999999,
-          "service_coverage": 0.9182604855289411,
-          "cost_per_user_rm": 7.126176661771432,
-          "developable_area_m2": NaN,
-          "potential_gfa_m2": NaN,
-          "demand_supply_gap": NaN,
-          "infrastructure_cost_rm": NaN,
-          "green_coverage": NaN,
-          "canopy_coverage": NaN,
-          "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 83.52,
-          "energy_kwh": 144000.0,
-          "_effective_asset_type": "community_facility",
-          "_effective_capacity": 200,
-          "_effective_lettable": 1200
-        },
-        "P-05": {
-          "asset_id": "P-05",
-          "year": 2030,
-          "occupancy_rate": 0.7112499999999999,
-          "vacancy_rate": 0.28875000000000006,
-          "vacancy_duration_months": NaN,
-          "footfall_daily": NaN,
-          "rental_income_per_visit_proxy": NaN,
-          "rental_income_rm": NaN,
-          "noi_rm": NaN,
-          "noi_yield": NaN,
-          "maintenance_surge_rm": NaN,
-          "accessibility_score": 86.62042009841349,
-          "effective_demand": null,
-          "effective_demand_m2": NaN,
-          "effective_supply": NaN,
-          "dsr": NaN,
-          "shade_proxy_score": NaN,
-          "metric_source": "simulated",
-          "model_version": "0.3.0",
-          "utilisation_rate": 0.7112499999999999,
-          "service_coverage": NaN,
-          "cost_per_user_rm": NaN,
-          "developable_area_m2": 3600.0,
-          "potential_gfa_m2": 5400.0,
-          "demand_supply_gap": -4326.4,
-          "infrastructure_cost_rm": 720000.0,
-          "green_coverage": NaN,
-          "canopy_coverage": NaN,
-          "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
-          "_effective_asset_type": "undeveloped_parcel",
-          "_effective_capacity": 0,
-          "_effective_lettable": 0
-        },
-        "G-01": {
-          "asset_id": "G-01",
-          "year": 2030,
-          "occupancy_rate": 0.7112499999999999,
-          "vacancy_rate": 0.28875000000000006,
-          "vacancy_duration_months": NaN,
-          "footfall_daily": NaN,
-          "rental_income_per_visit_proxy": NaN,
-          "rental_income_rm": NaN,
-          "noi_rm": NaN,
-          "noi_yield": NaN,
-          "maintenance_surge_rm": NaN,
-          "accessibility_score": 95.80398354369962,
-          "effective_demand": null,
-          "effective_demand_m2": NaN,
-          "effective_supply": NaN,
-          "dsr": NaN,
-          "shade_proxy_score": 8.0,
-          "metric_source": "simulated",
-          "model_version": "0.3.0",
-          "utilisation_rate": 0.7112499999999999,
-          "service_coverage": NaN,
-          "cost_per_user_rm": NaN,
-          "developable_area_m2": NaN,
-          "potential_gfa_m2": NaN,
-          "demand_supply_gap": NaN,
-          "infrastructure_cost_rm": NaN,
-          "green_coverage": 1.0,
-          "canopy_coverage": 0.08,
-          "green_per_capita_m2": 2.857142857142857,
-          "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
-          "_effective_asset_type": "green_space",
-          "_effective_capacity": 0,
-          "_effective_lettable": 0
-        },
-        "R-01": {
-          "asset_id": "R-01",
-          "year": 2030,
-          "occupancy_rate": 0.6153425,
-          "vacancy_rate": 0.3846575,
-          "vacancy_duration_months": NaN,
-          "footfall_daily": NaN,
-          "rental_income_per_visit_proxy": NaN,
-          "rental_income_rm": NaN,
-          "noi_rm": NaN,
-          "noi_yield": NaN,
-          "maintenance_surge_rm": NaN,
-          "accessibility_score": 100.0,
-          "effective_demand": null,
-          "effective_demand_m2": NaN,
-          "effective_supply": NaN,
-          "dsr": NaN,
-          "shade_proxy_score": NaN,
-          "metric_source": "simulated",
-          "model_version": "0.3.0",
-          "utilisation_rate": 0.6153425,
-          "service_coverage": NaN,
-          "cost_per_user_rm": NaN,
-          "developable_area_m2": NaN,
-          "potential_gfa_m2": NaN,
-          "demand_supply_gap": NaN,
-          "infrastructure_cost_rm": NaN,
-          "green_coverage": NaN,
-          "canopy_coverage": NaN,
-          "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 2923.2,
-          "energy_kwh": 5040000.0,
-          "_effective_asset_type": "residential",
-          "_effective_capacity": 480,
-          "_effective_lettable": 40000
-        }
-      },
-      "scores": {
-        "B-03": {
-          "asset_id": "B-03",
-          "asset_type": "community_facility",
-          "overall_score": 81.89,
-          "financial_score": 90.69,
-          "environmental_score": null,
-          "social_score": 81.33,
-          "component_scores": {
-            "utilisation": 100.0,
-            "coverage": 44.0,
-            "accessibility": 100.0,
-            "cost_efficiency": 90.69
-          },
-          "weights_used": {
-            "utilisation": 0.29411764705882354,
-            "coverage": 0.29411764705882354,
-            "accessibility": 0.23529411764705885,
-            "cost_efficiency": 0.17647058823529413
-          },
-          "data_completeness": 0.8,
-          "confidence": "medium",
-          "year": 2030,
-          "model_version": "0.3.0"
-        },
-        "F-02": {
-          "asset_id": "F-02",
-          "asset_type": "community_facility",
-          "overall_score": 92.64,
-          "financial_score": 96.44,
-          "environmental_score": null,
-          "social_score": 91.83,
-          "component_scores": {
-            "utilisation": 100.0,
-            "coverage": 83.65,
-            "accessibility": 91.83,
-            "cost_efficiency": 96.44
-          },
-          "weights_used": {
-            "utilisation": 0.29411764705882354,
-            "coverage": 0.29411764705882354,
-            "accessibility": 0.23529411764705885,
-            "cost_efficiency": 0.17647058823529413
-          },
-          "data_completeness": 0.8,
-          "confidence": "medium",
-          "year": 2030,
-          "model_version": "0.3.0"
-        },
-        "P-05": {
-          "asset_id": "P-05",
-          "asset_type": "undeveloped_parcel",
-          "overall_score": 0.0,
-          "financial_score": 100.0,
-          "environmental_score": null,
-          "social_score": 43.31,
-          "component_scores": {
-            "development_feasibility": 100.0,
-            "demand": 0.0,
-            "accessibility": 86.62
-          },
-          "weights_used": {
-            "development_feasibility": 0.39999999999999997,
-            "demand": 0.3333333333333333,
-            "accessibility": 0.26666666666666666
-          },
-          "data_completeness": 0.6,
-          "confidence": "medium",
-          "year": 2030,
-          "model_version": "0.3.0"
-        },
-        "G-01": {
-          "asset_id": "G-01",
-          "asset_type": "green_space",
-          "overall_score": 7.14,
-          "financial_score": null,
-          "environmental_score": 30.33,
-          "social_score": 95.8,
-          "component_scores": {
-            "green_coverage": 100.0,
-            "canopy": 8.57,
-            "accessibility": 95.8,
-            "thermal": 8.0,
-            "usage": 4.76
-          },
-          "weights_used": {
-            "green_coverage": 0.25,
-            "canopy": 0.2,
-            "accessibility": 0.2,
-            "thermal": 0.2,
-            "usage": 0.15
-          },
-          "data_completeness": 1.0,
-          "confidence": "high",
-          "year": 2030,
-          "model_version": "0.3.0"
-        },
-        "R-01": {
-          "asset_id": "R-01",
-          "asset_type": "residential",
-          "overall_score": 6.58,
-          "financial_score": null,
-          "environmental_score": null,
-          "social_score": 36.26,
-          "component_scores": {
-            "occupancy": 4.38,
-            "demand": 4.38,
-            "accessibility": 100.0
-          },
-          "weights_used": {
-            "occupancy": 0.45454545454545453,
-            "demand": 0.36363636363636365,
-            "accessibility": 0.18181818181818182
-          },
-          "data_completeness": 0.6,
-          "confidence": "medium",
-          "year": 2030,
-          "model_version": "0.3.0"
-        }
-      }
-    },
-    "2033": {
-      "assets": {
-        "B-03": {
-          "asset_id": "B-03",
-          "year": 2033,
-          "occupancy_rate": 0.23690600596471012,
-          "vacancy_rate": 0.7630939940352899,
-          "vacancy_duration_months": 14.0,
-          "footfall_daily": 320.0,
-          "rental_income_per_visit_proxy": 8.219178082191782,
-          "rental_income_rm": 960000.0,
-          "noi_rm": -50962.0,
-          "noi_yield": -0.0011324888888888888,
-          "maintenance_surge_rm": 190962.0,
-          "accessibility_score": 100.0,
-          "effective_demand": 2090.6079151216895,
-          "effective_demand_m2": 873.6,
-          "effective_supply": 5200.0,
-          "dsr": 0.168,
-          "shade_proxy_score": 0.0,
-          "metric_source": "simulated",
-          "model_version": "0.3.0",
-          "utilisation_rate": 0.78,
-          "service_coverage": 0.72,
-          "cost_per_user_rm": 18.616087109237792,
-          "developable_area_m2": NaN,
-          "potential_gfa_m2": NaN,
-          "demand_supply_gap": NaN,
-          "infrastructure_cost_rm": NaN,
-          "green_coverage": NaN,
-          "canopy_coverage": NaN,
-          "green_per_capita_m2": NaN,
-          "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 145.0,
-          "energy_kwh": 816000.0,
-          "_effective_asset_type": "community_facility",
-          "_effective_capacity": 200,
-          "_effective_lettable": 5200
-        },
-        "F-02": {
-          "asset_id": "F-02",
-          "year": 2033,
           "occupancy_rate": 0.6373125,
           "vacancy_rate": 0.36268750000000005,
           "vacancy_duration_months": NaN,
@@ -1311,7 +1017,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.6373125,
           "service_coverage": 0.9182604855289411,
           "cost_per_user_rm": 7.9529165843835345,
@@ -1323,15 +1029,15 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 83.52,
-          "energy_kwh": 144000.0,
           "_effective_asset_type": "community_facility",
           "_effective_capacity": 200,
-          "_effective_lettable": 1200
+          "_effective_lettable": 1200,
+          "carbon_operational_tco2e": 83.52,
+          "energy_kwh": 144000.0
         },
         "P-05": {
           "asset_id": "P-05",
-          "year": 2033,
+          "year": 2030,
           "occupancy_rate": 0.6373125,
           "vacancy_rate": 0.36268750000000005,
           "vacancy_duration_months": NaN,
@@ -1348,7 +1054,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.6373125,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -1360,15 +1066,15 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
           "_effective_asset_type": "undeveloped_parcel",
           "_effective_capacity": 0,
-          "_effective_lettable": 0
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
         },
         "G-01": {
           "asset_id": "G-01",
-          "year": 2033,
+          "year": 2030,
           "occupancy_rate": 0.6373125,
           "vacancy_rate": 0.36268750000000005,
           "vacancy_duration_months": NaN,
@@ -1385,7 +1091,7 @@
           "dsr": NaN,
           "shade_proxy_score": 8.0,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.6373125,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -1397,15 +1103,15 @@
           "canopy_coverage": 0.08,
           "green_per_capita_m2": 2.857142857142857,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 0.0,
-          "energy_kwh": 0.0,
           "_effective_asset_type": "green_space",
           "_effective_capacity": 0,
-          "_effective_lettable": 0
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
         },
         "R-01": {
           "asset_id": "R-01",
-          "year": 2033,
+          "year": 2030,
           "occupancy_rate": 0.574972625,
           "vacancy_rate": 0.425027375,
           "vacancy_duration_months": NaN,
@@ -1422,7 +1128,7 @@
           "dsr": NaN,
           "shade_proxy_score": NaN,
           "metric_source": "simulated",
-          "model_version": "0.3.0",
+          "model_version": "0.3.1",
           "utilisation_rate": 0.574972625,
           "service_coverage": NaN,
           "cost_per_user_rm": NaN,
@@ -1434,11 +1140,11 @@
           "canopy_coverage": NaN,
           "green_per_capita_m2": NaN,
           "energy_intensity_kwh_m2": NaN,
-          "carbon_operational_tco2e": 2923.2,
-          "energy_kwh": 5040000.0,
           "_effective_asset_type": "residential",
           "_effective_capacity": 480,
-          "_effective_lettable": 40000
+          "_effective_lettable": 40000,
+          "carbon_operational_tco2e": 2923.2,
+          "energy_kwh": 5040000.0
         }
       },
       "scores": {
@@ -1463,8 +1169,8 @@
           },
           "data_completeness": 0.8,
           "confidence": "medium",
-          "year": 2033,
-          "model_version": "0.3.0"
+          "year": 2030,
+          "model_version": "0.3.1"
         },
         "F-02": {
           "asset_id": "F-02",
@@ -1487,8 +1193,317 @@
           },
           "data_completeness": 0.8,
           "confidence": "medium",
+          "year": 2030,
+          "model_version": "0.3.1"
+        },
+        "P-05": {
+          "asset_id": "P-05",
+          "asset_type": "undeveloped_parcel",
+          "overall_score": 0.0,
+          "financial_score": 100.0,
+          "environmental_score": null,
+          "social_score": 43.31,
+          "component_scores": {
+            "development_feasibility": 100.0,
+            "demand": 0.0,
+            "accessibility": 86.62
+          },
+          "weights_used": {
+            "development_feasibility": 0.39999999999999997,
+            "demand": 0.3333333333333333,
+            "accessibility": 0.26666666666666666
+          },
+          "data_completeness": 0.6,
+          "confidence": "medium",
+          "year": 2030,
+          "model_version": "0.3.1"
+        },
+        "G-01": {
+          "asset_id": "G-01",
+          "asset_type": "green_space",
+          "overall_score": 7.14,
+          "financial_score": null,
+          "environmental_score": 30.33,
+          "social_score": 95.8,
+          "component_scores": {
+            "green_coverage": 100.0,
+            "canopy": 8.57,
+            "accessibility": 95.8,
+            "thermal": 8.0,
+            "usage": 4.76
+          },
+          "weights_used": {
+            "green_coverage": 0.25,
+            "canopy": 0.2,
+            "accessibility": 0.2,
+            "thermal": 0.2,
+            "usage": 0.15
+          },
+          "data_completeness": 1.0,
+          "confidence": "high",
+          "year": 2030,
+          "model_version": "0.3.1"
+        },
+        "R-01": {
+          "asset_id": "R-01",
+          "asset_type": "residential",
+          "overall_score": 0.0,
+          "financial_score": null,
+          "environmental_score": null,
+          "social_score": 33.33,
+          "component_scores": {
+            "occupancy": 0.0,
+            "demand": 0.0,
+            "accessibility": 100.0
+          },
+          "weights_used": {
+            "occupancy": 0.45454545454545453,
+            "demand": 0.36363636363636365,
+            "accessibility": 0.18181818181818182
+          },
+          "data_completeness": 0.6,
+          "confidence": "medium",
+          "year": 2030,
+          "model_version": "0.3.1"
+        }
+      }
+    },
+    "2033": {
+      "assets": {
+        "B-03": {
+          "asset_id": "B-03",
           "year": 2033,
-          "model_version": "0.3.0"
+          "occupancy_rate": 0.03980061397957016,
+          "vacancy_rate": 0.9601993860204299,
+          "vacancy_duration_months": 14.0,
+          "footfall_daily": 320.0,
+          "rental_income_per_visit_proxy": 8.219178082191782,
+          "rental_income_rm": 960000.0,
+          "noi_rm": -50962.0,
+          "noi_yield": -0.0011324888888888888,
+          "maintenance_surge_rm": 190962.0,
+          "accessibility_score": 100.0,
+          "effective_demand": 632.0442534088829,
+          "effective_demand_m2": 873.6,
+          "effective_supply": 5200.0,
+          "dsr": 0.168,
+          "shade_proxy_score": 0.0,
+          "metric_source": "simulated",
+          "model_version": "0.3.1",
+          "utilisation_rate": 0.78,
+          "service_coverage": 0.72,
+          "cost_per_user_rm": 18.616087109237792,
+          "developable_area_m2": NaN,
+          "potential_gfa_m2": NaN,
+          "demand_supply_gap": NaN,
+          "infrastructure_cost_rm": NaN,
+          "green_coverage": NaN,
+          "canopy_coverage": NaN,
+          "green_per_capita_m2": NaN,
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "community_facility",
+          "_effective_capacity": 200,
+          "_effective_lettable": 5200,
+          "carbon_operational_tco2e": 145.0,
+          "energy_kwh": 816000.0
+        },
+        "F-02": {
+          "asset_id": "F-02",
+          "year": 2033,
+          "occupancy_rate": 0.5377094453125,
+          "vacancy_rate": 0.4622905546875,
+          "vacancy_duration_months": NaN,
+          "footfall_daily": NaN,
+          "rental_income_per_visit_proxy": NaN,
+          "rental_income_rm": NaN,
+          "noi_rm": NaN,
+          "noi_yield": NaN,
+          "maintenance_surge_rm": NaN,
+          "accessibility_score": 91.82604855289411,
+          "effective_demand": null,
+          "effective_demand_m2": NaN,
+          "effective_supply": NaN,
+          "dsr": NaN,
+          "shade_proxy_score": NaN,
+          "metric_source": "simulated",
+          "model_version": "0.3.1",
+          "utilisation_rate": 0.5377094453125,
+          "service_coverage": 0.9182604855289411,
+          "cost_per_user_rm": 9.426081678255217,
+          "developable_area_m2": NaN,
+          "potential_gfa_m2": NaN,
+          "demand_supply_gap": NaN,
+          "infrastructure_cost_rm": NaN,
+          "green_coverage": NaN,
+          "canopy_coverage": NaN,
+          "green_per_capita_m2": NaN,
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "community_facility",
+          "_effective_capacity": 200,
+          "_effective_lettable": 1200,
+          "carbon_operational_tco2e": 83.52,
+          "energy_kwh": 144000.0
+        },
+        "P-05": {
+          "asset_id": "P-05",
+          "year": 2033,
+          "occupancy_rate": 0.5377094453125,
+          "vacancy_rate": 0.4622905546875,
+          "vacancy_duration_months": NaN,
+          "footfall_daily": NaN,
+          "rental_income_per_visit_proxy": NaN,
+          "rental_income_rm": NaN,
+          "noi_rm": NaN,
+          "noi_yield": NaN,
+          "maintenance_surge_rm": NaN,
+          "accessibility_score": 86.62042009841349,
+          "effective_demand": null,
+          "effective_demand_m2": NaN,
+          "effective_supply": NaN,
+          "dsr": NaN,
+          "shade_proxy_score": NaN,
+          "metric_source": "simulated",
+          "model_version": "0.3.1",
+          "utilisation_rate": 0.5377094453125,
+          "service_coverage": NaN,
+          "cost_per_user_rm": NaN,
+          "developable_area_m2": 3600.0,
+          "potential_gfa_m2": 5400.0,
+          "demand_supply_gap": -4326.4,
+          "infrastructure_cost_rm": 720000.0,
+          "green_coverage": NaN,
+          "canopy_coverage": NaN,
+          "green_per_capita_m2": NaN,
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "undeveloped_parcel",
+          "_effective_capacity": 0,
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
+        },
+        "G-01": {
+          "asset_id": "G-01",
+          "year": 2033,
+          "occupancy_rate": 0.5377094453125,
+          "vacancy_rate": 0.4622905546875,
+          "vacancy_duration_months": NaN,
+          "footfall_daily": NaN,
+          "rental_income_per_visit_proxy": NaN,
+          "rental_income_rm": NaN,
+          "noi_rm": NaN,
+          "noi_yield": NaN,
+          "maintenance_surge_rm": NaN,
+          "accessibility_score": 95.80398354369962,
+          "effective_demand": null,
+          "effective_demand_m2": NaN,
+          "effective_supply": NaN,
+          "dsr": NaN,
+          "shade_proxy_score": 8.0,
+          "metric_source": "simulated",
+          "model_version": "0.3.1",
+          "utilisation_rate": 0.5377094453125,
+          "service_coverage": NaN,
+          "cost_per_user_rm": NaN,
+          "developable_area_m2": NaN,
+          "potential_gfa_m2": NaN,
+          "demand_supply_gap": NaN,
+          "infrastructure_cost_rm": NaN,
+          "green_coverage": 1.0,
+          "canopy_coverage": 0.08,
+          "green_per_capita_m2": 2.857142857142857,
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "green_space",
+          "_effective_capacity": 0,
+          "_effective_lettable": 0,
+          "carbon_operational_tco2e": 0.0,
+          "energy_kwh": 0.0
+        },
+        "R-01": {
+          "asset_id": "R-01",
+          "year": 2033,
+          "occupancy_rate": 0.520589357140625,
+          "vacancy_rate": 0.47941064285937496,
+          "vacancy_duration_months": NaN,
+          "footfall_daily": NaN,
+          "rental_income_per_visit_proxy": NaN,
+          "rental_income_rm": NaN,
+          "noi_rm": NaN,
+          "noi_yield": NaN,
+          "maintenance_surge_rm": NaN,
+          "accessibility_score": 100.0,
+          "effective_demand": null,
+          "effective_demand_m2": NaN,
+          "effective_supply": NaN,
+          "dsr": NaN,
+          "shade_proxy_score": NaN,
+          "metric_source": "simulated",
+          "model_version": "0.3.1",
+          "utilisation_rate": 0.520589357140625,
+          "service_coverage": NaN,
+          "cost_per_user_rm": NaN,
+          "developable_area_m2": NaN,
+          "potential_gfa_m2": NaN,
+          "demand_supply_gap": NaN,
+          "infrastructure_cost_rm": NaN,
+          "green_coverage": NaN,
+          "canopy_coverage": NaN,
+          "green_per_capita_m2": NaN,
+          "energy_intensity_kwh_m2": NaN,
+          "_effective_asset_type": "residential",
+          "_effective_capacity": 480,
+          "_effective_lettable": 40000,
+          "carbon_operational_tco2e": 2923.2,
+          "energy_kwh": 5040000.0
+        }
+      },
+      "scores": {
+        "B-03": {
+          "asset_id": "B-03",
+          "asset_type": "community_facility",
+          "overall_score": 81.89,
+          "financial_score": 90.69,
+          "environmental_score": null,
+          "social_score": 81.33,
+          "component_scores": {
+            "utilisation": 100.0,
+            "coverage": 44.0,
+            "accessibility": 100.0,
+            "cost_efficiency": 90.69
+          },
+          "weights_used": {
+            "utilisation": 0.29411764705882354,
+            "coverage": 0.29411764705882354,
+            "accessibility": 0.23529411764705885,
+            "cost_efficiency": 0.17647058823529413
+          },
+          "data_completeness": 0.8,
+          "confidence": "medium",
+          "year": 2033,
+          "model_version": "0.3.1"
+        },
+        "F-02": {
+          "asset_id": "F-02",
+          "asset_type": "community_facility",
+          "overall_score": 92.44,
+          "financial_score": 95.29,
+          "environmental_score": null,
+          "social_score": 91.83,
+          "component_scores": {
+            "utilisation": 100.0,
+            "coverage": 83.65,
+            "accessibility": 91.83,
+            "cost_efficiency": 95.29
+          },
+          "weights_used": {
+            "utilisation": 0.29411764705882354,
+            "coverage": 0.29411764705882354,
+            "accessibility": 0.23529411764705885,
+            "cost_efficiency": 0.17647058823529413
+          },
+          "data_completeness": 0.8,
+          "confidence": "medium",
+          "year": 2033,
+          "model_version": "0.3.1"
         },
         "P-05": {
           "asset_id": "P-05",
@@ -1510,7 +1525,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2033,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "G-01": {
           "asset_id": "G-01",
@@ -1536,7 +1551,7 @@
           "data_completeness": 1.0,
           "confidence": "high",
           "year": 2033,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         },
         "R-01": {
           "asset_id": "R-01",
@@ -1558,7 +1573,7 @@
           "data_completeness": 0.6,
           "confidence": "medium",
           "year": 2033,
-          "model_version": "0.3.0"
+          "model_version": "0.3.1"
         }
       }
     }
@@ -1570,7 +1585,7 @@
     "environmental_score": 0.0,
     "social_score": 81.33,
     "performance_score": 81.89,
-    "carbon_10y_tco2e": 1450.0,
+    "carbon_10y_tco2e": 1679.1,
     "delta_score": 81.89,
     "time_to_impact_months": 24
   },
@@ -1591,5 +1606,5 @@
     ],
     "negative_assets": []
   },
-  "model_version": "0.3.0"
+  "model_version": "0.3.1"
 }

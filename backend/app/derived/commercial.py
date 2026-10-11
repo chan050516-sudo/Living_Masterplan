@@ -1,4 +1,4 @@
-"""Commercial asset derived metrics — B-03 core."""
+"""Commercial asset derived metrics."""
 
 import math
 from .context import DerivationContext
@@ -9,7 +9,6 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     year = ctx.year
     assumptions = ctx.assumptions
 
-    # --- Load raw observed metric for this year ---
     metrics = ctx.business["asset_metrics"]
     row = metrics[
         (metrics["asset_id"] == asset["asset_id"]) &
@@ -65,10 +64,8 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     # Huff returns effective_demand in persons. Convert to m² using per-capita
     # commercial demand coefficient, so DSR is dimensionless (m² / m²).
     huff_demand_persons = ctx.huff_effective_demand
-    per_capita_m2 = assumptions.get("demand", {}).get(
-        "commercial_per_capita_m2", {}
-    )
-    e_k = sum(per_capita_m2.values()) if per_capita_m2 else 0.48  # m²/person
+    per_capita_m2 = assumptions.get("demand", {}).get("commercial_per_capita_m2", {})
+    e_k = sum(per_capita_m2.values()) if per_capita_m2 else 0.48
 
     effective_demand_m2 = None
     if huff_demand_persons is not None:
@@ -81,8 +78,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
             and float(effective_supply) > 0):
         dsr = effective_demand_m2 / float(effective_supply)
 
-    # --- Footfall conversion (renamed: this is a rental income proxy, not a
-    # true sales conversion rate). ---
+    # --- Rental income per visit (proxy, NOT a true conversion rate) ---
     footfall = _get("footfall_daily")
     rental_income_per_visit = None
     if rental_income is not None and footfall and footfall > 0:
@@ -91,7 +87,8 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     # --- Accessibility ---
     accessibility = ctx.accessibility_score
 
-    shade = _shade_proxy_score(ctx)
+    # --- Shade proxy (P0.4: reads canopy from context, not from a CSV column) ---
+    shade = _shade_proxy_score(ctx.canopy_coverage)
 
     return {
         "asset_id": asset["asset_id"],
@@ -100,33 +97,39 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         "vacancy_rate": vacancy_rate,
         "vacancy_duration_months": vacancy_duration,
         "footfall_daily": footfall,
-        "rental_income_per_visit_proxy": rental_income_per_visit,   # renamed
+        "rental_income_per_visit_proxy": rental_income_per_visit,
         "rental_income_rm": rental_income,
         "noi_rm": noi,
         "noi_yield": noi_yield,
         "maintenance_surge_rm": maintenance_surge,
         "accessibility_score": accessibility,
-        "effective_demand": huff_demand_persons,      # persons (raw Huff output)
-        "effective_demand_m2": effective_demand_m2,   # NEW: m² (for DSR)
+        "effective_demand": huff_demand_persons,
+        "effective_demand_m2": effective_demand_m2,
         "effective_supply": effective_supply,
-        "dsr": dsr,   # dimensionless
-        "shade_proxy_score": shade,     # replaces "thermal_exposure"
+        "dsr": dsr,
+        "shade_proxy_score": shade,
         "metric_source": "derived",
-        "model_version": "0.3.0",
+        "model_version": "0.3.1",
     }
 
 
-def _shade_proxy_score(ctx: DerivationContext) -> float:
+def _shade_proxy_score(canopy_coverage) -> float:
     """
-    Proxy for shade availability. 0 = no shade, 100 = fully shaded.
+    Proxy for shade availability.
+
+    0 = no shade, 100 = fully shaded.
     NOT a temperature model. Higher is better.
+
+    Input is the canopy coverage ratio [0, 1] computed by the engine via
+    spatial overlay. Returns 0.0 if canopy data is missing.
     """
-    canopy = ctx.asset.get("canopy_ratio")
+    if canopy_coverage is None:
+        return 0.0
     try:
-        canopy = float(canopy) if canopy is not None else 0.0
+        c = float(canopy_coverage)
     except (TypeError, ValueError):
-        canopy = 0.0
-    return max(0.0, min(100.0, 100.0 * canopy))
+        return 0.0
+    return max(0.0, min(100.0, 100.0 * c))
 
 
 def _isnan(v) -> bool:

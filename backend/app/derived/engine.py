@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 
+import geopandas as gpd
 import pandas as pd
 
 from ..config import load_paths, load_benchmarks, load_assumptions
@@ -30,6 +31,63 @@ DERIVERS = {
 }
 
 
+def _compute_canopy_coverage(
+    asset_id: str,
+    asset_geom,
+    green_blue_gdf: gpd.GeoDataFrame,
+    land_area_m2,
+) -> float:
+    """
+    Compute the canopy coverage ratio [0, 1] for a single asset.
+
+    Strategy:
+      1. If green_blue has features explicitly tagged with this asset_id,
+         use them. (Typical for green space assets which own their polygon.)
+      2. Otherwise, spatially clip green_blue features to the asset's geometry.
+         (Typical for commercial/facility assets with trees in the same plot.)
+
+    Returns None when inputs are missing or land_area is invalid.
+
+    Note: The strategy is data-driven. When the input dataset changes,
+    the same logic applies; no asset-specific hardcoding.
+    """
+    if green_blue_gdf is None or green_blue_gdf.empty:
+        return None
+    if land_area_m2 is None:
+        return None
+    try:
+        land_area_f = float(land_area_m2)
+    except (TypeError, ValueError):
+        return None
+    if land_area_f <= 0:
+        return None
+
+    canopy_m2 = 0.0
+    has_data = False
+
+    # Strategy 1: explicit asset_id match in green_blue
+    if "asset_id" in green_blue_gdf.columns:
+        by_id = green_blue_gdf[green_blue_gdf["asset_id"] == asset_id]
+        if not by_id.empty:
+            canopy_m2 = float(by_id["canopy_m2"].fillna(0).sum())
+            has_data = True
+
+    # Strategy 2: spatial overlay against the asset's polygon
+    if not has_data and asset_geom is not None:
+        try:
+            clipped = gpd.clip(green_blue_gdf, asset_geom)
+            if not clipped.empty:
+                canopy_m2 = float(clipped["canopy_m2"].fillna(0).sum())
+                has_data = True
+        except Exception as e:
+            log.warning("Canopy overlay failed for %s: %s", asset_id, e)
+
+    if not has_data:
+        return None
+
+    return min(1.0, canopy_m2 / land_area_f)
+
+
 def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.DataFrame:
     """
     Load all data, compute derived metrics for every asset, return a DataFrame
@@ -48,16 +106,33 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     G = build_walk_graph(network_analysis)
     nodes_gdf = extract_nodes(network_analysis)
 
-    # --- Assign nearest node to each asset ---
+    # --- Green/blue layer for canopy computation ---
+    green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
+
+    # --- Assign nearest node to each asset + compute canopy ---
     asset_nodes = {}
+    asset_canopy = {}
     for _, asset in business["assets"].iterrows():
+        aid = asset["asset_id"]
+
         parcels = geometry["parcels"]["analysis"]
-        match = parcels[parcels["asset_id"] == asset["asset_id"]]
+        match = parcels[parcels["asset_id"] == aid]
         if match.empty:
-            log.warning("No parcel for asset %s", asset["asset_id"])
+            log.warning("No parcel for asset %s", aid)
             continue
-        node = find_nearest_node(match.iloc[0].geometry, nodes_gdf)
-        asset_nodes[asset["asset_id"]] = node
+
+        asset_geom = match.iloc[0].geometry
+
+        # Nearest walk node
+        asset_nodes[aid] = find_nearest_node(asset_geom, nodes_gdf)
+
+        # Canopy coverage (P0.4)
+        asset_canopy[aid] = _compute_canopy_coverage(
+            asset_id=aid,
+            asset_geom=asset_geom,
+            green_blue_gdf=green_blue_analysis,
+            land_area_m2=asset.get("land_area_m2"),
+        )
 
     # --- Assign nearest node to each population cluster ---
     pop_analysis = geometry["population"]["analysis"]
@@ -66,7 +141,6 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
         node = find_nearest_node(pop.geometry, nodes_gdf)
         pop_nodes.append((idx, node))
 
-    # Write nearest node back into the DataFrame (used by facility coverage)
     for idx, node in pop_nodes:
         pop_analysis.at[idx, "_nearest_node"] = node
 
@@ -95,7 +169,9 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     alpha = assumptions.get("huff", {}).get("alpha", 1.0)
     beta = assumptions.get("huff", {}).get("beta", 2.0)
 
-    huff_results = huff_gravity(G, demand_nodes, supply_nodes, alpha=alpha, beta=beta, gamma=gamma)
+    huff_results = huff_gravity(
+        G, demand_nodes, supply_nodes, alpha=alpha, beta=beta, gamma=gamma,
+    )
 
     # --- Accessibility per asset ---
     d_threshold = assumptions.get("accessibility", {}).get("falloff_threshold_m", 800.0)
@@ -103,11 +179,8 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     accessibility_scores = {}
     for asset_id, node in asset_nodes.items():
         accessibility_scores[asset_id] = asset_accessibility(
-            G, node, demand_weighted, d_threshold=d_threshold, gamma=gamma
+            G, node, demand_weighted, d_threshold=d_threshold, gamma=gamma,
         )
-
-    # --- Maintenance surge pre-computed for commercial ---
-    # (handled inside derive_commercial)
 
     # --- Derive metrics per asset ---
     rows = []
@@ -118,7 +191,6 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             log.warning("No deriver for asset_type=%s (asset %s)", atype, asset["asset_id"])
             continue
 
-        # Attach computed walk node to the asset Series for downstream use
         asset = asset.copy()
         asset["_walk_node"] = asset_nodes.get(asset["asset_id"])
 
@@ -130,9 +202,10 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
             assumptions=assumptions,
             accessibility_score=accessibility_scores.get(asset["asset_id"]),
             huff_effective_demand=huff_results.get(asset["asset_id"]),
-            maintenance_surge_rm=None,  # computed inside derive_commercial
+            maintenance_surge_rm=None,
             graph=G,
             year=year,
+            canopy_coverage=asset_canopy.get(asset["asset_id"]),
         )
         rows.append(deriver(ctx))
 
@@ -144,18 +217,12 @@ def merge_into_asset_metrics(
     existing_df: pd.DataFrame,
     year: int,
 ) -> pd.DataFrame:
-    """
-    Overlay derived columns onto the existing asset_metrics table.
-    Creates new rows if a (asset_id, year) pair does not exist.
-    """
-    # Columns produced by B3
+    """Overlay derived columns onto the existing asset_metrics table."""
     derived_cols = [c for c in derived_df.columns if c not in ("asset_id", "year")]
 
-    # Ensure year column matches
     if "year" not in existing_df.columns:
         raise ValueError("existing asset_metrics has no 'year' column")
 
-    # Build a lookup from existing
     existing = existing_df.copy()
     existing = existing.set_index(["asset_id", "year"])
 

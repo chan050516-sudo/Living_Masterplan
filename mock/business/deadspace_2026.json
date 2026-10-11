@@ -165,7 +165,7 @@
   {
     "asset_id": "G-01",
     "year": 2026,
-    "status": "deadspace_candidate",
+    "status": "improvement_opportunity",
     "score": 7.14,
     "layer1": {
       "triggered": true,

@@ -1,9 +1,19 @@
 """B4 — Future state simulation engine.
 
 Simulates a scenario across multiple years by iterating the DAG:
-  Population → Households → Demand → Occupancy → Score
-                       ↑
-                   Supply
+  Population -> Households -> Demand -> Occupancy -> Score
+                     ^
+                 Supply
+
+Design notes:
+  - P0.2: supply additions from committed projects enter the Huff competition
+          as virtual supply nodes.
+  - P0.3: sparse year grids (2026, 2027, 2028, 2030, 2033) are handled by
+          iterating the damped occupancy update once per elapsed year.
+  - P2.1: supply_nodes are treated as static except for newly delivered
+          projects; post-intervention asset_type changes do not currently
+          remove an asset from the Huff supply pool. This is a known
+          simplification for the demo.
 """
 
 import json
@@ -15,7 +25,6 @@ import pandas as pd
 from ..config import load_paths, load_weights, load_benchmarks, load_assumptions
 from ..derived.engine import compute_derived_metrics
 from ..derived.network_graph import build_walk_graph, extract_nodes, find_nearest_node
-from ..derived.accessibility import asset_accessibility
 from ..scoring.score import score_asset
 from .time_anchors import resolve_phase, interventions_for_asset, Phase
 from .interventions import apply_intervention, apply_construction_state
@@ -36,9 +45,7 @@ def simulate_scenario(
     repo_root: Path = None,
     years: list = None,
 ) -> dict:
-    """
-    Returns a ScenarioResult dict per scenario_result.schema.json.
-    """
+    """Returns a ScenarioResult dict per scenario_result.schema.json."""
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     years = years or DEFAULT_YEARS
     base_year = years[0]
@@ -50,31 +57,25 @@ def simulate_scenario(
 
     weights = {k: v for k, v in weights_cfg.items() if isinstance(v, dict)}
     scoring_options = weights_cfg.get("scoring_options", {})
-    ds_cfg = assumptions.get("deadspace", {})
 
     base = repo_root / paths["base"]
     assets_df = pd.read_csv(base / "business" / "assets.csv")
-    metrics_df = pd.read_csv(base / "business" / "asset_metrics.csv")
     interventions_df = pd.read_csv(base / "business" / "interventions.csv")
     projects_df = pd.read_csv(base / "business" / "development_projects.csv")
 
-    # Interventions relevant to this scenario
-    scenario_interventions = interventions_df[interventions_df["scenario_id"] == scenario_id]
+    scenario_interventions = interventions_df[
+        interventions_df["scenario_id"] == scenario_id
+    ]
 
-    # Preload geometry for spatial/accessibility
     from ..loaders.geometry_loader import load_geometry
     geometry = load_geometry(repo_root, paths)
 
-    # Per-year state map: year -> { asset_id -> metrics_dict }
-    state_by_year = {}
-    scores_by_year = {}
-
-    # Current year — use B3 output as-is
+    # Current year derived metrics (baseline)
     current_derived = compute_derived_metrics(repo_root=repo_root, year=base_year)
 
-    # Build asset node map + demand nodes
-    G_base, demand_nodes, supply_nodes, asset_nodes = _build_graph_and_nodes(
-        geometry, assets_df, assumptions
+    # Build graph + nodes (shared across all years)
+    G_base, demand_nodes, supply_nodes, asset_nodes, nodes_gdf = _build_graph_and_nodes(
+        geometry, assets_df, assumptions,
     )
 
     # Track occupancy per asset across years
@@ -84,43 +85,50 @@ def simulate_scenario(
         occ = row.iloc[0]["occupancy_rate"] if not row.empty else None
         occupancy_prev[asset["asset_id"]] = float(occ) if occ is not None else 0.6
 
-    # ---- Iterate years ----
+    state_by_year = {}
+    scores_by_year = {}
+
     for year_idx, year in enumerate(years):
+        # ---- Base year: use B3 output as-is ----
         if year == base_year:
-            state_by_year[year] = _state_from_df(current_derived)
+            state_by_year[year] = _state_from_df(current_derived, assets_df)
             scores_by_year[year] = _score_current(
-                assets_df, current_derived, weights, benchmarks, scoring_options, year
+                assets_df, current_derived, weights, benchmarks, scoring_options, year,
             )
             continue
 
-        # 1. Population
+        # ---- 1. Population ----
         pop_cfg = assumptions["population"]
         g = pop_cfg["growth_rate"]["medium"]
         base_pop = float(pop_cfg["base_population"])
         projected_pop = project_population(base_pop, base_year, year, g)
         pop_factor = projected_pop / base_pop
 
-        # 2. Demand (Huff) with projected population
-        projected_demand_nodes = []
-        for d in demand_nodes:
-            projected_demand_nodes.append({
-                **d,
-                "population": d["population"] * pop_factor,
-            })
+        # ---- 2. Demand: Huff with projected population ----
+        projected_demand_nodes = [
+            {**d, "population": d["population"] * pop_factor}
+            for d in demand_nodes
+        ]
 
         alpha = assumptions["huff"]["alpha"]
         beta = assumptions["huff"]["beta"]
         gamma = assumptions["accessibility"]["canopy_impedance_gamma"]
+
+        # ---- P0.2: build this year's supply nodes (existing + newly delivered) ----
+        active_projects = active_projects_in_year(projects_df, year, scenario_id)
+        year_supply_nodes = _build_year_supply_nodes(
+            supply_nodes=supply_nodes,
+            active_projects=active_projects,
+            geometry=geometry,
+            nodes_gdf=nodes_gdf,
+        )
+
         huff_result = project_demand_commercial(
-            G_base, projected_demand_nodes, supply_nodes,
+            G_base, projected_demand_nodes, year_supply_nodes,
             alpha=alpha, beta=beta, gamma=gamma,
         )
 
-        # 3. Supply — projects delivered by this year
-        active_projects = active_projects_in_year(projects_df, year, scenario_id)
-        supply_addition = project_supply_additions(active_projects)
-
-        # 4. Asset state — apply interventions
+        # ---- 3. Asset state: apply interventions ----
         year_state = {}
         for _, asset in assets_df.iterrows():
             aid = asset["asset_id"]
@@ -141,37 +149,62 @@ def simulate_scenario(
                     effective_asset = apply_construction_state(effective_asset, status)
                     phase = Phase.DURING
 
-            # 5. Occupancy
+            # ---- 4. Occupancy (per asset type) ----
             prev_occ = occupancy_prev.get(aid, 0.6)
 
             if phase == Phase.DURING and effective_asset.get("_construction_status") == "unavailable":
                 new_occ = 0.0
                 new_util = 0.0
             else:
-                dsr = huff_result.get(aid)
-                effective_supply = effective_asset.get("lettable_area_m2") or effective_asset.get("capacity") or 1.0
-                if dsr is not None and effective_supply and float(effective_supply) > 0:
-                    dsr_ratio = dsr / float(effective_supply)
-                else:
-                    dsr_ratio = None
+                effective_asset_type = effective_asset.get("asset_type", asset["asset_type"])
 
-                target_occ = target_occupancy_from_dsr(dsr_ratio)
-                lambda_ = assumptions.get("occupancy_dynamics", assumptions.get("occupancy", {})).get("lambda", 0.35)
+                if effective_asset_type == "commercial":
+                    # Commercial occupancy tracks Huff demand/supply ratio
+                    dsr = huff_result.get(aid)
+                    effective_supply = (
+                        effective_asset.get("lettable_area_m2")
+                        or effective_asset.get("capacity")
+                        or 1.0
+                    )
+                    if dsr is not None and effective_supply and float(effective_supply) > 0:
+                        dsr_ratio = dsr / float(effective_supply)
+                    else:
+                        dsr_ratio = None
+                    target_occ = target_occupancy_from_dsr(dsr_ratio)
+
+                elif effective_asset_type == "community_facility":
+                    # Facility utilization tracks service demand, not Huff.
+                    # For now, hold at current level (target = previous).
+                    target_occ = prev_occ
+
+                else:
+                    # Residential / green_space / undeveloped_parcel:
+                    # No demand model drives their occupancy in this iteration.
+                    # Hold steady (target = previous). Any change would need a
+                    # type-specific demand model that is out of scope here.
+                    target_occ = prev_occ
+
+                lambda_ = assumptions.get(
+                    "occupancy_dynamics", assumptions.get("occupancy", {})
+                ).get("lambda", 0.35)
                 critical = assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
                 kappa = assumptions.get("occupancy_dynamics", {}).get("kappa", 0.0)
-                new_occ = damped_occupancy(prev_occ, target_occ, lambda_,
-                                           year, critical, kappa)
-                new_util = new_occ  # proxy: utilisation tracks occupancy
 
-            occupancy_prev[aid] = new_occ
+                year_gap = max(1, year - years[year_idx - 1])
+                new_occ = prev_occ
+                for _ in range(year_gap):
+                    new_occ = damped_occupancy(new_occ, target_occ, lambda_, year, critical, kappa)
+                new_util = new_occ
 
-            # 6. Environmental — recompute energy & carbon
+            # ---- 5. Environmental ----
             floor_area = float(effective_asset.get("floor_area_m2") or 0)
             intensity = assumptions["environmental"]["energy_intensity_default"]
             energy = energy_from_intensity(floor_area, intensity)
-            carbon = operational_carbon(energy, assumptions["environmental"]["emission_factor_energy"])
+            carbon = operational_carbon(
+                energy, assumptions["environmental"]["emission_factor_energy"],
+            )
 
-            # Build metrics row from previous + new values
+            # ---- Build metric row from previous + new values ----
             prev_metrics = _get_prev_metrics(state_by_year[years[year_idx - 1]], aid)
             metric_row = dict(prev_metrics)
             metric_row["asset_id"] = aid
@@ -183,16 +216,15 @@ def simulate_scenario(
             metric_row["carbon_operational_tco2e"] = carbon
             metric_row["energy_kwh"] = energy
             metric_row["metric_source"] = "simulated"
-            metric_row["model_version"] = "0.3.0"
+            metric_row["model_version"] = "0.3.1"
 
             # Consume expected_derived_json from the activated intervention
             if activated_intervention is not None:
-                import json as _json
                 try:
-                    expected = _json.loads(
+                    expected = json.loads(
                         activated_intervention.get("expected_derived_json") or "{}"
                     )
-                except (_json.JSONDecodeError, TypeError):
+                except (json.JSONDecodeError, TypeError):
                     expected = {}
 
                 if "service_coverage" in expected:
@@ -200,39 +232,43 @@ def simulate_scenario(
                 if "utilisation" in expected:
                     metric_row["utilisation_rate"] = float(expected["utilisation"])
                 if "carbon_operational_tco2e" in expected:
-                    metric_row["carbon_operational_tco2e"] = float(expected["carbon_operational_tco2e"])
+                    metric_row["carbon_operational_tco2e"] = float(
+                        expected["carbon_operational_tco2e"]
+                    )
                 if "accessibility_delta" in expected:
                     prev_acc = float(prev_metrics.get("accessibility_score") or 50.0)
                     metric_row["accessibility_score"] = min(
-                        100.0, prev_acc + float(expected["accessibility_delta"]) * 100
+                        100.0, prev_acc + float(expected["accessibility_delta"]) * 100,
                     )
 
-            # Cost per user for facility: opex + maintenance / annual users
+            # Cost per user for facility
             if effective_asset.get("asset_type") == "community_facility":
                 op = float(effective_asset.get("opex_annual_rm") or 0)
                 mt = float(effective_asset.get("maintenance_annual_rm") or 0)
                 cap = float(effective_asset.get("capacity") or 0)
                 util = float(metric_row.get("utilisation_rate") or 0)
                 annual_users = util * cap * 365 if cap > 0 else 0
-                metric_row["cost_per_user_rm"] = (op + mt) / annual_users if annual_users > 0 else None
+                metric_row["cost_per_user_rm"] = (
+                    (op + mt) / annual_users if annual_users > 0 else None
+                )
 
-            metric_row["_effective_asset_type"] = effective_asset.get("asset_type", asset["asset_type"])
+            metric_row["_effective_asset_type"] = effective_asset.get(
+                "asset_type", asset["asset_type"],
+            )
             metric_row["_effective_capacity"] = effective_asset.get("capacity")
             metric_row["_effective_lettable"] = effective_asset.get("lettable_area_m2")
             year_state[aid] = metric_row
 
         state_by_year[year] = year_state
 
-        # 7. Score for this year
         scores_by_year[year] = _score_year(
-            assets_df, year_state, weights, benchmarks, scoring_options, year
+            assets_df, year_state, weights, benchmarks, scoring_options, year,
         )
 
-    # ---- Build comparison ----
-    comparison = _build_comparison(state_by_year, scores_by_year, base_year, years[-1],
-                                   scenario_interventions)
+    comparison = _build_comparison(
+        state_by_year, scores_by_year, base_year, years[-1], scenario_interventions,
+    )
 
-    # ---- Build map diff ----
     map_diff = _build_map_diff(assets_df, scenario_interventions)
 
     return {
@@ -248,13 +284,25 @@ def simulate_scenario(
         },
         "comparison": comparison,
         "map_diff": map_diff,
-        "model_version": "0.3.0",
+        "model_version": "0.3.1",
     }
 
 
 # ---- Helper functions ----------------------------------------------------
 
+
 def _build_graph_and_nodes(geometry, assets_df, assumptions):
+    """
+    Build the walk graph, node map, and demand/supply node lists.
+
+    Returns:
+      G               : networkx graph
+      demand_nodes    : population-weighted demand clusters
+      supply_nodes    : static commercial supply nodes (intervention-affected
+                        supply is added dynamically per year, see P0.2)
+      asset_nodes     : { asset_id: nearest_walk_node }
+      nodes_gdf       : GeoDataFrame of all walk nodes (for later reuse)
+    """
     network = geometry["network"]["analysis"]
     G = build_walk_graph(network)
     nodes_gdf = extract_nodes(network)
@@ -265,7 +313,9 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
         m = parcels[parcels["asset_id"] == asset["asset_id"]]
         if m.empty:
             continue
-        asset_nodes[asset["asset_id"]] = find_nearest_node(m.iloc[0].geometry, nodes_gdf)
+        asset_nodes[asset["asset_id"]] = find_nearest_node(
+            m.iloc[0].geometry, nodes_gdf,
+        )
 
     pop_analysis = geometry["population"]["analysis"]
     demand_nodes = []
@@ -287,13 +337,73 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
             "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
         })
 
-    return G, demand_nodes, supply_nodes, asset_nodes
+    return G, demand_nodes, supply_nodes, asset_nodes, nodes_gdf
 
 
-def _state_from_df(derived_df):
+def _build_year_supply_nodes(supply_nodes, active_projects, geometry, nodes_gdf):
+    """
+    P0.2: Extend the static supply node list with virtual nodes for projects
+    delivered by the current year.
+
+    Location is resolved via the project's parcel geometry when available;
+    otherwise falls back to the nearest existing commercial node.
+
+    Note (P2.1): post-intervention asset_type changes (e.g., a commercial
+    asset repurposed into a community facility) are NOT reflected here yet.
+    The static supply list still includes all originally commercial assets.
+    """
+    year_nodes = list(supply_nodes)
+
+    for proj in active_projects:
+        gfa = float(proj.get("gfa_m2") or 0)
+        if gfa <= 0:
+            continue
+
+        proj_node = None
+
+        pid = proj.get("parcel_id")
+        if pid:
+            parcels = geometry["parcels"]["analysis"]
+            pmatch = parcels[parcels["parcel_id"] == pid]
+            if not pmatch.empty:
+                try:
+                    proj_node = find_nearest_node(pmatch.iloc[0].geometry, nodes_gdf)
+                except Exception as e:
+                    log.warning("Could not resolve node for project %s: %s", pid, e)
+
+        # Fallback: reuse an existing commercial node (avoids crashing on
+        # projects with no location and keeps the Huff denominator non-empty).
+        if proj_node is None and supply_nodes:
+            proj_node = supply_nodes[0].get("node")
+
+        if proj_node is None:
+            continue
+
+        year_nodes.append({
+            "asset_id": f"NEW-{proj.get('project_id', 'unknown')}",
+            "node": proj_node,
+            "attractiveness": gfa,
+        })
+
+    return year_nodes
+
+
+def _state_from_df(derived_df, assets_df):
+    """
+    P2.2: base-year state dict now includes the same _effective_* fields as
+    subsequent years, so the schema is consistent across time steps.
+    """
     state = {}
     for _, row in derived_df.iterrows():
-        state[row["asset_id"]] = row.to_dict()
+        aid = row["asset_id"]
+        row_dict = row.to_dict()
+        asset_row = assets_df[assets_df["asset_id"] == aid]
+        if not asset_row.empty:
+            a = asset_row.iloc[0]
+            row_dict["_effective_asset_type"] = a["asset_type"]
+            row_dict["_effective_capacity"] = a.get("capacity")
+            row_dict["_effective_lettable"] = a.get("lettable_area_m2")
+        state[aid] = row_dict
     return state
 
 
@@ -312,7 +422,7 @@ def _score_current(assets_df, derived_df, weights, benchmarks, scoring_options, 
         r = score_asset(asset, row.iloc[0], weights, benchmarks, scoring_options)
         if r:
             r["year"] = year
-            r["model_version"] = "0.3.0"
+            r["model_version"] = "0.3.1"
             scores[asset["asset_id"]] = r
     return scores
 
@@ -323,52 +433,72 @@ def _score_year(assets_df, year_state, weights, benchmarks, scoring_options, yea
         aid = asset["asset_id"]
         if aid not in year_state:
             continue
-        # Use the effective asset_type (post-intervention), not the CSV one
         effective_asset = dict(asset)
         effective_asset["asset_type"] = year_state[aid].get(
-            "_effective_asset_type", asset["asset_type"]
+            "_effective_asset_type", asset["asset_type"],
         )
-        effective_asset["capacity"] = year_state[aid].get("_effective_capacity", asset.get("capacity"))
+        effective_asset["capacity"] = year_state[aid].get(
+            "_effective_capacity", asset.get("capacity"),
+        )
         effective_asset["lettable_area_m2"] = year_state[aid].get(
-            "_effective_lettable", asset.get("lettable_area_m2")
+            "_effective_lettable", asset.get("lettable_area_m2"),
         )
 
         r = score_asset(effective_asset, year_state[aid], weights, benchmarks, scoring_options)
         if r:
             r["year"] = year
-            r["model_version"] = "0.3.0"
+            r["model_version"] = "0.3.1"
             scores[aid] = r
     return scores
 
 
 def _build_comparison(state_by_year, scores_by_year, base_year, final_year, interventions_df):
-    # Focus asset: first intervention's target
+    """
+    P1: Choose the focus asset for the comparison block.
+
+    Priority:
+      1. The target of an explicit intervention (if any).
+      2. Otherwise, the asset with the largest absolute score change between
+         the base year and the final year. This is data-driven and does not
+         hardcode any specific asset ID.
+    """
+    # 1. Explicit intervention target
+    target = None
     if not interventions_df.empty:
-        target = None
         for _, intv in interventions_df.iterrows():
             aid = intv.get("target_asset_id")
             if aid and intv.get("intervention_type") != "no_op":
                 target = aid
                 break
-    else:
-        target = None
 
-    base_score = 0.0
-    final_score = 0.0
-    if target:
-        base_score = scores_by_year.get(base_year, {}).get(target, {}).get("overall_score", 0.0)
-        final_score = scores_by_year.get(final_year, {}).get(target, {}).get("overall_score", 0.0)
+    base_scores = scores_by_year.get(base_year, {})
+    final_scores = scores_by_year.get(final_year, {})
 
-    capex = float(interventions_df["capex_delta_rm"].fillna(0).sum()) if not interventions_df.empty else 0.0
+    # 2. Fallback: asset with the largest |delta| across the horizon
+    if target is None or target not in base_scores:
+        best_asset, best_delta = None, 0.0
+        for aid in final_scores:
+            b = base_scores.get(aid, {}).get("overall_score", 0.0)
+            f = final_scores.get(aid, {}).get("overall_score", 0.0)
+            delta = abs(f - b)
+            if delta > best_delta:
+                best_delta = delta
+                best_asset = aid
+        target = best_asset
+
+    base_score = base_scores.get(target, {}).get("overall_score", 0.0) if target else 0.0
+    final_score = final_scores.get(target, {}).get("overall_score", 0.0) if target else 0.0
+
+    capex = (
+        float(interventions_df["capex_delta_rm"].fillna(0).sum())
+        if not interventions_df.empty else 0.0
+    )
 
     final_state = state_by_year.get(final_year, {}).get(target, {}) if target else {}
 
-    # Carbon: 10-year total
-    operational = float(final_state.get("carbon_operational_tco2e") or 0.0)
-    embodied = 0.0
-    carbon_10y = operational * 10 + embodied
+    # ---- P2.3: 10-year carbon total (sum across years + extrapolate) ----
+    carbon_10y = _compute_10y_carbon(state_by_year, target)
 
-    # Projected utilisation: prefer utilisation, fall back to occupancy
     projected_util = (
         final_state.get("utilisation_rate")
         or final_state.get("occupancy_rate")
@@ -378,30 +508,75 @@ def _build_comparison(state_by_year, scores_by_year, base_year, final_year, inte
     # Time to impact: first year where score improves materially
     tti = 0
     if target:
-        base = base_score
         for y in sorted(scores_by_year.keys()):
             if y <= base_year:
                 continue
             s = scores_by_year[y].get(target, {}).get("overall_score", 0.0)
-            if s - base > 5:
+            if s - base_score > 5:
                 tti = (y - base_year) * 12
                 break
 
     return {
         "capex": capex,
         "projected_utilisation": float(projected_util),
-        "npv": 0.0,
+        "npv": 0.0,   # placeholder, not part of the demo scope
         "environmental_score": float(
-            scores_by_year.get(final_year, {}).get(target, {}).get("environmental_score") or 0.0
-        ),
+            final_scores.get(target, {}).get("environmental_score") or 0.0
+        ) if target else 0.0,
         "social_score": float(
-            scores_by_year.get(final_year, {}).get(target, {}).get("social_score") or 0.0
-        ),
+            final_scores.get(target, {}).get("social_score") or 0.0
+        ) if target else 0.0,
         "performance_score": float(final_score),
-        "carbon_10y_tco2e": carbon_10y,        # ← 数值，不是 schema
+        "carbon_10y_tco2e": carbon_10y,
         "delta_score": float(final_score - base_score),
         "time_to_impact_months": tti,
     }
+
+
+def _compute_10y_carbon(state_by_year, target):
+    """
+    P2.3: Compute 10-year operational carbon for the target asset.
+
+    Approach:
+      1. Sum annual carbon across simulated years, weighted by year interval
+         (handles the sparse year grid).
+      2. Extrapolate the average annual value to reach a 10-year horizon.
+    """
+    if target is None or not state_by_year:
+        return 0.0
+
+    years_sorted = sorted(state_by_year.keys())
+    if not years_sorted:
+        return 0.0
+
+    carbon_sum = 0.0
+    span_covered = 0
+
+    for i, y in enumerate(years_sorted):
+        st = state_by_year[y].get(target, {})
+        annual = float(st.get("carbon_operational_tco2e") or 0.0)
+
+        # Interval weight: how many years does this value represent?
+        if i < len(years_sorted) - 1:
+            interval = years_sorted[i + 1] - y
+        else:
+            interval = 1  # default 1-year weight for the last data point
+
+        carbon_sum += annual * interval
+        span_covered += interval
+
+    if span_covered <= 0:
+        return 0.0
+
+    avg_annual = carbon_sum / span_covered
+    if span_covered < 10:
+        carbon_sum += avg_annual * (10 - span_covered)
+
+    # No embodied carbon is added here because the demo scenarios use
+    # repurpose/retrofit rather than new construction. If a new-development
+    # intervention is added in the future, embodied carbon should be summed
+    # in this function as well.
+    return carbon_sum
 
 
 def _build_map_diff(assets_df, interventions_df):
@@ -414,23 +589,11 @@ def _build_map_diff(assets_df, interventions_df):
         itype = intv["intervention_type"]
 
         if itype in ("repurpose", "retrofit"):
-            changed.append({
-                "asset_id": aid,
-                "change_type": itype,
-                "color": "blue",
-            })
+            changed.append({"asset_id": aid, "change_type": itype, "color": "blue"})
         elif itype in ("pedestrian_upgrade", "green_corridor"):
-            spillover.append({
-                "asset_id": aid,
-                "change_type": itype,
-                "color": "purple",
-            })
+            spillover.append({"asset_id": aid, "change_type": itype, "color": "purple"})
         elif itype == "delay_development":
-            changed.append({
-                "asset_id": aid,
-                "change_type": "delayed",
-                "color": "blue",
-            })
+            changed.append({"asset_id": aid, "change_type": "delayed", "color": "blue"})
 
     return {
         "changed_assets": changed,
@@ -442,9 +605,9 @@ def _build_map_diff(assets_df, interventions_df):
 def _scenario_name(scenario_id: str) -> str:
     names = {
         "SC-CURRENT": "Current Plan",
-        "SC-REPURPOSE": "Option A — Repurpose",
-        "SC-RETROFIT": "Option B — Retrofit + Green",
-        "SC-DELAY": "Option C — Delay + Replan",
+        "SC-REPURPOSE": "Option A - Repurpose",
+        "SC-RETROFIT": "Option B - Retrofit + Green",
+        "SC-DELAY": "Option C - Delay + Replan",
     }
     return names.get(scenario_id, scenario_id)
 
