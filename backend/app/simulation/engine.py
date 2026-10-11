@@ -323,9 +323,14 @@ def simulate_scenario(
 
 
 def _build_graph_and_nodes(geometry, assets_df, assumptions):
-    gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
+    """
+    Build the walk graph and demand/supply node lists for Huff.
+
+    Phase 1 note: accessibility is no longer computed here.
+    It is computed once in B3 and read from asset_metrics.
+    """
     network = geometry["network"]["analysis"]
-    G = build_walk_graph(network, gamma=gamma)
+    G = build_walk_graph(network)
     nodes_gdf = extract_nodes(network)
 
     asset_nodes = {}
@@ -334,7 +339,9 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
         m = parcels[parcels["asset_id"] == asset["asset_id"]]
         if m.empty:
             continue
-        asset_nodes[asset["asset_id"]] = find_nearest_node(m.iloc[0].geometry, nodes_gdf)
+        asset_nodes[asset["asset_id"]] = find_nearest_node(
+            m.iloc[0].geometry, nodes_gdf,
+        )
 
     pop_analysis = geometry["population"]["analysis"]
     demand_nodes = []
@@ -356,7 +363,7 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
             "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
         })
 
-    return G, demand_nodes, supply_nodes, asset_nodes, nodes_gdf
+    return G, demand_nodes, supply_nodes, asset_nodes
 
 
 def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_supply_nodes):

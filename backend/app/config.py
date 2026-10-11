@@ -30,3 +30,7 @@ def load_assumptions() -> dict:
 
 def load_field_metadata() -> dict:
     return _load("field_metadata.yml")
+
+
+def load_taxonomy() -> dict:
+    return _load("taxonomy.yml")

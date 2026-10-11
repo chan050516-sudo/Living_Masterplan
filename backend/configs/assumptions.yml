@@ -92,3 +92,43 @@ deadspace:
     service_coverage_below: 0.60
     maintenance_surge_ratio_above: 1.5
     accessibility_below: 50.0
+
+
+# ----------------------------------------------------------------
+# Phase 1 — Mode-based accessibility
+# ----------------------------------------------------------------
+
+mode_networks:
+  walking:
+    allowed_edge_types:
+      - footway
+      - pedestrian
+      - path
+      - residential
+      - service
+      - living_street
+    speed_m_per_min: 80.0
+    canopy_adjusted: true
+    thresholds_min: [5, 10, 15]
+  
+  driving:
+    allowed_edge_types:
+      - secondary
+      - tertiary
+      - residential
+      - service
+      - living_street
+    speed_kmh: 30.0
+    canopy_adjusted: false
+    thresholds_min: [5, 10, 15]
+
+# ----------------------------------------------------------------
+# Entry-point offset defaults (fallback when projection fails)
+# ----------------------------------------------------------------
+
+off_network_defaults:
+  commercial_default_m: 10.0
+  community_facility_default_m: 10.0
+  residential_default_m: 20.0
+  green_space_default_m: 5.0
+  undeveloped_parcel_default_m: 15.0

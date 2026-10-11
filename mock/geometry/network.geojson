@@ -61,6 +61,60 @@
         "access_type": "public",
         "canopy_coverage_ratio": 0.60
       }
+    },
+    {
+      "type": "Feature",
+      "id": "E-R20",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[101.5193, 3.1592], [101.5203, 3.1592]]
+      },
+      "properties": {
+        "edge_id": "E-R20",
+        "edge_type": "residential",
+        "from_node": "N-12",
+        "to_node": "N-15",
+        "length_m": 110,
+        "walk_speed_kmh": 4.5,
+        "access_type": "public",
+        "canopy_coverage_ratio": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "E-R21",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[101.5193, 3.1592], [101.5175, 3.1575]]
+      },
+      "properties": {
+        "edge_id": "E-R21",
+        "edge_type": "residential",
+        "from_node": "N-12",
+        "to_node": "N-20",
+        "length_m": 240,
+        "walk_speed_kmh": 4.5,
+        "access_type": "public",
+        "canopy_coverage_ratio": 0.0
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "E-R22",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [[101.5203, 3.1592], [101.5203, 3.1603]]
+      },
+      "properties": {
+        "edge_id": "E-R22",
+        "edge_type": "residential",
+        "from_node": "N-15",
+        "to_node": "N-25",
+        "length_m": 120,
+        "walk_speed_kmh": 4.5,
+        "access_type": "public",
+        "canopy_coverage_ratio": 0.0
+      }
     }
   ]
 }

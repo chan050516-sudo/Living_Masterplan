@@ -1,4 +1,13 @@
-"""B3 unified entry point: compute_derived_metrics."""
+"""B3 unified entry point: compute_derived_metrics.
+
+Phase 1 changes:
+  - Multi-mode accessibility (walking + driving).
+  - Door-to-door distance using entry-point projection.
+  - Distance matrix is cached per mode.
+  - Output now includes catchment profiles as flat columns.
+  - accessibility_score is retained as a deprecated bridge value
+    derived from the walking coverage profile.
+"""
 
 import logging
 from pathlib import Path
@@ -11,8 +20,17 @@ from ..config import load_paths, load_benchmarks, load_assumptions
 from ..loaders.geometry_loader import load_geometry
 from ..loaders.business_loader import load_business
 from .context import DerivationContext
-from .network_graph import build_walk_graph, extract_nodes, find_nearest_node
-from .accessibility import asset_accessibility
+from .network_graph import (
+    build_graph_by_mode,
+    extract_nodes,
+    find_entry_point,
+    insert_all_entries,
+)
+from .accessibility import (
+    compute_distance_matrix,
+    catchment_profile,
+    derive_score_from_profile,
+)
 from .huff import huff_gravity
 from .commercial import derive_commercial
 from .facility import derive_facility
@@ -32,27 +50,320 @@ DERIVERS = {
 }
 
 
-def compute_distance_matrix(G: nx.Graph) -> dict:
+# ---------------------------------------------------------------
+# Public entry point
+# ---------------------------------------------------------------
+
+def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.DataFrame:
     """
-    Fix 1+4: all-pairs shortest paths using the canopy-adjusted edge weight.
-    Returns { node: { node: effective_distance } }.
+    Load all data, compute derived metrics for every asset, return a
+    DataFrame ready to merge back into asset_metrics.csv.
     """
-    return dict(nx.all_pairs_dijkstra_path_length(G, weight="effective_length_m"))
+    repo_root = repo_root or Path(__file__).resolve().parents[3]
+    paths = load_paths()
+    benchmarks = load_benchmarks()
+    assumptions = load_assumptions()
+
+    geometry = load_geometry(repo_root, paths)
+    business = load_business(repo_root, paths)
+
+    # --- Green/blue layer for canopy computation (unchanged) ---
+    green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
+
+    # --- Canopy coverage per asset (unchanged logic) ---
+    asset_canopy = {}
+    for _, asset in business["assets"].iterrows():
+        aid = asset["asset_id"]
+        parcels = geometry["parcels"]["analysis"]
+        match = parcels[parcels["asset_id"] == aid]
+        if match.empty:
+            continue
+        asset_geom = match.iloc[0].geometry
+        asset_canopy[aid] = _compute_canopy_coverage(
+            asset_id=aid,
+            asset_geom=asset_geom,
+            green_blue_gdf=green_blue_analysis,
+            land_area_m2=asset.get("land_area_m2"),
+        )
+
+    # --- Population clusters (unchanged) ---
+    pop_analysis = geometry["population"]["analysis"]
+
+    # --- Phase 1: per-mode pipeline ---
+    mode_configs = assumptions.get("mode_networks", {})
+    walking_cfg = mode_configs.get("walking", {})
+    driving_cfg = mode_configs.get("driving", {})
+
+    walking_pipeline = _prepare_mode_pipeline(
+        mode="walking",
+        network_gdf=geometry["network"]["analysis"],
+        assets_df=business["assets"],
+        parcels_gdf=geometry["parcels"]["analysis"],
+        pop_gdf=pop_analysis,
+        gamma=assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3),
+        cfg=walking_cfg,
+    )
+    driving_pipeline = _prepare_mode_pipeline(
+        mode="driving",
+        network_gdf=geometry["network"]["analysis"],
+        assets_df=business["assets"],
+        parcels_gdf=geometry["parcels"]["analysis"],
+        pop_gdf=pop_analysis,
+        gamma=0.0,  # driving does not use canopy adjustment
+        cfg=driving_cfg,
+    )
+
+    # --- Huff: use walking distance matrix (people walk to shops) ---
+    # For demand/supply nodes we use the walking pipeline's virtual nodes.
+    demand_nodes_huff = _build_huff_demand_nodes(pop_analysis, walking_pipeline)
+    supply_nodes_huff = _build_huff_supply_nodes(
+        business["assets"], walking_pipeline,
+    )
+    huff_results = huff_gravity(
+        walking_pipeline["distance_matrix"],
+        demand_nodes_huff,
+        supply_nodes_huff,
+        alpha=assumptions.get("huff", {}).get("alpha", 1.0),
+        beta=assumptions.get("huff", {}).get("beta", 2.0),
+    )
+
+    # --- Derive metrics per asset ---
+    rows = []
+    for _, asset in business["assets"].iterrows():
+        atype = asset["asset_type"]
+        deriver = DERIVERS.get(atype)
+        if deriver is None:
+            log.warning("No deriver for asset_type=%s (asset %s)", atype, asset["asset_id"])
+            continue
+
+        aid = asset["asset_id"]
+
+        # Compute walking profile
+        walking_profile = _compute_asset_profile(
+            asset_entry=walking_pipeline["asset_entries"].get(aid),
+            demand_entries=walking_pipeline["demand_entries"],
+            distance_matrix=walking_pipeline["distance_matrix"],
+            cfg=walking_cfg,
+        )
+        driving_profile = _compute_asset_profile(
+            asset_entry=driving_pipeline["asset_entries"].get(aid),
+            demand_entries=driving_pipeline["demand_entries"],
+            distance_matrix=driving_pipeline["distance_matrix"],
+            cfg=driving_cfg,
+        )
+
+        # Deprecated single-score bridge (derived from walking coverage)
+        accessibility_score = derive_score_from_profile(walking_profile, primary_threshold=10)
+
+        asset_with_node = asset.copy()
+
+        ctx = DerivationContext(
+            asset=asset_with_node,
+            business=business,
+            geometry=geometry,
+            benchmarks=benchmarks,
+            assumptions=assumptions,
+            accessibility_score=accessibility_score,
+            huff_effective_demand=huff_results.get(aid),
+            maintenance_surge_rm=None,
+            graph=walking_pipeline["graph"],
+            year=year,
+            canopy_coverage=asset_canopy.get(aid),
+            distance_matrix=walking_pipeline["distance_matrix"],
+            walking_profile=walking_profile,
+            driving_profile=driving_profile,
+        )
+
+        base_row = deriver(ctx)
+        base_row = _flatten_profiles(base_row, walking_profile, driving_profile)
+        rows.append(base_row)
+
+    return pd.DataFrame(rows)
 
 
-def _compute_canopy_coverage(
-    asset_id: str,
-    asset_geom,
-    green_blue_gdf: gpd.GeoDataFrame,
-    land_area_m2,
-) -> float:
-    """
-    Compute the canopy coverage ratio [0, 1] for a single asset.
+# ---------------------------------------------------------------
+# Mode pipeline preparation
+# ---------------------------------------------------------------
 
-    Strategy:
-      1. Explicit asset_id match in green_blue.
-      2. Spatial overlay of green_blue onto the asset geometry.
+def _prepare_mode_pipeline(
+    mode, network_gdf, assets_df, parcels_gdf, pop_gdf, gamma, cfg,
+):
     """
+    Build a mode-specific pipeline.
+
+    Important: all entries (assets + demands) must be inserted in a
+    SINGLE call to insert_all_entries, because each insertion splits
+    the target edge. A second call would not find the original edge
+    and would silently skip.
+    """
+    G = build_graph_by_mode(network_gdf, mode=mode, gamma=gamma)
+
+    # --- Project all entries first (no graph modification yet) ---
+    all_entries = {}
+
+    for _, asset in assets_df.iterrows():
+        aid = asset["asset_id"]
+        parcels = parcels_gdf[parcels_gdf["asset_id"] == aid]
+        if parcels.empty:
+            continue
+        p, off_d, eid = find_entry_point(parcels.iloc[0].geometry, network_gdf, mode)
+        if p is None:
+            continue
+        all_entries[f"A::{aid}"] = (p, off_d, eid)
+
+    for _, pop in pop_gdf.iterrows():
+        pid = pop["population_id"]
+        p, off_d, eid = find_entry_point(pop.geometry, network_gdf, mode)
+        if p is None:
+            continue
+        all_entries[f"D::{pid}"] = (p, off_d, eid)
+
+    # --- Single insertion pass ---
+    G_aug = G.copy()
+    inserted = insert_all_entries(G_aug, network_gdf, all_entries)
+
+    # --- Split by prefix ---
+    asset_entries = {}
+    demand_entries_map = {}
+    for key, val in inserted.items():
+        if key.startswith("A::"):
+            asset_entries[key[3:]] = val
+        elif key.startswith("D::"):
+            demand_entries_map[key[3:]] = val
+
+    # --- Distance matrix (one Dijkstra pass over the augmented graph) ---
+    distance_matrix = compute_distance_matrix(G_aug)
+
+    # --- Demand entries with population and age structure ---
+    demand_entries = []
+    demand_entries_with_age = []
+
+    for _, pop in pop_gdf.iterrows():
+        pid = pop["population_id"]
+        info = demand_entries_map.get(pid)
+        if info is None:
+            continue
+
+        total = float(pop.get("total_population", 0.0))
+        entry = {
+            "demand_id": pid,
+            "virtual_node": info["virtual_node"],
+            "off_distance": info["off_distance"],
+            "population": total,
+        }
+        demand_entries.append(entry)
+
+        extended = dict(entry)
+        extended["total_population"] = total
+        extended["age_0_14"] = float(pop.get("age_0_14", 0.0) or 0.0)
+        extended["age_15_64"] = float(pop.get("age_15_64", 0.0) or 0.0)
+        extended["age_65_plus"] = float(pop.get("age_65_plus", 0.0) or 0.0)
+        demand_entries_with_age.append(extended)
+
+    return {
+        "graph": G_aug,
+        "distance_matrix": distance_matrix,
+        "asset_entries": asset_entries,
+        "demand_entries": demand_entries,
+        "demand_entries_with_age": demand_entries_with_age,
+    }
+
+
+def _compute_asset_profile(asset_entry, demand_entries, distance_matrix, cfg) -> dict:
+    """Wrapper around catchment_profile that uses the mode's configuration."""
+    if asset_entry is None:
+        return catchment_profile(distance_matrix, None, demand_entries,
+                                 cfg.get("thresholds_min", [5, 10, 15]),
+                                 speed_m_per_min=cfg.get("speed_m_per_min", 80.0))
+    return catchment_profile(
+        distance_matrix=distance_matrix,
+        asset_entry=asset_entry,
+        demand_entries=demand_entries,
+        thresholds_min=cfg.get("thresholds_min", [5, 10, 15]),
+        speed_m_per_min=cfg.get("speed_m_per_min", 80.0),
+    )
+
+
+# ---------------------------------------------------------------
+# Huff nodes
+# ---------------------------------------------------------------
+
+def _build_huff_demand_nodes(pop_gdf, walking_pipeline) -> list:
+    """Demand nodes for Huff: use the walking pipeline's virtual nodes."""
+    nodes = []
+    for entry in walking_pipeline["demand_entries"]:
+        nodes.append({
+            "population_id": entry["demand_id"],
+            "node": entry["virtual_node"],
+            "population": entry["population"],
+        })
+    return nodes
+
+
+def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
+    """Supply nodes for Huff: use the walking pipeline's asset virtual nodes."""
+    nodes = []
+    for _, asset in assets_df.iterrows():
+        if asset["asset_type"] != "commercial":
+            continue
+        aid = asset["asset_id"]
+        entry = walking_pipeline["asset_entries"].get(aid)
+        if entry is None:
+            continue
+        nodes.append({
+            "asset_id": aid,
+            "node": entry["virtual_node"],
+            "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+        })
+    return nodes
+
+
+# ---------------------------------------------------------------
+# Flatten profiles into columns
+# ---------------------------------------------------------------
+
+def _flatten_profiles(base_row: dict, walking: dict, driving: dict) -> dict:
+    """
+    Merge catchment profile values into a single flat row.
+    Walking profile columns are suffixed _walk.
+    Driving profile columns are suffixed _drive.
+    Shared stats (total catchment population) come from walking.
+    """
+    merged = dict(base_row)
+
+    # Walking
+    merged["catchment_population_5min_walk"] = walking.get("catchment_population_5min")
+    merged["catchment_population_10min_walk"] = walking.get("catchment_population_10min")
+    merged["catchment_population_15min_walk"] = walking.get("catchment_population_15min")
+    merged["coverage_ratio_5min_walk"] = walking.get("coverage_ratio_5min")
+    merged["coverage_ratio_10min_walk"] = walking.get("coverage_ratio_10min")
+    merged["coverage_ratio_15min_walk"] = walking.get("coverage_ratio_15min")
+    merged["mean_walk_distance_m"] = walking.get("mean_distance_m")
+    merged["median_walk_distance_m"] = walking.get("median_distance_m")
+    merged["p90_walk_distance_m"] = walking.get("p90_distance_m")
+    merged["reachable_population_walk"] = walking.get("reachable_population")
+    merged["total_catchment_population"] = walking.get("total_catchment_population")
+
+    # Driving
+    merged["catchment_population_5min_drive"] = driving.get("catchment_population_5min")
+    merged["catchment_population_10min_drive"] = driving.get("catchment_population_10min")
+    merged["catchment_population_15min_drive"] = driving.get("catchment_population_15min")
+    merged["coverage_ratio_5min_drive"] = driving.get("coverage_ratio_5min")
+    merged["coverage_ratio_10min_drive"] = driving.get("coverage_ratio_10min")
+    merged["coverage_ratio_15min_drive"] = driving.get("coverage_ratio_15min")
+    merged["mean_drive_distance_m"] = driving.get("mean_distance_m")
+    merged["median_drive_distance_m"] = driving.get("median_distance_m")
+    merged["p90_drive_distance_m"] = driving.get("p90_distance_m")
+    merged["reachable_population_drive"] = driving.get("reachable_population")
+
+    return merged
+
+
+# ---------------------------------------------------------------
+# Canopy coverage helper (unchanged from previous version)
+# ---------------------------------------------------------------
+
+def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2):
     if green_blue_gdf is None or green_blue_gdf.empty:
         return None
     if land_area_m2 is None:
@@ -88,130 +399,15 @@ def _compute_canopy_coverage(
     return min(1.0, canopy_m2 / land_area_f)
 
 
-def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.DataFrame:
-    """Load all data, compute derived metrics for every asset."""
-    repo_root = repo_root or Path(__file__).resolve().parents[3]
-    paths = load_paths()
-    benchmarks = load_benchmarks()
-    assumptions = load_assumptions()
-
-    geometry = load_geometry(repo_root, paths)
-    business = load_business(repo_root, paths)
-
-    # --- Read gamma once ---
-    gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
-
-    # --- Walk graph with canopy-adjusted weights (Fix 1+4) ---
-    network_analysis = geometry["network"]["analysis"]
-    G = build_walk_graph(network_analysis, gamma=gamma)
-    nodes_gdf = extract_nodes(network_analysis)
-
-    # --- All-pairs distance matrix (Fix 1+4) ---
-    distance_matrix = compute_distance_matrix(G)
-
-    green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
-
-    # --- Assign nearest node + compute canopy ---
-    asset_nodes = {}
-    asset_canopy = {}
-    for _, asset in business["assets"].iterrows():
-        aid = asset["asset_id"]
-        parcels = geometry["parcels"]["analysis"]
-        match = parcels[parcels["asset_id"] == aid]
-        if match.empty:
-            log.warning("No parcel for asset %s", aid)
-            continue
-
-        asset_geom = match.iloc[0].geometry
-        asset_nodes[aid] = find_nearest_node(asset_geom, nodes_gdf)
-        asset_canopy[aid] = _compute_canopy_coverage(
-            asset_id=aid,
-            asset_geom=asset_geom,
-            green_blue_gdf=green_blue_analysis,
-            land_area_m2=asset.get("land_area_m2"),
-        )
-
-    # --- Nearest node for each population cluster ---
-    pop_analysis = geometry["population"]["analysis"]
-    pop_nodes = []
-    for idx, pop in pop_analysis.iterrows():
-        node = find_nearest_node(pop.geometry, nodes_gdf)
-        pop_nodes.append((idx, node))
-
-    for idx, node in pop_nodes:
-        pop_analysis.at[idx, "_nearest_node"] = node
-
-    demand_nodes = []
-    for _, pop in pop_analysis.iterrows():
-        demand_nodes.append({
-            "population_id": pop["population_id"],
-            "node": pop["_nearest_node"],
-            "population": float(pop["total_population"]),
-        })
-
-    supply_nodes = []
-    for _, asset in business["assets"].iterrows():
-        if asset["asset_type"] != "commercial":
-            continue
-        supply_nodes.append({
-            "asset_id": asset["asset_id"],
-            "node": asset_nodes.get(asset["asset_id"]),
-            "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
-        })
-
-    # --- Huff gravity (uses distance_matrix) ---
-    alpha = assumptions.get("huff", {}).get("alpha", 1.0)
-    beta = assumptions.get("huff", {}).get("beta", 2.0)
-    huff_results = huff_gravity(
-        distance_matrix, demand_nodes, supply_nodes, alpha=alpha, beta=beta,
-    )
-
-    # --- Accessibility (uses distance_matrix) ---
-    d_threshold = assumptions.get("accessibility", {}).get("falloff_threshold_m", 800.0)
-    demand_weighted = [(d["node"], d["population"]) for d in demand_nodes if d["node"]]
-    accessibility_scores = {}
-    for asset_id, node in asset_nodes.items():
-        accessibility_scores[asset_id] = asset_accessibility(
-            distance_matrix, node, demand_weighted, d_threshold=d_threshold,
-        )
-
-    # --- Derive metrics per asset ---
-    rows = []
-    for _, asset in business["assets"].iterrows():
-        atype = asset["asset_type"]
-        deriver = DERIVERS.get(atype)
-        if deriver is None:
-            log.warning("No deriver for asset_type=%s (asset %s)", atype, asset["asset_id"])
-            continue
-
-        asset = asset.copy()
-        asset["_walk_node"] = asset_nodes.get(asset["asset_id"])
-
-        ctx = DerivationContext(
-            asset=asset,
-            business=business,
-            geometry=geometry,
-            benchmarks=benchmarks,
-            assumptions=assumptions,
-            accessibility_score=accessibility_scores.get(asset["asset_id"]),
-            huff_effective_demand=huff_results.get(asset["asset_id"]),
-            maintenance_surge_rm=None,
-            graph=G,
-            year=year,
-            canopy_coverage=asset_canopy.get(asset["asset_id"]),
-            distance_matrix=distance_matrix,
-        )
-        rows.append(deriver(ctx))
-
-    return pd.DataFrame(rows)
-
+# ---------------------------------------------------------------
+# Merge helper (unchanged from previous version)
+# ---------------------------------------------------------------
 
 def merge_into_asset_metrics(
     derived_df: pd.DataFrame,
     existing_df: pd.DataFrame,
     year: int,
 ) -> pd.DataFrame:
-    """Overlay derived columns onto the existing asset_metrics table."""
     derived_cols = [c for c in derived_df.columns if c not in ("asset_id", "year")]
 
     if "year" not in existing_df.columns:
@@ -224,7 +420,8 @@ def merge_into_asset_metrics(
         key = (row["asset_id"], year)
         if key in existing.index:
             for col in derived_cols:
-                existing.at[key, col] = row[col]
+                if col in existing.columns:
+                    existing.at[key, col] = row[col]
         else:
             new_row = {c: None for c in existing.columns}
             new_row["asset_id"] = row["asset_id"]

@@ -1,8 +1,12 @@
-"""Community facility derived metrics."""
+"""Community facility derived metrics.
+
+Phase 1 bridge: still uses the deprecated accessibility_score bridge
+from the walking profile. Full profile-aware refactor is scheduled for
+a later phase.
+"""
 
 import math
 from .context import DerivationContext
-from .accessibility import effective_distance, gaussian_falloff
 
 
 def derive_facility(ctx: DerivationContext) -> dict:
@@ -31,8 +35,15 @@ def derive_facility(ctx: DerivationContext) -> dict:
 
     utilisation = _get("utilisation_rate")
     accessibility = ctx.accessibility_score
-    service_coverage = _service_coverage(ctx)
 
+    # Service coverage: use 10-min walking coverage ratio from the
+    # Phase 1 profile. This is a bridge until the facility-specific
+    # service_coverage logic is refactored.
+    service_coverage = None
+    if ctx.walking_profile:
+        service_coverage = ctx.walking_profile.get("coverage_ratio_10min")
+
+    # Cost per user
     opex = asset.get("opex_annual_rm")
     maintenance = asset.get("maintenance_annual_rm")
     annual_users = None
@@ -54,58 +65,7 @@ def derive_facility(ctx: DerivationContext) -> dict:
         "utilisation_rate": utilisation,
         "service_coverage": service_coverage,
         "cost_per_user_rm": cost_per_user,
-        "accessibility_score": accessibility,
+        "accessibility_score": accessibility,  # deprecated bridge
         "metric_source": "derived",
-        "model_version": "0.3.2",
+        "model_version": "0.4.0",
     }
-
-
-def _service_coverage(ctx: DerivationContext) -> float:
-    """
-    Fraction of target population within walking catchment.
-
-    Uses the precomputed distance matrix when available (Fix 1+4).
-    """
-    asset_node = ctx.asset.get("_walk_node")
-    if not asset_node:
-        return 0.0
-
-    pop_layer = ctx.geometry.get("population", {})
-    if not pop_layer:
-        return 0.0
-    pop_gdf = pop_layer.get("analysis")
-    if pop_gdf is None or pop_gdf.empty:
-        return 0.0
-
-    threshold = ctx.assumptions.get("accessibility", {}).get("falloff_threshold_m", 800.0)
-
-    total_pop = 0.0
-    covered_pop = 0.0
-
-    if ctx.distance_matrix is not None and asset_node in ctx.distance_matrix:
-        row = ctx.distance_matrix[asset_node]
-        for _, pop in pop_gdf.iterrows():
-            pop_node = pop.get("_nearest_node")
-            if not pop_node:
-                continue
-            pop_count = float(pop.get("total_population", 0))
-            total_pop += pop_count
-            d_eff = row.get(pop_node)
-            f = gaussian_falloff(d_eff, threshold)
-            covered_pop += pop_count * f
-    else:
-        # Fallback: single-pair queries
-        G = ctx.graph
-        for _, pop in pop_gdf.iterrows():
-            pop_node = pop.get("_nearest_node")
-            if not pop_node:
-                continue
-            pop_count = float(pop.get("total_population", 0))
-            total_pop += pop_count
-            d_eff = effective_distance(G, asset_node, pop_node)
-            f = gaussian_falloff(d_eff, threshold)
-            covered_pop += pop_count * f
-
-    if total_pop <= 0:
-        return 0.0
-    return covered_pop / total_pop

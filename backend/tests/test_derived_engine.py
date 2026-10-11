@@ -50,6 +50,20 @@ def test_p05_parcel_derived():
     assert abs(row["developable_area_m2"] - 3600) < 1
     assert abs(row["potential_gfa_m2"] - 5400) < 1
 
+def test_b03_has_walking_profile():
+    df = compute_derived_metrics(year=2026)
+    b03 = df[df["asset_id"] == "B-03"]
+    assert not b03.empty
+    row = b03.iloc[0]
+
+    assert "coverage_ratio_5min_walk" in row.index
+    assert "coverage_ratio_10min_walk" in row.index
+    assert "coverage_ratio_10min_drive" in row.index
+    assert "mean_walk_distance_m" in row.index
+
+    # Deprecated bridge still present
+    assert "accessibility_score" in row.index
+
 
 def test_all_assets_returned():
     df = compute_derived_metrics(year=2026)

@@ -11,10 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.derived.engine import compute_derived_metrics, merge_into_asset_metrics
 
 
-# ---- Pretty print helpers -------------------------------------------------
-
 def _fmt(v, decimals=3):
-    """Format a value: None/NaN -> '-', float -> rounded string."""
     if v is None:
         return "-"
     try:
@@ -35,53 +32,54 @@ def _section(title, width=72):
 
 
 def _print_asset(row, fields):
-    """Print one asset row in aligned key-value form."""
     print(f"\n  {row['asset_id']}")
     print("  " + "-" * 60)
     for label, key in fields:
         if key not in row.index:
             continue
-        v = row[key]
-        print(f"    {label:<28} {_fmt(v)}")
+        print(f"    {label:<32} {_fmt(row[key])}")
 
 
-# ---- Field lists per asset type ------------------------------------------
-
-FIELDS_COMMON = [
-    ("Year", "year"),
-]
-
+# Field lists per asset type
 FIELDS_COMMERCIAL = [
     ("Occupancy rate", "occupancy_rate"),
-    ("Vacancy rate", "vacancy_rate"),
     ("Vacancy duration (months)", "vacancy_duration_months"),
-    ("Footfall (daily)", "footfall_daily"),
-    ("Rental income per visit (RM/p/d)", "rental_income_per_visit_proxy"),
-    ("Rental income (RM)", "rental_income_rm"),
     ("NOI (RM)", "noi_rm"),
     ("NOI yield", "noi_yield"),
-    ("Maintenance surge (RM)", "maintenance_surge_rm"),
-    ("Accessibility score", "accessibility_score"),
-    ("Effective demand (persons)", "effective_demand"),
-    ("Effective demand (m2)", "effective_demand_m2"),
-    ("Effective supply (m2)", "effective_supply"),
     ("DSR", "dsr"),
     ("Shade proxy score", "shade_proxy_score"),
-]
-
-FIELDS_GREEN = [
-    ("Green coverage", "green_coverage"),
-    ("Canopy coverage", "canopy_coverage"),
-    ("Green per capita (m2)", "green_per_capita_m2"),
-    ("Accessibility score", "accessibility_score"),
-    ("Shade proxy score", "shade_proxy_score"),
+    # NEW — walking profile
+    ("Walk 5-min (people)", "catchment_population_5min_walk"),
+    ("Walk 10-min (people)", "catchment_population_10min_walk"),
+    ("Walk 5-min coverage", "coverage_ratio_5min_walk"),
+    ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
+    ("Median walk distance (m)", "median_walk_distance_m"),
+    # NEW — driving profile
+    ("Drive 5-min (people)", "catchment_population_5min_drive"),
+    ("Drive 10-min (people)", "catchment_population_10min_drive"),
+    ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
+    # Deprecated bridge
+    ("Accessibility score (deprecated)", "accessibility_score"),
 ]
 
 FIELDS_FACILITY = [
     ("Utilisation rate", "utilisation_rate"),
     ("Service coverage", "service_coverage"),
     ("Cost per user (RM)", "cost_per_user_rm"),
-    ("Accessibility score", "accessibility_score"),
+    ("Walk 5-min coverage", "coverage_ratio_5min_walk"),
+    ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
+    ("Walk 15-min coverage", "coverage_ratio_15min_walk"),
+    ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
+    ("Median walk distance (m)", "median_walk_distance_m"),
+]
+
+FIELDS_GREEN = [
+    ("Green coverage", "green_coverage"),
+    ("Canopy coverage", "canopy_coverage"),
+    ("Green per capita (m2)", "green_per_capita_m2"),
+    ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
+    ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
+    ("Shade proxy score", "shade_proxy_score"),
 ]
 
 FIELDS_PARCEL = [
@@ -89,14 +87,15 @@ FIELDS_PARCEL = [
     ("Potential GFA (m2)", "potential_gfa_m2"),
     ("Demand-supply gap", "demand_supply_gap"),
     ("Infrastructure cost (RM)", "infrastructure_cost_rm"),
-    ("Accessibility score", "accessibility_score"),
+    ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
+    ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
 ]
 
 FIELDS_RESIDENTIAL = [
     ("Occupancy rate", "occupancy_rate"),
     ("Energy intensity (kWh/m2)", "energy_intensity_kwh_m2"),
-    ("NOI (RM)", "noi_rm"),
-    ("Accessibility score", "accessibility_score"),
+    ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
+    ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
 ]
 
 FIELDS_BY_TYPE = {
@@ -108,8 +107,6 @@ FIELDS_BY_TYPE = {
 }
 
 
-# ---- Main ----------------------------------------------------------------
-
 def main():
     repo_root = Path(__file__).resolve().parents[2]
     year = 2026
@@ -117,11 +114,9 @@ def main():
     print(f"\nRunning Phase 1 (B3) for year {year}...")
     derived = compute_derived_metrics(repo_root=repo_root, year=year)
 
-    # Group by asset type
     order = ["commercial", "community_facility", "green_space",
              "undeveloped_parcel", "residential"]
 
-    # Attach asset_type from assets.csv
     assets_path = repo_root / "mock" / "business" / "assets.csv"
     assets_df = pd.read_csv(assets_path)
     type_map = dict(zip(assets_df["asset_id"], assets_df["asset_type"]))
@@ -134,7 +129,6 @@ def main():
         for _, row in rows.iterrows():
             _print_asset(row, FIELDS_BY_TYPE.get(atype, []))
 
-    # Merge and write
     metrics_path = repo_root / "mock" / "business" / "asset_metrics.csv"
     existing = pd.read_csv(metrics_path)
     merged = merge_into_asset_metrics(derived, existing, year=year)
@@ -143,8 +137,7 @@ def main():
     merged.to_csv(out_path, index=False)
 
     print("\n" + "=" * 72)
-    print(f"  Wrote enriched metrics to:")
-    print(f"    {out_path}")
+    print(f"  Wrote enriched metrics to: {out_path}")
     print("=" * 72 + "\n")
 
 
