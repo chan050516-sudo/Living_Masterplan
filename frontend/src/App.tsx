@@ -2,110 +2,63 @@ import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
+import { C, cap, btn, scoreColor } from './theme'
+import { MapLegend, MapControls } from './components/ui'
+import { DeadspaceList } from './components/DeadspaceList'
+import { AssetPanel } from './components/AssetPanel'
+import { ComparisonModal } from './components/ComparisonModal'
+import type { Asset, AiAnswer, AiOption, Comparison } from './types'
 
 maplibregl.setWorkerUrl(workerUrl)
-type AiOption = {
-  id: string
-  title: string
-  summary: string
-  capex: string
-  score_after: number
-  changes: string[]
-}
-
-type AiAnswer = {
-  analysis: string
-  options: AiOption[]
-}
-
-type ComparisonRow = {
-  label: string
-  current: string
-  a: string
-  b: string
-  c: string
-}
-
-type Comparison = {
-  rows: ComparisonRow[]
-  recommended: string
-  reason: string
-}
-
-type Asset = {
-  id: string
-  name: string
-  type: string
-  score: number
-  occupancy: number
-  vacancy_months: number
-  score_3y: number
-  occupancy_3y: number
-}
 
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
+  const markerRef = useRef<maplibregl.Marker | null>(null)
+  const assetsRef = useRef<Asset[]>([])
+
+  const [assets, setAssets] = useState<Asset[]>([])
   const [selected, setSelected] = useState<Asset | null>(null)
   const [year, setYear] = useState<'now' | '3y'>('now')
-  const [assets, setAssets] = useState<Asset[]>([])
+  const [bearing, setBearing] = useState(-20)
+  const [tilted, setTilted] = useState(true)
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState<AiAnswer | null>(null)
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState<AiOption | null>(null)
   const [comparison, setComparison] = useState<Comparison | null>(null)
 
-  async function simulate() {
-    if (!selected) return
-    const res = await fetch('/data/comparison.json')
-    const all = await res.json()
-    setComparison(all[selected.id] ?? null)
-    console.log('simulate', { id: selected.id, found: !!all[selected.id] })
-  }
-
-  function showPreview(o: AiOption) {
-    setPreview(o)
-    const map = mapRef.current
-    if (!map || !map.getLayer('assets-fill') || !selected) return
-    map.setPaintProperty('assets-fill', 'fill-color', [
-      'case',
-      ['==', ['get', 'id'], selected.id], '#1e88e5',
-      [
-        'step', ['get', year === 'now' ? 'score' : 'score_3y'],
-        '#e53935', 40,
-        '#fdd835', 60,
-        '#43a047',
-      ],
-    ])
-  }
-
-  function clearPreview() {
-    setPreview(null)
-    const map = mapRef.current
-    if (!map || !map.getLayer('assets-fill')) return
-    map.setPaintProperty('assets-fill', 'fill-color', [
-      'step', ['get', year === 'now' ? 'score' : 'score_3y'],
-      '#e53935', 40,
-      '#fdd835', 60,
-      '#43a047',
-    ])
-  }
-
   async function ask() {
     if (!selected) return
+    const asked = question.trim() || 'What should we do with this asset?'
     setLoading(true)
-    const res = await fetch('/data/options.json')
-    const all = await res.json()
+    const all = await (await fetch('/data/options.json')).json()
     setTimeout(() => {
-      setAnswer(all[selected.id] ?? null)
+      const found = all[selected.id]
+      setAnswer(found ? { ...found, asked } : null)
+      setQuestion('')
       setLoading(false)
     }, 600)
+  }
+
+  async function simulate() {
+    if (!selected) return
+    const all = await (await fetch('/data/comparison.json')).json()
+    setComparison(all[selected.id] ?? null)
+  }
+
+  function closePanel() {
+    setSelected(null); setAnswer(null); setQuestion(''); setPreview(null)
   }
 
   useEffect(() => {
     fetch('/data/assets.geojson')
       .then((r) => r.json())
-      .then((d) => setAssets(d.features.map((f: { properties: Asset }) => f.properties)))
+      .then((d) => {
+        const list = d.features.map((f: { properties: Asset }) => f.properties)
+        assetsRef.current = list
+        setAssets(list)
+      })
   }, [])
 
   useEffect(() => {
@@ -118,55 +71,55 @@ export default function App() {
         sources: {
           osm: {
             type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+            tiles: ['https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png'],
             tileSize: 256,
-            attribution: '© OpenStreetMap contributors',
+            attribution: '© OpenStreetMap contributors © Stadia Maps',
           },
         },
         layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
       },
       center: [101.5005, 3.1915],
       zoom: 15,
+      pitch: 55,
+      bearing: -20,
+      maxPitch: 80,
+      dragRotate: true,
+      pitchWithRotate: true,
+      touchZoomRotate: true,
     })
 
     mapRef.current = map
+    map.dragRotate.enable()
+    map.touchZoomRotate.enableRotation()
+    map.keyboard.enable()
+
+    const sync = () => { setBearing(map.getBearing()); setTilted(map.getPitch() > 10) }
+    map.on('rotate', sync)
+    map.on('pitch', sync)
 
     map.on('load', () => {
+      map.setSky({ 'sky-color': '#1a1320', 'horizon-color': '#4a3a48', 'sky-horizon-blend': 0.6 })
       map.addSource('assets', { type: 'geojson', data: '/data/assets.geojson' })
-
       map.addLayer({
-        id: 'assets-fill',
-        type: 'fill',
+        id: 'assets-3d',
+        type: 'fill-extrusion',
         source: 'assets',
         paint: {
-          'fill-color': [
-            'step', ['get', 'score'],
-            '#e53935', 40,
-            '#fdd835', 60,
-            '#43a047',
-          ],
-          'fill-opacity': 0.7,
+          'fill-extrusion-color': scoreColor('score') as never,
+          'fill-extrusion-height': ['coalesce', ['get', 'height'], 30] as never,
+          'fill-extrusion-vertical-gradient': true,
+          'fill-extrusion-opacity': 0.92,
         },
       })
 
-      map.addLayer({
-        id: 'assets-outline',
-        type: 'line',
-        source: 'assets',
-        paint: { 'line-color': '#222', 'line-width': 2 },
+      map.on('click', 'assets-3d', (e) => {
+        const id = e.features?.[0]?.properties?.id
+        const found = assetsRef.current.find((a) => a.id === id)
+        if (found) { setSelected(found); setAnswer(null); setQuestion(''); setPreview(null) }
+        map.easeTo({ center: e.lngLat, zoom: 16.3, pitch: 58, duration: 1100 })
       })
-
-      map.on('click', 'assets-fill', (e) => {
-        const props = e.features?.[0]?.properties
-        if (props) setSelected(props as Asset)
-      })
-
-      map.on('mouseenter', 'assets-fill', () => {
-        map.getCanvas().style.cursor = 'pointer'
-      })
-      map.on('mouseleave', 'assets-fill', () => {
-        map.getCanvas().style.cursor = ''
-      })
+      map.on('mouseenter', 'assets-3d', () => { map.getCanvas().style.cursor = 'pointer' })
+      map.on('mouseleave', 'assets-3d', () => { map.getCanvas().style.cursor = '' })
     })
 
     return () => map.remove()
@@ -174,150 +127,116 @@ export default function App() {
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !map.getLayer('assets-fill')) return
-    const field = year === 'now' ? 'score' : 'score_3y'
-    map.setPaintProperty('assets-fill', 'fill-color', [
-      'step', ['get', field],
-      '#e53935', 40,
-      '#fdd835', 60,
-      '#43a047',
-    ])
-  }, [year])
+    if (!map || !map.getLayer('assets-3d')) return
+    const f = year === 'now' ? 'score' : 'score_3y'
 
-  const score = selected ? (year === 'now' ? selected.score : selected.score_3y) : 0
-  const occ = selected ? (year === 'now' ? selected.occupancy : selected.occupancy_3y) : 0
+    if (preview && selected) {
+      map.setPaintProperty('assets-3d', 'fill-extrusion-color', [
+        'case',
+        ['==', ['get', 'id'], selected.id], C.intervene,
+        ['in', ['get', 'id'], ['literal', preview.spillover ?? []]], C.spill,
+        scoreColor(f),
+      ] as never)
+    } else if (selected) {
+      map.setPaintProperty('assets-3d', 'fill-extrusion-color', [
+        'case',
+        ['==', ['get', 'id'], selected.id], C.selected,
+        scoreColor(f),
+      ] as never)
+    } else {
+      map.setPaintProperty('assets-3d', 'fill-extrusion-color', scoreColor(f) as never)
+    }
+  }, [selected, preview, year])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    markerRef.current?.remove()
+    markerRef.current = null
+    if (!selected?.center) return
+
+    const el = document.createElement('div')
+    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;pointer-events:none;animation:popIn .3s cubic-bezier(.22,.8,.3,1) both'
+    el.innerHTML = `
+      <div style="
+        background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;
+        padding:8px 14px;color:#fff;font:600 11.5px/1 system-ui,sans-serif;
+        letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
+        box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
+        backdrop-filter:blur(4px)">${selected.name}</div>
+      <div style="width:0;height:30px;border-left:1px dashed rgba(255,255,255,.55)"></div>
+      <div style="width:9px;height:9px;border-radius:50%;background:#fff;
+        box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
+    `
+    markerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+      .setLngLat(selected.center)
+      .addTo(map)
+
+    return () => { markerRef.current?.remove(); markerRef.current = null }
+  }, [selected])
+
+  const zoomBy = (d: 1 | -1) =>
+    mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 15) + d, duration: 320 })
+
+  const resetNorth = () =>
+    mapRef.current?.easeTo({ bearing: 0, pitch: 55, duration: 600 })
+
+  const toggleTilt = () => {
+    const map = mapRef.current
+    if (!map) return
+    const flat = map.getPitch() < 10
+    map.easeTo({ pitch: flat ? 58 : 0, bearing: flat ? -20 : 0, duration: 650 })
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', fontFamily: 'sans-serif' }}>
-      <div style={{ padding: '10px 20px', borderBottom: '1px solid #ddd', display: 'flex', gap: 10, alignItems: 'center' }}>
-        <strong>Living Masterplan</strong>
-        <span style={{ marginLeft: 'auto' }} />
-        <button onClick={() => setYear('now')} style={{ fontWeight: year === 'now' ? 700 : 400 }}>Current</button>
-        <button onClick={() => setYear('3y')} style={{ fontWeight: year === '3y' ? 700 : 400 }}>+3 years</button>
-      </div>
-      <div style={{ display: 'flex', flex: 1 }}>
-            {comparison && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: '#fff', padding: 24, borderRadius: 8, maxWidth: 760, width: '90%', maxHeight: '85vh', overflowY: 'auto' }}>
-            <h2 style={{ marginTop: 0 }}>Scenario comparison</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Metric</th>
-                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Current</th>
-                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Option A</th>
-                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Option B</th>
-                  <th style={{ textAlign: 'left', padding: 8, borderBottom: '2px solid #333' }}>Option C</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparison.rows.map((r) => (
-                  <tr key={r.label}>
-                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.label}</td>
-                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.current}</td>
-                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.a}</td>
-                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.b}</td>
-                    <td style={{ padding: 8, borderBottom: '1px solid #eee' }}>{r.c}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <div style={{ marginTop: 16, padding: 12, background: '#e8f5e9', borderRadius: 6 }}>
-              <strong>Recommended: {comparison.recommended}</strong>
-              <div style={{ fontSize: 13, marginTop: 4 }}>{comparison.reason}</div>
-            </div>
-            <button onClick={() => setComparison(null)} style={{ marginTop: 16 }}>Close</button>
-          </div>
-        </div>
-      )}
-        <div ref={mapContainer} style={{ flex: 1 }} />
-        <div style={{ width: 340, padding: 20, overflowY: 'auto', background: '#fff', borderLeft: '1px solid #ddd' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh',
+      background: C.bg, color: C.text, fontFamily: 'system-ui, sans-serif',
+    }}>
+      <header style={{
+        height: 58, flex: 'none', padding: '0 22px',
+        borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center',
+        gap: 14, background: '#241c23',
+      }}>
+        <strong style={{ fontSize: 14, letterSpacing: '.14em' }}>LIVING MASTERPLAN</strong>
+        <span style={{ fontSize: 13, color: C.muted }}>Elmina West</span>
+        {preview && (
+          <span className="pop" style={{
+            fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: C.selected,
+            border: `1px solid ${C.selected}`, borderRadius: 5, padding: '3px 9px',
+          }}>Preview · {preview.title}</span>
+        )}
+        <span style={{ flex: 1 }} />
+        <span style={{ ...cap, marginRight: 4 }}>Horizon</span>
+        <button className={`btn${year === 'now' ? ' primary' : ''}`} onClick={() => setYear('now')} style={btn(year === 'now')}>Current</button>
+        <button className={`btn${year === '3y' ? ' primary' : ''}`} onClick={() => setYear('3y')} style={btn(year === '3y')}>+3 years</button>
+      </header>
+
+      {comparison && <ComparisonModal data={comparison} onClose={() => setComparison(null)} />}
+
+      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+        <main style={{ position: 'relative', flex: 1 }}>
+          <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
+          <MapLegend preview={!!preview} year={year} />
+          <MapControls bearing={bearing} tilted={tilted} onZoom={zoomBy} onCompass={resetNorth} onTilt={toggleTilt} />
+        </main>
+
+        <aside className="panel" style={{
+          width: 420, flex: 'none', padding: 22, overflowY: 'auto',
+          background: C.panel, borderLeft: `1px solid ${C.line}`,
+        }}>
           {selected ? (
-            <>
-              <h2 style={{ marginTop: 0 }}>{selected.name}</h2>
-              <p style={{ fontSize: 32, margin: '8px 0' }}>{score}<span style={{ fontSize: 16, color: '#777' }}> / 100</span></p>
-              <p style={{ color: '#777', fontSize: 13 }}>{year === 'now' ? 'Observed' : 'Scenario (+3 years)'}</p>
-              <p>Type: {selected.type}</p>
-              <p>Occupancy: {occ}%</p>
-              <p>Vacant for: {selected.vacancy_months} months</p>
-                            <hr style={{ margin: '16px 0', border: 0, borderTop: '1px solid #eee' }} />
-
-              {!answer && (
-                <>
-                  <p style={{ fontSize: 13, color: '#777' }}>Ask a question about {selected.id}</p>
-                  <input
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    placeholder="What should we do with this asset?"
-                    style={{ width: '100%', padding: 8, boxSizing: 'border-box', marginBottom: 8 }}
-                  />
-                  <button onClick={ask} disabled={loading}>{loading ? 'Thinking…' : 'Ask'}</button>
-                </>
-              )}
-
-              {answer && (
-                <>
-                  <p style={{ fontSize: 13, color: '#777' }}>Your question</p>
-                  <p style={{ fontStyle: 'italic' }}>{question || 'What should we do with this asset?'}</p>
-                  <p>{answer.analysis}</p>
-                  {answer.options.map((o) => (
-                    <div key={o.id} style={{ padding: 12, marginBottom: 10, border: '1px solid #ddd', borderRadius: 6 }}>
-                      <strong>{o.title}</strong>
-                      <div style={{ fontSize: 13, margin: '4px 0' }}>{o.summary}</div>
-                      <div style={{ fontSize: 13, color: '#777' }}>CAPEX {o.capex} · Score after {o.score_after}</div>
-                      <button onClick={() => showPreview(o)} style={{ marginTop: 8 }}>Preview on map</button>
-                      <button onClick={simulate} style={{ marginTop: 8, marginLeft: 6 }}>Simulate</button>
-                    </div>
-                  ))}
-                </>
-              )}
-
-                            <button onClick={() => { setSelected(null); setAnswer(null); setQuestion(''); clearPreview() }} style={{ marginTop: 10 }}>Close</button>
-              {preview && (
-                <div style={{ marginTop: 10, padding: 12, background: '#e3f2fd', borderRadius: 6 }}>
-                  <strong>Preview: {preview.title}</strong>
-                  <ul style={{ paddingLeft: 18, margin: '8px 0' }}>
-                    {preview.changes.map((c) => <li key={c} style={{ fontSize: 13 }}>{c}</li>)}
-                  </ul>
-                  <button onClick={clearPreview}>Clear preview</button>
-                </div>
-              )}
-                            {preview && (
-                <div style={{ marginTop: 10, padding: 12, background: '#e3f2fd', borderRadius: 6 }}>
-                  <strong>Preview: {preview.title}</strong>
-                  <ul style={{ paddingLeft: 18, margin: '8px 0' }}>
-                    {preview.changes.map((c) => <li key={c} style={{ fontSize: 13 }}>{c}</li>)}
-                  </ul>
-                  <button onClick={clearPreview}>Clear preview</button>
-                </div>
-              )}
-            </>
+            <AssetPanel
+              asset={selected} year={year}
+              question={question} setQuestion={setQuestion}
+              answer={answer} loading={loading} onAsk={ask}
+              preview={preview} onPreview={setPreview} onClearPreview={() => setPreview(null)}
+              onSimulate={simulate} onClose={closePanel}
+            />
           ) : (
-            <>
-              <h3 style={{ marginTop: 0 }}>Deadspace candidates</h3>
-              {assets
-                .filter((a) => (year === 'now' ? a.score : a.score_3y) < 60)
-                .sort((a, b) => (year === 'now' ? a.score - b.score : a.score_3y - b.score_3y))
-                .map((a) => {
-                  const s = year === 'now' ? a.score : a.score_3y
-                  return (
-                    <div
-                      key={a.id}
-                      onClick={() => setSelected(a)}
-                      style={{ padding: 12, marginBottom: 10, border: '1px solid #ddd', borderRadius: 6, cursor: 'pointer' }}
-                    >
-                      <strong>{a.name}</strong>
-                      <div style={{ color: s < 40 ? '#e53935' : '#f9a825' }}>Score: {s}</div>
-                      {a.vacancy_months > 0 && (
-                        <div style={{ color: '#777', fontSize: 13 }}>Vacant {a.vacancy_months} months</div>
-                      )}
-                    </div>
-                  )
-                })}
-              <p style={{ color: '#777', fontSize: 13 }}>Or click any asset on the map.</p>
-            </>
+            <DeadspaceList assets={assets} year={year} onPick={(a) => setSelected(a)} />
           )}
-        </div>
+        </aside>
       </div>
     </div>
   )

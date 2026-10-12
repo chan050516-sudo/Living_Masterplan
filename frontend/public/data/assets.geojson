@@ -3,22 +3,88 @@
   "features": [
     {
       "type": "Feature",
-      "properties": { "id": "B-03", "name": "B-03 Commercial Lot", "type": "commercial", "score": 28, "occupancy": 21, "vacancy_months": 14, "score_3y": 22, "occupancy_3y": 18},
+      "properties": {
+        "id": "B-03", "name": "B-03 Commercial Lot", "type": "Commercial · 1,840 m²",
+        "status": "Deadspace candidate", "height": 24,
+        "score": 28, "occupancy": 21, "vacancy_months": 14,
+        "score_3y": 22, "occupancy_3y": 18,
+        "breakdown": { "financial": 28, "environmental": 45, "social": 62 },
+        "breakdown_3y": { "financial": 21, "environmental": 42, "social": 58 },
+        "factors": [
+          { "label": "Accessibility friction", "weight": 38 },
+          { "label": "Demand–supply mismatch", "weight": 27 },
+          { "label": "Thermal exposure", "weight": 21 },
+          { "label": "Tenant mix saturation", "weight": 14 }
+        ],
+        "evidence": [
+          { "label": "Vacancy duration", "value": "14 months", "tier": "observed" },
+          { "label": "Average walking distance", "value": "920 m", "tier": "estimated" },
+          { "label": "5-min catchment population", "value": "420", "tier": "estimated" },
+          { "label": "Effective demand vs supply", "value": "2,100 / 3,400", "tier": "estimated" },
+          { "label": "Surface temp · canopy", "value": "42 °C · 8%", "tier": "estimated" }
+        ]
+      },
       "geometry": { "type": "Polygon", "coordinates": [[[101.4990,3.1900],[101.5000,3.1900],[101.5000,3.1910],[101.4990,3.1910],[101.4990,3.1900]]] }
     },
     {
       "type": "Feature",
-      "properties": { "id": "F-02", "name": "F-02 Community Facility", "type": "facility", "score": 55, "occupancy": 48, "vacancy_months": 0, "score_3y": 58, "occupancy_3y": 52},
+      "properties": {
+        "id": "F-02", "name": "F-02 Community Facility", "type": "Community facility",
+        "status": "Underperforming facility", "height": 14,
+        "score": 35, "occupancy": 22, "vacancy_months": 0,
+        "score_3y": 38, "occupancy_3y": 26,
+        "breakdown": { "financial": 30, "environmental": 52, "social": 44 },
+        "breakdown_3y": { "financial": 33, "environmental": 54, "social": 48 },
+        "factors": [
+          { "label": "Low capacity utilisation", "weight": 44 },
+          { "label": "Insufficient service coverage", "weight": 31 },
+          { "label": "Cost per user", "weight": 25 }
+        ],
+        "evidence": [
+          { "label": "Capacity utilisation", "value": "22%", "tier": "observed" },
+          { "label": "Service coverage", "value": "41%", "tier": "estimated" },
+          { "label": "Cost per user", "value": "RM 38", "tier": "estimated" }
+        ]
+      },
       "geometry": { "type": "Polygon", "coordinates": [[[101.5010,3.1900],[101.5020,3.1900],[101.5020,3.1910],[101.5010,3.1910],[101.5010,3.1900]]] }
     },
     {
       "type": "Feature",
-      "properties": { "id": "P-05", "name": "P-05 Undeveloped Parcel", "type": "parcel", "score": 45, "occupancy": 0, "vacancy_months": 0, "score_3y": 38, "occupancy_3y": 0},
+      "properties": {
+        "id": "P-05", "name": "P-05 Undeveloped Parcel", "type": "Undeveloped parcel",
+        "status": "Development risk", "height": 4,
+        "score": 31, "occupancy": 0, "vacancy_months": 0,
+        "score_3y": 26, "occupancy_3y": 0,
+        "breakdown": { "financial": 24, "environmental": 48, "social": 30 },
+        "breakdown_3y": { "financial": 18, "environmental": 46, "social": 28 },
+        "factors": [
+          { "label": "Weak projected demand", "weight": 46 },
+          { "label": "Planned oversupply", "weight": 33 },
+          { "label": "Infrastructure connection cost", "weight": 21 }
+        ],
+        "evidence": [
+          { "label": "Developable area", "value": "6,200 m²", "tier": "observed" },
+          { "label": "Demand–supply gap at 2029", "value": "−1,300 m²", "tier": "scenario" },
+          { "label": "Phase 3 delivery", "value": "2028", "tier": "observed" }
+        ]
+      },
       "geometry": { "type": "Polygon", "coordinates": [[[101.4990,3.1920],[101.5000,3.1920],[101.5000,3.1930],[101.4990,3.1930],[101.4990,3.1920]]] }
     },
     {
       "type": "Feature",
-      "properties": { "id": "A-02", "name": "A-02 Residential", "type": "residential", "score": 78, "occupancy": 91, "vacancy_months": 0, "score_3y": 82, "occupancy_3y": 94},
+      "properties": {
+        "id": "A-02", "name": "A-02 Residential", "type": "Residential",
+        "status": "Performing", "height": 30,
+        "score": 78, "occupancy": 91, "vacancy_months": 0,
+        "score_3y": 82, "occupancy_3y": 94,
+        "breakdown": { "financial": 80, "environmental": 70, "social": 84 },
+        "breakdown_3y": { "financial": 84, "environmental": 72, "social": 88 },
+        "factors": [],
+        "evidence": [
+          { "label": "Sell-through", "value": "96%", "tier": "observed" },
+          { "label": "Energy intensity", "value": "118 kWh/m²", "tier": "estimated" }
+        ]
+      },
       "geometry": { "type": "Polygon", "coordinates": [[[101.5010,3.1920],[101.5020,3.1920],[101.5020,3.1930],[101.5010,3.1930],[101.5010,3.1920]]] }
     }
   ]

@@ -1,40 +1,43 @@
 {
   "B-03": {
-    "analysis": "B-03 is primarily affected by accessibility friction and demand-supply mismatch. Three candidate strategies have been generated.",
+    "analysis": "Projected demand at +3 years does not justify Phase 3. B-03 is constrained by accessibility friction and a demand–supply gap of 1,300 m². Three candidate strategies were generated from the intervention library.",
     "options": [
       {
         "id": "A",
-        "title": "Option A — Repurpose",
-        "summary": "Convert to community facility",
-        "capex": "RM1.2m",
+        "title": "Option A · Repurpose",
+        "summary": "Convert to community facility, cancel Phase 3, upgrade the pedestrian route.",
+        "capex": "RM 1.2m",
         "score_after": 74,
-                "changes": [
+        "carbon_avoided": "1,840",
+        "spillover": ["F-02", "P-05"],
+        "changes": [
           "B-03: Commercial → Community Facility",
-          "Phase 3: Cancelled",
-          "Nearby pedestrian route: Upgraded"
+          "Phase 3: cancelled",
+          "Nearby pedestrian route: upgraded (spillover)"
         ]
       },
       {
         "id": "B",
-        "title": "Option B — Retrofit + Green",
-        "summary": "Improve building performance and add a green corridor",
-        "capex": "RM0.8m",
+        "title": "Option B · Retrofit + green",
+        "summary": "Improve building performance and add a green corridor along the north edge.",
+        "capex": "RM 0.8m",
         "score_after": 66,
-                "changes": [
-          "B-03: Retrofitted, energy use reduced",
-          "Green corridor added along the north edge"
+        "carbon_avoided": "420",
+        "spillover": ["F-02"],
+        "changes": [
+          "B-03: retrofitted, energy use reduced 34%",
+          "Green corridor added along the north edge (spillover)"
         ]
       },
       {
         "id": "C",
-        "title": "Option C — Delay + Replan",
-        "summary": "Postpone Phase 3 expansion until demand threshold is met",
-        "capex": "RM0.1m",
+        "title": "Option C · Delay + replan",
+        "summary": "Postpone Phase 3 to 2031, until the demand threshold is met.",
+        "capex": "RM 0.1m",
         "score_after": 31,
-                "changes": [
-          "Phase 3: Delayed to 2031",
-          "B-03: No change"
-        ]
+        "carbon_avoided": "0",
+        "spillover": [],
+        "changes": ["Phase 3: delayed to 2031", "B-03: no change"]
       }
     ]
   }
