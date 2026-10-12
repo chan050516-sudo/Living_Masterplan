@@ -14,6 +14,26 @@ Phase 6 changes:
   - Uses the same entry-point pipeline as B3 (find_entry_point +
     insert_all_entries) so that base-year and simulated accessibility
     numbers are directly comparable.
+
+Phase 7 changes:
+  - Commercial assets without an activated intervention hold their
+    previous occupancy instead of converging to a Huff-derived target.
+  - Repurpose transitions clear type-exclusive fields so the
+    comparison block shows N/A instead of a misleading zero.
+  - write_scenario_result() sanitises NaN before serialising.
+
+Phase 8 changes:
+  - New development projects (development_projects.csv) are now
+    first-class citizens of the simulation. Each delivered project is
+    added to state_by_year as a virtual entry keyed "PRJ::<id>", so it
+    contributes operational carbon to township totals and appears in
+    the per-year asset listing with an explicit _state_kind marker.
+  - Township metrics now report project carbon separately (annual
+    snapshot + cumulative across the simulated year list). This makes
+    the carbon cost of a delay directly comparable between scenarios.
+  - map_diff gains a "project_schedule" block that shows, per project,
+    the baseline vs scenario delivery year and a status enum
+    (unchanged / delayed / advanced / cancelled / added).
 """
 
 import json
@@ -36,7 +56,11 @@ from ..derived.network_graph import (
 )
 from ..derived.huff import huff_gravity_by_subtype
 from ..derived.environmental import energy_from_subtype, operational_carbon
-from ..taxonomy import get_taxonomy, get_occupancy_benchmark
+from ..taxonomy import (
+    get_taxonomy,
+    get_occupancy_benchmark,
+    default_subtype_for,
+)
 from .time_anchors import resolve_phase, interventions_for_asset, Phase
 from .interventions import apply_intervention, apply_construction_state
 from .population import project_population
@@ -47,6 +71,69 @@ log = logging.getLogger(__name__)
 
 
 DEFAULT_YEARS = [2026, 2027, 2028, 2030, 2033]
+
+# Prefix for project pseudo-entries in state_by_year. Kept distinct
+# from real asset IDs (which use plain alphanumeric codes) so the
+# two populations can be told apart without extra metadata.
+PROJECT_ID_PREFIX = "PRJ::"
+
+# The "do nothing" baseline scenario. Used only to compute the delta
+# shown in map_diff.project_schedule. Not a real simulated scenario.
+BASELINE_SCENARIO_ID = "SC-CURRENT"
+
+
+# ------------------------------------------------------------------
+# Asset-type field ownership
+# ------------------------------------------------------------------
+# Each asset type produces a distinct set of derived fields. When a
+# repurpose intervention flips the effective type mid-simulation, the
+# metric_row inherits the previous year's values — including fields
+# that no longer apply to the new type. Left unchecked, the comparison
+# block shows e.g. "occupancy_rate: before 0.21, after 0.0" for a
+# building that is now a community hall, which reads as "the repurpose
+# made things worse" when in fact the metric is simply no longer
+# meaningful.
+_TYPE_EXCLUSIVE_FIELDS = {
+    "commercial": frozenset({
+        "occupancy_rate",
+        "vacancy_rate",
+        "vacancy_duration_months",
+        "footfall_daily",
+        "rental_income_per_visit_proxy",
+        "rental_income_rm",
+        "noi_rm",
+        "noi_yield",
+        "maintenance_surge_rm",
+        "dsr",
+        "effective_supply",
+    }),
+    "residential": frozenset({
+        "occupancy_rate",
+        "vacancy_rate",
+        "noi_rm",
+        "energy_intensity_kwh_m2",
+    }),
+    "community_facility": frozenset({
+        "utilisation_rate",
+        "service_coverage",
+        "cost_per_user_rm",
+    }),
+    "green_space": frozenset({
+        "green_coverage",
+        "canopy_coverage",
+        "canopy_ratio_benchmark",
+        "green_per_capita_m2",
+        "shade_proxy_score",
+    }),
+    "undeveloped_parcel": frozenset({
+        "developable_area_m2",
+        "potential_gfa_m2",
+        "demand_supply_gap",
+        "infrastructure_cost_rm",
+    }),
+}
+
+_ALL_TYPE_EXCLUSIVE_FIELDS = frozenset().union(*_TYPE_EXCLUSIVE_FIELDS.values())
 
 
 def _compute_distance_matrix(G):
@@ -219,17 +306,22 @@ def simulate_scenario(
                 new_util = 0.0
             else:
                 if effective_type == "commercial":
-                    demand_m2 = huff_m2.get(aid)
-                    effective_supply = (
-                        eff.get("lettable_area_m2")
-                        or eff.get("capacity")
-                        or 1.0
-                    )
-                    if demand_m2 is not None and effective_supply and float(effective_supply) > 0:
-                        dsr = demand_m2 / float(effective_supply)
+                    if activated is None:
+                        target_occ = prev_occ
                     else:
-                        dsr = None
-                    target_occ = target_occupancy_from_dsr(dsr)
+                        demand_m2 = huff_m2.get(aid)
+                        effective_supply = (
+                            eff.get("lettable_area_m2")
+                            or eff.get("capacity")
+                            or 1.0
+                        )
+                        if (demand_m2 is not None
+                                and effective_supply
+                                and float(effective_supply) > 0):
+                            dsr = demand_m2 / float(effective_supply)
+                        else:
+                            dsr = None
+                        target_occ = target_occupancy_from_dsr(dsr)
 
                 elif effective_type == "community_facility":
                     if activated is None:
@@ -276,14 +368,15 @@ def simulate_scenario(
             metric_row["year"] = year
             metric_row["subtype"] = effective_subtype
 
+            _owned = _TYPE_EXCLUSIVE_FIELDS.get(effective_type, frozenset())
+            for _field in _ALL_TYPE_EXCLUSIVE_FIELDS - _owned:
+                metric_row[_field] = None
+
             if effective_type == "community_facility":
                 metric_row["utilisation_rate"] = new_util
             elif effective_type in ("commercial", "residential"):
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
-                metric_row["utilisation_rate"] = None
-            else:
-                pass
 
             metric_row["effective_demand_m2"] = huff_m2.get(aid)
             metric_row["carbon_operational_tco2e"] = carbon
@@ -291,7 +384,6 @@ def simulate_scenario(
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
-            # Cost per user for facility
             if effective_type == "community_facility":
                 op = float(eff.get("opex_annual_rm") or 0)
                 mt = float(eff.get("maintenance_annual_rm") or 0)
@@ -302,20 +394,34 @@ def simulate_scenario(
                     (op + mt) / annual_users if annual_users > 0 else None
                 )
 
+            metric_row["_state_kind"] = "asset"
             metric_row["_effective_asset_type"] = effective_type
             metric_row["_effective_capacity"] = eff.get("capacity")
             metric_row["_effective_lettable"] = eff.get("lettable_area_m2")
             year_state[aid] = metric_row
+
+        # ---- Project pseudo-entries ----
+        # New developments delivered by this year are recorded as
+        # virtual entries so their operational carbon reaches township
+        # totals and their presence is visible in the per-year listing.
+        # Keyed with PROJECT_ID_PREFIX so UI and downstream logic can
+        # distinguish them from real assets.
+        for proj in active_projects:
+            _add_project_state(
+                year_state, proj, year, emission_factor,
+            )
 
         state_by_year[year] = year_state
 
     # ---- Comparison ----
     comparison = _build_comparison(state_by_year, base_year, years[-1], assets_df)
     comparison["township_metrics"] = _compute_township_metrics(
-        state_by_year, base_year, years[-1],
+        state_by_year, years, base_year, years[-1],
     )
 
-    map_diff = _build_map_diff(assets_df, scenario_interventions)
+    map_diff = _build_map_diff(
+        assets_df, interventions_df, projects_df, scenario_id,
+    )
 
     return {
         "scenario_id": scenario_id,
@@ -334,6 +440,47 @@ def simulate_scenario(
 # ---- Helpers ----------------------------------------------------
 
 
+def _add_project_state(year_state, proj, year, emission_factor):
+    """
+    Insert a delivered project as a virtual entry into year_state.
+
+    Projects do not carry the full asset schema, so only the fields
+    that are meaningful for them are populated: GFA, energy, carbon,
+    subtype. Asset-specific keys (occupancy_rate, NOI, ...) are
+    intentionally absent.
+    """
+    pid = proj.get("project_id")
+    if not pid:
+        return
+
+    key = f"{PROJECT_ID_PREFIX}{pid}"
+    if key in year_state:
+        return
+
+    gfa = float(proj.get("gfa_m2") or 0.0)
+    # development_projects.csv has no explicit subtype column; fall
+    # back to a subtype derived from land_use via the taxonomy defaults.
+    subtype = proj.get("subtype") or default_subtype_for(proj.get("land_use"))
+    energy = energy_from_subtype(subtype, gfa)
+    carbon = operational_carbon(energy, emission_factor)
+
+    year_state[key] = {
+        "asset_id": key,
+        "year": year,
+        "subtype": subtype,
+        "carbon_operational_tco2e": carbon,
+        "energy_kwh": energy,
+        "metric_source": "simulated",
+        "model_version": __version__,
+        "_state_kind": "project",
+        "_project_id": pid,
+        "_project_name": proj.get("project_name"),
+        "_project_gfa_m2": gfa,
+        "_project_delivery_year": year,
+        "_project_land_use": proj.get("land_use"),
+    }
+
+
 def _build_graph_and_nodes(geometry, assets_df, assumptions):
     """
     Build the walking graph and demand/supply node lists for Huff.
@@ -341,10 +488,6 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
     Uses the same entry-point pipeline as B3 (find_entry_point +
     insert_all_entries) so that base-year and simulated coverage are
     computed against an identical network geometry.
-
-    Returns (G_aug, demand_nodes, supply_nodes, nodes_gdf). nodes_gdf is
-    kept for project-based supply nodes, which are inserted each year
-    and therefore cannot participate in the one-time virtual-node pass.
     """
     network = geometry["network"]["analysis"]
     gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
@@ -465,7 +608,7 @@ def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_sup
             "asset_id": f"NEW-{proj.get('project_id', 'unknown')}",
             "node": proj_node,
             "attractiveness": gfa,
-            "subtype": proj.get("subtype", "convenience_retail"),
+            "subtype": proj.get("subtype") or default_subtype_for(proj.get("land_use")),
         })
 
     return new_nodes
@@ -483,6 +626,7 @@ def _state_from_df(derived_df, assets_df):
             row_dict["_effective_asset_type"] = a["asset_type"]
             row_dict["_effective_capacity"] = a.get("capacity")
             row_dict["_effective_lettable"] = a.get("lettable_area_m2")
+        row_dict["_state_kind"] = "asset"
         state[aid] = row_dict
     return state
 
@@ -501,16 +645,22 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     change in either occupancy_rate or utilisation_rate, considering
     both base and final states. The primary metric is the one that
     actually changed.
+
+    Project pseudo-entries (PRJ::*) are excluded from focus selection
+    because they have no meaningful before-state — a project that did
+    not exist in the base year cannot "change".
     """
     before_state = state_by_year.get(base_year, {})
     after_state = state_by_year.get(final_year, {})
 
     def _valid(v):
+        if v is None:
+            return False
         try:
             f = float(v)
-            return not math.isnan(f)
         except (TypeError, ValueError):
             return False
+        return not math.isnan(f)
 
     def _num_or_zero(v):
         return float(v) if _valid(v) else 0.0
@@ -518,6 +668,8 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     focus_asset = None
     best_delta = 0.0
     for aid in before_state:
+        if aid.startswith(PROJECT_ID_PREFIX):
+            continue
         b_st = before_state.get(aid, {})
         a_st = after_state.get(aid, {})
         for key in ("occupancy_rate", "utilisation_rate"):
@@ -527,7 +679,10 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
                 focus_asset = aid
 
     if focus_asset is None:
-        focus_asset = next(iter(after_state), None)
+        focus_asset = next(
+            (aid for aid in after_state if not aid.startswith(PROJECT_ID_PREFIX)),
+            None,
+        )
 
     if focus_asset is None:
         return {"focus_asset_id": None, "metrics": {}}
@@ -550,7 +705,11 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
         b = before.get(key)
         a = after.get(key)
         if _valid(b) or _valid(a):
-            metrics[key] = {"before": b, "after": a, "unit": unit}
+            metrics[key] = {
+                "before": float(b) if _valid(b) else None,
+                "after": float(a) if _valid(a) else None,
+                "unit": unit,
+            }
 
     return {
         "focus_asset_id": focus_asset,
@@ -558,10 +717,16 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     }
 
 
-def _compute_township_metrics(state_by_year, base_year, final_year):
+def _compute_township_metrics(state_by_year, years, base_year, final_year):
     """
-    Township-level metrics aggregated across all assets.
-    NaN values are skipped during aggregation.
+    Township-level metrics aggregated across all entries in the state.
+
+    Assets and projects are separated: the total carbon figure counts
+    both, while project carbon is also reported on its own so a delay
+    can be quantified against a no-delay baseline. Cumulative project
+    carbon sums across every simulated year up to final_year — this is
+    the number that actually differs between SC-CURRENT and SC-DELAY,
+    since both scenarios have the project operating by final_year.
     """
     before = state_by_year.get(base_year, {})
     after = state_by_year.get(final_year, {})
@@ -582,22 +747,53 @@ def _compute_township_metrics(state_by_year, base_year, final_year):
             return None
         return sum(vals) / len(vals)
 
-    def _total_carbon(state_dict):
-        vals = [float(st["carbon_operational_tco2e"])
-                for st in state_dict.values()
-                if _is_valid(st.get("carbon_operational_tco2e"))]
+    def _sum_carbon(state_dict, predicate=None):
+        vals = []
+        for aid, st in state_dict.items():
+            if predicate is not None and not predicate(aid):
+                continue
+            c = st.get("carbon_operational_tco2e")
+            if _is_valid(c):
+                vals.append(float(c))
         if not vals:
             return None
         return sum(vals)
 
+    def _is_project(aid):
+        return aid.startswith(PROJECT_ID_PREFIX)
+
+    def _is_asset(aid):
+        return not _is_project(aid)
+
     walk_before = _avg_coverage(before, "coverage_ratio_15min_walk")
     walk_after = _avg_coverage(after, "coverage_ratio_15min_walk")
 
-    carbon_before = _total_carbon(before)
-    carbon_after = _total_carbon(after)
+    # Total carbon includes both real assets and delivered projects.
+    carbon_before = _sum_carbon(before)
+    carbon_after = _sum_carbon(after)
     carbon_delta_pct = None
     if carbon_before is not None and carbon_before > 0 and carbon_after is not None:
         carbon_delta_pct = (carbon_after - carbon_before) / carbon_before
+
+    # Project carbon, reported separately for scenario comparison.
+    project_carbon_after = _sum_carbon(after, _is_project)
+
+    # Cumulative project carbon across every simulated year up to
+    # final_year. A project delivered earlier contributes to more
+    # simulated years, so a delay visibly reduces this total. This is
+    # what makes SC-CURRENT and SC-DELAY differ even though both have
+    # the project operating by final_year.
+    project_carbon_cumulative = 0.0
+    for y in years:
+        if y > final_year:
+            continue
+        year_state = state_by_year.get(y, {})
+        for aid, st in year_state.items():
+            if not _is_project(aid):
+                continue
+            c = st.get("carbon_operational_tco2e")
+            if _is_valid(c):
+                project_carbon_cumulative += float(c)
 
     return {
         "walk_15min_avg_coverage_before": walk_before,
@@ -610,15 +806,118 @@ def _compute_township_metrics(state_by_year, base_year, final_year):
         "total_carbon_before_tco2e": carbon_before,
         "total_carbon_after_tco2e": carbon_after,
         "carbon_delta_pct": carbon_delta_pct,
+        "project_carbon_after_tco2e": project_carbon_after,
+        "project_carbon_cumulative_tco2e": (
+            project_carbon_cumulative if project_carbon_cumulative > 0 else None
+        ),
     }
 
 
-def _build_map_diff(assets_df, interventions_df):
+def _resolve_project_delivery_year(proj, scenario_id, interventions_df):
+    """
+    Return the effective delivery year for a project under a given
+    scenario. Returns None if the project is cancelled.
+
+    delay_development directives replace the planned delivery year
+    with parameters_json["until"]. cancel_development removes the
+    project entirely.
+    """
+    planned = proj.get("planned_delivery_year")
+    if planned is None:
+        return None
+    try:
+        planned = int(planned)
+    except (TypeError, ValueError):
+        return None
+
+    if interventions_df is None or interventions_df.empty:
+        return planned
+
+    pid = proj.get("project_id")
+    if pid is None:
+        return planned
+
+    scen = interventions_df[interventions_df["scenario_id"] == scenario_id]
+    for _, intv in scen.iterrows():
+        if intv.get("target_asset_id") != pid:
+            continue
+        itype = intv.get("intervention_type")
+        if itype == "delay_development":
+            try:
+                params = json.loads(intv.get("parameters_json") or "{}")
+            except (json.JSONDecodeError, TypeError):
+                params = {}
+            until = params.get("until")
+            if until is not None:
+                try:
+                    planned = int(until)
+                except (TypeError, ValueError):
+                    pass
+        elif itype == "cancel_development":
+            return None
+    return planned
+
+
+def _build_project_schedule(projects_df, interventions_df, scenario_id):
+    """
+    Compare each project's delivery year under the baseline scenario
+    (SC-CURRENT) vs the scenario being simulated. Projects whose
+    schedule is unchanged are omitted; only differences are shown.
+    """
+    if projects_df is None or projects_df.empty:
+        return []
+
+    schedule = []
+    for _, proj in projects_df.iterrows():
+        pid = proj.get("project_id")
+        if not pid:
+            continue
+
+        baseline_year = _resolve_project_delivery_year(
+            proj, BASELINE_SCENARIO_ID, interventions_df,
+        )
+        scenario_year = _resolve_project_delivery_year(
+            proj, scenario_id, interventions_df,
+        )
+
+        if baseline_year == scenario_year:
+            continue
+
+        if scenario_year is None:
+            status = "cancelled"
+        elif baseline_year is None:
+            status = "added"
+        elif scenario_year > baseline_year:
+            status = "delayed"
+        else:
+            status = "advanced"
+
+        schedule.append({
+            "project_id": pid,
+            "project_name": proj.get("project_name"),
+            "parcel_id": proj.get("parcel_id"),
+            "gfa_m2": float(proj.get("gfa_m2") or 0.0),
+            "baseline_delivery_year": baseline_year,
+            "scenario_delivery_year": scenario_year,
+            "delta_years": (
+                scenario_year - baseline_year
+                if scenario_year is not None and baseline_year is not None
+                else None
+            ),
+            "status": status,
+        })
+
+    return schedule
+
+
+def _build_map_diff(assets_df, interventions_df, projects_df, scenario_id):
     changed = []
     spillover = []
     negative = []
 
     for _, intv in interventions_df.iterrows():
+        if intv.get("scenario_id") != scenario_id:
+            continue
         aid = intv["target_asset_id"]
         itype = intv["intervention_type"]
 
@@ -629,10 +928,15 @@ def _build_map_diff(assets_df, interventions_df):
         elif itype == "delay_development":
             changed.append({"asset_id": aid, "change_type": "delayed", "color": "blue"})
 
+    project_schedule = _build_project_schedule(
+        projects_df, interventions_df, scenario_id,
+    )
+
     return {
         "changed_assets": changed,
         "spillover_assets": spillover,
         "negative_assets": negative,
+        "project_schedule": project_schedule,
     }
 
 
@@ -646,10 +950,26 @@ def _scenario_name(scenario_id: str) -> str:
     return names.get(scenario_id, scenario_id)
 
 
+def _json_safe(obj):
+    """
+    Recursively replace float NaN with None so json.dump emits valid
+    JSON. pandas-originated dicts carry float('nan') for missing
+    values; the default json encoder writes those as the literal NaN
+    token, which is not valid JSON and breaks strict parsers.
+    """
+    if isinstance(obj, dict):
+        return {k: _json_safe(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_json_safe(v) for v in obj]
+    if isinstance(obj, float) and math.isnan(obj):
+        return None
+    return obj
+
+
 def write_scenario_result(result: dict, repo_root: Path = None) -> Path:
     """
-    FIX: output path now derives from paths.yml instead of a hard-coded
-    "mock/" prefix.
+    Output path derives from paths.yml instead of a hard-coded "mock/"
+    prefix, and NaN values are sanitised to null before serialisation.
     """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     paths = load_paths()
@@ -657,5 +977,5 @@ def write_scenario_result(result: dict, repo_root: Path = None) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{result['scenario_id']}.json"
     with open(out, "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=2, default=str)
+        json.dump(_json_safe(result), f, indent=2, default=str)
     return out

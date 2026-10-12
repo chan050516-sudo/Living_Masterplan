@@ -2,8 +2,15 @@
 
 Phase 5 change: prints township-level metrics alongside the per-asset
 comparison block.
+
+Phase 7 change: the formatter renders None and NaN as "-".
+
+Phase 8 change: township metrics now include project carbon, and a
+new "PROJECT SCHEDULE" section shows delivery-year deltas versus the
+SC-CURRENT baseline.
 """
 
+import math
 import sys
 from pathlib import Path
 
@@ -17,6 +24,8 @@ def _fmt(v, decimals=3):
         return "-"
     try:
         f = float(v)
+        if math.isnan(f):
+            return "-"
     except (TypeError, ValueError):
         return str(v)
     if abs(f) >= 1000:
@@ -90,6 +99,32 @@ def main():
               f"{_fmt(tm.get('total_carbon_after_tco2e'), 1)}")
         print(f"    Carbon delta (%):                  "
               f"{_fmt(tm.get('carbon_delta_pct'), 4)}")
+        print(f"    Project carbon after (tCO2e):      "
+              f"{_fmt(tm.get('project_carbon_after_tco2e'), 1)}")
+        print(f"    Project carbon cumulative (tCO2e): "
+              f"{_fmt(tm.get('project_carbon_cumulative_tco2e'), 1)}")
+
+    _section("PROJECT SCHEDULE (vs SC-CURRENT baseline)")
+    for sid in SCENARIOS:
+        r = results.get(sid)
+        if not r:
+            continue
+        schedule = r["map_diff"].get("project_schedule", [])
+        print(f"\n  {sid}:")
+        if not schedule:
+            print("    (no project schedule changes)")
+            continue
+        print(f"    {'Project':<12} {'Status':<10} {'Baseline':>10} "
+              f"{'Scenario':>10}  {'Delta':>6}  GFA (m2)")
+        print("    " + "-" * 66)
+        for p in schedule:
+            print(
+                f"    {p['project_id']:<12} {p['status']:<10} "
+                f"{_fmt(p.get('baseline_delivery_year'), 0):>10} "
+                f"{_fmt(p.get('scenario_delivery_year'), 0):>10}  "
+                f"{_fmt(p.get('delta_years'), 0):>6}  "
+                f"{_fmt(p.get('gfa_m2'), 0)}"
+            )
 
     _section("MAP DIFF")
     for sid in SCENARIOS:
