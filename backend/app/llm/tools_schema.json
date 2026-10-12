@@ -1,0 +1,129 @@
+{
+  "tools": [
+    {
+      "name": "get_asset_state",
+      "description": "Return an asset's static properties and its observed/derived metrics for a given year. Use this to understand what the asset is and how it is performing.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "asset_id": {"type": "string"},
+          "year": {"type": "integer", "description": "Defaults to the base year."}
+        },
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_asset_evidence",
+      "description": "Return the human-readable evidence lines that the deadspace engine produced for this asset.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_id": {"type": "string"}},
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_deadspace_status",
+      "description": "Return the B6 status, flags, urgency, and contributing factors for an asset.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_id": {"type": "string"}},
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_catchment_profile",
+      "description": "Return the walking or driving catchment profile: per-threshold population and coverage ratios.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "asset_id": {"type": "string"},
+          "mode": {"type": "string", "enum": ["walk", "drive"]}
+        },
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_population_profile",
+      "description": "Return the age structure of the population accessible from the asset.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_id": {"type": "string"}},
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_nearby_assets",
+      "description": "Return assets within a radius of the given asset.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "asset_id": {"type": "string"},
+          "radius_m": {"type": "number", "default": 800},
+          "asset_type": {"type": "string"}
+        },
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_available_subtypes",
+      "description": "Return the taxonomy subtypes for a given asset class. You MUST pick from this list when proposing a repurpose.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "asset_class": {
+            "type": "string",
+            "enum": ["commercial", "community_facility", "residential", "green_space", "undeveloped_parcel"]
+          }
+        },
+        "required": ["asset_class"]
+      }
+    },
+    {
+      "name": "get_development_candidates",
+      "description": "Return candidate development options for a parcel.",
+      "parameters": {
+        "type": "object",
+        "properties": {"parcel_id": {"type": "string"}},
+        "required": ["parcel_id"]
+      }
+    },
+    {
+      "name": "get_taxonomy_entry",
+      "description": "Return the full taxonomy definition for a subtype.",
+      "parameters": {
+        "type": "object",
+        "properties": {"subtype": {"type": "string"}},
+        "required": ["subtype"]
+      }
+    },
+    {
+      "name": "get_assumptions_slice",
+      "description": "Return specific top-level sections of the model assumptions (e.g. huff, accessibility, occupancy_dynamics).",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "keys": {"type": "array", "items": {"type": "string"}}
+        },
+        "required": ["keys"]
+      }
+    },
+    {
+      "name": "get_interventions_history",
+      "description": "Return interventions that have targeted this asset across any scenario.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_id": {"type": "string"}},
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_action_space",
+      "description": "Return the intervention types applicable to a given asset type.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_type": {"type": "string"}},
+        "required": ["asset_type"]
+      }
+    }
+  ]
+}
