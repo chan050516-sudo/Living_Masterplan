@@ -16,8 +16,7 @@
         "low_occupancy",
         "long_vacancy",
         "dsr_below_threshold"
-      ],
-      "urgency_contribution": 5.0
+      ]
     },
     "layer2": {
       "triggered": true,
@@ -74,8 +73,7 @@
       "triggered": true,
       "reasons": [
         "low_utilisation"
-      ],
-      "urgency_contribution": 2.0
+      ]
     },
     "layer2": {
       "triggered": false,
@@ -110,8 +108,7 @@
     "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
-      "reasons": [],
-      "urgency_contribution": 0.0
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -139,8 +136,7 @@
     "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
-      "reasons": [],
-      "urgency_contribution": 0.0
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -169,8 +165,7 @@
     "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
-      "reasons": [],
-      "urgency_contribution": 0.0
+      "reasons": []
     },
     "layer2": {
       "triggered": false,

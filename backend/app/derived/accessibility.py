@@ -20,32 +20,47 @@ import networkx as nx
 # Low-level distance
 # ---------------------------------------------------------------
 
-def effective_distance(G: nx.Graph, source: str, target: str) -> Optional[float]:
+def effective_distance(G: nx.Graph, source: str, target: str,
+                       weight_col: str = None) -> Optional[float]:
     """
-    Single-pair shortest path using the graph's routing weight
-    (effective_length_m for walking, length_m for driving).
+    Single-pair shortest path using the mode-appropriate weight column.
+
+    FIX: removed the `or True` ternary that always selected
+    effective_length_m regardless of the graph mode.
     """
     if source not in G or target not in G:
         return None
-    weight_col = "effective_length_m" if G.is_multigraph() or True else "length_m"
+    if weight_col is None:
+        weight_col = _infer_weight_col(G)
     try:
         return nx.shortest_path_length(G, source=source, target=target, weight=weight_col)
     except nx.NetworkXNoPath:
         return None
 
 
+def _infer_weight_col(G: nx.Graph) -> str:
+    """
+    Return the routing weight column for a mode-homogeneous graph.
+
+    build_graph_by_mode() guarantees one mode per graph, so peeking at
+    the first edge is sufficient. Falls back to effective_length_m when
+    the graph carries no mode attribute.
+    """
+    for _, _, data in G.edges(data=True):
+        if data.get("mode") == "driving":
+            return "length_m"
+        return "effective_length_m"
+    return "effective_length_m"
+
+
 def compute_distance_matrix(G: nx.Graph) -> dict:
     """
     All-pairs shortest path using the graph's routing weight.
-    Weight column is chosen from edge attributes: effective_length_m for
-    walking graphs, length_m for driving graphs.
+
+    FIX: rely on _infer_weight_col() so walking/driving graphs are
+    handled by one code path.
     """
-    # Peek at any edge to determine which weight is present.
-    weight_col = "effective_length_m"
-    for _, _, data in G.edges(data=True):
-        if "mode" in data and data["mode"] == "driving":
-            weight_col = "length_m"
-        break
+    weight_col = _infer_weight_col(G)
     return dict(nx.all_pairs_dijkstra_path_length(G, weight=weight_col))
 
 

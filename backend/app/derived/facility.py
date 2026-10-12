@@ -5,11 +5,17 @@ Phase 4 changes:
   - Service coverage = 10-min walking catchment ratio.
   - Carbon computed from subtype energy intensity.
   - Demographic mismatch between the facility subtype and its catchment.
+
+FIX: when no asset_metrics row exists for the given year, the deriver
+now returns None-valued fields instead of raising. This matches
+commercial/residential behaviour and prevents one missing row from
+aborting the whole B3 pass.
 """
 
 import math
+from .. import __version__
 from .context import DerivationContext
-from ..taxonomy import get_subtype_or_default
+from ..taxonomy import get_subtype_or_default, default_subtype_for
 from .demand_mismatch import demographic_mismatch
 from .environmental import energy_from_subtype, operational_carbon
 
@@ -19,7 +25,7 @@ def derive_facility(ctx: DerivationContext) -> dict:
     year = ctx.year
     assumptions = ctx.assumptions
 
-    subtype = asset.get("subtype") or "community_hall"
+    subtype = asset.get("subtype") or default_subtype_for("community_facility")
     subtype_cfg = get_subtype_or_default(subtype)
 
     metrics = ctx.business["asset_metrics"]
@@ -27,11 +33,11 @@ def derive_facility(ctx: DerivationContext) -> dict:
         (metrics["asset_id"] == asset["asset_id"]) &
         (metrics["year"] == year)
     ]
-    if row.empty:
-        raise ValueError(f"No asset_metrics row for {asset['asset_id']} year {year}")
-    raw = row.iloc[0]
+    raw = row.iloc[0] if not row.empty else None
 
     def _get(col):
+        if raw is None:
+            return None
         v = raw.get(col)
         if v is None:
             return None
@@ -94,5 +100,5 @@ def derive_facility(ctx: DerivationContext) -> dict:
         "neighborhood_diversity": ctx.neighborhood_diversity,
         "accessibility_score": ctx.accessibility_score,  # deprecated bridge
         "metric_source": "derived",
-        "model_version": "0.4.0",
+        "model_version": __version__,
     }

@@ -7,10 +7,15 @@ Phase 2 changes:
 """
 
 import math
+from .. import __version__
 from .context import DerivationContext
-from ..taxonomy import get_subtype_or_default
+from ..taxonomy import get_subtype_or_default, default_subtype_for
 from .demand_mismatch import demographic_mismatch
-from .environmental import energy_from_subtype, operational_carbon
+from .environmental import (
+    energy_from_subtype,
+    operational_carbon,
+    shade_proxy_score_from_canopy,
+)
 
 
 def derive_commercial(ctx: DerivationContext) -> dict:
@@ -18,7 +23,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     year = ctx.year
     assumptions = ctx.assumptions
 
-    subtype = asset.get("subtype") or _default_subtype_for(asset)
+    subtype = asset.get("subtype") or default_subtype_for(asset.get("asset_type"))
     subtype_cfg = get_subtype_or_default(subtype)
 
     raw = _get_metric_row(ctx, asset["asset_id"], year)
@@ -39,7 +44,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     vacancy_rate = (1.0 - occupancy) if occupancy is not None else None
     vacancy_duration = _get("vacancy_duration_months")
 
-    # --- Maintenance surge (unchanged) ---
+    # --- Maintenance surge ---
     completion_year = asset.get("completion_year")
     maintenance_base = asset.get("maintenance_annual_rm")
     maintenance_surge = None
@@ -84,7 +89,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     driving = ctx.driving_profile or {}
 
     # --- Shade proxy ---
-    shade = _shade_proxy_score(ctx.canopy_coverage)
+    shade = shade_proxy_score_from_canopy(ctx.canopy_coverage)
 
     # --- Carbon (Phase 2: subtype-aware) ---
     floor_area = float(asset.get("floor_area_m2") or 0.0)
@@ -128,7 +133,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         # Deprecated bridge
         "accessibility_score": ctx.accessibility_score,
         "metric_source": "derived",
-        "model_version": "0.4.0",
+        "model_version": __version__,
     }
 
 
@@ -144,28 +149,6 @@ def _get_metric_row(ctx: DerivationContext, asset_id: str, year: int):
     if row.empty:
         return None
     return row.iloc[0]
-
-
-def _default_subtype_for(asset) -> str:
-    """Fallback subtype when asset has no explicit subtype."""
-    atype = asset.get("asset_type")
-    return {
-        "commercial": "convenience_retail",
-        "community_facility": "community_hall",
-        "green_space": "park",
-        "residential": "terrace",
-        "undeveloped_parcel": "vacant",
-    }.get(atype, "vacant")
-
-
-def _shade_proxy_score(canopy_coverage) -> float:
-    if canopy_coverage is None:
-        return 0.0
-    try:
-        c = float(canopy_coverage)
-    except (TypeError, ValueError):
-        return 0.0
-    return max(0.0, min(100.0, 100.0 * c))
 
 
 def _isnan(v) -> bool:

@@ -115,3 +115,24 @@ def get_occupancy_benchmark(subtype_name: str) -> Optional[float]:
         get_benchmark(subtype_name, "occupancy_benchmark")
         or get_benchmark(subtype_name, "utilisation_benchmark")
     )
+
+
+# ---------------------------------------------------------------
+# Asset-type → default subtype mapping
+# ---------------------------------------------------------------
+# Used by B3 derivers and the B4 simulation layer when an asset row
+# lacks an explicit subtype. Centralised here so the mapping cannot
+# drift between callers (previously duplicated in 3 modules).
+
+DEFAULT_SUBTYPE_BY_ASSET_TYPE = {
+    "commercial":         "convenience_retail",
+    "community_facility": "community_hall",
+    "green_space":        "park",
+    "residential":        "terrace",
+    "undeveloped_parcel": "vacant",
+}
+
+
+def default_subtype_for(asset_type: Optional[str]) -> str:
+    """Return the fallback subtype for an asset type, or 'vacant'."""
+    return DEFAULT_SUBTYPE_BY_ASSET_TYPE.get(asset_type or "", "vacant")

@@ -44,3 +44,18 @@ def energy_from_subtype(
         intensity *= 1.15
 
     return floor_area_m2 * intensity
+
+
+def shade_proxy_score_from_canopy(canopy_coverage) -> float:
+    """
+    Convert canopy coverage ratio [0, 1] to a 0-100 shade proxy score.
+    Returns 0.0 when the input is None or invalid.
+    Shared by commercial and green-space derivers (previously duplicated).
+    """
+    if canopy_coverage is None:
+        return 0.0
+    try:
+        c = float(canopy_coverage)
+    except (TypeError, ValueError):
+        return 0.0
+    return max(0.0, min(100.0, 100.0 * c))

@@ -4,12 +4,17 @@ Phase 4 changes:
   - Energy intensity benchmark from taxonomy by subtype.
   - NOI deducts maintenance in addition to opex, matching commercial.
   - Adds subtype to the output row.
+
+FIX: NOI now applies the same aging-factor maintenance escalation
+used by commercial.deriver, so NOI is comparable across asset types.
 """
 
 import math
+from .. import __version__
 from .context import DerivationContext
 from ..taxonomy import get_subtype_or_default, get_energy_intensity
 from .environmental import operational_carbon
+
 
 def derive_residential(ctx: DerivationContext) -> dict:
     asset = ctx.asset
@@ -17,7 +22,7 @@ def derive_residential(ctx: DerivationContext) -> dict:
     assumptions = ctx.assumptions
 
     subtype = asset.get("subtype") or "terrace"
-    subtype_cfg = get_subtype_or_default(subtype)
+    subtype_cfg = get_subtype_or_default(subtype)  # noqa: F841 (kept for parity)
 
     metrics = ctx.business["asset_metrics"]
     row = metrics[
@@ -49,14 +54,26 @@ def derive_residential(ctx: DerivationContext) -> dict:
     if not row.empty:
         rental_income = _num(row.iloc[0].get("rental_income_rm"))
     opex = _num(asset.get("opex_annual_rm"))
-    maintenance = _num(asset.get("maintenance_annual_rm"))
+
+    # Apply the same aging factor that commercial uses.
+    maintenance_base = _num(asset.get("maintenance_annual_rm"))
+    completion_year = asset.get("completion_year")
+    maintenance = maintenance_base
+    if (
+        maintenance_base is not None
+        and completion_year is not None
+        and not _isnan(completion_year)
+    ):
+        alpha = assumptions.get("asset_aging", {}).get("alpha", 0.03)
+        years_old = max(0, year - int(completion_year))
+        maintenance = maintenance_base * (1.0 + alpha) ** years_old
+
     noi = None
     if rental_income is not None:
         total_cost = (opex or 0.0) + (maintenance or 0.0)
         noi = rental_income - total_cost
 
-    # --- Carbon (Phase 6: residential was previously missing this) ---
-    # Uses the same subtype-aware energy intensity as commercial/facility.
+    # --- Carbon ---
     energy_kwh_out = energy_kwh
     carbon = None
     if energy_kwh_out is not None:
@@ -76,7 +93,7 @@ def derive_residential(ctx: DerivationContext) -> dict:
         "carbon_operational_tco2e": carbon,
         "accessibility_score": ctx.accessibility_score,  # deprecated bridge
         "metric_source": "derived",
-        "model_version": "0.4.1",
+        "model_version": __version__,
     }
 
 
@@ -90,3 +107,10 @@ def _num(v):
         return f
     except (TypeError, ValueError):
         return None
+
+
+def _isnan(v) -> bool:
+    try:
+        return math.isnan(float(v))
+    except (TypeError, ValueError):
+        return False

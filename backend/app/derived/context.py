@@ -16,12 +16,10 @@ class DerivationContext:
     asset: pd.Series
     business: dict
     geometry: dict
-    benchmarks: dict
     assumptions: dict
     accessibility_score: Optional[float]
     huff_effective_demand: Optional[float]           # persons (legacy)
     huff_effective_demand_m2: Optional[float]        # m² (Phase 2, per-subtype)
-    maintenance_surge_rm: Optional[float]
     graph: nx.Graph
     year: int
     canopy_coverage: Optional[float] = None
@@ -32,4 +30,3 @@ class DerivationContext:
     # Phase 2 additions
     catchment_population_profile: Optional[dict] = None   # age structure
     neighborhood_diversity: Optional[float] = None
-    demographic_mismatch: Optional[float] = None

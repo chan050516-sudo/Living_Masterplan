@@ -22,10 +22,6 @@ supply:
   committed_only: false
   include_proposed: true
 
-occupancy:
-  lambda: 0.35
-  initial_occupancy_default: 0.60
-
 environmental:
   emission_factor_energy: 0.58       # kgCO2e per kWh
   material_intensity: 0.45           # tCO2e per m2 for new construction
@@ -52,41 +48,44 @@ construction_defaults:
 accessibility:
   walking_speed_m_per_min: 80
   catchment_minutes: [5, 10, 15]
-  canopy_impedance_gamma: 0.30       # NEW — perceived distance reduction per unit canopy
-  falloff_threshold_m: 800            # NEW — Gaussian falloff characteristic distance
+  canopy_impedance_gamma: 0.30       # perceived distance reduction per unit canopy
+  falloff_threshold_m: 800           # Gaussian falloff characteristic distance
 
 huff:
-  alpha: 1.0                          # NEW — attractiveness exponent
-  beta: 2.0                           # NEW — distance decay exponent
+  alpha: 1.0
+  beta: 2.0
 
 occupancy_dynamics:
   lambda: 0.35
-  critical_threshold: 0.30            # NEW — below this, death spiral accelerates
-  kappa: 0.50                         # NEW — death spiral acceleration coefficient
+  critical_threshold: 0.30
+  kappa: 0.50
 
 asset_aging:
-  alpha: 0.03                         # NEW — annual maintenance escalation rate
-
-deadspace_spillover:
-  theta: 0.10                         # NEW — lagged spillover coefficient (Phase 3)
-
+  alpha: 0.03
 
 # v0.3.0 — Deadspace thresholds
+# NOTE: `occupancy.lambda`, `deadspace.layer1.overall_score_below`, and
+# `deadspace_spillover` were removed — none of them were consumed by any
+# module.
 deadspace:
   layer1:
-    overall_score_below: 40.0
     occupancy_rate_below: 0.50
     vacancy_duration_above_months: 12.0
     utilisation_rate_below: 0.40
     dsr_below: 0.80
     demand_supply_gap_below: 0.0
+    # Optional overrides for the diagnostic flags added in layer1.py:
+    # demographic_mismatch_above: 0.50
+    # neighborhood_diversity_below: 0.30
+    # driving_coverage_10min_below: 0.50
 
   layer2:
     noi_below: 0.0
     service_coverage_below: 0.60
     maintenance_surge_ratio_above: 1.5
-    accessibility_below: 50.0
-
+    # Renamed from `accessibility_below: 50.0` (0-100 score) to a 0-1
+    # coverage ratio, consistent with the rest of the pipeline.
+    walking_coverage_10min_below: 0.30
 
 # ----------------------------------------------------------------
 # Phase 1 — Mode-based accessibility
@@ -104,7 +103,7 @@ mode_networks:
     speed_m_per_min: 80.0
     canopy_adjusted: true
     thresholds_min: [5, 10, 15]
-  
+
   driving:
     allowed_edge_types:
       - secondary

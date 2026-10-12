@@ -9,21 +9,33 @@ Phase 5 changes:
   - Comparison metric keys are chosen per effective asset type
     (utilisation_rate for facilities, occupancy_rate for commercial).
   - Adds township-level metrics to the comparison block.
+
+Phase 6 changes:
+  - Uses the same entry-point pipeline as B3 (find_entry_point +
+    insert_all_entries) so that base-year and simulated accessibility
+    numbers are directly comparable.
 """
 
 import json
 import logging
+import math
 from pathlib import Path
 
 import networkx as nx
 import pandas as pd
 
+from .. import __version__
 from ..config import load_paths, load_assumptions
 from ..derived.engine import compute_derived_metrics
-from ..derived.network_graph import build_walk_graph, extract_nodes, find_nearest_node
+from ..derived.network_graph import (
+    build_walk_graph,
+    extract_nodes,
+    find_entry_point,
+    find_nearest_node,
+    insert_all_entries,
+)
 from ..derived.huff import huff_gravity_by_subtype
 from ..derived.environmental import energy_from_subtype, operational_carbon
-from ..derived.demand_mismatch import aggregate_catchment_profile
 from ..taxonomy import get_taxonomy, get_occupancy_benchmark
 from .time_anchors import resolve_phase, interventions_for_asset, Phase
 from .interventions import apply_intervention, apply_construction_state
@@ -71,7 +83,7 @@ def simulate_scenario(
 
     current_derived = compute_derived_metrics(repo_root=repo_root, year=base_year)
 
-    G_base, demand_nodes, supply_nodes, asset_nodes, nodes_gdf = _build_graph_and_nodes(
+    G_base, demand_nodes, supply_nodes, nodes_gdf = _build_graph_and_nodes(
         geometry, assets_df, assumptions,
     )
 
@@ -85,21 +97,13 @@ def simulate_scenario(
     beta = assumptions["huff"]["beta"]
 
     # Occupancy dynamics
-    lambda_ = assumptions.get(
-        "occupancy_dynamics", assumptions.get("occupancy", {})
-    ).get("lambda", 0.35)
+    lambda_ = assumptions.get("occupancy_dynamics", {}).get("lambda", 0.35)
     critical = assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
     kappa = assumptions.get("occupancy_dynamics", {}).get("kappa", 0.0)
 
     emission_factor = assumptions.get("environmental", {}).get(
         "emission_factor_energy", 0.58,
     )
-
-    # --- Base "primary value" per asset ---
-    # Commercial / residential → occupancy_rate
-    # Community facility       → utilisation_rate
-    # Others                   → 0.6 default (no driven value)
-    import math
 
     def _safe_num(v, default):
         try:
@@ -121,7 +125,6 @@ def simulate_scenario(
                 prev_value = _safe_num(r.get("utilisation_rate"), 0.6)
             elif asset["asset_type"] in ("commercial", "residential"):
                 prev_value = _safe_num(r.get("occupancy_rate"), 0.6)
-            # green_space / undeveloped_parcel keep the 0.6 default
         occupancy_prev[aid] = prev_value
 
     state_by_year = {}
@@ -173,8 +176,12 @@ def simulate_scenario(
             )
             year_supply_nodes.append(s_copy)
 
-        # New supply from delivered projects
-        active_projects = active_projects_in_year(projects_df, year, scenario_id)
+        # New supply from delivered projects. Scenario-level delay/cancel
+        # directives are respected via active_projects_in_year().
+        active_projects = active_projects_in_year(
+            projects_df, year, scenario_id,
+            interventions_df=scenario_interventions,
+        )
         year_supply_nodes.extend(
             _new_project_supply_nodes(active_projects, geometry, nodes_gdf, supply_nodes)
         )
@@ -225,13 +232,7 @@ def simulate_scenario(
                     target_occ = target_occupancy_from_dsr(dsr)
 
                 elif effective_type == "community_facility":
-                    # Two paths: LLM expectation (preferred), else benchmark.
-                    # BUT: if there was no intervention this year, hold steady.
                     if activated is None:
-                        # No intervention applied to this asset in this year.
-                        # Keep the current utilisation rather than converging
-                        # to a benchmark. Benchmarks are for post-intervention
-                        # target values, not for a do-nothing baseline.
                         target_occ = prev_occ
                     else:
                         expected_util = None
@@ -251,11 +252,8 @@ def simulate_scenario(
                             )
 
                 else:
-                    # Residential / green_space / undeveloped_parcel:
-                    # no demand model drives occupancy.
                     target_occ = prev_occ
 
-                # Damped update across year gap
                 year_gap = max(1, year - years[year_idx - 1])
                 new_occ = prev_occ
                 for _ in range(year_gap):
@@ -280,20 +278,18 @@ def simulate_scenario(
 
             if effective_type == "community_facility":
                 metric_row["utilisation_rate"] = new_util
-                # occupancy_rate for facility remains as before (usually NaN)
             elif effective_type in ("commercial", "residential"):
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
                 metric_row["utilisation_rate"] = None
             else:
-                # green_space / undeveloped_parcel: do not drive either value
                 pass
 
             metric_row["effective_demand_m2"] = huff_m2.get(aid)
             metric_row["carbon_operational_tco2e"] = carbon
             metric_row["energy_kwh"] = energy
             metric_row["metric_source"] = "simulated"
-            metric_row["model_version"] = "0.4.0"
+            metric_row["model_version"] = __version__
 
             # Cost per user for facility
             if effective_type == "community_facility":
@@ -331,7 +327,7 @@ def simulate_scenario(
         },
         "comparison": comparison,
         "map_diff": map_diff,
-        "model_version": "0.4.0",
+        "model_version": __version__,
     }
 
 
@@ -339,52 +335,98 @@ def simulate_scenario(
 
 
 def _build_graph_and_nodes(geometry, assets_df, assumptions):
-    """Build the walk graph and demand/supply node lists for Huff."""
-    network = geometry["network"]["analysis"]
-    G = build_walk_graph(network)
-    nodes_gdf = extract_nodes(network)
+    """
+    Build the walking graph and demand/supply node lists for Huff.
 
-    asset_nodes = {}
+    Uses the same entry-point pipeline as B3 (find_entry_point +
+    insert_all_entries) so that base-year and simulated coverage are
+    computed against an identical network geometry.
+
+    Returns (G_aug, demand_nodes, supply_nodes, nodes_gdf). nodes_gdf is
+    kept for project-based supply nodes, which are inserted each year
+    and therefore cannot participate in the one-time virtual-node pass.
+    """
+    network = geometry["network"]["analysis"]
+    gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
+    G = build_walk_graph(network, gamma=gamma)
+
+    # --- Project all entries (assets + demand points) ---
+    all_entries = {}
     for _, asset in assets_df.iterrows():
+        aid = asset["asset_id"]
         parcels = geometry["parcels"]["analysis"]
-        m = parcels[parcels["asset_id"] == asset["asset_id"]]
+        m = parcels[parcels["asset_id"] == aid]
         if m.empty:
             continue
-        asset_nodes[asset["asset_id"]] = find_nearest_node(
-            m.iloc[0].geometry, nodes_gdf,
-        )
+        p, off_d, eid = find_entry_point(m.iloc[0].geometry, network, "walking")
+        if p is None:
+            continue
+        all_entries[f"A::{aid}"] = (p, off_d, eid)
 
     pop_analysis = geometry["population"]["analysis"]
+    for _, pop in pop_analysis.iterrows():
+        pid = pop["population_id"]
+        p, off_d, eid = find_entry_point(pop.geometry, network, "walking")
+        if p is None:
+            continue
+        all_entries[f"D::{pid}"] = (p, off_d, eid)
+
+    # --- Single insertion pass ---
+    G_aug = G.copy()
+    inserted = insert_all_entries(G_aug, network, all_entries)
+
+    asset_entries = {}
+    demand_entries_map = {}
+    for key, val in inserted.items():
+        if key.startswith("A::"):
+            asset_entries[key[3:]] = val
+        elif key.startswith("D::"):
+            demand_entries_map[key[3:]] = val
+
+    # --- Demand node list (virtual nodes) ---
     demand_nodes = []
-    for idx, pop in pop_analysis.iterrows():
-        node = find_nearest_node(pop.geometry, nodes_gdf)
+    for _, pop in pop_analysis.iterrows():
+        pid = pop["population_id"]
+        info = demand_entries_map.get(pid)
+        if info is None:
+            continue
         demand_nodes.append({
-            "population_id": pop["population_id"],
-            "node": node,
+            "population_id": pid,
+            "node": info["virtual_node"],
             "population": float(pop["total_population"]),
         })
 
+    # --- Commercial supply node list (virtual nodes) ---
     supply_nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
             continue
+        aid = asset["asset_id"]
+        info = asset_entries.get(aid)
+        if info is None:
+            continue
         supply_nodes.append({
-            "asset_id": asset["asset_id"],
-            "node": asset_nodes.get(asset["asset_id"]),
+            "asset_id": aid,
+            "node": info["virtual_node"],
             "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
             "subtype": asset.get("subtype", "convenience_retail"),
         })
 
-    return G, demand_nodes, supply_nodes, asset_nodes, nodes_gdf
+    nodes_gdf = extract_nodes(network)
+    return G_aug, demand_nodes, supply_nodes, nodes_gdf
 
 
 def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_supply_nodes):
     """
     Virtual supply nodes for projects delivered this year.
 
+    NOTE: projects are inserted into the graph each year and therefore
+    cannot participate in the one-time virtual-node pass. Node snapping
+    (no off-network component) is used here instead. This is a known
+    approximation vs the asset-side door-to-door distances.
+
     Projects whose parcel cannot be resolved are SKIPPED rather than
-    placed on a fallback node. Placing them on a fallback would stack
-    new supply on top of an existing asset and distort competition.
+    placed on a fallback node.
     """
     new_nodes = []
 
@@ -460,8 +502,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     both base and final states. The primary metric is the one that
     actually changed.
     """
-    import math
-
     before_state = state_by_year.get(base_year, {})
     after_state = state_by_year.get(final_year, {})
 
@@ -475,7 +515,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     def _num_or_zero(v):
         return float(v) if _valid(v) else 0.0
 
-    # Focus asset: largest |delta| across occupancy and utilisation.
     focus_asset = None
     best_delta = 0.0
     for aid in before_state:
@@ -496,8 +535,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     before = before_state.get(focus_asset, {})
     after = after_state.get(focus_asset, {})
 
-    # Show both metrics when either side is valid. This makes the
-    # repurpose transition (occupancy → utilisation) visible.
     candidate_metrics = [
         ("occupancy_rate", "ratio"),
         ("utilisation_rate", "ratio"),
@@ -526,8 +563,6 @@ def _compute_township_metrics(state_by_year, base_year, final_year):
     Township-level metrics aggregated across all assets.
     NaN values are skipped during aggregation.
     """
-    import math
-
     before = state_by_year.get(base_year, {})
     after = state_by_year.get(final_year, {})
 
@@ -612,8 +647,13 @@ def _scenario_name(scenario_id: str) -> str:
 
 
 def write_scenario_result(result: dict, repo_root: Path = None) -> Path:
+    """
+    FIX: output path now derives from paths.yml instead of a hard-coded
+    "mock/" prefix.
+    """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
-    out_dir = repo_root / "mock" / "business" / "scenarios"
+    paths = load_paths()
+    out_dir = repo_root / paths["base"] / "business" / "scenarios"
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / f"{result['scenario_id']}.json"
     with open(out, "w", encoding="utf-8") as f:

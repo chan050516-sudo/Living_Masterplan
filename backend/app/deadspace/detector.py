@@ -4,6 +4,7 @@ Phase 3 change: the detector no longer requires a score record.
 All decisions come from observed and derived metrics.
 """
 
+from .. import __version__
 from .layer1 import evaluate as layer1_eval
 from .layer2 import evaluate as layer2_eval
 from .layer3 import evaluate as layer3_eval
@@ -43,7 +44,7 @@ def detect_deadspace_for_asset(
     )
 
     # Contributing factors (relative importance of what is going wrong)
-    factors = compute_factors(metrics.to_dict(), layer1, layer2)
+    factors = compute_factors(layer1, layer2)
 
     # Human-readable evidence
     evidence = build_evidence(atype, asset.get("subtype"), metrics.to_dict())
@@ -59,5 +60,5 @@ def detect_deadspace_for_asset(
         "layer3": layer3,
         "contributing_factors": factors,
         "evidence": evidence,
-        "model_version": "0.4.0",
+        "model_version": __version__,
     }

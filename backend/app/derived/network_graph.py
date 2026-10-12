@@ -5,8 +5,6 @@ Phase 1 changes:
     correct edge filter and weight column.
   - find_entry_point(): projects a geometry onto the nearest allowed edge
     and returns the projected point plus the off-network distance.
-  - insert_virtual_entry(): splits an edge at a projection point and
-    returns the virtual node ID.
   - insert_all_entries(): batch insertion with correct edge-splitting
     order when multiple entries fall on the same edge.
 """

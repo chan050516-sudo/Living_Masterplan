@@ -1,4 +1,9 @@
-"""Three normalisation functions from Part 4.2 plus scoring helpers."""
+"""Three normalisation functions from Part 4.2 plus scoring helpers.
+
+NOTE: this module is reserved for B5 (asset scoring), which is not yet
+implemented. None of the helpers below are consumed by B3 / B4 / B6.
+They are kept here so that B5 can import them directly when it lands.
+"""
 
 import math
 from typing import Optional
@@ -60,7 +65,7 @@ def hard_gate(
     """
     Non-compensatory gate. If any component < threshold,
     cap the overall score at multiplier * min(component).
-    Used by B5 (Phase 2). Provided here so B5 can import directly.
+    Used by B5 (Phase 2).
     """
     valid = [v for v in component_scores.values() if v is not None]
     if not valid:

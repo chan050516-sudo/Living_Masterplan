@@ -16,8 +16,14 @@ DEFAULTS = {
     "utilisation_rate_below": 0.40,
     "dsr_below": 0.80,
     "demand_supply_gap_below": 0.0,
-    "walking_coverage_5min_below": 0.20,    # NEW: relative deficit
-    "driving_coverage_10min_below": 0.40,   # NEW: relative deficit
+    "walking_coverage_5min_below": 0.20,
+    # FIX: raised from 0.40. At township scale (30 km/h), a 10-min
+    # drive easily covers 5 km, so 0.40 almost never triggered. 0.50
+    # is a more meaningful "sparse driving catchment" threshold.
+    "driving_coverage_10min_below": 0.50,
+    # Diagnostic indicators (derived per asset, see derived/commercial.py)
+    "demographic_mismatch_above": 0.50,
+    "neighborhood_diversity_below": 0.30,
 }
 
 
@@ -46,6 +52,16 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         if dcov is not None and dcov < t["driving_coverage_10min_below"]:
             reasons.append("driving_accessibility_deficit")
 
+        # Diagnostic flags (FLAG_WEIGHTS already reserved entries for these;
+        # previously nothing generated them, so they never entered urgency).
+        mismatch = metrics.get("demographic_mismatch")
+        if mismatch is not None and mismatch > t["demographic_mismatch_above"]:
+            reasons.append("demographic_mismatch")
+
+        diversity = metrics.get("neighborhood_diversity")
+        if diversity is not None and diversity < t["neighborhood_diversity_below"]:
+            reasons.append("low_neighborhood_diversity")
+
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
         if util is not None and util < t["utilisation_rate_below"]:
@@ -63,10 +79,6 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
     return {
         "triggered": len(reasons) > 0,
         "reasons": reasons,
-        "urgency_contribution": _compute_urgency_contribution(reasons),
     }
-
-
-def _compute_urgency_contribution(reasons):
-    from .urgency import FLAG_WEIGHTS
-    return float(sum(FLAG_WEIGHTS.get(r, 1) for r in reasons))
+    # NOTE: the old `urgency_contribution` field was computed here but
+    # never consumed by detector.py; removed as dead code.

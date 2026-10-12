@@ -8,8 +8,10 @@ Phase 4 changes:
 """
 
 import math
+from .. import __version__
 from .context import DerivationContext
 from ..taxonomy import get_subtype_or_default
+from .environmental import shade_proxy_score_from_canopy
 
 
 def derive_green(ctx: DerivationContext) -> dict:
@@ -39,7 +41,7 @@ def derive_green(ctx: DerivationContext) -> dict:
     if green_area is not None and reachable_pop > 0:
         green_per_capita = green_area / reachable_pop
 
-    shade = _shade_proxy_score(canopy_coverage)
+    shade = shade_proxy_score_from_canopy(canopy_coverage)
 
     return {
         "asset_id": asset["asset_id"],
@@ -53,7 +55,7 @@ def derive_green(ctx: DerivationContext) -> dict:
         "shade_proxy_score": shade,
         "neighborhood_diversity": ctx.neighborhood_diversity,
         "metric_source": "derived",
-        "model_version": "0.4.0",
+        "model_version": __version__,
     }
 
 
@@ -65,13 +67,3 @@ def _green_area(ctx: DerivationContext) -> float:
     if match.empty:
         return None
     return float(match.iloc[0].get("area_m2", 0))
-
-
-def _shade_proxy_score(canopy_coverage) -> float:
-    if canopy_coverage is None:
-        return 0.0
-    try:
-        c = float(canopy_coverage)
-    except (TypeError, ValueError):
-        return 0.0
-    return max(0.0, min(100.0, 100.0 * c))

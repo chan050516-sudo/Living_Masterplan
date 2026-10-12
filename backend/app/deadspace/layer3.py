@@ -16,8 +16,9 @@ ACTION_SPACE = {
 
 def evaluate(asset_type: str, diagnostics: dict = None) -> dict:
     """
-    diagnostics may carry future extensions (budget, land-use rules).
-    For Phase 3 it just reads the static action space.
+    `diagnostics` is reserved for future extensions (budget caps,
+    land-use rules, constraint filters). Phase 3 reads only the static
+    action space.
     """
     candidates = ACTION_SPACE.get(asset_type, [])
     return {

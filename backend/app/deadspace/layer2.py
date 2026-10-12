@@ -3,13 +3,20 @@
 Whether the asset fails to realise its intended value.
 Layer 1 asks "is it below benchmark"; Layer 2 asks "is it producing the
 value it was built for".
+
+FIX: green_space branch now reads the walking coverage ratio (a 0-1
+metric consistent with the rest of the pipeline) instead of the
+deprecated `accessibility_score` (0-100). The threshold has been
+renamed and recalibrated accordingly.
 """
 
 DEFAULTS = {
     "noi_below": 0.0,
     "service_coverage_below": 0.60,
     "maintenance_surge_ratio_above": 1.5,
-    "accessibility_below": 50.0,
+    # Renamed from `accessibility_below: 50.0` (0-100 score) to a
+    # 0-1 coverage ratio. Reads coverage_ratio_10min_walk.
+    "walking_coverage_10min_below": 0.30,
 }
 
 
@@ -36,10 +43,10 @@ def evaluate(asset_type: str, asset: dict, metrics: dict, thresholds: dict = Non
             reasons.append("insufficient_coverage")
 
     elif asset_type == "green_space":
-        acc = metrics.get("accessibility_score")
+        cov = metrics.get("coverage_ratio_10min_walk")
         canopy = metrics.get("canopy_coverage")
         # High ecological value but poor access = improvement opportunity
-        if acc is not None and acc < t["accessibility_below"]:
+        if cov is not None and cov < t["walking_coverage_10min_below"]:
             if canopy is not None and canopy > 0.05:
                 reasons.append("low_accessibility_high_ecological_value")
             else:

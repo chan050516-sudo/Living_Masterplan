@@ -38,18 +38,6 @@ def damped_occupancy(prev_occupancy: float, target_occupancy: float,
 
 def target_occupancy_from_dsr(dsr: float) -> float:
     """
-    If dsr >= 1, demand >= supply -> target high occupancy.
-    If dsr < 1, use dsr as proportional target.
-    Capped to [0.05, 0.98].
-    """
-    if dsr is None:
-        return 0.5
-    target = min(dsr, 0.98)
-    return max(0.05, target)
-
-
-def target_occupancy_from_dsr(dsr: float) -> float:
-    """
     If dsr >= 1, demand >= supply → target high occupancy.
     If dsr < 1, use dsr as proportional target.
     Capped to [0.05, 0.98].

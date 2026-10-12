@@ -46,8 +46,15 @@ def detect_all_deadspace(repo_root: Path = None, year: int = 2026) -> list:
 
 
 def write_deadspace_json(records: list, repo_root: Path = None, year: int = 2026) -> Path:
+    """
+    FIX: output path now derives from paths.yml instead of a hard-coded
+    "mock/" prefix, so moving `base` in config does not silently write
+    to the wrong place.
+    """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
-    out = repo_root / "mock" / "business" / f"deadspace_{year}.json"
+    paths = load_paths()
+    out = repo_root / paths["base"] / "business" / f"deadspace_{year}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         json.dump(records, f, indent=2)
     return out

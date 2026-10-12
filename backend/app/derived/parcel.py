@@ -1,15 +1,9 @@
 """Undeveloped parcel derived metrics — Phase 4.
-
-Changes:
-  - Commercial demand coefficient now read from taxonomy (per-subtype
-    sum) rather than from a hardcoded scalar in assumptions.yml.
-  - Demand uses the reachable walking-catchment population, not the
-    total mock population. This avoids inflating demand by residents
-    who cannot realistically reach the parcel on foot.
-  - FAR still falls back to a placeholder; see _far_for_land_use.
+(unchanged, only the version import)
 """
 
 import math
+from .. import __version__
 from .context import DerivationContext
 from ..taxonomy import get_taxonomy
 
@@ -31,7 +25,6 @@ def derive_parcel(ctx: DerivationContext) -> dict:
     if developable is not None and far:
         potential_gfa = developable * far
 
-    # Reachable population from walking profile
     reachable_pop = 0.0
     if ctx.walking_profile:
         reachable_pop = float(ctx.walking_profile.get("reachable_population") or 0.0)
@@ -53,7 +46,7 @@ def derive_parcel(ctx: DerivationContext) -> dict:
         "infrastructure_cost_rm": infrastructure_cost,
         "accessibility_score": accessibility,
         "metric_source": "derived",
-        "model_version": "0.4.0",
+        "model_version": __version__,
     }
 
 
@@ -69,11 +62,6 @@ def _far_for_land_use(ctx: DerivationContext) -> float:
 
 
 def _commercial_demand_coefficient() -> float:
-    """
-    Sum of per-capita commercial demand across all commercial subtypes.
-    Value is in m²/person. Read from taxonomy so it stays consistent
-    with the Huff demand pools.
-    """
     tax = get_taxonomy()
     subtypes = tax.get("subtypes", {})
     total = 0.0
