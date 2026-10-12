@@ -1,5 +1,7 @@
+import json
 import os
 import time
+from datetime import datetime, timezone
 
 import geopandas as gpd
 import osmnx as ox
@@ -54,6 +56,80 @@ def polygons_only(gdf):
     return gdf[gdf.geometry.type.isin(["Polygon", "MultiPolygon"])].copy()
 
 
+def normalize_building_type(value):
+    """Map OSM building tags to the controlled building-type vocabulary."""
+    building_type = str(value).strip().lower()
+    categories = {
+        "commercial": {
+            "commercial",
+            "office",
+            "retail",
+        },
+        "community_facility": {
+            "community_centre",
+            "social_facility",
+        },
+        "residential": {
+            "apartments",
+            "bungalow",
+            "detached",
+            "house",
+            "residential",
+            "semidetached_house",
+            "terrace",
+        },
+        "mixed_use": {"mixed_use"},
+        "industrial": {
+            "factory",
+            "industrial",
+            "warehouse",
+        },
+        "institutional": {
+            "college",
+            "kindergarten",
+            "school",
+            "university",
+        },
+    }
+    for category, values in categories.items():
+        if building_type in values:
+            return category
+    return "unknown"
+
+
+def parse_floors(value):
+    """Return a non-negative integer floor count, or None when OSM has no usable value."""
+    try:
+        floors = float(value)
+    except (TypeError, ValueError):
+        return None
+    if floors < 0 or not floors.is_integer():
+        return None
+    return int(floors)
+
+
+def assign_parcel_ids(buildings_projected, parcels_projected):
+    """Link each building to the smallest parcel polygon covering its representative point."""
+    parcel_geometries = [
+        (row.parcel_id, row.geometry, row.geometry.area)
+        for row in parcels_projected.itertuples()
+    ]
+    parcel_ids = []
+    for geometry in buildings_projected.geometry:
+        point = geometry.representative_point()
+        candidates = [
+            (parcel_id, area)
+            for parcel_id, parcel_geometry, area in parcel_geometries
+            if parcel_geometry.covers(point)
+        ]
+        parcel_ids.append(
+            min(candidates, key=lambda candidate: candidate[1])[0]
+            if candidates
+            else "P-UNASSIGNED"
+        )
+    return parcel_ids
+
+
 def process_buildings():
     print("Fetching Buildings...")
     tags = {"building": True}
@@ -64,22 +140,56 @@ def process_buildings():
 
     gdf_proj = gdf.to_crs(COMPUTE_CRS)
     gdf["area_m2"] = gdf_proj.geometry.area
-
+    if not os.path.exists("parcels.geojson"):
+        raise FileNotFoundError(
+            "parcels.geojson is required to assign building parcel_id values."
+        )
+    parcels = gpd.read_file("parcels.geojson").to_crs(COMPUTE_CRS)
     gdf["building_id"] = generate_ids(gdf, "BLD-")
-    gdf["building_type"] = gdf["building"].fillna("unknown")
+    gdf["parcel_id"] = assign_parcel_ids(gdf_proj, parcels)
+    gdf["asset_id"] = gdf["building_id"].map(
+        lambda building_id: f"unlinked-{building_id}"
+    )
+    gdf["building_type"] = gdf["building"].map(normalize_building_type)
+    levels = gdf.get("building:levels", pd.Series(None, index=gdf.index))
+    gdf["floors"] = levels.map(parse_floors)
     gdf["gfa_m2"] = gdf["area_m2"]
-    gdf["geometry_source"] = "OSM"
+    gdf["geometry_source"] = "OpenStreetMap"
 
     final_gdf = gdf[
         [
             "building_id",
+            "parcel_id",
+            "asset_id",
             "building_type",
+            "floors",
             "gfa_m2",
             "geometry_source",
             "geometry",
         ]
     ].to_crs(DISPLAY_CRS)
-    final_gdf.to_file("buildings.geojson", driver="GeoJSON")
+    features = json.loads(final_gdf.to_json(drop_id=True, na="null"))["features"]
+    for feature in features:
+        feature["id"] = feature["properties"]["building_id"]
+    metadata = {
+        "schema_version": "1.0.0",
+        "region_id": "kuala-lumpur-malaysia",
+        "storage_crs": "EPSG:4326",
+        "analysis_crs": COMPUTE_CRS,
+        "generated_at": datetime.now(timezone.utc)
+        .isoformat(timespec="seconds")
+        .replace("+00:00", "Z"),
+    }
+    with open("buildings.geojson", "w", encoding="utf-8") as output:
+        output.write('{\n  "type": "FeatureCollection",\n  "metadata": ')
+        output.write(json.dumps(metadata, indent=2).replace("\n", "\n  "))
+        output.write(',\n  "features": [\n')
+        for index, feature in enumerate(features):
+            if index:
+                output.write(",\n")
+            output.write("    ")
+            json.dump(feature, output, separators=(",", ":"), allow_nan=False)
+        output.write("\n  ]\n}\n")
     print(f"Saved {len(final_gdf)} buildings.")
 
 
@@ -230,8 +340,8 @@ def run_step(func, output_file):
 
 if __name__ == "__main__":
     print("Starting Module A GeoJSON Pipeline...")
-    run_step(process_buildings, "buildings.geojson")
     run_step(process_parcels, "parcels.geojson")
+    run_step(process_buildings, "buildings.geojson")
     run_step(process_network, "network_edges.geojson")
     run_step(process_green_blue, "green_blue.geojson")
     run_step(process_amenities, "amenities.geojson")
