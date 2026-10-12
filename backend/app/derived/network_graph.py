@@ -88,6 +88,27 @@ def build_graph_by_mode(
         if u == v:
             continue
 
+        # ------------------------------------------------------
+        # Parallel-edge policy
+        # ------------------------------------------------------
+        # OSM commonly maps a pedestrian path and a residential road
+        # between the same two endpoints. They are distinct GeoJSON
+        # features but they connect the same graph nodes. nx.Graph is
+        # a simple graph, so only one edge can exist per node pair;
+        # without a policy the last-seen edge silently wins and its
+        # attributes overwrite the earlier one.
+        #
+        # We keep the lowest-cost edge. The routing weight already
+        # reflects the mode's cost metric (canopy-adjusted length for
+        # walking, plain length for driving), so minimising it is the
+        # correct survivor for both modes.
+        existing = G.get_edge_data(u, v)
+        if existing is not None:
+            existing_eff = existing.get("effective_length_m")
+            if existing_eff is not None and effective >= existing_eff:
+                # Existing edge is at least as good; keep it.
+                continue
+
         G.add_edge(
             u, v,
             length_m=length,

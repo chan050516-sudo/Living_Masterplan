@@ -73,6 +73,11 @@ from .interventions import apply_intervention, apply_construction_state
 from .population import project_population
 from .occupancy import damped_occupancy, target_occupancy_from_dsr
 from .supply import active_projects_in_year
+from .spatial import (
+    spatial_interventions_for_year,
+    network_version_tag,
+    apply_spatial_interventions,
+)
 
 log = logging.getLogger(__name__)
 
@@ -143,9 +148,142 @@ _TYPE_EXCLUSIVE_FIELDS = {
 _ALL_TYPE_EXCLUSIVE_FIELDS = frozenset().union(*_TYPE_EXCLUSIVE_FIELDS.values())
 
 
+# ------------------------------------------------------------------
+# Spatial-derived metric refresh
+# ------------------------------------------------------------------
+# When the walking network changes (a spatial intervention activates),
+# every catchment metric must be pulled from the freshly recomputed
+# derived frame rather than inherited from the previous year.
+#
+# These are the fields B3 recomputes from the network. Other fields
+# (occupancy, NOI, ...) are driven by the simulation and are not
+# refreshed here.
+_SPATIAL_REFRESH_FIELDS = (
+    # Walking catchment
+    "catchment_population_5min_walk",
+    "catchment_population_10min_walk",
+    "catchment_population_15min_walk",
+    "coverage_ratio_5min_walk",
+    "coverage_ratio_10min_walk",
+    "coverage_ratio_15min_walk",
+    "mean_walk_distance_m",
+    "median_walk_distance_m",
+    "p90_walk_distance_m",
+    "reachable_population_walk",
+    "total_catchment_population",
+    # Driving catchment (canopy does not affect driving, but refresh
+    # for consistency so all coverage fields move together)
+    "catchment_population_5min_drive",
+    "catchment_population_10min_drive",
+    "catchment_population_15min_drive",
+    "coverage_ratio_5min_drive",
+    "coverage_ratio_10min_drive",
+    "coverage_ratio_15min_drive",
+    "mean_drive_distance_m",
+    "median_drive_distance_m",
+    "p90_drive_distance_m",
+    "reachable_population_drive",
+    # Derived from walking coverage
+    "accessibility_score",
+    "service_coverage",
+)
+
+
 def _compute_distance_matrix(G):
     """All-pairs shortest path using effective_length_m (canopy-adjusted)."""
     return dict(nx.all_pairs_dijkstra_path_length(G, weight="effective_length_m"))
+
+
+def _is_valid_number(v) -> bool:
+    """True if v is a finite float (not None, not NaN)."""
+    if v is None:
+        return False
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return False
+    return not math.isnan(f)
+
+
+def _recompute_commercial_financials(
+    metric_row: dict,
+    eff: dict,
+    aid: str,
+    year: int,
+    new_occ: float,
+    state_by_year: dict,
+    base_year: int,
+    assumptions: dict,
+) -> None:
+    """
+    Mutates `metric_row` in place to reflect the current occupancy.
+
+    The simulation changes occupancy but the baseline financial figures
+    (rental income, footfall) were recorded at the base-year occupancy.
+    Carrying those forward unchanged produces an internally inconsistent
+    output: the comparison block would show occupancy_rate falling to 5%
+    while noi_rm stays at the base-year value.
+
+    Approach: scale rental income and footfall linearly with the
+    occupancy ratio, recompute maintenance with the aging factor, and
+    derive NOI and NOI yield from those.
+
+    This is a first-order approximation. Real commercial rents exhibit
+    non-linearity (backfilling vacancy typically happens at lower
+    marginal rents), but any monotone approximation is more honest than
+    leaving the figures static.
+    """
+    baseline = state_by_year.get(base_year, {}).get(aid, {})
+    base_occ = baseline.get("occupancy_rate")
+    base_rental = baseline.get("rental_income_rm")
+    base_footfall = baseline.get("footfall_daily")
+
+    if not _is_valid_number(base_occ) or float(base_occ) <= 0:
+        return
+    if not _is_valid_number(base_rental):
+        return
+
+    ratio = float(new_occ) / float(base_occ)
+    scaled_rental = float(base_rental) * ratio
+    metric_row["rental_income_rm"] = scaled_rental
+
+    if _is_valid_number(base_footfall):
+        scaled_footfall = float(base_footfall) * ratio
+        metric_row["footfall_daily"] = scaled_footfall
+        if scaled_footfall > 0:
+            metric_row["rental_income_per_visit_proxy"] = (
+                scaled_rental / (scaled_footfall * 365.0)
+            )
+        else:
+            metric_row["rental_income_per_visit_proxy"] = None
+
+    # Maintenance: recompute with the aging factor from the asset's
+    # original base, not the previous year's already-escalated value.
+    maintenance_base = eff.get("maintenance_annual_rm")
+    completion_year = eff.get("completion_year")
+    maintenance_current = None
+    if _is_valid_number(maintenance_base):
+        alpha = assumptions.get("asset_aging", {}).get("alpha", 0.03)
+        if _is_valid_number(completion_year):
+            years_old = max(0, year - int(completion_year))
+        else:
+            years_old = 0
+        maintenance_current = float(maintenance_base) * (1.0 + alpha) ** years_old
+    metric_row["maintenance_surge_rm"] = maintenance_current
+
+    # NOI = rental income - opex - maintenance
+    opex = eff.get("opex_annual_rm")
+    opex_f = float(opex) if _is_valid_number(opex) else 0.0
+    maint_f = maintenance_current if maintenance_current is not None else 0.0
+    noi = scaled_rental - opex_f - maint_f
+    metric_row["noi_rm"] = noi
+
+    # NOI yield = NOI / initial CAPEX
+    capex = eff.get("capex_initial_rm")
+    if _is_valid_number(capex) and float(capex) > 0:
+        metric_row["noi_yield"] = noi / float(capex)
+    else:
+        metric_row["noi_yield"] = None
 
 
 def _is_valid_number(v) -> bool:
@@ -253,6 +391,18 @@ def simulate_scenario(
     those assets and produces a per-asset structure (comparison.per_asset).
     If None, every non-project asset is compared. Backward-compat
     focus_asset_id + metrics are always present.
+
+    Network versions
+    ----------------
+    A scenario may include spatial interventions (pedestrian_upgrade,
+    green_corridor). These modify the walking network rather than any
+    asset. B4 handles them by maintaining a cache keyed on the set of
+    active spatial interventions; when the set changes (i.e. when a
+    spatial intervention activates), the network is rebuilt, the
+    distance matrix is recomputed, Huff is re-run, and every asset's
+    catchment metrics are refreshed. Between activations the cache is
+    reused, so the cost is paid once per network version rather than
+    once per year.
     """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     years = years or DEFAULT_YEARS
@@ -275,11 +425,7 @@ def simulate_scenario(
     from ..loaders.geometry_loader import load_geometry
     geometry = load_geometry(repo_root, paths)
 
-    current_derived = compute_derived_metrics(repo_root=repo_root, year=base_year)
-
-    G_base, demand_nodes, supply_nodes, nodes_gdf = _build_graph_and_nodes(
-        geometry, assets_df, assumptions,
-    )
+    base_derived = compute_derived_metrics(repo_root=repo_root, year=base_year)
 
     # ---- Population config ----
     pop_cfg = assumptions["population"]
@@ -292,12 +438,85 @@ def simulate_scenario(
 
     # Occupancy dynamics
     lambda_ = assumptions.get("occupancy_dynamics", {}).get("lambda", 0.35)
-    critical = assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
+    critical = assumptions.get("occupancy_dynamics", {}).get("threshold") if False else \
+        assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
     kappa = assumptions.get("occupancy_dynamics", {}).get("kappa", 0.0)
 
     emission_factor = assumptions.get("environmental", {}).get(
         "emission_factor_energy", 0.58,
     )
+
+    # ------------------------------------------------------------------
+    # Network version cache
+    # ------------------------------------------------------------------
+    # Maps network_version_tag -> {
+    #     "distance_matrix": dict,
+    #     "demand_nodes":   list,
+    #     "supply_nodes":   list,
+    #     "nodes_gdf":      GeoDataFrame,
+    #     "derived":        DataFrame,   # B3 output for this network
+    # }
+    _pipeline_cache: dict = {}
+
+    def _get_pipeline(tag: str, active_spatial: list) -> dict:
+        """
+        Build or return the walking pipeline for a network version.
+
+        On cache miss:
+          - modify the network with the active spatial interventions
+          - run B3 with the modified network (network_override)
+          - rebuild the graph, virtual nodes, and distance matrix
+        On cache hit: return the stored result.
+        """
+        if tag in _pipeline_cache:
+            return _pipeline_cache[tag]
+
+        if tag == "base":
+            modified_network = None
+            derived = base_derived
+        else:
+            log.info(
+                "Building pipeline for network version %s "
+                "(spatial interventions active; this may take a few seconds).",
+                tag,
+            )
+            modified_network = apply_spatial_interventions(
+                geometry["network"]["analysis"], active_spatial,
+            )
+            try:
+                derived = compute_derived_metrics(
+                    repo_root=repo_root,
+                    year=base_year,
+                    network_override=modified_network,
+                )
+            except Exception as e:
+                log.warning(
+                    "Spatial recompute failed for %s (%s); "
+                    "falling back to the base network.",
+                    tag, e,
+                )
+                modified_network = None
+                derived = base_derived
+
+        G, demand, supply, nodes = _build_graph_and_nodes(
+            geometry, assets_df, assumptions, network_gdf=modified_network,
+        )
+        matrix = _compute_distance_matrix(G)
+
+        result = {
+            "distance_matrix": matrix,
+            "demand_nodes":    demand,
+            "supply_nodes":    supply,
+            "nodes_gdf":       nodes,
+            "derived":         derived,
+        }
+        _pipeline_cache[tag] = result
+        return result
+
+    # ---- Prime the cache with the base network ----
+    base_pipeline = _get_pipeline("base", [])
+    current_tag = "base"
+    current_pipeline = base_pipeline
 
     def _safe_num(v, default):
         try:
@@ -311,7 +530,7 @@ def simulate_scenario(
     occupancy_prev = {}
     for _, asset in assets_df.iterrows():
         aid = asset["asset_id"]
-        row = current_derived[current_derived["asset_id"] == aid]
+        row = base_derived[base_derived["asset_id"] == aid]
         prev_value = 0.6
         if not row.empty:
             r = row.iloc[0]
@@ -326,8 +545,27 @@ def simulate_scenario(
     for year_idx, year in enumerate(years):
         # ---- Base year: use B3 output as-is ----
         if year == base_year:
-            state_by_year[year] = _state_from_df(current_derived, assets_df)
+            state_by_year[year] = _state_from_df(base_derived, assets_df)
             continue
+
+        # ---- Check whether the network version changes this year ----
+        active_spatial = spatial_interventions_for_year(
+            scenario_interventions, year,
+        )
+        new_tag = network_version_tag(active_spatial)
+        if new_tag != current_tag:
+            log.info(
+                "Year %d: network version changed %s -> %s",
+                year, current_tag, new_tag,
+            )
+            current_pipeline = _get_pipeline(new_tag, active_spatial)
+            current_tag = new_tag
+
+        distance_matrix = current_pipeline["distance_matrix"]
+        pipeline_demand_nodes = current_pipeline["demand_nodes"]
+        pipeline_supply_nodes = current_pipeline["supply_nodes"]
+        pipeline_nodes_gdf = current_pipeline["nodes_gdf"]
+        year_derived = current_pipeline["derived"]
 
         # ---- Resolve effective asset state for every asset ----
         effective_assets = {}
@@ -352,16 +590,13 @@ def simulate_scenario(
         projected_pop = project_population(base_pop, base_year, year, g_rate)
         pop_factor = projected_pop / base_pop
 
-        # ---- Distance matrix ----
-        distance_matrix = _compute_distance_matrix(G_base)
-
         # ---- Supply nodes from effective commercial assets ----
         active_commercial_ids = {
             aid for aid, eff in effective_assets.items()
             if eff.get("asset_type") == "commercial"
         }
         year_supply_nodes = []
-        for s in supply_nodes:
+        for s in pipeline_supply_nodes:
             if s["asset_id"] not in active_commercial_ids:
                 continue
             s_copy = dict(s)
@@ -370,20 +605,21 @@ def simulate_scenario(
             )
             year_supply_nodes.append(s_copy)
 
-        # New supply from delivered projects. Scenario-level delay/cancel
-        # directives are respected via active_projects_in_year().
+        # New supply from delivered projects.
         active_projects = active_projects_in_year(
             projects_df, year, scenario_id,
             interventions_df=scenario_interventions,
         )
         year_supply_nodes.extend(
-            _new_project_supply_nodes(active_projects, geometry, nodes_gdf, supply_nodes)
+            _new_project_supply_nodes(
+                active_projects, geometry, pipeline_nodes_gdf, pipeline_supply_nodes,
+            )
         )
 
         # ---- Huff (per-subtype) ----
         projected_demand_nodes = [
             {**d, "population": d["population"] * pop_factor}
-            for d in demand_nodes
+            for d in pipeline_demand_nodes
         ]
         huff_m2 = huff_gravity_by_subtype(
             distance_matrix,
@@ -466,8 +702,6 @@ def simulate_scenario(
             # ---- Environmental (subtype-aware) ----
             floor_area = float(eff.get("floor_area_m2") or 0)
             energy = energy_from_subtype(effective_subtype or "vacant", floor_area)
-            # Retrofit applies an energy-efficiency multiplier set by
-            # interventions._apply_retrofit. Absent means no gain.
             eff_mult = eff.get("_energy_efficiency_multiplier")
             if _is_valid_number(eff_mult):
                 energy *= float(eff_mult)
@@ -484,14 +718,28 @@ def simulate_scenario(
             for _field in _ALL_TYPE_EXCLUSIVE_FIELDS - _owned:
                 metric_row[_field] = None
 
+            # ---- Spatial refresh ----
+            # Overwrite every network-derived field with the current
+            # network version's value. When the network has not changed
+            # this is a no-op (year_derived equals base_derived). When
+            # a spatial intervention has activated, this is what makes
+            # coverage_ratio_* reflect the new network.
+            year_row_match = year_derived[year_derived["asset_id"] == aid]
+            if not year_row_match.empty:
+                fresh = year_row_match.iloc[0]
+                for _field in _SPATIAL_REFRESH_FIELDS:
+                    if _field not in fresh.index:
+                        continue
+                    val = fresh[_field]
+                    if _is_valid_number(val):
+                        metric_row[_field] = float(val)
+
+            # ---- Driven value ----
             if effective_type == "community_facility":
                 metric_row["utilisation_rate"] = new_util
             elif effective_type == "commercial":
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
-                # Baseline financial figures were recorded at the base-year
-                # occupancy. Recompute them so the comparison block does not
-                # show "occupancy dropped, NOI unchanged".
                 _recompute_commercial_financials(
                     metric_row=metric_row,
                     eff=eff,
@@ -529,15 +777,8 @@ def simulate_scenario(
             year_state[aid] = metric_row
 
         # ---- Project pseudo-entries ----
-        # New developments delivered by this year are recorded as
-        # virtual entries so their operational carbon reaches township
-        # totals and their presence is visible in the per-year listing.
-        # Keyed with PROJECT_ID_PREFIX so UI and downstream logic can
-        # distinguish them from real assets.
         for proj in active_projects:
-            _add_project_state(
-                year_state, proj, year, emission_factor,
-            )
+            _add_project_state(year_state, proj, year, emission_factor)
 
         state_by_year[year] = year_state
 
@@ -612,17 +853,28 @@ def _add_project_state(year_state, proj, year, emission_factor):
     }
 
 
-def _build_graph_and_nodes(geometry, assets_df, assumptions):
+def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
     """
     Build the walking graph and demand/supply node lists for Huff.
 
     Uses the same entry-point pipeline as B3 (find_entry_point +
     insert_all_entries) so that base-year and simulated coverage are
     computed against an identical network geometry.
+
+    Parameters
+    ----------
+    network_gdf : gpd.GeoDataFrame, optional
+        A modified network layer. When None, the layer from `geometry`
+        is used. B4 passes a modified layer when a spatial intervention
+        has activated, so that the Huff competition and every
+        subsequent distance computation sees the post-intervention
+        network.
     """
-    network = geometry["network"]["analysis"]
+    if network_gdf is None:
+        network_gdf = geometry["network"]["analysis"]
+
     gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
-    G = build_walk_graph(network, gamma=gamma)
+    G = build_walk_graph(network_gdf, gamma=gamma)
 
     # --- Project all entries (assets + demand points) ---
     all_entries = {}
@@ -632,7 +884,7 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
         m = parcels[parcels["asset_id"] == aid]
         if m.empty:
             continue
-        p, off_d, eid = find_entry_point(m.iloc[0].geometry, network, "walking")
+        p, off_d, eid = find_entry_point(m.iloc[0].geometry, network_gdf, "walking")
         if p is None:
             continue
         all_entries[f"A::{aid}"] = (p, off_d, eid)
@@ -640,14 +892,14 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
     pop_analysis = geometry["population"]["analysis"]
     for _, pop in pop_analysis.iterrows():
         pid = pop["population_id"]
-        p, off_d, eid = find_entry_point(pop.geometry, network, "walking")
+        p, off_d, eid = find_entry_point(pop.geometry, network_gdf, "walking")
         if p is None:
             continue
         all_entries[f"D::{pid}"] = (p, off_d, eid)
 
     # --- Single insertion pass ---
     G_aug = G.copy()
-    inserted = insert_all_entries(G_aug, network, all_entries)
+    inserted = insert_all_entries(G_aug, network_gdf, all_entries)
 
     asset_entries = {}
     demand_entries_map = {}
@@ -686,7 +938,7 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
             "subtype": asset.get("subtype", "convenience_retail"),
         })
 
-    nodes_gdf = extract_nodes(network)
+    nodes_gdf = extract_nodes(network_gdf)
     return G_aug, demand_nodes, supply_nodes, nodes_gdf
 
 
@@ -779,9 +1031,13 @@ _COMPARISON_METRICS = [
     ("occupancy_rate", "ratio"),
     ("utilisation_rate", "ratio"),
     ("noi_rm", "RM"),
+    ("maintenance_surge_rm", "RM"),
     ("noi_yield", "ratio"),
     ("coverage_ratio_5min_walk", "ratio"),
+    ("coverage_ratio_10min_walk", "ratio"),
     ("coverage_ratio_10min_drive", "ratio"),
+    ("median_walk_distance_m", "m"),
+    ("p90_walk_distance_m", "m"),
     ("carbon_operational_tco2e", "tCO2e"),
 ]
 

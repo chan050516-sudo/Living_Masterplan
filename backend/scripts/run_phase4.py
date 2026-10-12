@@ -13,6 +13,12 @@ SC-CURRENT baseline.
 import math
 import sys
 from pathlib import Path
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 

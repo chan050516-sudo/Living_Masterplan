@@ -40,8 +40,10 @@ def apply_intervention(asset: dict, intervention: dict) -> dict:
         _apply_retrofit(new_asset, params, intervention)
 
     elif itype in ("pedestrian_upgrade", "green_corridor"):
-        # Spatial-layer interventions. They modify network edges, not
-        # the asset row. No-op here.
+        # Spatial-layer interventions modify the walking network
+        # (canopy_coverage_ratio on target edges), not the asset row.
+        # They are applied in simulation.spatial and picked up by B4's
+        # network-version cache. No-op here.
         pass
 
     elif itype in ("new_development", "delay_development"):

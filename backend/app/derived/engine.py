@@ -55,7 +55,26 @@ DERIVERS = {
 DIVERSITY_RADIUS_M = 800.0
 
 
-def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.DataFrame:
+def compute_derived_metrics(
+    repo_root: Path = None,
+    year: int = 2026,
+    network_override=None,
+) -> pd.DataFrame:
+    """
+    Compute derived metrics for every asset at the given year.
+
+    Parameters
+    ----------
+    network_override : gpd.GeoDataFrame, optional
+        A modified network layer. When provided, it is used for the
+        walking pipeline (canopy-adjusted cost). The driving pipeline
+        always uses the original network because canopy has no physical
+        effect on vehicle routing.
+
+        B4 uses this parameter to simulate a scenario's post-
+        intervention network state without duplicating B3's spatial
+        pipeline.
+    """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     paths = load_paths()
     assumptions = load_assumptions()
@@ -89,9 +108,14 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     walking_cfg = mode_configs.get("walking", {})
     driving_cfg = mode_configs.get("driving", {})
 
+    # Walking may use an override network (e.g. after a spatial
+    # intervention). Driving always uses the original layer.
+    base_network = geometry["network"]["analysis"]
+    walking_network = network_override if network_override is not None else base_network
+
     walking_pipeline = _prepare_mode_pipeline(
         mode="walking",
-        network_gdf=geometry["network"]["analysis"],
+        network_gdf=walking_network,
         assets_df=business["assets"],
         parcels_gdf=geometry["parcels"]["analysis"],
         pop_gdf=pop_analysis,
@@ -100,7 +124,7 @@ def compute_derived_metrics(repo_root: Path = None, year: int = 2026) -> pd.Data
     )
     driving_pipeline = _prepare_mode_pipeline(
         mode="driving",
-        network_gdf=geometry["network"]["analysis"],
+        network_gdf=base_network,
         assets_df=business["assets"],
         parcels_gdf=geometry["parcels"]["analysis"],
         pop_gdf=pop_analysis,

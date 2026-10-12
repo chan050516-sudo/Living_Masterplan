@@ -350,9 +350,9 @@ interventions = pd.DataFrame([
     {
         "scenario_id": "SC-REPURPOSE",
         "intervention_id": "INT-002",
-        "target_asset_id": "E-R17",
+        "target_asset_id": "E-R18",                          # ← 从 E-R17 改为 E-R18
         "intervention_type": "pedestrian_upgrade",
-        "parameters_json": json.dumps({}),
+        "parameters_json": json.dumps({"canopy_boost": 0.30}),   # ← 显式声明
         "expected_derived_json": None,
         "expected_source": None,
         "construction_start_year": 2027,
