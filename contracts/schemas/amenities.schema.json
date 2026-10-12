@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/amenities.schema.json",
   "title": "amenities.geojson",
-  "description": "Spatial layer: transit stops, schools, clinics and other POIs.",
+  "description": "Spatial layer: transit stops, schools, clinics and other POIs. Currently loaded by geometry_loader but not consumed by B3 / B4 / B6. Reserved for future transit-mix analysis.",
   "type": "object",
   "required": ["type", "metadata", "features"],
   "properties": {

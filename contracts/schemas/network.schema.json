@@ -38,7 +38,15 @@
       ],
       "properties": {
         "edge_id": { "type": "string", "pattern": "^E-" },
-        "edge_type": { "enum": ["pedestrian", "road", "transit"] },
+        "edge_type": {
+          "enum": [
+            "footway", "pedestrian", "path", "residential", "service",
+            "living_street", "steps", "track",
+            "secondary", "tertiary", "primary", "unclassified",
+            "transit"
+          ],
+          "$comment": "Union of derived/network_graph.WALKING_EDGE_TYPES and DRIVING_EDGE_TYPES, plus 'transit'. Keep in sync with network_graph.py when either set changes."
+        },
         "from_node": { "type": "string", "pattern": "^N-" },
         "to_node": { "type": "string", "pattern": "^N-" },
         "length_m": { "type": "number", "minimum": 0 },

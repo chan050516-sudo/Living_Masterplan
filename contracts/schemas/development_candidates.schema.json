@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/development_candidates.schema.json",
   "title": "development_candidates.csv",
-  "description": "v1.1 NEW. Pre-defined development options for undeveloped parcels. LLM picks from this list.",
+  "description": "Pre-defined development options for undeveloped parcels. The LLM picks from this list. development_type is a taxonomy subtype key, not a high-level category — the same key space used by interventions.parameters.to_subtype.",
   "type": "object",
   "required": [
     "candidate_id", "parcel_id", "development_type", "expected_capex_rm",
@@ -12,10 +12,18 @@
     "candidate_id": { "type": "string", "pattern": "^CAND-" },
     "parcel_id": { "type": "string", "pattern": "^P-" },
     "development_type": {
-      "enum": ["childcare_centre", "community_hub", "mixed_use_commercial",
-               "affordable_housing", "market_rate_housing", "retail_podium",
-               "light_industrial", "public_facility", "green_space",
-               "transit_oriented_development", "other"]
+      "type": "string",
+      "$comment": "Must be a key in taxonomy.yml subtypes. Call get_available_subtypes via the LLM tool layer to enumerate.",
+      "enum": [
+        "convenience_retail", "supermarket", "f_and_b", "medical_retail",
+        "office", "services", "entertainment", "showroom",
+        "clinic", "community_hall", "library", "childcare", "school",
+        "sports_centre", "place_of_worship", "public_service",
+        "terrace", "semidetached", "detached",
+        "apartment_lowrise", "apartment_highrise", "affordable_housing",
+        "park", "pocket_park", "green_corridor", "sports_field", "water_body",
+        "vacant"
+      ]
     },
     "target_gfa_m2": { "type": ["number", "null"] },
     "target_units": { "type": ["integer", "null"] },

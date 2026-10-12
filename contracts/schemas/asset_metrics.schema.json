@@ -2,12 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/asset_metrics.schema.json",
   "title": "asset_metrics.csv",
+  "description": "Row schema for asset_metrics.csv. Empty cells are NaN under pandas; validators must treat NaN as null. The five *_score columns are retained for CSV alignment only and carry no meaning as of v0.4.0.",
   "type": "object",
   "required": ["asset_id", "year", "metric_source", "model_version"],
   "properties": {
     "asset_id": { "type": "string" },
     "year": { "type": "integer", "minimum": 2000, "maximum": 2100 },
-    "subtype": { "type": ["string", "null"] },
+    "subtype": {
+      "type": ["string", "null"],
+      "$comment": "Present for commercial, community_facility, residential, undeveloped_parcel. Absent (null) for green_space in current B3 output."
+    },
 
     "occupancy_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "vacancy_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
@@ -21,7 +25,10 @@
     "noi_yield": { "type": ["number", "null"] },
     "maintenance_surge_rm": { "type": ["number", "null"] },
 
-    "accessibility_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100 },
+    "accessibility_score": {
+      "type": ["number", "null"], "minimum": 0, "maximum": 100,
+      "$comment": "Deprecated bridge metric. Retained during the Phase 4 transition. New code should read coverage_ratio_*_walk / coverage_ratio_*_drive instead."
+    },
 
     "catchment_population_5min_walk": { "type": ["number", "null"] },
     "catchment_population_10min_walk": { "type": ["number", "null"] },
@@ -71,6 +78,12 @@
 
     "demographic_mismatch": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "neighborhood_diversity": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+
+    "financial_score":     { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0. Kept for CSV column alignment. Do not consume." },
+    "environmental_score": { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },
+    "social_score":        { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },
+    "performance_score":   { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },
+    "delta_score":         { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },
 
     "metric_source": { "enum": ["observed", "derived", "assumed", "simulated"] },
     "model_version": { "type": "string" }

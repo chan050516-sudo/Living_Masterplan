@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/development_projects.schema.json",
   "title": "development_projects.csv",
-  "description": "Row schema for development_projects.csv — planned / committed development pipeline.",
+  "description": "Row schema for development_projects.csv — planned / committed development pipeline. Each project is delivered as a virtual PRJ::<id> entry in the simulation when its planned_delivery_year arrives.",
   "type": "object",
   "required": [
     "project_id", "parcel_id", "project_name", "project_status",
@@ -22,6 +22,9 @@
     "units": { "type": ["integer", "null"], "minimum": 0 },
     "land_use": { "type": "string" },
     "capex_rm": { "type": "number", "minimum": 0 },
-    "scenario_dependency": { "type": ["string", "null"] }
+    "scenario_dependency": {
+      "type": ["string", "null"],
+      "$comment": "Descriptive tag only; the simulation reads delay/cancel directives from interventions.csv, not from this field."
+    }
   }
 }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/scenario_result.schema.json",
   "title": "ScenarioResult",
-  "description": "Output of B4. Multi-year simulation results + comparison + map diff.",
+  "description": "Output of B4. Multi-year simulation results + per-asset comparison + township metrics + map diff.",
   "type": "object",
   "required": ["scenario_id", "scenario_name", "interventions", "years", "comparison", "map_diff", "model_version"],
   "properties": {
@@ -14,15 +14,43 @@
       "additionalProperties": {
         "type": "object",
         "properties": {
-          "assets": { "type": "object" },
-          "scores": { "type": "object" }
+          "assets": {
+            "type": "object",
+            "additionalProperties": { "type": "object" },
+            "$comment": "Keys are asset_id or 'PRJ::<project_id>'. Each value carries _state_kind to distinguish 'asset' from 'project'."
+          }
         }
       }
     },
     "comparison": {
       "type": "object",
-      "required": ["focus_asset_id", "metrics", "township_metrics"],
+      "required": ["focus_asset_id", "metrics", "per_asset", "aggregate", "township_metrics"],
       "properties": {
+        "per_asset": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "required": ["before", "after", "unit"],
+              "properties": {
+                "before": { "type": ["number", "null"] },
+                "after":  { "type": ["number", "null"] },
+                "unit":   { "type": "string" }
+              }
+            }
+          },
+          "$comment": "Keyed by asset_id. Excludes PRJ:: entries. Metrics for a given asset may be absent if neither before nor after is valid — e.g. occupancy_rate is dropped when a repurpose transition makes it inapplicable."
+        },
+        "aggregate": {
+          "type": "object",
+          "properties": {
+            "asset_count":               { "type": "integer", "minimum": 0 },
+            "total_carbon_before_tco2e": { "type": ["number", "null"] },
+            "total_carbon_after_tco2e":  { "type": ["number", "null"] },
+            "carbon_delta_pct":          { "type": ["number", "null"] }
+          }
+        },
         "focus_asset_id": { "type": ["string", "null"] },
         "metrics": {
           "type": "object",
@@ -31,31 +59,54 @@
             "required": ["before", "after", "unit"],
             "properties": {
               "before": { "type": ["number", "null"] },
-              "after": { "type": ["number", "null"] },
-              "unit": { "type": "string" }
+              "after":  { "type": ["number", "null"] },
+              "unit":   { "type": "string" }
             }
-          }
+          },
+          "$comment": "Backward-compat alias for per_asset[focus_asset_id]."
         },
         "township_metrics": {
           "type": "object",
           "properties": {
-            "walk_15min_avg_coverage_before": { "type": ["number", "null"] },
-            "walk_15min_avg_coverage_after": { "type": ["number", "null"] },
-            "walk_15min_coverage_delta": { "type": ["number", "null"] },
-            "total_carbon_before_tco2e": { "type": ["number", "null"] },
-            "total_carbon_after_tco2e": { "type": ["number", "null"] },
-            "carbon_delta_pct": { "type": ["number", "null"] }
+            "walk_15min_avg_coverage_before":  { "type": ["number", "null"] },
+            "walk_15min_avg_coverage_after":   { "type": ["number", "null"] },
+            "walk_15min_coverage_delta":       { "type": ["number", "null"] },
+            "total_carbon_before_tco2e":       { "type": ["number", "null"] },
+            "total_carbon_after_tco2e":        { "type": ["number", "null"] },
+            "carbon_delta_pct":                { "type": ["number", "null"] },
+            "project_carbon_after_tco2e":      { "type": ["number", "null"] },
+            "project_carbon_cumulative_tco2e": { "type": ["number", "null"] }
           }
         }
       }
     },
     "map_diff": {
       "type": "object",
-      "required": ["changed_assets", "spillover_assets", "negative_assets"],
+      "required": ["changed_assets", "spillover_assets", "negative_assets", "project_schedule"],
       "properties": {
-        "changed_assets": { "type": "array" },
+        "changed_assets":   { "type": "array" },
         "spillover_assets": { "type": "array" },
-        "negative_assets": { "type": "array" }
+        "negative_assets":  { "type": "array" },
+        "project_schedule": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["project_id", "status"],
+            "properties": {
+              "project_id":             { "type": "string", "pattern": "^PRJ-" },
+              "project_name":           { "type": ["string", "null"] },
+              "parcel_id":              { "type": ["string", "null"] },
+              "gfa_m2":                 { "type": ["number", "null"] },
+              "baseline_delivery_year": { "type": ["integer", "null"] },
+              "scenario_delivery_year": { "type": ["integer", "null"] },
+              "delta_years":            { "type": ["integer", "null"] },
+              "status": {
+                "enum": ["unchanged", "delayed", "advanced", "cancelled", "added"]
+              }
+            }
+          },
+          "$comment": "Only includes projects whose delivery year differs from the SC-CURRENT baseline. Empty when the scenario is SC-CURRENT itself."
+        }
       }
     },
     "model_version": { "type": "string" }

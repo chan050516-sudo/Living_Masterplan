@@ -2,10 +2,10 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/deadspace.schema.json",
   "title": "Deadspace",
-  "description": "Output of B6. Three-layer detection with contributing factors and evidence.",
+  "description": "Output of B6. Three-layer flag-based detection. No composite score is produced — see urgency_index for the internal sort key.",
   "type": "object",
   "required": [
-    "asset_id", "year", "status", "score",
+    "asset_id", "year", "status", "flags", "urgency_index",
     "layer1", "layer2", "layer3",
     "contributing_factors", "evidence", "model_version"
   ],
@@ -19,7 +19,16 @@
         "monitor", "healthy"
       ]
     },
-    "score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "$comment": "Flat list of every flag raised by layer1 + layer2. Order is not significant."
+    },
+    "urgency_index": {
+      "type": "number",
+      "minimum": 0,
+      "$comment": "Internal-only ranking key. NOT shown in the UI and NOT comparable across scenarios."
+    },
     "layer1": {
       "type": "object",
       "required": ["triggered", "reasons"],

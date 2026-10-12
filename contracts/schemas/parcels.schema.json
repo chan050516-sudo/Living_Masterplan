@@ -46,7 +46,10 @@
       "required": ["parcel_id", "asset_id", "land_use", "area_m2", "geometry_source", "geometry_confidence"],
       "properties": {
         "parcel_id": { "type": "string", "pattern": "^P-" },
-        "asset_id": { "type": "string" },
+        "asset_id": {
+          "type": ["string", "null"],
+          "$comment": "Null when the parcel is planned but has no asset yet (e.g. P-PHASE3)."
+        },
         "land_use": {
           "enum": ["commercial", "community_facility", "residential", "mixed_use",
                    "green_space", "undeveloped", "infrastructure", "unknown"]

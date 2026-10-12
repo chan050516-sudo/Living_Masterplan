@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://living-masterplan.local/schemas/asset_score.schema.json",
   "title": "AssetScore",
-  "description": "Output of B5. Scores 0-100 per dimension plus overall.",
+  "description": "Output of B5 (not yet implemented). Scores 0-100 per dimension plus overall. NOTE: B6 does not consume this schema — deadspace detection is flag-based as of v0.4.0.",
   "type": "object",
   "required": [
     "asset_id", "asset_type", "year", "overall_score",
