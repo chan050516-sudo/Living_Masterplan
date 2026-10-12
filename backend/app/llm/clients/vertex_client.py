@@ -163,14 +163,42 @@ class VertexGeminiClient:
         return mapping.get(level, types.ThinkingLevel.MEDIUM)
 
     def _to_contents(self, messages: list) -> list:
-        """Convert the orchestrator's message format to google-genai Content."""
+        """
+        Convert the orchestrator's message format to google-genai Content.
+
+        Gemini's protocol requires strict alternation between user and
+        model roles. When the orchestrator issues N parallel tool calls
+        in a single assistant turn, it appends N consecutive `role="tool"`
+        messages. Emitting each as its own user Content violates the
+        alternation rule and Gemini rejects the request with
+        `400 InvalidArgument`.
+
+        To satisfy the protocol we buffer consecutive tool responses and
+        flush them as a single user Content containing N FunctionResponse
+        parts whenever the next non-tool message arrives.
+        """
         contents = []
+        pending_tool_responses = []
+
+        def _flush_tool_responses():
+            if pending_tool_responses:
+                contents.append(types.Content(
+                    role="user",
+                    parts=pending_tool_responses[:],
+                ))
+                pending_tool_responses.clear()
+
         for m in messages:
             role = m.get("role")
+
+            # Any non-tool message breaks a run of tool responses.
+            if role != "tool":
+                _flush_tool_responses()
+
             if role == "system":
-                # System messages become the first user turn with a
-                # prefix instruction. Gemini does not have a system role
-                # in the low-level Content API.
+                # Gemini has no system role in the low-level Content API,
+                # so a system message is modelled as a user turn followed
+                # by a trivial model acknowledgement.
                 contents.append(types.Content(
                     role="user",
                     parts=[types.Part(text=m.get("content") or "")],
@@ -179,11 +207,13 @@ class VertexGeminiClient:
                     role="model",
                     parts=[types.Part(text="Understood.")],
                 ))
+
             elif role == "user":
                 contents.append(types.Content(
                     role="user",
                     parts=[types.Part(text=m.get("content") or "")],
                 ))
+
             elif role == "assistant":
                 parts = []
                 if m.get("content"):
@@ -196,18 +226,19 @@ class VertexGeminiClient:
                         ),
                     ))
                 contents.append(types.Content(role="model", parts=parts))
+
             elif role == "tool":
-                # Tool results must be sent as a function_response part
-                # inside a user turn.
-                contents.append(types.Content(
-                    role="user",
-                    parts=[types.Part(
-                        function_response=types.FunctionResponse(
-                            name=m.get("name"),
-                            response={"result": m.get("content")},
-                        ),
-                    )],
+                # Buffer, do not flush. The batch is flushed either when
+                # a non-tool message arrives or at the end of the loop.
+                pending_tool_responses.append(types.Part(
+                    function_response=types.FunctionResponse(
+                        name=m.get("name"),
+                        response={"result": m.get("content")},
+                    ),
                 ))
+
+        # Flush any trailing tool responses.
+        _flush_tool_responses()
         return contents
 
     def _to_tool_declarations(self, tools: list):

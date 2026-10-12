@@ -148,6 +148,98 @@ def _compute_distance_matrix(G):
     return dict(nx.all_pairs_dijkstra_path_length(G, weight="effective_length_m"))
 
 
+def _is_valid_number(v) -> bool:
+    """True if v is a finite float (not None, not NaN)."""
+    if v is None:
+        return False
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return False
+    return not math.isnan(f)
+
+
+def _recompute_commercial_financials(
+    metric_row: dict,
+    eff: dict,
+    aid: str,
+    year: int,
+    new_occ: float,
+    state_by_year: dict,
+    base_year: int,
+    assumptions: dict,
+) -> None:
+    """
+    Mutates `metric_row` in place to reflect the current occupancy.
+
+    The simulation changes occupancy but the baseline financial figures
+    (rental income, footfall) were recorded at the base-year occupancy.
+    Carrying those forward unchanged produces an internally inconsistent
+    output: the comparison block would show occupancy_rate falling to 5%
+    while noi_rm stays at the base-year value.
+
+    Approach: scale rental income and footfall linearly with the
+    occupancy ratio, recompute maintenance with the aging factor, and
+    derive NOI and NOI yield from those.
+
+    This is a first-order approximation. Real commercial rents exhibit
+    non-linearity (backfilling vacancy typically happens at lower
+    marginal rents), but any monotone approximation is more honest than
+    leaving the figures static.
+    """
+    baseline = state_by_year.get(base_year, {}).get(aid, {})
+    base_occ = baseline.get("occupancy_rate")
+    base_rental = baseline.get("rental_income_rm")
+    base_footfall = baseline.get("footfall_daily")
+
+    if not _is_valid_number(base_occ) or float(base_occ) <= 0:
+        return
+    if not _is_valid_number(base_rental):
+        return
+
+    ratio = float(new_occ) / float(base_occ)
+    scaled_rental = float(base_rental) * ratio
+    metric_row["rental_income_rm"] = scaled_rental
+
+    if _is_valid_number(base_footfall):
+        scaled_footfall = float(base_footfall) * ratio
+        metric_row["footfall_daily"] = scaled_footfall
+        if scaled_footfall > 0:
+            metric_row["rental_income_per_visit_proxy"] = (
+                scaled_rental / (scaled_footfall * 365.0)
+            )
+        else:
+            metric_row["rental_income_per_visit_proxy"] = None
+
+    # Maintenance: recompute with the aging factor from the asset's
+    # original base, not the previous year's already-escalated value.
+    maintenance_base = eff.get("maintenance_annual_rm")
+    completion_year = eff.get("completion_year")
+    maintenance_current = None
+    if _is_valid_number(maintenance_base):
+        alpha = assumptions.get("asset_aging", {}).get("alpha", 0.03)
+        if _is_valid_number(completion_year):
+            years_old = max(0, year - int(completion_year))
+        else:
+            years_old = 0
+        maintenance_current = float(maintenance_base) * (1.0 + alpha) ** years_old
+    metric_row["maintenance_surge_rm"] = maintenance_current
+
+    # NOI = rental income - opex - maintenance
+    opex = eff.get("opex_annual_rm")
+    opex_f = float(opex) if _is_valid_number(opex) else 0.0
+    maint_f = maintenance_current if maintenance_current is not None else 0.0
+    noi = scaled_rental - opex_f - maint_f
+    metric_row["noi_rm"] = noi
+
+    # NOI yield = NOI / initial CAPEX
+    capex = eff.get("capex_initial_rm")
+    if _is_valid_number(capex) and float(capex) > 0:
+        metric_row["noi_yield"] = noi / float(capex)
+    else:
+        metric_row["noi_yield"] = None
+
+
 def simulate_scenario(
     scenario_id: str,
     repo_root: Path = None,
@@ -374,6 +466,11 @@ def simulate_scenario(
             # ---- Environmental (subtype-aware) ----
             floor_area = float(eff.get("floor_area_m2") or 0)
             energy = energy_from_subtype(effective_subtype or "vacant", floor_area)
+            # Retrofit applies an energy-efficiency multiplier set by
+            # interventions._apply_retrofit. Absent means no gain.
+            eff_mult = eff.get("_energy_efficiency_multiplier")
+            if _is_valid_number(eff_mult):
+                energy *= float(eff_mult)
             carbon = operational_carbon(energy, emission_factor)
 
             # ---- Build metric row ----
@@ -389,7 +486,23 @@ def simulate_scenario(
 
             if effective_type == "community_facility":
                 metric_row["utilisation_rate"] = new_util
-            elif effective_type in ("commercial", "residential"):
+            elif effective_type == "commercial":
+                metric_row["occupancy_rate"] = new_occ
+                metric_row["vacancy_rate"] = 1.0 - new_occ
+                # Baseline financial figures were recorded at the base-year
+                # occupancy. Recompute them so the comparison block does not
+                # show "occupancy dropped, NOI unchanged".
+                _recompute_commercial_financials(
+                    metric_row=metric_row,
+                    eff=eff,
+                    aid=aid,
+                    year=year,
+                    new_occ=new_occ,
+                    state_by_year=state_by_year,
+                    base_year=base_year,
+                    assumptions=assumptions,
+                )
+            elif effective_type == "residential":
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
 

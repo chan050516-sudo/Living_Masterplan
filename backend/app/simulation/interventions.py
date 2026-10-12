@@ -89,11 +89,32 @@ def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
 
 
 def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
+    """
+    Retrofit raises CAPEX, reduces maintenance, and reduces operational
+    energy intensity. The energy gain is expressed as a multiplier on
+    the subtype's baseline intensity, read by the simulation engine when
+    it computes `energy_kwh` and `carbon_operational_tco2e`.
+
+    Default efficiency gain: 15%. It can be overridden by the
+    intervention's parameters_json via an `energy_efficiency_gain`
+    key (0-1), for future sensitivity work.
+    """
     delta = intervention.get("capex_delta_rm") or 0
     if _is_number(asset.get("capex_initial_rm")):
         asset["capex_initial_rm"] = float(asset["capex_initial_rm"]) + float(delta)
     if _is_number(asset.get("maintenance_annual_rm")):
         asset["maintenance_annual_rm"] = float(asset["maintenance_annual_rm"]) * 0.8
+
+    # Energy gain. `params["energy_efficiency_gain"]` is a fractional
+    # reduction (0.15 → 15%). Falls back to 0.15 when absent.
+    gain = 0.15
+    try:
+        if "energy_efficiency_gain" in params:
+            gain = float(params["energy_efficiency_gain"])
+    except (TypeError, ValueError):
+        pass
+    gain = max(0.0, min(0.90, gain))
+    asset["_energy_efficiency_multiplier"] = 1.0 - gain
 
 
 def apply_construction_state(asset: dict, status: str) -> dict:

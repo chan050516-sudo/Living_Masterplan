@@ -286,9 +286,17 @@ class ProposalValidator:
                     f"'{to_subtype}' — no-op."
                 )
 
-        # Budget hints
-        capex = self._estimate_capex(itype, asset_row, params)
-        opex_delta = self._estimate_opex_delta(itype, asset_row, params)
+        # Budget hints.
+        # Pass the repurpose target subtype so the estimator hits the
+        # subtype-specific rate table rather than falling back to the
+        # asset's current class.
+        to_subtype = params.get("to_subtype") if itype == "repurpose" else None
+        capex = self._estimate_capex(
+            itype, asset_row, params, target_subtype=to_subtype,
+        )
+        opex_delta = self._estimate_opex_delta(
+            itype, asset_row, params, target_subtype=to_subtype,
+        )
 
         # Timing
         timing = DEFAULT_TIMING.get(itype, {
