@@ -12,15 +12,24 @@ compute_derived_metrics accepts such an override via its
 `network_override` parameter; B4 uses that to simulate the
 post-intervention network state for years after activation.
 
+Target resolution
+-----------------
+An intervention's target may be:
+  1. An explicit edge id in parameters_json (edge_id / edge_ids).
+  2. An edge id passed as target_asset_id (the mock data does this).
+  3. An asset id. The LLM reasoning layer knows assets, not edges, so
+     this is the common case in production. The target is resolved by
+     projecting the asset's parcel centroid onto the network and
+     returning the nearest edge.
+This chain makes a user-initiated "improve the walk to B-03" request
+land on the correct edge without the LLM needing edge-level knowledge.
+
 Design notes:
   - Interventions are cumulative. Once activated in year Y they remain
     in effect for every later year.
   - The canopy boost is additive on canopy_coverage_ratio and clipped
     at 1.0. The default boost depends on the intervention type; it can
     be overridden per-intervention through parameters_json.
-  - Which edges an intervention affects is resolved from the
-    intervention's parameters_json first, and from target_asset_id as
-    a legacy fallback (the mock data uses edge ids as target ids).
 """
 
 import json
@@ -87,12 +96,23 @@ def network_version_tag(active_spatial):
     return "post_" + "_".join(sorted(ids))
 
 
-def apply_spatial_interventions(network_gdf, active_spatial):
+def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):
     """
     Return a copy of `network_gdf` with `canopy_coverage_ratio` adjusted
     on the edges targeted by the given spatial interventions.
 
     If `active_spatial` is empty, the input is returned unchanged.
+
+    Parameters
+    ----------
+    network_gdf : gpd.GeoDataFrame
+        The walking network layer.
+    active_spatial : list[dict]
+        Interventions returned by spatial_interventions_for_year.
+    parcels_gdf : gpd.GeoDataFrame, optional
+        Parcels layer, used to resolve asset-id targets to their
+        nearest edge. When omitted, asset-id targets fall through to
+        the legacy "use the id as an edge id" behaviour.
 
     The adjustment is additive on canopy: an edge with existing canopy
     of 0.10 receiving a +0.20 boost becomes 0.30. Values are clipped at
@@ -131,7 +151,9 @@ def apply_spatial_interventions(network_gdf, active_spatial):
         except (TypeError, ValueError):
             boost = DEFAULT_CANOPY_BOOST.get(itype, 0.20)
 
-        target_edges = _resolve_target_edges(intv, params)
+        target_edges = _resolve_target_edges(
+            intv, params, network_gdf=df, parcels_gdf=parcels_gdf,
+        )
         if not target_edges:
             log.info(
                 "Spatial intervention %s has no resolvable target edges; skipped.",
@@ -155,16 +177,17 @@ def apply_spatial_interventions(network_gdf, active_spatial):
     return df
 
 
-def _resolve_target_edges(intv, params):
+def _resolve_target_edges(intv, params, network_gdf=None, parcels_gdf=None):
     """
     Determine which network edge ids an intervention affects.
 
     Resolution order:
-      1. params["edge_id"]       single edge id
-      2. params["edge_ids"]      list of edge ids
-      3. intv["target_asset_id"] legacy: the asset id doubles as an
-                                 edge id. The mock interventions.csv
-                                 targets "E-R17" this way.
+      1. params["edge_id"]        single edge id
+      2. params["edge_ids"]       list of edge ids
+      3. target_asset_id already present as an edge id
+      4. target_asset_id is an asset id: project the asset's parcel
+         centroid onto the network and use the nearest edge
+      5. Legacy fallback: return the raw target unchanged
     """
     if params.get("edge_id"):
         return [str(params["edge_id"])]
@@ -173,7 +196,66 @@ def _resolve_target_edges(intv, params):
         if isinstance(ids, str):
             return [ids]
         return [str(x) for x in ids]
+
     target = intv.get("target_asset_id")
-    if target:
-        return [str(target)]
-    return []
+    if not target:
+        return []
+    target_str = str(target)
+
+    # The target may already be an edge id present in the network.
+    if network_gdf is not None and "edge_id" in network_gdf.columns:
+        edge_ids = set(network_gdf["edge_id"].astype(str))
+        if target_str in edge_ids:
+            return [target_str]
+
+    # The target is an asset id (the LLM's natural vocabulary). Resolve
+    # it to the nearest edge via the asset's parcel.
+    if network_gdf is not None and parcels_gdf is not None:
+        nearest = _find_edges_near_asset(
+            target_str, network_gdf, parcels_gdf,
+        )
+        if nearest:
+            log.info(
+                "Spatial intervention %s: asset %s resolved to nearest "
+                "edge(s) %s.",
+                intv.get("intervention_id"), target_str, nearest,
+            )
+            return nearest
+
+    # Legacy best-effort: treat the raw target as an edge id.
+    return [target_str]
+
+
+def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf,
+                           max_edges=1):
+    """
+    Return the edge id(s) nearest to the given asset's parcel centroid.
+
+    Uses Euclidean distance in the analysis CRS (EPSG:32647). This is
+    a coarse match used only for target resolution; the actual routing
+    cost is computed later by the network pipeline.
+    """
+    if network_gdf is None or parcels_gdf is None:
+        return []
+    if "asset_id" not in parcels_gdf.columns:
+        return []
+    match = parcels_gdf[parcels_gdf["asset_id"] == asset_id]
+    if match.empty:
+        return []
+    geom = match.iloc[0].geometry
+    if geom is None or geom.is_empty:
+        return []
+    rep = geom.centroid if geom.geom_type != "Point" else geom
+
+    distances = network_gdf.geometry.distance(rep)
+    if distances.empty:
+        return []
+
+    # Take the nearest `max_edges` edges.
+    idx = distances.nsmallest(max_edges).index
+    edge_ids = []
+    for i in idx:
+        eid = network_gdf.loc[i, "edge_id"]
+        if eid is not None:
+            edge_ids.append(str(eid))
+    return edge_ids

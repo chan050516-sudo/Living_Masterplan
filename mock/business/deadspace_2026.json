@@ -118,8 +118,7 @@
       "actionable": true,
       "candidate_interventions": [
         "new_development",
-        "delay_development",
-        "green_space"
+        "delay_development"
       ]
     },
     "contributing_factors": [],

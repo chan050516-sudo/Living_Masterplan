@@ -9,7 +9,13 @@ ACTION_SPACE = {
     "commercial":         ["repurpose", "retrofit", "pedestrian_upgrade", "green_corridor"],
     "community_facility": ["retrofit", "pedestrian_upgrade", "repurpose"],
     "green_space":        ["green_corridor", "pedestrian_upgrade"],
-    "undeveloped_parcel": ["new_development", "delay_development", "green_space"],
+    # NOTE: "green_space" used to appear in the undeveloped_parcel list,
+    # but green_space is an asset_class, not an intervention type. To
+    # turn a parcel into green space, propose new_development with
+    # parameters.to_subtype = "park" (or pocket_park / green_corridor /
+    # sports_field / water_body). This keeps the intervention vocabulary
+    # consistent with interventions.schema.json.
+    "undeveloped_parcel": ["new_development", "delay_development"],
     "residential":        ["retrofit", "pedestrian_upgrade"],
 }
 

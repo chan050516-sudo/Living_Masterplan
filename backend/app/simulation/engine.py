@@ -67,6 +67,7 @@ from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
     default_subtype_for,
+    get_subtype,
 )
 from .time_anchors import resolve_phase, interventions_for_asset, Phase
 from .interventions import apply_intervention, apply_construction_state
@@ -286,96 +287,101 @@ def _recompute_commercial_financials(
         metric_row["noi_yield"] = None
 
 
-def _is_valid_number(v) -> bool:
-    """True if v is a finite float (not None, not NaN)."""
-    if v is None:
-        return False
-    try:
-        f = float(v)
-    except (TypeError, ValueError):
-        return False
-    return not math.isnan(f)
-
-
-def _recompute_commercial_financials(
-    metric_row: dict,
-    eff: dict,
-    aid: str,
-    year: int,
-    new_occ: float,
-    state_by_year: dict,
-    base_year: int,
-    assumptions: dict,
-) -> None:
+def _synthesize_new_development_projects(
+    scenario_interventions, assets_df, year,
+) -> list:
     """
-    Mutates `metric_row` in place to reflect the current occupancy.
+    Turn `new_development` interventions into virtual project entries.
 
-    The simulation changes occupancy but the baseline financial figures
-    (rental income, footfall) were recorded at the base-year occupancy.
-    Carrying those forward unchanged produces an internally inconsistent
-    output: the comparison block would show occupancy_rate falling to 5%
-    while noi_rm stays at the base-year value.
+    The static development_projects.csv is authored by planners. LLM
+    proposals are appended to interventions.csv. Without this bridge,
+    a proposed development would pass validation and be charged CAPEX
+    but never reach the supply model — the parcel would stay vacant in
+    every simulated year.
 
-    Approach: scale rental income and footfall linearly with the
-    occupancy ratio, recompute maintenance with the aging factor, and
-    derive NOI and NOI yield from those.
-
-    This is a first-order approximation. Real commercial rents exhibit
-    non-linearity (backfilling vacancy typically happens at lower
-    marginal rents), but any monotone approximation is more honest than
-    leaving the figures static.
+    A synthesized project is emitted when its activation_year has
+    arrived. The project dict matches the shape of an entry from
+    development_projects.csv so downstream code (`_add_project_state`,
+    `_new_project_supply_nodes`) handles it without branching.
     """
-    baseline = state_by_year.get(base_year, {}).get(aid, {})
-    base_occ = baseline.get("occupancy_rate")
-    base_rental = baseline.get("rental_income_rm")
-    base_footfall = baseline.get("footfall_daily")
+    if scenario_interventions is None or scenario_interventions.empty:
+        return []
 
-    if not _is_valid_number(base_occ) or float(base_occ) <= 0:
-        return
-    if not _is_valid_number(base_rental):
-        return
+    synthesized = []
+    for _, intv in scenario_interventions.iterrows():
+        if intv.get("intervention_type") != "new_development":
+            continue
 
-    ratio = float(new_occ) / float(base_occ)
-    scaled_rental = float(base_rental) * ratio
-    metric_row["rental_income_rm"] = scaled_rental
+        activation = intv.get("activation_year")
+        if activation is None:
+            continue
+        try:
+            if int(activation) > year:
+                continue
+        except (TypeError, ValueError):
+            continue
 
-    if _is_valid_number(base_footfall):
-        scaled_footfall = float(base_footfall) * ratio
-        metric_row["footfall_daily"] = scaled_footfall
-        if scaled_footfall > 0:
-            metric_row["rental_income_per_visit_proxy"] = (
-                scaled_rental / (scaled_footfall * 365.0)
+        try:
+            params = json.loads(intv.get("parameters_json") or "{}")
+        except (json.JSONDecodeError, TypeError):
+            params = {}
+
+        gfa = params.get("target_gfa_m2") or params.get("new_gfa_m2")
+        try:
+            gfa = float(gfa or 0.0)
+        except (TypeError, ValueError):
+            gfa = 0.0
+        if gfa <= 0:
+            log.info(
+                "new_development intervention %s has no target_gfa_m2; "
+                "skipping project synthesis.",
+                intv.get("intervention_id"),
             )
+            continue
+
+        target_asset = intv.get("target_asset_id")
+        parcel_id = None
+        if target_asset:
+            match = assets_df[assets_df["asset_id"] == target_asset]
+            if not match.empty:
+                pid = match.iloc[0].get("parcel_id")
+                if isinstance(pid, str) and pid:
+                    parcel_id = pid
+
+        to_subtype = params.get("to_subtype")
+        if to_subtype:
+            land_use = _subtype_to_land_use(to_subtype)
         else:
-            metric_row["rental_income_per_visit_proxy"] = None
+            land_use = params.get("to_land_use") or "commercial"
 
-    # Maintenance: recompute with the aging factor from the asset's
-    # original base, not the previous year's already-escalated value.
-    maintenance_base = eff.get("maintenance_annual_rm")
-    completion_year = eff.get("completion_year")
-    maintenance_current = None
-    if _is_valid_number(maintenance_base):
-        alpha = assumptions.get("asset_aging", {}).get("alpha", 0.03)
-        if _is_valid_number(completion_year):
-            years_old = max(0, year - int(completion_year))
-        else:
-            years_old = 0
-        maintenance_current = float(maintenance_base) * (1.0 + alpha) ** years_old
-    metric_row["maintenance_surge_rm"] = maintenance_current
+        project_id = intv.get("intervention_id") or f"NEWDEV-{target_asset or '?'}"
 
-    # NOI = rental income - opex - maintenance
-    opex = eff.get("opex_annual_rm")
-    opex_f = float(opex) if _is_valid_number(opex) else 0.0
-    maint_f = maintenance_current if maintenance_current is not None else 0.0
-    noi = scaled_rental - opex_f - maint_f
-    metric_row["noi_rm"] = noi
+        synthesized.append({
+            "project_id": project_id,
+            "parcel_id": parcel_id,
+            "asset_id": target_asset,
+            "project_name": (
+                f"LLM-proposed: {to_subtype or 'development'} on {target_asset}"
+            ),
+            "project_status": "proposed",
+            "planned_start_year": int(activation),
+            "planned_delivery_year": int(activation),
+            "gfa_m2": gfa,
+            "units": params.get("target_units"),
+            "land_use": land_use,
+            "capex_rm": intv.get("capex_delta_rm") or 0,
+            "scenario_dependency": None,
+            "subtype": to_subtype,
+        })
+    return synthesized
 
-    # NOI yield = NOI / initial CAPEX
-    capex = eff.get("capex_initial_rm")
-    if _is_valid_number(capex) and float(capex) > 0:
-        metric_row["noi_yield"] = noi / float(capex)
-    else:
-        metric_row["noi_yield"] = None
+
+def _subtype_to_land_use(subtype: str) -> str:
+    """Rough mapping from a taxonomy subtype to a land_use label."""
+    defn = get_subtype(subtype)
+    if defn is None:
+        return "unknown"
+    return defn.get("asset_class", "unknown")
 
 
 def simulate_scenario(
@@ -481,7 +487,9 @@ def simulate_scenario(
                 tag,
             )
             modified_network = apply_spatial_interventions(
-                geometry["network"]["analysis"], active_spatial,
+                geometry["network"]["analysis"],
+                active_spatial,
+                parcels_gdf=geometry["parcels"]["analysis"],
             )
             try:
                 derived = compute_derived_metrics(
@@ -606,9 +614,19 @@ def simulate_scenario(
             year_supply_nodes.append(s_copy)
 
         # New supply from delivered projects.
+        # New supply from delivered projects.
         active_projects = active_projects_in_year(
             projects_df, year, scenario_id,
             interventions_df=scenario_interventions,
+        )
+        # NEW: LLM-proposed new_development interventions become virtual
+        # projects so they actually enter the supply model and township
+        # carbon totals. Without this bridge, a validated proposal would
+        # be charged CAPEX but never delivered.
+        active_projects.extend(
+            _synthesize_new_development_projects(
+                scenario_interventions, assets_df, year,
+            )
         )
         year_supply_nodes.extend(
             _new_project_supply_nodes(
@@ -737,6 +755,26 @@ def simulate_scenario(
             # ---- Driven value ----
             if effective_type == "community_facility":
                 metric_row["utilisation_rate"] = new_util
+
+                # Fallback: a repurpose target becomes a facility, but
+                # B3 still sees it as its original class on disk (the
+                # static assets.csv is unchanged). B3 therefore never
+                # produces `service_coverage` for it — the commercial
+                # deriver does not compute that field. Without this
+                # fallback, SC-REPURPOSE would report service_coverage
+                # as null for every year after activation, which is the
+                # single most important social metric of the repurpose.
+                #
+                # The walking catchment's 10-minute coverage ratio is
+                # available (B3 computes it for every asset regardless
+                # of type) and equals service_coverage by construction.
+                if metric_row.get("service_coverage") is None:
+                    if not year_row_match.empty:
+                        fresh_cov = year_row_match.iloc[0].get(
+                            "coverage_ratio_10min_walk",
+                        )
+                        if _is_valid_number(fresh_cov):
+                            metric_row["service_coverage"] = float(fresh_cov)
             elif effective_type == "commercial":
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
