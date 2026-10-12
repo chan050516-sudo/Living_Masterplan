@@ -34,6 +34,13 @@ Phase 8 changes:
   - map_diff gains a "project_schedule" block that shows, per project,
     the baseline vs scenario delivery year and a status enum
     (unchanged / delayed / advanced / cancelled / added).
+
+Phase 9 changes:
+  - simulate_scenario() accepts selected_ids. When given, the
+    comparison block restricts to those assets and returns a per-asset
+    structure, so a multi-asset LLM plan can be evaluated in a single
+    simulation pass. A focus_asset_id + metrics pair is still returned
+    at the top level for backward compatibility with the UI.
 """
 
 import json
@@ -145,8 +152,16 @@ def simulate_scenario(
     scenario_id: str,
     repo_root: Path = None,
     years: list = None,
+    selected_ids: list = None,
 ) -> dict:
-    """Returns a ScenarioResult dict per scenario_result.schema.json."""
+    """
+    Returns a ScenarioResult dict per scenario_result.schema.json.
+
+    If selected_ids is provided, the comparison block restricts to
+    those assets and produces a per-asset structure (comparison.per_asset).
+    If None, every non-project asset is compared. Backward-compat
+    focus_asset_id + metrics are always present.
+    """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     years = years or DEFAULT_YEARS
     base_year = years[0]
@@ -414,7 +429,10 @@ def simulate_scenario(
         state_by_year[year] = year_state
 
     # ---- Comparison ----
-    comparison = _build_comparison(state_by_year, base_year, years[-1], assets_df)
+    comparison = _build_comparison(
+        state_by_year, base_year, years[-1], assets_df,
+        selected_ids=selected_ids,
+    )
     comparison["township_metrics"] = _compute_township_metrics(
         state_by_year, years, base_year, years[-1],
     )
@@ -637,18 +655,48 @@ def _get_prev_metrics(prev_state, asset_id):
     return {}
 
 
-def _build_comparison(state_by_year, base_year, final_year, assets_df):
+# ------------------------------------------------------------------
+# Comparison
+# ------------------------------------------------------------------
+
+
+# Metrics shown per asset in the comparison block. Order matters only
+# for display; the dict preserves it.
+_COMPARISON_METRICS = [
+    ("occupancy_rate", "ratio"),
+    ("utilisation_rate", "ratio"),
+    ("noi_rm", "RM"),
+    ("noi_yield", "ratio"),
+    ("coverage_ratio_5min_walk", "ratio"),
+    ("coverage_ratio_10min_drive", "ratio"),
+    ("carbon_operational_tco2e", "tCO2e"),
+]
+
+
+def _build_comparison(state_by_year, base_year, final_year, assets_df,
+                      selected_ids=None):
     """
-    Metric-level comparison between base year and final year.
+    Per-asset comparison between base year and final year.
 
-    Focus asset selection: pick the asset with the largest absolute
-    change in either occupancy_rate or utilisation_rate, considering
-    both base and final states. The primary metric is the one that
-    actually changed.
+    When selected_ids is None, every non-project asset that appears in
+    the base year is compared. When given, only the listed assets are
+    included. Unknown IDs are silently skipped.
 
-    Project pseudo-entries (PRJ::*) are excluded from focus selection
-    because they have no meaningful before-state — a project that did
-    not exist in the base year cannot "change".
+    Returns
+    -------
+    {
+      "per_asset": {asset_id: {metric_key: {before, after, unit}}},
+      "aggregate": {
+          "asset_count": int,
+          "total_carbon_before_tco2e": float | None,
+          "total_carbon_after_tco2e":  float | None,
+          "carbon_delta_pct":          float | None,
+      },
+      # Backward-compat aliases. Downstream code that expects the
+      # single-focus format continues to work unchanged.
+      "focus_asset_id": str | None,
+      "metrics": {metric_key: {before, after, unit}},
+    }
     """
     before_state = state_by_year.get(base_year, {})
     after_state = state_by_year.get(final_year, {})
@@ -665,56 +713,85 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df):
     def _num_or_zero(v):
         return float(v) if _valid(v) else 0.0
 
+    # ---- Resolve the id list ----
+    if selected_ids is None:
+        ids = [aid for aid in before_state if not aid.startswith(PROJECT_ID_PREFIX)]
+    else:
+        ids = [
+            aid for aid in selected_ids
+            if not aid.startswith(PROJECT_ID_PREFIX)
+        ]
+
+    # ---- Per-asset metric comparison ----
+    def _compare_one(aid: str) -> dict:
+        b = before_state.get(aid, {})
+        a = after_state.get(aid, {})
+        metrics = {}
+        for key, unit in _COMPARISON_METRICS:
+            bv, av = b.get(key), a.get(key)
+            if _valid(bv) or _valid(av):
+                metrics[key] = {
+                    "before": float(bv) if _valid(bv) else None,
+                    "after": float(av) if _valid(av) else None,
+                    "unit": unit,
+                }
+        return metrics
+
+    per_asset = {aid: _compare_one(aid) for aid in ids}
+
+    # ---- Focus asset (largest absolute delta on occupancy/utilisation) ----
     focus_asset = None
     best_delta = 0.0
-    for aid in before_state:
-        if aid.startswith(PROJECT_ID_PREFIX):
-            continue
+    for aid in ids:
         b_st = before_state.get(aid, {})
         a_st = after_state.get(aid, {})
         for key in ("occupancy_rate", "utilisation_rate"):
-            delta = abs(_num_or_zero(a_st.get(key)) - _num_or_zero(b_st.get(key)))
+            delta = abs(
+                _num_or_zero(a_st.get(key)) - _num_or_zero(b_st.get(key))
+            )
             if delta > best_delta:
                 best_delta = delta
                 focus_asset = aid
 
-    if focus_asset is None:
-        focus_asset = next(
-            (aid for aid in after_state if not aid.startswith(PROJECT_ID_PREFIX)),
-            None,
-        )
+    if focus_asset is None and ids:
+        focus_asset = ids[0]
 
-    if focus_asset is None:
-        return {"focus_asset_id": None, "metrics": {}}
+    # ---- Aggregate over the selected set ----
+    total_before = 0.0
+    total_after = 0.0
+    has_before = False
+    has_after = False
+    for aid in ids:
+        b_val = before_state.get(aid, {}).get("carbon_operational_tco2e")
+        a_val = after_state.get(aid, {}).get("carbon_operational_tco2e")
+        if _valid(b_val):
+            total_before += float(b_val)
+            has_before = True
+        if _valid(a_val):
+            total_after += float(a_val)
+            has_after = True
 
-    before = before_state.get(focus_asset, {})
-    after = after_state.get(focus_asset, {})
-
-    candidate_metrics = [
-        ("occupancy_rate", "ratio"),
-        ("utilisation_rate", "ratio"),
-        ("noi_rm", "RM"),
-        ("noi_yield", "ratio"),
-        ("coverage_ratio_5min_walk", "ratio"),
-        ("coverage_ratio_10min_drive", "ratio"),
-        ("carbon_operational_tco2e", "tCO2e"),
-    ]
-
-    metrics = {}
-    for key, unit in candidate_metrics:
-        b = before.get(key)
-        a = after.get(key)
-        if _valid(b) or _valid(a):
-            metrics[key] = {
-                "before": float(b) if _valid(b) else None,
-                "after": float(a) if _valid(a) else None,
-                "unit": unit,
-            }
+    carbon_delta_pct = None
+    if has_before and total_before > 0:
+        carbon_delta_pct = (total_after - total_before) / total_before
 
     return {
+        "per_asset": per_asset,
+        "aggregate": {
+            "asset_count": len(ids),
+            "total_carbon_before_tco2e": total_before if has_before else None,
+            "total_carbon_after_tco2e": total_after if has_after else None,
+            "carbon_delta_pct": carbon_delta_pct,
+        },
+        # Backward-compat:
         "focus_asset_id": focus_asset,
-        "metrics": metrics,
+        "metrics": per_asset.get(focus_asset, {}) if focus_asset else {},
     }
+
+
+# ------------------------------------------------------------------
+# Township metrics
+# ------------------------------------------------------------------
 
 
 def _compute_township_metrics(state_by_year, years, base_year, final_year):
@@ -762,9 +839,6 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
     def _is_project(aid):
         return aid.startswith(PROJECT_ID_PREFIX)
 
-    def _is_asset(aid):
-        return not _is_project(aid)
-
     walk_before = _avg_coverage(before, "coverage_ratio_15min_walk")
     walk_after = _avg_coverage(after, "coverage_ratio_15min_walk")
 
@@ -780,9 +854,7 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
 
     # Cumulative project carbon across every simulated year up to
     # final_year. A project delivered earlier contributes to more
-    # simulated years, so a delay visibly reduces this total. This is
-    # what makes SC-CURRENT and SC-DELAY differ even though both have
-    # the project operating by final_year.
+    # simulated years, so a delay visibly reduces this total.
     project_carbon_cumulative = 0.0
     for y in years:
         if y > final_year:
@@ -811,6 +883,11 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
             project_carbon_cumulative if project_carbon_cumulative > 0 else None
         ),
     }
+
+
+# ------------------------------------------------------------------
+# Project schedule
+# ------------------------------------------------------------------
 
 
 def _resolve_project_delivery_year(proj, scenario_id, interventions_df):

@@ -30,6 +30,97 @@ log = logging.getLogger(__name__)
 
 
 # ------------------------------------------------------------------
+# CAPEX and OPEX estimation tables
+# ------------------------------------------------------------------
+# These tables exist for ONE purpose: budget validation. They provide
+# an order-of-magnitude anchor so the validator can reject a plan that
+# obviously blows the user's budget, without the LLM having to
+# declare CAPEX explicitly.
+#
+# They are NOT a cost model. They must never be shown to the user, and
+# they must never be presented as an estimate. The authoritative CAPEX
+# of an intervention is whatever the intervention row declares (or,
+# in the future, whatever a proper cost model computes).
+#
+# All rates are RM per m² of the asset's floor area. Where a subtype
+# is known, the subtype rate wins; otherwise the asset-class rate is
+# used.
+_CAPEX_RATE_BY_SUBTYPE = {
+    # Commercial
+    "convenience_retail": 180.0,
+    "supermarket":        220.0,
+    "f_and_b":            250.0,
+    "medical_retail":     320.0,
+    "office":             200.0,
+    "services":           180.0,
+    "entertainment":      260.0,
+    "showroom":           180.0,
+    # Community facility
+    "clinic":             380.0,
+    "community_hall":     260.0,
+    "library":            300.0,
+    "childcare":          340.0,
+    "school":             280.0,
+    "sports_centre":      320.0,
+    "place_of_worship":   260.0,
+    "public_service":     260.0,
+    # Residential
+    "terrace":            200.0,
+    "semidetached":       200.0,
+    "detached":           200.0,
+    "apartment_lowrise":  200.0,
+    "apartment_highrise": 220.0,
+    "affordable_housing": 180.0,
+    # Green space
+    "park":                30.0,
+    "pocket_park":         40.0,
+    "green_corridor":      50.0,
+    "sports_field":        20.0,
+    "water_body":          10.0,
+    # Undeveloped
+    "vacant":             250.0,
+}
+
+_CAPEX_RATE_BY_CLASS = {
+    "commercial":         200.0,
+    "community_facility": 280.0,
+    "residential":        200.0,
+    "green_space":         30.0,
+    "undeveloped_parcel": 250.0,
+}
+
+# Minimum CAPEX per intervention type (RM). Even a tiny asset needs at
+# least this much to execute the intervention.
+_CAPEX_FLOOR = {
+    "repurpose":          100_000.0,
+    "retrofit":            50_000.0,
+    "green_corridor":     250_000.0,
+    "pedestrian_upgrade": 180_000.0,
+    "new_development":    500_000.0,
+    "delay_development":        0.0,
+}
+
+# Retrofit upgrades systems and finishes rather than reconstructing
+# the shell, so it is charged a fraction of the full rebuild rate.
+_RETROFIT_FRACTION = 0.40
+
+# OPEX delta defaults. Positive values mean the intervention raises
+# annual operating cost. Values are RM/year for repurpose; a fraction
+# of the asset's current OPEX for retrofit; zero for the others.
+_OPEX_DELTA_BY_TARGET_CLASS = {
+    # Repurpose changes the asset's operating profile. A facility has
+    # staff and utility costs; green space is nearly free; a different
+    # commercial subtype roughly holds constant.
+    "commercial":          0.0,
+    "community_facility": 60_000.0,
+    "residential":        20_000.0,
+    "green_space":         5_000.0,
+    "undeveloped_parcel":  0.0,
+}
+_RETROFIT_OPEX_SAVING_FRACTION = -0.10  # 10% reduction
+
+
+# ------------------------------------------------------------------
 # Result container
 # ------------------------------------------------------------------
 
@@ -304,44 +395,133 @@ class ProposalValidator:
     # Helpers
     # --------------------------------------------------------------
 
-    def _estimate_capex(self, itype: str, asset_row: dict, params: dict) -> float:
-        """Conservative CAPEX estimate in RM. Used only for budget check."""
-        if itype == "repurpose":
-            # Rough: RM 200 / m² of floor area, floor 100k.
-            floor = asset_row.get("floor_area_m2") or 0
-            try:
-                floor = float(floor)
-            except (TypeError, ValueError):
-                floor = 0.0
-            return max(100_000.0, floor * 200.0)
-        if itype == "retrofit":
-            floor = asset_row.get("floor_area_m2") or 0
-            try:
-                floor = float(floor)
-            except (TypeError, ValueError):
-                floor = 0.0
-            return max(50_000.0, floor * 80.0)
-        if itype == "green_corridor":
-            return 250_000.0
-        if itype == "pedestrian_upgrade":
-            return 180_000.0
-        if itype == "new_development":
-            gfa = params.get("target_gfa_m2") or 0
-            try:
-                gfa = float(gfa)
-            except (TypeError, ValueError):
-                gfa = 0.0
-            return max(500_000.0, gfa * 800.0)
+    def _estimate_capex(
+        self,
+        itype: str,
+        asset_row: dict,
+        params: dict,
+        target_subtype: str = None,
+    ) -> float:
+        """
+        Conservative CAPEX estimate in RM, used only for budget
+        validation. Resolution order:
+
+          1. Explicit value from the LLM (params["capex_delta_rm"]).
+             This is the LLM's own claim; the validator takes it at
+             face value because the user is paying the actual bill.
+
+          2. Rate table lookup keyed on the target subtype. Only
+             applies to subtype-changing interventions (repurpose,
+             new_development), where the resulting cost profile
+             depends on what the asset becomes.
+
+          3. Rate table lookup keyed on the asset's current class.
+             Fallback when the target subtype is unknown.
+
+          4. A hard floor per intervention type, applied on top of
+             (2)/(3) to prevent a tiny asset from escaping the budget
+             check with a trivially small number.
+
+        Returns 0.0 for delay_development (it costs nothing and
+        defers spend rather than committing to it).
+        """
         if itype == "delay_development":
             return 0.0
+
+        # 1. LLM-declared value
+        explicit = params.get("capex_delta_rm")
+        if explicit is not None:
+            try:
+                return float(explicit)
+            except (TypeError, ValueError):
+                pass
+
+        # 2. Target-subtype rate (subtype-changing interventions only)
+        floor = _CAPEX_FLOOR.get(itype, 0.0)
+        floor_area = _as_positive_float(asset_row.get("floor_area_m2"))
+
+        if itype in ("repurpose", "new_development"):
+            rate = None
+            if target_subtype:
+                rate = _CAPEX_RATE_BY_SUBTYPE.get(target_subtype)
+            if rate is None:
+                rate = _CAPEX_RATE_BY_CLASS.get(
+                    asset_row.get("asset_type"), 200.0,
+                )
+            if floor_area > 0:
+                return max(floor, floor_area * rate)
+            return floor
+
+        # 3. Retrofit: fraction of the current-class rate
+        if itype == "retrofit":
+            rate = _CAPEX_RATE_BY_CLASS.get(
+                asset_row.get("asset_type"), 200.0,
+            ) * _RETROFIT_FRACTION
+            if floor_area > 0:
+                return max(floor, floor_area * rate)
+            return floor
+
+        # 4. Spatial interventions: fixed cost.
+        return floor
+
+    def _estimate_opex_delta(
+        self,
+        itype: str,
+        asset_row: dict,
+        params: dict,
+        target_subtype: str = None,
+    ) -> float:
+        """
+        OPEX delta in RM/year, used only for reporting. Resolution
+        order mirrors CAPEX:
+
+          1. Explicit value from the LLM (params["opex_delta_rm"]).
+          2. Default per target class (repurpose) or a fixed fraction
+             of the current OPEX (retrofit).
+          3. Zero for interventions that do not touch the asset's
+             own operating profile.
+
+        A negative value means the intervention reduces annual
+        operating cost.
+        """
+        if itype == "delay_development":
+            return 0.0
+
+        # 1. LLM-declared value
+        explicit = params.get("opex_delta_rm")
+        if explicit is not None:
+            try:
+                return float(explicit)
+            except (TypeError, ValueError):
+                pass
+
+        # 2. Repurpose: use the target subtype's asset class
+        if itype == "repurpose":
+            target_class = self._target_asset_class(target_subtype, asset_row)
+            return _OPEX_DELTA_BY_TARGET_CLASS.get(target_class, 0.0)
+
+        # 3. Retrofit: proportional savings on the current OPEX
+        if itype == "retrofit":
+            current_opex = _as_positive_float(asset_row.get("opex_annual_rm"))
+            if current_opex > 0:
+                return current_opex * _RETROFIT_OPEX_SAVING_FRACTION
+            return 0.0
+
+        # 4. Spatial and new-development interventions do not touch
+        #    the asset's own OPEX in this simulator.
         return 0.0
 
-    def _estimate_opex_delta(self, itype: str, asset_row: dict, params: dict) -> float:
-        if itype == "repurpose":
-            return 60_000.0
-        if itype == "retrofit":
-            return -30_000.0  # assumed savings
-        return 0.0
+    def _target_asset_class(self, target_subtype: str, asset_row: dict) -> str:
+        """
+        Return the asset_class that a repurpose would move the asset
+        into. Falls back to the asset's current class when the target
+        subtype is missing or unknown.
+        """
+        if target_subtype:
+            defn = self.ds.subtypes_config.get(target_subtype)
+            if defn and defn.get("asset_class"):
+                return defn["asset_class"]
+        return asset_row.get("asset_type", "commercial")
 
     def _normalise_expected(self, expected: dict) -> str:
         """
@@ -403,3 +583,18 @@ class ProposalValidator:
             if d <= radius_m:
                 results.append({"asset_id": row["asset_id"], "distance_m": round(d, 1)})
         return results
+
+# ------------------------------------------------------------------
+# Utilities
+# ------------------------------------------------------------------
+def _as_positive_float(v) -> float:
+    """Convert to a float, treating None / NaN / negatives as 0.0."""
+    if v is None:
+        return 0.0
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return 0.0
+    if math.isnan(f) or f < 0:
+        return 0.0
+    return f

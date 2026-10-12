@@ -7,6 +7,20 @@ Implements the four-stage reasoning loop:
   Stage 3  Validation and sim       Deterministic; may reject and loop
   Stage 4  Review and justification LLM writes the explanation
 
+Two entry points are exposed:
+
+  orchestrate(...)
+      Single-focus variant. Writes a plan as a scenario, runs the
+      simulation, and returns the full transcript. Kept for backward
+      compatibility.
+
+  orchestrate_and_simulate_batch(...)
+      Multi-asset variant. The LLM produces ONE plan covering every
+      selected asset in a single inference call. The plan is written
+      as a single scenario and simulated in one pass with
+      selected_ids set, so comparison.per_asset reports each asset's
+      own before/after.
+
 The orchestrator is LLM-client agnostic. It expects a client that
 implements two methods:
 
@@ -16,22 +30,15 @@ implements two methods:
   }
 
   chat_json(messages, schema_hint) -> dict
-
-If the client does not support tool calling, the orchestrator can be
-run with a fallback strategy: it feeds all retrieved context in the
-prompt instead of using structured tool calls.
 """
 
 import json
 import logging
-import re
 import uuid
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 
-from ..config import load_paths
 from .tool_service import TownshipDataSource, dispatch
 from .validator import ProposalValidator
 
@@ -47,11 +54,10 @@ TOOLS_SCHEMA_PATH = Path(__file__).parent / "tools_schema.json"
 
 MAX_TOOL_ROUNDS = 8           # limit runaway tool calling
 MAX_PROPOSAL_ATTEMPTS = 3     # validator feedback loop
-MAX_REVIEW_ATTEMPTS = 2       # LLM may ask for one re-run
 
 
 # ------------------------------------------------------------------
-# Public entry point
+# Public entry points
 # ------------------------------------------------------------------
 
 
@@ -63,8 +69,35 @@ def orchestrate(
     base_year: int = 2026,
 ) -> dict:
     """
+    Single-focus variant kept for backward compatibility. Delegates to
+    the batch implementation; the underlying simulation now returns
+    both per_asset and focus_asset_id, so callers see no regression.
+    """
+    return orchestrate_and_simulate_batch(
+        user_query=user_query,
+        selected_asset_ids=selected_asset_ids,
+        llm_client=llm_client,
+        repo_root=repo_root,
+        base_year=base_year,
+    )
+
+
+def orchestrate_and_simulate_batch(
+    user_query: str,
+    selected_asset_ids: list,
+    llm_client,
+    repo_root: Path = None,
+    base_year: int = 2026,
+) -> dict:
+    """
     Run the full reasoning loop for a user query against a set of
     selected assets.
+
+    The LLM produces ONE plan that covers every selected asset. That
+    plan is written to interventions.csv as a single scenario and
+    simulated in one pass with selected_ids set. The comparison block
+    then reports per-asset before/after metrics, and the justification
+    stage sees the entire multi-asset result at once.
 
     Parameters
     ----------
@@ -81,8 +114,8 @@ def orchestrate(
 
     Returns
     -------
-    dict with keys: intent, context, proposal, validation, simulation,
-    justification, meta.
+    dict with keys: run_id, scenario_id, intent, context, proposal,
+    validation, simulation, simulation_brief, justification, meta.
     """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     ds = TownshipDataSource(repo_root, year=base_year)
@@ -99,6 +132,7 @@ def orchestrate(
     # ---- Stage 2 + 3: proposal loop ----
     proposal = None
     validation = None
+    attempt = 0
     for attempt in range(1, MAX_PROPOSAL_ATTEMPTS + 1):
         proposal = _generate_proposal(intent, context, ds, llm_client, attempt)
         validation = validator.validate(
@@ -107,7 +141,6 @@ def orchestrate(
         )
         if validation.valid:
             break
-        # Feed errors back into context for the next attempt
         context = _append_validation_feedback(context, validation)
         log.info(
             "Proposal attempt %d rejected: %s",
@@ -117,21 +150,32 @@ def orchestrate(
     if not validation.valid:
         return {
             "run_id": run_id,
+            "scenario_id": None,
             "intent": intent,
-            "context": context,
+            "context": _context_to_dict(context),
             "proposal": proposal,
             "validation": validation.to_dict(),
             "simulation": None,
+            "simulation_brief": None,
             "justification": None,
             "error": "max_proposal_attempts_reached",
-            "meta": {"attempts": MAX_PROPOSAL_ATTEMPTS},
+            "meta": {
+                "attempts": MAX_PROPOSAL_ATTEMPTS,
+                "asset_count": len(intent["target_asset_ids"]),
+                "model": getattr(llm_client, "model", None),
+            },
         }
 
-    # ---- Stage 3b: write interventions + simulate ----
+    # ---- Stage 3b: write interventions + simulate (single pass) ----
     scenario_id = f"SC-{run_id}"
     _write_interventions(ds, scenario_id, validation.normalised_plan)
 
-    simulation_result = _run_simulation(scenario_id, repo_root)
+    simulation_result = _run_simulation(
+        scenario_id, repo_root,
+        selected_ids=intent["target_asset_ids"],
+    )
+
+    sim_brief = _summarise_simulation(simulation_result)
 
     # ---- Stage 4: review and justification ----
     justification = _write_justification(
@@ -147,13 +191,15 @@ def orchestrate(
         "run_id": run_id,
         "scenario_id": scenario_id,
         "intent": intent,
-        "context": context,
+        "context": _context_to_dict(context),
         "proposal": proposal,
         "validation": validation.to_dict(),
         "simulation": simulation_result,
+        "simulation_brief": sim_brief,
         "justification": justification,
         "meta": {
             "attempts": attempt,
+            "asset_count": len(intent["target_asset_ids"]),
             "model": getattr(llm_client, "model", None),
         },
     }
@@ -195,7 +241,6 @@ def _parse_intent(user_query: str, selected_asset_ids: list,
         log.warning("Intent parsing failed: %s", e)
         result = {}
 
-    # Validate / fill defaults
     if not isinstance(result, dict):
         result = {}
     targets = result.get("target_asset_ids") or selected_asset_ids
@@ -248,7 +293,9 @@ def _gather_context(intent: dict, ds: TownshipDataSource, llm_client) -> dict:
         {"role": "user", "content": json.dumps(seed, indent=2)},
     ]
 
-    gathered = {"seed": seed, "tool_calls": [], "notes": []}
+    tool_calls_log = []
+    notes = []
+    validator_feedback = None
 
     for _ in range(MAX_TOOL_ROUNDS):
         try:
@@ -260,7 +307,6 @@ def _gather_context(intent: dict, ds: TownshipDataSource, llm_client) -> dict:
         tool_calls = response.get("tool_calls") or []
         content = response.get("content")
 
-        # Record the assistant turn.
         messages.append({
             "role": "assistant",
             "content": content,
@@ -268,17 +314,15 @@ def _gather_context(intent: dict, ds: TownshipDataSource, llm_client) -> dict:
         })
 
         if not tool_calls:
-            # LLM signalled it is done gathering.
             if content:
-                gathered["notes"].append(content)
+                notes.append(content)
             break
 
-        # Execute each tool call and feed results back.
         for call in tool_calls:
             name = call.get("name")
             args = call.get("arguments") or {}
             outcome = dispatch(ds, name, args)
-            gathered["tool_calls"].append({
+            tool_calls_log.append({
                 "name": name,
                 "arguments": args,
                 "ok": outcome["ok"],
@@ -291,8 +335,13 @@ def _gather_context(intent: dict, ds: TownshipDataSource, llm_client) -> dict:
                 "content": json.dumps(outcome, default=str)[:8000],
             })
 
-    gathered["messages"] = messages
-    return gathered
+    return {
+        "seed": seed,
+        "messages": messages,
+        "tool_calls": tool_calls_log,
+        "notes": notes,
+        "validator_feedback": validator_feedback,
+    }
 
 
 def _compact_state(ds: TownshipDataSource, asset_id: str) -> dict:
@@ -326,6 +375,19 @@ def _compact_status(ds: TownshipDataSource, asset_id: str) -> dict:
     }
 
 
+def _context_to_dict(context: dict) -> dict:
+    """
+    Strip the raw message list before returning the context to the
+    caller. The messages are useful for debugging but heavy to ship.
+    """
+    return {
+        "seed": context.get("seed"),
+        "tool_calls": context.get("tool_calls", []),
+        "notes": context.get("notes", []),
+        "validator_feedback": context.get("validator_feedback"),
+    }
+
+
 # ------------------------------------------------------------------
 # Stage 2: proposal generation
 # ------------------------------------------------------------------
@@ -339,9 +401,6 @@ def _generate_proposal(intent: dict, context: dict, ds: TownshipDataSource,
     """
     prompt = _load_prompt("proposal_generator.md")
 
-    # A condensed view of the township so the LLM can reason about
-    # neighbouring assets, the taxonomy, and the available action space
-    # without needing another tool call.
     township_snapshot = _build_township_snapshot(ds, intent["target_asset_ids"])
 
     user_content = {
@@ -462,14 +521,17 @@ def _write_interventions(ds: TownshipDataSource, scenario_id: str, plan: list) -
     log.info("Wrote %d LLM interventions to %s as scenario %s", len(rows), path, scenario_id)
 
 
-def _run_simulation(scenario_id: str, repo_root: Path) -> dict:
+def _run_simulation(scenario_id: str, repo_root: Path,
+                    selected_ids: list = None) -> dict:
     """
     Run the deterministic simulation. Imported lazily to avoid a
     circular import at module load time.
     """
     from ..simulation.engine import simulate_scenario
     try:
-        return simulate_scenario(scenario_id, repo_root=repo_root)
+        return simulate_scenario(
+            scenario_id, repo_root=repo_root, selected_ids=selected_ids,
+        )
     except Exception as e:
         log.exception("Simulation failed for %s", scenario_id)
         return {"error": f"{type(e).__name__}: {e}"}
@@ -487,8 +549,6 @@ def _write_justification(intent: dict, proposal: dict, validation, simulation: d
     output. The LLM may add domain insight but must not invent numbers.
     """
     prompt = _load_prompt("justification_writer.md")
-
-    # Assemble a compact, non-redundant view of the simulation result.
     sim_brief = _summarise_simulation(simulation)
 
     user_content = {
@@ -527,26 +587,29 @@ def _write_justification(intent: dict, proposal: dict, validation, simulation: d
 
 def _summarise_simulation(simulation: dict) -> dict:
     """
-    Reduce a scenario result to the fields the LLM actually needs to
-    write a justification. Full data is still available on the
-    simulation result object; this is just for the prompt.
+    Reduce a scenario result to the fields the LLM actually needs.
+
+    Priority:
+      1. comparison.per_asset  (multi-asset format)
+      2. comparison.metrics    (legacy single-focus fallback)
     """
     if not simulation or simulation.get("error"):
         return {"error": (simulation or {}).get("error", "no simulation result")}
 
     comparison = simulation.get("comparison", {}) or {}
     township = comparison.get("township_metrics", {}) or {}
-    per_asset = comparison.get("per_asset", {}) or {}
-    if not per_asset and "focus_asset_id" in comparison:
-        # Fallback for the single-focus comparison format.
+
+    per_asset = comparison.get("per_asset") or {}
+    if not per_asset:
         focus = comparison.get("focus_asset_id")
-        if focus:
-            per_asset = {focus: comparison.get("metrics", {})}
+        if focus and comparison.get("metrics"):
+            per_asset = {focus: comparison["metrics"]}
 
     map_diff = simulation.get("map_diff", {}) or {}
 
     return {
         "per_asset_metrics": per_asset,
+        "aggregate": comparison.get("aggregate") or {},
         "township_metrics": township,
         "map_diff": {
             "changed_assets": map_diff.get("changed_assets", []),
