@@ -1,4 +1,8 @@
-"""Run Phase 4 — B4 Simulation for all scenarios."""
+"""Run Phase 4 — B4 Simulation for all scenarios.
+
+Phase 5 change: prints township-level metrics alongside the per-asset
+comparison block.
+"""
 
 import sys
 from pathlib import Path
@@ -8,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.simulation.engine import simulate_scenario, write_scenario_result
 
 
-def _fmt(v, decimals=2):
+def _fmt(v, decimals=3):
     if v is None:
         return "-"
     try:
@@ -45,40 +49,48 @@ def main():
         except Exception as e:
             print(f"    ERROR: {e}")
 
-    # ---- Per-scenario score timeline ----
-    _section("SCORE TIMELINE — B-03 (primary demo asset)")
-    print(f"  {'Year':<6} ", end="")
-    for sid in SCENARIOS:
-        print(f"{sid:<14} ", end="")
-    print()
-    print("  " + "-" * 60)
-    all_years = [2026, 2027, 2028, 2030, 2033]
-    for y in all_years:
-        print(f"  {y:<6} ", end="")
-        for sid in SCENARIOS:
-            r = results.get(sid, {})
-            score = r.get("years", {}).get(str(y), {}).get("scores", {}).get("B-03", {})
-            overall = score.get("overall_score")
-            print(f"{_fmt(overall, 1):<14} ", end="")
-        print()
-
-    # ---- Comparison table ----
-    _section("COMPARISON — final year vs current")
+    _section("METRIC COMPARISON")
     for sid in SCENARIOS:
         r = results.get(sid)
         if not r:
             continue
         c = r["comparison"]
         print(f"\n  {r['scenario_name']} ({sid})")
-        print(f"    CAPEX:                   RM {_fmt(c['capex'], 0)}")
-        print(f"    Projected utilisation:   {_fmt(c['projected_utilisation'], 3)}")
-        print(f"    Performance score:       {_fmt(c['performance_score'], 1)}")
-        print(f"    Δ Score:                 {_fmt(c['delta_score'], 1)}")
-        print(f"    Environmental:           {_fmt(c['environmental_score'], 1)}")
-        print(f"    Social:                  {_fmt(c['social_score'], 1)}")
-        print(f"    Time to impact:          {_fmt(c['time_to_impact_months'], 0)} months")
+        print(f"    Focus asset: {c.get('focus_asset_id')}")
+        metrics = c.get("metrics", {})
+        if not metrics:
+            print("    (no comparable metrics)")
+            continue
+        print(f"    {'Metric':<32} {'Before':>12} {'After':>12}  Unit")
+        print("    " + "-" * 68)
+        for key, val in metrics.items():
+            print(
+                f"    {key:<32} "
+                f"{_fmt(val.get('before')):>12} "
+                f"{_fmt(val.get('after')):>12}  "
+                f"{val.get('unit', '')}"
+            )
 
-    # ---- Map diff ----
+    _section("TOWNSHIP-LEVEL METRICS")
+    for sid in SCENARIOS:
+        r = results.get(sid)
+        if not r:
+            continue
+        tm = r["comparison"].get("township_metrics", {})
+        print(f"\n  {r['scenario_name']} ({sid})")
+        print(f"    Walk 15-min avg coverage (before): "
+              f"{_fmt(tm.get('walk_15min_avg_coverage_before'))}")
+        print(f"    Walk 15-min avg coverage (after):  "
+              f"{_fmt(tm.get('walk_15min_avg_coverage_after'))}")
+        print(f"    Walk 15-min coverage delta:        "
+              f"{_fmt(tm.get('walk_15min_coverage_delta'))}")
+        print(f"    Total carbon before (tCO2e):       "
+              f"{_fmt(tm.get('total_carbon_before_tco2e'), 1)}")
+        print(f"    Total carbon after (tCO2e):        "
+              f"{_fmt(tm.get('total_carbon_after_tco2e'), 1)}")
+        print(f"    Carbon delta (%):                  "
+              f"{_fmt(tm.get('carbon_delta_pct'), 4)}")
+
     _section("MAP DIFF")
     for sid in SCENARIOS:
         r = results.get(sid)

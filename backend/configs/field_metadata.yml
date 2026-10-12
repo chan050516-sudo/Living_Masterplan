@@ -31,36 +31,41 @@ assets:
   subtype:                  { tier: null, source: identity, unit: null }   # NEW
 
 asset_metrics:
-  year:                     { tier: null, source: identity, unit: year }
+  year:                             { tier: null, source: identity, unit: year }
 
-  occupancy_rate:           { tier: 1, source: observed, unit: ratio }
-  vacancy_rate:             { tier: 1, source: derived, unit: ratio }
-  vacancy_duration_months:  { tier: 1, source: observed, unit: month }
-  footfall_daily:           { tier: 1, source: observed, unit: person/day }
-  utilisation_rate:         { tier: 1, source: observed, unit: ratio }
+  # Identity and observed
+  subtype:                          { tier: null, source: identity, unit: null }
+  occupancy_rate:                   { tier: 1, source: observed, unit: ratio }
+  vacancy_rate:                     { tier: 1, source: derived, unit: ratio }
+  vacancy_duration_months:          { tier: 1, source: observed, unit: month }
+  footfall_daily:                   { tier: 1, source: observed, unit: person/day }
+  utilisation_rate:                 { tier: 1, source: observed, unit: ratio }
+  rental_income_rm:                 { tier: 1, source: observed, unit: RM }
+  energy_kwh:                       { tier: 1, source: observed, unit: kWh }
 
-  rental_income_rm:         { tier: 1, source: observed, unit: RM }
-  noi_rm:                   { tier: 2, source: derived, unit: RM }
-  noi_yield:                { tier: 2, source: derived, unit: ratio }
+  # Derived financial
+  noi_rm:                           { tier: 2, source: derived, unit: RM }
+  noi_yield:                        { tier: 2, source: derived, unit: ratio }
+  maintenance_surge_rm:             { tier: 2, source: derived, unit: RM }
+  rental_income_per_visit_proxy:    { tier: 2, source: derived, unit: "RM/person/day" }
 
-  # DEPRECATED: kept for backwards compatibility during Phase 2-3 migration.
-  # Will be removed after derivers migrate to catchment profile.
-  accessibility_score:      { tier: 2, source: derived, unit: 0-100, deprecated: true }
+  # Deprecated bridge — kept during Phase 4 transition
+  accessibility_score:              { tier: 2, source: derived, unit: 0-100, deprecated: true }
 
-  # NEW — walking catchment profile
-  catchment_population_5min_walk:  { tier: 2, source: derived, unit: count }
-  catchment_population_10min_walk: { tier: 2, source: derived, unit: count }
-  catchment_population_15min_walk: { tier: 2, source: derived, unit: count }
-  coverage_ratio_5min_walk:        { tier: 2, source: derived, unit: ratio }
-  coverage_ratio_10min_walk:       { tier: 2, source: derived, unit: ratio }
-  coverage_ratio_15min_walk:       { tier: 2, source: derived, unit: ratio }
-  mean_walk_distance_m:            { tier: 2, source: derived, unit: m }
-  median_walk_distance_m:          { tier: 2, source: derived, unit: m }
-  p90_walk_distance_m:             { tier: 2, source: derived, unit: m }
-  reachable_population_walk:       { tier: 2, source: derived, unit: count }
-  total_catchment_population:      { tier: 2, source: derived, unit: count }
+  # Walking profile
+  catchment_population_5min_walk:   { tier: 2, source: derived, unit: count }
+  catchment_population_10min_walk:  { tier: 2, source: derived, unit: count }
+  catchment_population_15min_walk:  { tier: 2, source: derived, unit: count }
+  coverage_ratio_5min_walk:         { tier: 2, source: derived, unit: ratio }
+  coverage_ratio_10min_walk:        { tier: 2, source: derived, unit: ratio }
+  coverage_ratio_15min_walk:        { tier: 2, source: derived, unit: ratio }
+  mean_walk_distance_m:             { tier: 2, source: derived, unit: m }
+  median_walk_distance_m:           { tier: 2, source: derived, unit: m }
+  p90_walk_distance_m:              { tier: 2, source: derived, unit: m }
+  reachable_population_walk:        { tier: 2, source: derived, unit: count }
+  total_catchment_population:       { tier: 2, source: derived, unit: count }
 
-  # NEW — driving catchment profile
+  # Driving profile
   catchment_population_5min_drive:  { tier: 2, source: derived, unit: count }
   catchment_population_10min_drive: { tier: 2, source: derived, unit: count }
   catchment_population_15min_drive: { tier: 2, source: derived, unit: count }
@@ -72,29 +77,35 @@ asset_metrics:
   p90_drive_distance_m:             { tier: 2, source: derived, unit: m }
   reachable_population_drive:       { tier: 2, source: derived, unit: count }
 
-  service_coverage:         { tier: 2, source: derived, unit: ratio }
+  # Demand
+  effective_demand:                 { tier: 3, source: assumed, unit: count }
+  effective_demand_m2:              { tier: 2, source: derived, unit: m2 }
+  effective_supply:                 { tier: 3, source: assumed, unit: count }
+  dsr:                              { tier: 2, source: derived, unit: ratio }
 
-  effective_demand:         { tier: 3, source: assumed, unit: count }
-  effective_demand_m2:      { tier: 2, source: derived, unit: "m2" }
-  effective_supply:         { tier: 3, source: assumed, unit: count }
-  dsr:                      { tier: 2, source: derived, unit: ratio }
-
-  carbon_operational_tco2e: { tier: 2, source: derived, unit: tCO2e }
-  energy_kwh:               { tier: 1, source: observed, unit: kWh }
-
-  green_coverage:           { tier: 2, source: derived, unit: ratio }
-  canopy_coverage:          { tier: 2, source: derived, unit: ratio }
-  shade_proxy_score:        { tier: 2, source: derived, unit: 0-100 }
-
-  rental_income_per_visit_proxy: { tier: 2, source: derived, unit: "RM/person/day" }
-  maintenance_surge_rm: { tier: 2, source: derived, unit: RM }
-
-  # Phase 2 — subtype and behavior
-  subtype:                          { tier: null, source: identity, unit: null }
-  energy_kwh:                       { tier: 2, source: derived, unit: kWh }
+  # Environment
   carbon_operational_tco2e:         { tier: 2, source: derived, unit: tCO2e }
 
-  # Analysis indicators
+  # Green
+  green_coverage:                   { tier: 2, source: derived, unit: ratio }
+  canopy_coverage:                  { tier: 2, source: derived, unit: ratio }
+  shade_proxy_score:                { tier: 2, source: derived, unit: 0-100 }
+  green_per_capita_m2:              { tier: 2, source: derived, unit: m2/person }
+
+  # Facility
+  service_coverage:                 { tier: 2, source: derived, unit: ratio }
+  cost_per_user_rm:                 { tier: 2, source: derived, unit: RM }
+
+  # Parcel
+  developable_area_m2:              { tier: 2, source: derived, unit: m2 }
+  potential_gfa_m2:                 { tier: 2, source: derived, unit: m2 }
+  demand_supply_gap:                { tier: 2, source: derived, unit: m2 }
+  infrastructure_cost_rm:           { tier: 2, source: derived, unit: RM }
+
+  # Residential
+  energy_intensity_kwh_m2:          { tier: 2, source: derived, unit: "kWh/m2/year" }
+
+  # Diagnostic indicators (Phase 2)
   demographic_mismatch:             { tier: 2, source: derived, unit: ratio }
   neighborhood_diversity:           { tier: 2, source: derived, unit: ratio }
 

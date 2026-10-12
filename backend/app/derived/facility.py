@@ -1,17 +1,26 @@
-"""Community facility derived metrics.
+"""Community facility derived metrics — subtype-aware.
 
-Phase 1 bridge: still uses the deprecated accessibility_score bridge
-from the walking profile. Full profile-aware refactor is scheduled for
-a later phase.
+Phase 4 changes:
+  - Subtype-specific utilisation benchmark and is_core_amenity flag.
+  - Service coverage = 10-min walking catchment ratio.
+  - Carbon computed from subtype energy intensity.
+  - Demographic mismatch between the facility subtype and its catchment.
 """
 
 import math
 from .context import DerivationContext
+from ..taxonomy import get_subtype_or_default
+from .demand_mismatch import demographic_mismatch
+from .environmental import energy_from_subtype, operational_carbon
 
 
 def derive_facility(ctx: DerivationContext) -> dict:
     asset = ctx.asset
     year = ctx.year
+    assumptions = ctx.assumptions
+
+    subtype = asset.get("subtype") or "community_hall"
+    subtype_cfg = get_subtype_or_default(subtype)
 
     metrics = ctx.business["asset_metrics"]
     row = metrics[
@@ -34,11 +43,8 @@ def derive_facility(ctx: DerivationContext) -> dict:
         return float(v)
 
     utilisation = _get("utilisation_rate")
-    accessibility = ctx.accessibility_score
 
-    # Service coverage: use 10-min walking coverage ratio from the
-    # Phase 1 profile. This is a bridge until the facility-specific
-    # service_coverage logic is refactored.
+    # Service coverage = 10-min walking catchment ratio.
     service_coverage = None
     if ctx.walking_profile:
         service_coverage = ctx.walking_profile.get("coverage_ratio_10min")
@@ -59,13 +65,34 @@ def derive_facility(ctx: DerivationContext) -> dict:
             total += float(maintenance)
         cost_per_user = total / annual_users
 
+    # --- Carbon (subtype-aware) ---
+    floor_area = float(asset.get("floor_area_m2") or 0.0)
+    energy_kwh = energy_from_subtype(subtype, floor_area, default_intensity=120.0)
+    carbon = operational_carbon(
+        energy_kwh,
+        assumptions.get("environmental", {}).get("emission_factor_energy", 0.58),
+    )
+
+    # --- Demographic mismatch ---
+    mismatch = None
+    if ctx.catchment_population_profile:
+        target_demographics = subtype_cfg.get("target_demographics", []) or []
+        mismatch = demographic_mismatch(
+            ctx.catchment_population_profile, target_demographics,
+        )
+
     return {
         "asset_id": asset["asset_id"],
         "year": year,
+        "subtype": subtype,
         "utilisation_rate": utilisation,
         "service_coverage": service_coverage,
         "cost_per_user_rm": cost_per_user,
-        "accessibility_score": accessibility,  # deprecated bridge
+        "energy_kwh": energy_kwh,
+        "carbon_operational_tco2e": carbon,
+        "demographic_mismatch": mismatch,
+        "neighborhood_diversity": ctx.neighborhood_diversity,
+        "accessibility_score": ctx.accessibility_score,  # deprecated bridge
         "metric_source": "derived",
         "model_version": "0.4.0",
     }

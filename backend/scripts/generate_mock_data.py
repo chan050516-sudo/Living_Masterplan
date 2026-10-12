@@ -224,13 +224,13 @@ print(f"Wrote {MOCK_BUSINESS / 'development_projects.csv'} ({len(projects)} rows
 
 
 # ----------------------------------------------------------------
-# development_candidates.csv
+# development_candidates.csv — development_type now uses taxonomy subtypes
 # ----------------------------------------------------------------
 candidates = pd.DataFrame([
     {
         "candidate_id": "CAND-P05-01",
         "parcel_id": "P-05",
-        "development_type": "childcare_centre",
+        "development_type": "childcare",       # taxonomy subtype
         "target_gfa_m2": 1200,
         "target_units": 1,
         "target_demographic": "young_families",
@@ -246,7 +246,7 @@ candidates = pd.DataFrame([
     {
         "candidate_id": "CAND-P05-02",
         "parcel_id": "P-05",
-        "development_type": "community_hub",
+        "development_type": "community_hall",
         "target_gfa_m2": 900,
         "target_units": 1,
         "target_demographic": "all_residents",
@@ -262,7 +262,7 @@ candidates = pd.DataFrame([
     {
         "candidate_id": "CAND-P05-03",
         "parcel_id": "P-05",
-        "development_type": "mixed_use_commercial",
+        "development_type": "convenience_retail",   # was mixed_use_commercial
         "target_gfa_m2": 4200,
         "target_units": 0,
         "target_demographic": "general",
@@ -294,7 +294,7 @@ candidates = pd.DataFrame([
     {
         "candidate_id": "CAND-P05-05",
         "parcel_id": "P-05",
-        "development_type": "green_space",
+        "development_type": "park",
         "target_gfa_m2": 3600,
         "target_units": 0,
         "target_demographic": "public",
@@ -313,7 +313,7 @@ print(f"Wrote {MOCK_BUSINESS / 'development_candidates.csv'} ({len(candidates)} 
 
 
 # ----------------------------------------------------------------
-# interventions.csv — JSON fields handled safely by pandas quoting
+# interventions.csv — repurpose now specifies to_subtype
 # ----------------------------------------------------------------
 interventions = pd.DataFrame([
     {
@@ -321,15 +321,20 @@ interventions = pd.DataFrame([
         "intervention_id": "INT-001",
         "target_asset_id": "B-03",
         "intervention_type": "repurpose",
+        # New: to_subtype drives the taxonomy lookup.
+        # Legacy `to` is kept for backward compatibility with older tooling.
         "parameters_json": json.dumps({
-            "from": "commercial_shoplot",
+            "from": "convenience_retail",
+            "to_subtype": "community_hall",
             "to": "community_facility",
             "new_capacity": 200,
         }),
         "expected_derived_json": json.dumps({
             "service_coverage": 0.72,
             "utilisation": 0.78,
-            "carbon_operational_tco2e": 145,
+            # Community hall energy intensity is 100 kWh/m²/year
+            # 6800 m² × 100 × 0.58 / 1000 = 394.4 tCO2e
+            "carbon_operational_tco2e": 394.4,
             "accessibility_delta": 0.08,
         }),
         "expected_source": "llm_estimate",

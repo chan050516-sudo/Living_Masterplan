@@ -42,27 +42,26 @@ def _print_asset(row, fields):
 
 # Field lists per asset type
 FIELDS_COMMERCIAL = [
+    ("Subtype", "subtype"),
     ("Occupancy rate", "occupancy_rate"),
     ("Vacancy duration (months)", "vacancy_duration_months"),
     ("NOI (RM)", "noi_rm"),
     ("NOI yield", "noi_yield"),
     ("DSR", "dsr"),
-    ("Shade proxy score", "shade_proxy_score"),
-    # NEW — walking profile
+    ("Demographic mismatch", "demographic_mismatch"),
+    ("Neighborhood diversity", "neighborhood_diversity"),
     ("Walk 5-min (people)", "catchment_population_5min_walk"),
     ("Walk 10-min (people)", "catchment_population_10min_walk"),
     ("Walk 5-min coverage", "coverage_ratio_5min_walk"),
     ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
     ("Median walk distance (m)", "median_walk_distance_m"),
-    # NEW — driving profile
     ("Drive 5-min (people)", "catchment_population_5min_drive"),
-    ("Drive 10-min (people)", "catchment_population_10min_drive"),
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
-    # Deprecated bridge
-    ("Accessibility score (deprecated)", "accessibility_score"),
+    ("Carbon (tCO2e)", "carbon_operational_tco2e"),
 ]
 
 FIELDS_FACILITY = [
+    ("Subtype", "subtype"),
     ("Utilisation rate", "utilisation_rate"),
     ("Service coverage", "service_coverage"),
     ("Cost per user (RM)", "cost_per_user_rm"),
@@ -70,12 +69,15 @@ FIELDS_FACILITY = [
     ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
     ("Walk 15-min coverage", "coverage_ratio_15min_walk"),
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
-    ("Median walk distance (m)", "median_walk_distance_m"),
+    ("Demographic mismatch", "demographic_mismatch"),
+    ("Carbon (tCO2e)", "carbon_operational_tco2e"),
 ]
 
 FIELDS_GREEN = [
+    ("Subtype", "subtype"),
     ("Green coverage", "green_coverage"),
     ("Canopy coverage", "canopy_coverage"),
+    ("Canopy benchmark", "canopy_ratio_benchmark"),
     ("Green per capita (m2)", "green_per_capita_m2"),
     ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
@@ -83,6 +85,7 @@ FIELDS_GREEN = [
 ]
 
 FIELDS_PARCEL = [
+    ("Subtype", "subtype"),
     ("Developable area (m2)", "developable_area_m2"),
     ("Potential GFA (m2)", "potential_gfa_m2"),
     ("Demand-supply gap", "demand_supply_gap"),
@@ -92,8 +95,10 @@ FIELDS_PARCEL = [
 ]
 
 FIELDS_RESIDENTIAL = [
+    ("Subtype", "subtype"),
     ("Occupancy rate", "occupancy_rate"),
     ("Energy intensity (kWh/m2)", "energy_intensity_kwh_m2"),
+    ("NOI (RM)", "noi_rm"),
     ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
 ]

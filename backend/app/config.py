@@ -25,10 +25,6 @@ def load_benchmarks() -> dict:
     return load_peer_benchmarks()
 
 
-def load_weights() -> dict:
-    return _load("weights.yml")
-
-
 def load_assumptions() -> dict:
     return _load("assumptions.yml")
 

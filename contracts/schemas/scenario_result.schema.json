@@ -21,7 +21,7 @@
     },
     "comparison": {
       "type": "object",
-      "required": ["focus_asset_id", "metrics"],
+      "required": ["focus_asset_id", "metrics", "township_metrics"],
       "properties": {
         "focus_asset_id": { "type": ["string", "null"] },
         "metrics": {
@@ -34,6 +34,17 @@
               "after": { "type": ["number", "null"] },
               "unit": { "type": "string" }
             }
+          }
+        },
+        "township_metrics": {
+          "type": "object",
+          "properties": {
+            "walk_15min_avg_coverage_before": { "type": ["number", "null"] },
+            "walk_15min_avg_coverage_after": { "type": ["number", "null"] },
+            "walk_15min_coverage_delta": { "type": ["number", "null"] },
+            "total_carbon_before_tco2e": { "type": ["number", "null"] },
+            "total_carbon_after_tco2e": { "type": ["number", "null"] },
+            "carbon_delta_pct": { "type": ["number", "null"] }
           }
         }
       }

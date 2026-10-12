@@ -1,17 +1,14 @@
 """B4 — Future state simulation engine.
 
-Simulates a scenario across multiple years by iterating the DAG:
-  Population -> Households -> Demand -> Occupancy -> Score
-                     ^
-                 Supply
-
-Design notes:
-  - Fix 1+4: distance matrix is recomputed per year so the Huff model uses
-    canopy-adjusted effective distances.
-  - Fix 2:   post-intervention asset_type changes are honoured; assets that
-    are no longer commercial are removed from the Huff supply pool.
-  - Fix 3:   community facility utilisation is driven by projected population
-    and the per-capita service coefficient.
+Phase 5 changes:
+  - Uses per-subtype Huff (m² demand) matching B3.
+  - Carbon uses subtype-aware energy intensity from taxonomy.
+  - Post-intervention facility occupancy is driven by the LLM
+    expectation (expected_derived_json) when present, otherwise by the
+    subtype utilisation benchmark.
+  - Comparison metric keys are chosen per effective asset type
+    (utilisation_rate for facilities, occupancy_rate for commercial).
+  - Adds township-level metrics to the comparison block.
 """
 
 import json
@@ -21,16 +18,17 @@ from pathlib import Path
 import networkx as nx
 import pandas as pd
 
-from ..config import load_paths, load_weights, load_benchmarks, load_assumptions
+from ..config import load_paths, load_assumptions
 from ..derived.engine import compute_derived_metrics
 from ..derived.network_graph import build_walk_graph, extract_nodes, find_nearest_node
-from ..derived.huff import huff_gravity
+from ..derived.huff import huff_gravity_by_subtype
+from ..derived.environmental import energy_from_subtype, operational_carbon
+from ..derived.demand_mismatch import aggregate_catchment_profile
+from ..taxonomy import get_taxonomy, get_occupancy_benchmark
 from .time_anchors import resolve_phase, interventions_for_asset, Phase
 from .interventions import apply_intervention, apply_construction_state
 from .population import project_population
-from .demand import project_demand_facility
 from .occupancy import damped_occupancy, target_occupancy_from_dsr
-from .environmental import operational_carbon, energy_from_intensity
 from .supply import active_projects_in_year
 
 log = logging.getLogger(__name__)
@@ -55,12 +53,9 @@ def simulate_scenario(
     base_year = years[0]
 
     paths = load_paths()
-    weights_cfg = load_weights()
-    benchmarks = load_benchmarks()
     assumptions = load_assumptions()
-
-    weights = {k: v for k, v in weights_cfg.items() if isinstance(v, dict)}
-    scoring_options = weights_cfg.get("scoring_options", {})
+    taxonomy = get_taxonomy()
+    subtypes_config = taxonomy.get("subtypes", {})
 
     base = repo_root / paths["base"]
     assets_df = pd.read_csv(base / "business" / "assets.csv")
@@ -80,14 +75,10 @@ def simulate_scenario(
         geometry, assets_df, assumptions,
     )
 
-    # ---- Global population config ----
+    # ---- Population config ----
     pop_cfg = assumptions["population"]
     g_rate = pop_cfg["growth_rate"]["medium"]
     base_pop = float(pop_cfg["base_population"])
-
-    # Facility service coefficient (sum over facility categories)
-    service_coeffs = assumptions.get("demand", {}).get("facility_service_per_capita", {})
-    total_service_coeff = sum(service_coeffs.values()) if service_coeffs else 0.0
 
     # Huff params
     alpha = assumptions["huff"]["alpha"]
@@ -100,15 +91,40 @@ def simulate_scenario(
     critical = assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
     kappa = assumptions.get("occupancy_dynamics", {}).get("kappa", 0.0)
 
-    # --- Track occupancy per asset ---
+    emission_factor = assumptions.get("environmental", {}).get(
+        "emission_factor_energy", 0.58,
+    )
+
+    # --- Base "primary value" per asset ---
+    # Commercial / residential → occupancy_rate
+    # Community facility       → utilisation_rate
+    # Others                   → 0.6 default (no driven value)
+    import math
+
+    def _safe_num(v, default):
+        try:
+            f = float(v)
+            if math.isnan(f):
+                return default
+            return f
+        except (TypeError, ValueError):
+            return default
+
     occupancy_prev = {}
     for _, asset in assets_df.iterrows():
-        row = current_derived[current_derived["asset_id"] == asset["asset_id"]]
-        occ = row.iloc[0]["occupancy_rate"] if not row.empty else None
-        occupancy_prev[asset["asset_id"]] = float(occ) if occ is not None else 0.6
+        aid = asset["asset_id"]
+        row = current_derived[current_derived["asset_id"] == aid]
+        prev_value = 0.6
+        if not row.empty:
+            r = row.iloc[0]
+            if asset["asset_type"] == "community_facility":
+                prev_value = _safe_num(r.get("utilisation_rate"), 0.6)
+            elif asset["asset_type"] in ("commercial", "residential"):
+                prev_value = _safe_num(r.get("occupancy_rate"), 0.6)
+            # green_space / undeveloped_parcel keep the 0.6 default
+        occupancy_prev[aid] = prev_value
 
     state_by_year = {}
-    scores_by_year = {}
 
     for year_idx, year in enumerate(years):
         # ---- Base year: use B3 output as-is ----
@@ -116,7 +132,7 @@ def simulate_scenario(
             state_by_year[year] = _state_from_df(current_derived, assets_df)
             continue
 
-        # ---- Fix 2: resolve effective asset state for every asset ----
+        # ---- Resolve effective asset state for every asset ----
         effective_assets = {}
         activated_interventions = {}
         for _, asset in assets_df.iterrows():
@@ -135,40 +151,49 @@ def simulate_scenario(
             effective_assets[aid] = eff
             activated_interventions[aid] = activated
 
-        # ---- 1. Population ----
+        # ---- Population ----
         projected_pop = project_population(base_pop, base_year, year, g_rate)
         pop_factor = projected_pop / base_pop
 
-        # ---- Fix 1+4: distance matrix (recompute each year) ----
+        # ---- Distance matrix ----
         distance_matrix = _compute_distance_matrix(G_base)
 
-        # ---- Fix 2: build supply nodes from effective types ----
+        # ---- Supply nodes from effective commercial assets ----
         active_commercial_ids = {
             aid for aid, eff in effective_assets.items()
             if eff.get("asset_type") == "commercial"
         }
-        year_supply_nodes = [
-            s for s in supply_nodes if s["asset_id"] in active_commercial_ids
-        ]
+        year_supply_nodes = []
+        for s in supply_nodes:
+            if s["asset_id"] not in active_commercial_ids:
+                continue
+            s_copy = dict(s)
+            s_copy["subtype"] = effective_assets[s["asset_id"]].get(
+                "subtype", "convenience_retail",
+            )
+            year_supply_nodes.append(s_copy)
 
+        # New supply from delivered projects
         active_projects = active_projects_in_year(projects_df, year, scenario_id)
         year_supply_nodes.extend(
-            _new_project_supply_nodes(
-                active_projects, geometry, nodes_gdf, supply_nodes,
-            )
+            _new_project_supply_nodes(active_projects, geometry, nodes_gdf, supply_nodes)
         )
 
-        # ---- 2. Huff gravity ----
+        # ---- Huff (per-subtype) ----
         projected_demand_nodes = [
             {**d, "population": d["population"] * pop_factor}
             for d in demand_nodes
         ]
-        huff_result = huff_gravity(
-            distance_matrix, projected_demand_nodes, year_supply_nodes,
-            alpha=alpha, beta=beta,
+        huff_m2 = huff_gravity_by_subtype(
+            distance_matrix,
+            projected_demand_nodes,
+            year_supply_nodes,
+            subtypes_config=subtypes_config,
+            alpha=alpha,
+            beta=beta,
         )
 
-        # ---- 3. Per-asset metrics ----
+        # ---- Per-asset metrics ----
         year_state = {}
         for _, asset in assets_df.iterrows():
             aid = asset["asset_id"]
@@ -177,46 +202,60 @@ def simulate_scenario(
 
             construction_status = eff.get("_construction_status")
             effective_type = eff.get("asset_type", asset["asset_type"])
+            effective_subtype = eff.get("subtype", asset.get("subtype"))
 
             prev_occ = occupancy_prev.get(aid, 0.6)
 
-            # ---- 4. Target occupancy by effective type (Fix 3) ----
+            # ---- Target occupancy ----
             if construction_status == "unavailable":
                 new_occ = 0.0
                 new_util = 0.0
             else:
                 if effective_type == "commercial":
-                    dsr = huff_result.get(aid)
+                    demand_m2 = huff_m2.get(aid)
                     effective_supply = (
                         eff.get("lettable_area_m2")
                         or eff.get("capacity")
                         or 1.0
                     )
-                    if dsr is not None and effective_supply and float(effective_supply) > 0:
-                        dsr_ratio = dsr / float(effective_supply)
+                    if demand_m2 is not None and effective_supply and float(effective_supply) > 0:
+                        dsr = demand_m2 / float(effective_supply)
                     else:
-                        dsr_ratio = None
-                    target_occ = target_occupancy_from_dsr(dsr_ratio)
+                        dsr = None
+                    target_occ = target_occupancy_from_dsr(dsr)
 
                 elif effective_type == "community_facility":
-                    # Fix 3: facility utilisation tracks projected service demand.
-                    # capacity is interpreted as users/day → annual = capacity × 365.
-                    # service_per_capita is per-capita annual service demand.
-                    demand_persons = project_demand_facility(
-                        projected_pop, total_service_coeff,
-                    )
-                    cap = float(eff.get("capacity") or 0.0)
-                    annual_capacity = cap * 365.0
-                    if annual_capacity > 0:
-                        target_occ = min(1.0, demand_persons / annual_capacity)
-                    else:
+                    # Two paths: LLM expectation (preferred), else benchmark.
+                    # BUT: if there was no intervention this year, hold steady.
+                    if activated is None:
+                        # No intervention applied to this asset in this year.
+                        # Keep the current utilisation rather than converging
+                        # to a benchmark. Benchmarks are for post-intervention
+                        # target values, not for a do-nothing baseline.
                         target_occ = prev_occ
+                    else:
+                        expected_util = None
+                        try:
+                            expected = json.loads(
+                                activated.get("expected_derived_json") or "{}"
+                            )
+                            expected_util = expected.get("utilisation")
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+
+                        if expected_util is not None:
+                            target_occ = float(expected_util)
+                        else:
+                            target_occ = (
+                                get_occupancy_benchmark(effective_subtype) or prev_occ
+                            )
 
                 else:
                     # Residential / green_space / undeveloped_parcel:
-                    # no demand model drives occupancy in this iteration.
+                    # no demand model drives occupancy.
                     target_occ = prev_occ
 
+                # Damped update across year gap
                 year_gap = max(1, year - years[year_idx - 1])
                 new_occ = prev_occ
                 for _ in range(year_gap):
@@ -227,50 +266,34 @@ def simulate_scenario(
 
             occupancy_prev[aid] = new_occ
 
-            # ---- 5. Environmental ----
+            # ---- Environmental (subtype-aware) ----
             floor_area = float(eff.get("floor_area_m2") or 0)
-            intensity = assumptions["environmental"]["energy_intensity_default"]
-            energy = energy_from_intensity(floor_area, intensity)
-            carbon = operational_carbon(
-                energy, assumptions["environmental"]["emission_factor_energy"],
-            )
+            energy = energy_from_subtype(effective_subtype or "vacant", floor_area)
+            carbon = operational_carbon(energy, emission_factor)
 
             # ---- Build metric row ----
             prev_metrics = _get_prev_metrics(state_by_year[years[year_idx - 1]], aid)
             metric_row = dict(prev_metrics)
             metric_row["asset_id"] = aid
             metric_row["year"] = year
-            metric_row["occupancy_rate"] = new_occ
-            metric_row["vacancy_rate"] = 1.0 - new_occ
-            metric_row["utilisation_rate"] = new_util
-            metric_row["effective_demand"] = huff_result.get(aid)
+            metric_row["subtype"] = effective_subtype
+
+            if effective_type == "community_facility":
+                metric_row["utilisation_rate"] = new_util
+                # occupancy_rate for facility remains as before (usually NaN)
+            elif effective_type in ("commercial", "residential"):
+                metric_row["occupancy_rate"] = new_occ
+                metric_row["vacancy_rate"] = 1.0 - new_occ
+                metric_row["utilisation_rate"] = None
+            else:
+                # green_space / undeveloped_parcel: do not drive either value
+                pass
+
+            metric_row["effective_demand_m2"] = huff_m2.get(aid)
             metric_row["carbon_operational_tco2e"] = carbon
             metric_row["energy_kwh"] = energy
             metric_row["metric_source"] = "simulated"
-            metric_row["model_version"] = "0.3.2"
-
-            # Consume expected_derived_json
-            if activated is not None:
-                try:
-                    expected = json.loads(
-                        activated.get("expected_derived_json") or "{}"
-                    )
-                except (json.JSONDecodeError, TypeError):
-                    expected = {}
-
-                if "service_coverage" in expected:
-                    metric_row["service_coverage"] = float(expected["service_coverage"])
-                if "utilisation" in expected:
-                    metric_row["utilisation_rate"] = float(expected["utilisation"])
-                if "carbon_operational_tco2e" in expected:
-                    metric_row["carbon_operational_tco2e"] = float(
-                        expected["carbon_operational_tco2e"]
-                    )
-                if "accessibility_delta" in expected:
-                    prev_acc = float(prev_metrics.get("accessibility_score") or 50.0)
-                    metric_row["accessibility_score"] = min(
-                        100.0, prev_acc + float(expected["accessibility_delta"]) * 100,
-                    )
+            metric_row["model_version"] = "0.4.0"
 
             # Cost per user for facility
             if effective_type == "community_facility":
@@ -290,8 +313,12 @@ def simulate_scenario(
 
         state_by_year[year] = year_state
 
-    # --- Build comparison (metric-based, no score) ---
-    comparison = _build_comparison(state_by_year, base_year, years[-1])
+    # ---- Comparison ----
+    comparison = _build_comparison(state_by_year, base_year, years[-1], assets_df)
+    comparison["township_metrics"] = _compute_township_metrics(
+        state_by_year, base_year, years[-1],
+    )
+
     map_diff = _build_map_diff(assets_df, scenario_interventions)
 
     return {
@@ -312,12 +339,7 @@ def simulate_scenario(
 
 
 def _build_graph_and_nodes(geometry, assets_df, assumptions):
-    """
-    Build the walk graph and demand/supply node lists for Huff.
-
-    Phase 1 note: accessibility is no longer computed here.
-    It is computed once in B3 and read from asset_metrics.
-    """
+    """Build the walk graph and demand/supply node lists for Huff."""
     network = geometry["network"]["analysis"]
     G = build_walk_graph(network)
     nodes_gdf = extract_nodes(network)
@@ -350,41 +372,58 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions):
             "asset_id": asset["asset_id"],
             "node": asset_nodes.get(asset["asset_id"]),
             "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+            "subtype": asset.get("subtype", "convenience_retail"),
         })
 
-    return G, demand_nodes, supply_nodes, asset_nodes
+    return G, demand_nodes, supply_nodes, asset_nodes, nodes_gdf
 
 
 def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_supply_nodes):
-    """Virtual supply nodes for projects delivered this year."""
+    """
+    Virtual supply nodes for projects delivered this year.
+
+    Projects whose parcel cannot be resolved are SKIPPED rather than
+    placed on a fallback node. Placing them on a fallback would stack
+    new supply on top of an existing asset and distort competition.
+    """
     new_nodes = []
-    fallback_node = existing_supply_nodes[0]["node"] if existing_supply_nodes else None
 
     for proj in active_projects:
         gfa = float(proj.get("gfa_m2") or 0)
         if gfa <= 0:
             continue
 
-        proj_node = None
         pid = proj.get("parcel_id")
-        if pid:
-            parcels = geometry["parcels"]["analysis"]
-            pmatch = parcels[parcels["parcel_id"] == pid]
-            if not pmatch.empty:
-                try:
-                    proj_node = find_nearest_node(pmatch.iloc[0].geometry, nodes_gdf)
-                except Exception as e:
-                    log.warning("Could not resolve node for project %s: %s", pid, e)
+        if not pid:
+            log.warning(
+                "Project %s has no parcel_id; skipping supply node.",
+                proj.get("project_id"),
+            )
+            continue
 
-        if proj_node is None:
-            proj_node = fallback_node
-        if proj_node is None:
+        parcels = geometry["parcels"]["analysis"]
+        pmatch = parcels[parcels["parcel_id"] == pid]
+        if pmatch.empty:
+            log.warning(
+                "Project %s references missing parcel %s; skipping supply node.",
+                proj.get("project_id"), pid,
+            )
+            continue
+
+        try:
+            proj_node = find_nearest_node(pmatch.iloc[0].geometry, nodes_gdf)
+        except Exception as e:
+            log.warning(
+                "Could not resolve node for project %s: %s",
+                proj.get("project_id"), e,
+            )
             continue
 
         new_nodes.append({
             "asset_id": f"NEW-{proj.get('project_id', 'unknown')}",
             "node": proj_node,
             "attractiveness": gfa,
+            "subtype": proj.get("subtype", "convenience_retail"),
         })
 
     return new_nodes
@@ -412,29 +451,41 @@ def _get_prev_metrics(prev_state, asset_id):
     return {}
 
 
-def _build_comparison(state_by_year, base_year, final_year):
+def _build_comparison(state_by_year, base_year, final_year, assets_df):
     """
-    Return a metric-level comparison between the base year and the
-    final year. No overall score is produced.
+    Metric-level comparison between base year and final year.
 
-    Focus asset selection: use the asset with the largest change in
-    occupancy between the two years; fall back to any asset if no
-    change is detected.
+    Focus asset selection: pick the asset with the largest absolute
+    change in either occupancy_rate or utilisation_rate, considering
+    both base and final states. The primary metric is the one that
+    actually changed.
     """
+    import math
+
     before_state = state_by_year.get(base_year, {})
     after_state = state_by_year.get(final_year, {})
 
-    # Pick focus asset by largest occupancy delta
+    def _valid(v):
+        try:
+            f = float(v)
+            return not math.isnan(f)
+        except (TypeError, ValueError):
+            return False
+
+    def _num_or_zero(v):
+        return float(v) if _valid(v) else 0.0
+
+    # Focus asset: largest |delta| across occupancy and utilisation.
     focus_asset = None
     best_delta = 0.0
-    for aid, before in before_state.items():
-        after = after_state.get(aid, {})
-        b = before.get("occupancy_rate") or 0.0
-        a = after.get("occupancy_rate") or 0.0
-        delta = abs(a - b)
-        if delta > best_delta:
-            best_delta = delta
-            focus_asset = aid
+    for aid in before_state:
+        b_st = before_state.get(aid, {})
+        a_st = after_state.get(aid, {})
+        for key in ("occupancy_rate", "utilisation_rate"):
+            delta = abs(_num_or_zero(a_st.get(key)) - _num_or_zero(b_st.get(key)))
+            if delta > best_delta:
+                best_delta = delta
+                focus_asset = aid
 
     if focus_asset is None:
         focus_asset = next(iter(after_state), None)
@@ -445,8 +496,11 @@ def _build_comparison(state_by_year, base_year, final_year):
     before = before_state.get(focus_asset, {})
     after = after_state.get(focus_asset, {})
 
-    metric_keys = [
+    # Show both metrics when either side is valid. This makes the
+    # repurpose transition (occupancy → utilisation) visible.
+    candidate_metrics = [
         ("occupancy_rate", "ratio"),
+        ("utilisation_rate", "ratio"),
         ("noi_rm", "RM"),
         ("noi_yield", "ratio"),
         ("coverage_ratio_5min_walk", "ratio"),
@@ -455,12 +509,11 @@ def _build_comparison(state_by_year, base_year, final_year):
     ]
 
     metrics = {}
-    for key, unit in metric_keys:
+    for key, unit in candidate_metrics:
         b = before.get(key)
         a = after.get(key)
-        if b is None and a is None:
-            continue
-        metrics[key] = {"before": b, "after": a, "unit": unit}
+        if _valid(b) or _valid(a):
+            metrics[key] = {"before": b, "after": a, "unit": unit}
 
     return {
         "focus_asset_id": focus_asset,
@@ -468,36 +521,61 @@ def _build_comparison(state_by_year, base_year, final_year):
     }
 
 
-def _compute_10y_carbon(state_by_year, target):
-    """Sum operational carbon across simulated years; extrapolate to 10y."""
-    if target is None or not state_by_year:
-        return 0.0
+def _compute_township_metrics(state_by_year, base_year, final_year):
+    """
+    Township-level metrics aggregated across all assets.
+    NaN values are skipped during aggregation.
+    """
+    import math
 
-    years_sorted = sorted(state_by_year.keys())
-    if not years_sorted:
-        return 0.0
+    before = state_by_year.get(base_year, {})
+    after = state_by_year.get(final_year, {})
 
-    carbon_sum = 0.0
-    span_covered = 0
+    def _is_valid(v):
+        if v is None:
+            return False
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return False
+        return not math.isnan(f)
 
-    for i, y in enumerate(years_sorted):
-        st = state_by_year[y].get(target, {})
-        annual = float(st.get("carbon_operational_tco2e") or 0.0)
-        if i < len(years_sorted) - 1:
-            interval = years_sorted[i + 1] - y
-        else:
-            interval = 1
-        carbon_sum += annual * interval
-        span_covered += interval
+    def _avg_coverage(state_dict, key):
+        vals = [float(st[key]) for st in state_dict.values()
+                if _is_valid(st.get(key))]
+        if not vals:
+            return None
+        return sum(vals) / len(vals)
 
-    if span_covered <= 0:
-        return 0.0
+    def _total_carbon(state_dict):
+        vals = [float(st["carbon_operational_tco2e"])
+                for st in state_dict.values()
+                if _is_valid(st.get("carbon_operational_tco2e"))]
+        if not vals:
+            return None
+        return sum(vals)
 
-    avg_annual = carbon_sum / span_covered
-    if span_covered < 10:
-        carbon_sum += avg_annual * (10 - span_covered)
+    walk_before = _avg_coverage(before, "coverage_ratio_15min_walk")
+    walk_after = _avg_coverage(after, "coverage_ratio_15min_walk")
 
-    return carbon_sum
+    carbon_before = _total_carbon(before)
+    carbon_after = _total_carbon(after)
+    carbon_delta_pct = None
+    if carbon_before is not None and carbon_before > 0 and carbon_after is not None:
+        carbon_delta_pct = (carbon_after - carbon_before) / carbon_before
+
+    return {
+        "walk_15min_avg_coverage_before": walk_before,
+        "walk_15min_avg_coverage_after": walk_after,
+        "walk_15min_coverage_delta": (
+            (walk_after - walk_before)
+            if walk_before is not None and walk_after is not None
+            else None
+        ),
+        "total_carbon_before_tco2e": carbon_before,
+        "total_carbon_after_tco2e": carbon_after,
+        "carbon_delta_pct": carbon_delta_pct,
+    }
 
 
 def _build_map_diff(assets_df, interventions_df):

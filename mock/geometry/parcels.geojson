@@ -122,6 +122,29 @@
         "geometry_source": "OpenStreetMap",
         "geometry_confidence": "high"
       }
+    },
+    {
+      "type": "Feature",
+      "id": "P-PHASE3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [101.5210, 3.1600],
+          [101.5215, 3.1600],
+          [101.5215, 3.1605],
+          [101.5210, 3.1605],
+          [101.5210, 3.1600]
+        ]]
+      },
+      "properties": {
+        "parcel_id": "P-PHASE3",
+        "asset_id": null,
+        "land_use": "commercial",
+        "area_m2": 3000,
+        "development_phase": 3,
+        "geometry_source": "OpenStreetMap",
+        "geometry_confidence": "high"
+      }
     }
   ]
 }

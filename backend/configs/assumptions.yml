@@ -13,12 +13,6 @@ population:
 
 demand:
   residential_target_per_household: 1.0
-  # CHANGED: unit is now explicitly m²/person
-  commercial_per_capita_m2:
-    convenience_retail: 0.15
-    f_and_b:            0.10
-    medical:            0.03
-    office:             0.20
   # Total 0.48 m²/person
   facility_service_per_capita:
     community_hall: 0.05

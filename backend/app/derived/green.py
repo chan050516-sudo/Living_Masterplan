@@ -1,12 +1,23 @@
-"""Green space derived metrics."""
+"""Green space derived metrics — subtype-aware.
+
+Phase 4 changes:
+  - Subtype-specific canopy benchmark.
+  - green_per_capita uses the walking catchment population (reachable),
+    not the total mock population, to avoid the "12 km² parcel" effect.
+  - Shade proxy from the engine-computed canopy coverage.
+"""
 
 import math
 from .context import DerivationContext
+from ..taxonomy import get_subtype_or_default
 
 
 def derive_green(ctx: DerivationContext) -> dict:
     asset = ctx.asset
     year = ctx.year
+
+    subtype = asset.get("subtype") or "park"
+    subtype_cfg = get_subtype_or_default(subtype)
 
     green_area = _green_area(ctx)
     land_area = asset.get("land_area_m2")
@@ -15,27 +26,34 @@ def derive_green(ctx: DerivationContext) -> dict:
     if green_area is not None and land_area and float(land_area) > 0:
         green_coverage = green_area / float(land_area)
 
-    # P0.4: use engine-computed canopy coverage for consistency
+    # Canopy coverage was computed once by the engine via spatial overlay.
     canopy_coverage = ctx.canopy_coverage
 
-    total_pop = _total_population(ctx)
-    green_per_capita = None
-    if green_area is not None and total_pop > 0:
-        green_per_capita = green_area / total_pop
+    # green_per_capita uses reachable population from the walking profile,
+    # falling back to zero when the profile has no data.
+    reachable_pop = 0.0
+    if ctx.walking_profile:
+        reachable_pop = float(ctx.walking_profile.get("reachable_population") or 0.0)
 
-    accessibility = ctx.accessibility_score
+    green_per_capita = None
+    if green_area is not None and reachable_pop > 0:
+        green_per_capita = green_area / reachable_pop
+
     shade = _shade_proxy_score(canopy_coverage)
 
     return {
         "asset_id": asset["asset_id"],
         "year": year,
+        "subtype": subtype,
         "green_coverage": green_coverage,
         "canopy_coverage": canopy_coverage,
+        "canopy_ratio_benchmark": subtype_cfg.get("canopy_ratio_benchmark"),
         "green_per_capita_m2": green_per_capita,
-        "accessibility_score": accessibility,
+        "accessibility_score": ctx.accessibility_score,  # deprecated bridge
         "shade_proxy_score": shade,
+        "neighborhood_diversity": ctx.neighborhood_diversity,
         "metric_source": "derived",
-        "model_version": "0.3.1",
+        "model_version": "0.4.0",
     }
 
 
@@ -47,13 +65,6 @@ def _green_area(ctx: DerivationContext) -> float:
     if match.empty:
         return None
     return float(match.iloc[0].get("area_m2", 0))
-
-
-def _total_population(ctx: DerivationContext) -> float:
-    pop = ctx.geometry.get("population", {}).get("analysis")
-    if pop is None or pop.empty:
-        return 0.0
-    return float(pop["total_population"].sum())
 
 
 def _shade_proxy_score(canopy_coverage) -> float:
