@@ -44,3 +44,13 @@ via POST /ask. The 600ms setTimeout in ask() is fake latency: remove it.
 ## 7. public/data/comparison.json (invented)
 Fake simulation results for B-03. Replace with POST /simulate output
 from Modules B and C.
+
+## 9. Carbon figures are invented
+carbon_avoided = embodied carbon not emitted by reusing instead of
+building new. Doc formula: floor_area × material_intensity.
+David needs a real Malaysian emission factor and we must cite it —
+this is the main Planet claim in the pitch.
+
+## 10. portfolio_position / portfolio_note are invented
+Came from the Figma design, not the technical doc. Needs a definition
+(percentile against what population?) or it should be dropped.
