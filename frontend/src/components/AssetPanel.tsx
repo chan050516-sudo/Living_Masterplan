@@ -45,26 +45,15 @@ export function AssetPanel(props: {
 
       <h2 className="fade" style={{ margin: '10px 0 18px', fontSize: 21, fontWeight: 500 }}>{asset.name}</h2>
 
-      <div className="fade d1" style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+      <div className="fade d1" style={{ display: 'flex', alignItems: 'center', gap: 22 }}>
         <Gauge score={score} />
-        <div style={{ flex: 1 }}>
-          <div style={{ ...cap, fontSize: 10, marginBottom: 8 }}>Portfolio position</div>
-          <div style={{ fontSize: 21, color: bandColor(score), marginBottom: 6 }}>{asset.portfolio_position}</div>
-          <div style={{ fontSize: 12, color: C.faint, lineHeight: 1.5 }}>{asset.portfolio_note}</div>
-        </div>
-      </div>
-
-      <hr style={rule} />
-
-      <div className="fade d2">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-          <span style={{ ...cap, fontSize: 10 }}>Score breakdown</span>
-          <span style={{ ...cap, fontSize: 10, color: C.faint }}>Weighted</span>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          <Bar label="Financial" value={bd.financial} color={bandColor(bd.financial)} />
-          <Bar label="Environmental" value={bd.environmental} color={bandColor(bd.environmental)} />
-          <Bar label="Social" value={bd.social} color={bandColor(bd.social)} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ ...cap, fontSize: 10, marginBottom: 12 }}>Weighted breakdown</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
+            <Bar label="Financial" value={bd.financial} color={bandColor(bd.financial)} />
+            <Bar label="Environmental" value={bd.environmental} color={bandColor(bd.environmental)} />
+            <Bar label="Social" value={bd.social} color={bandColor(bd.social)} />
+          </div>
         </div>
       </div>
 
@@ -205,8 +194,6 @@ export function AssetPanel(props: {
           Diagnosis is fact. Recommendations appear only when you ask.
         </p>
       )}
-        <text x="54" y="68" textAnchor="middle" fontSize="10" fill={C.text} style={mono}>{score}</text>
-        <text x="74" y="68" textAnchor="start" fontSize="10" fill={C.faint} style={mono}>/100</text>
 
     </>
   )

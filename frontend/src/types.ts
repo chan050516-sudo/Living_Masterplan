@@ -10,8 +10,6 @@ export type Asset = {
   type: string
   status: string
   center: [number, number]
-  portfolio_position: string
-  portfolio_note: string
   score: number
   occupancy: number
   vacancy_months: number

@@ -48,9 +48,5 @@ from Modules B and C.
 ## 9. Carbon figures are invented
 carbon_avoided = embodied carbon not emitted by reusing instead of
 building new. Doc formula: floor_area × material_intensity.
-David needs a real Malaysian emission factor and we must cite it —
-this is the main Planet claim in the pitch.
+Needs a real Malaysian emission factor and we must cite it this is the main Planet claim in the pitch.
 
-## 10. portfolio_position / portfolio_note are invented
-Came from the Figma design, not the technical doc. Needs a definition
-(percentile against what population?) or it should be dropped.
