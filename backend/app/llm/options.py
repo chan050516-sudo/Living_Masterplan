@@ -1,5 +1,6 @@
 """Generate 3 candidate options. The LLM proposes; validator.py checks; nothing is simulated here."""
 import os
+import re
 from pydantic import BaseModel
 from .schemas import Intervention, InterventionType as T, ConstructionStatus as CS, Option
 from .client import complete_json
@@ -40,7 +41,7 @@ class LLMOptions(BaseModel):
 
 
 # ASSUMPTION: confirm known targets with David (edges and projects come from his CSVs).
-KNOWN_OTHER_TARGETS = ["PRJ-P3 (development project, Phase 3)", "E-R17 (pedestrian edge)"]
+KNOWN_OTHER_TARGETS = ["PRJ-P3", "E-R17"]  # PRJ-P3 = Phase 3 development project, E-R17 = pedestrian edge
 
 SYSTEM = """You propose exactly 3 distinct options (A, B, C) for improving one township asset.
 Rules:
@@ -50,20 +51,23 @@ Rules:
 - delay_development needs `until` (a year) and targets a PRJ- id.
 - Costs are rough scenario estimates in RM. Years: construction_start_year >= 2027, activation_year >= start.
 - Each option must differ in strategy (e.g. reuse vs retrofit vs delay). Prefer reuse over new construction.
+- If the objective is avoid_capex, or the user asks about Phase 3, one option must be delay_development on PRJ-P3 (with `until`), and another must avoid new construction.
+- Titles must not contain "Option A/B/C"; give only a short descriptive name.
 - `expected` values are your estimates only; they will be checked against simulation."""
 
 
 def _convert(lo: LLMIntervention, letter: str, n: int) -> Intervention:
+    target = lo.target_id.strip().split()[0]   # keep only the ID, never a description
     params = {}
     if lo.intervention_type == T.REPURPOSE:
-        state = get_asset_state(lo.target_id) or {}
+        state = get_asset_state(target) or {}
         params["from"] = state.get("asset_type")
     if lo.to: params["to"] = lo.to
     if lo.new_capacity is not None: params["new_capacity"] = lo.new_capacity
     if lo.until is not None: params["until"] = lo.until
     expected = {k: v for k, v in (lo.expected.model_dump() if lo.expected else {}).items() if v is not None}
     return Intervention(
-        intervention_id=f"INT-LLM-{letter}{n}", target_asset_id=lo.target_id,
+        intervention_id=f"INT-LLM-{letter}{n}", target_asset_id=target,
         intervention_type=lo.intervention_type, parameters=params, expected_derived=expected,
         construction_start_year=lo.construction_start_year,
         construction_duration_months=lo.construction_duration_months,
@@ -107,6 +111,10 @@ def generate_options(intent: Intent) -> list[Option]:
     options = []
     for idx, lo in enumerate(out.options[:3]):
         letter = "ABC"[idx]
-        options.append(Option(option_id=letter, title=f"Option {letter} — {lo.title}", summary=lo.summary,
-                              interventions=[_convert(i, letter, n + 1) for n, i in enumerate(lo.interventions)]))
+        clean = re.sub(r"^\s*Option\s+[A-C]\s*[:\-—–]\s*", "", lo.title)
+        options.append(Option(
+            option_id=letter,
+            title=f"Option {letter} — {clean}",
+            summary=lo.summary,
+            interventions=[_convert(i, letter, n + 1) for n, i in enumerate(lo.interventions)]))
     return options
