@@ -35,6 +35,8 @@ Design notes:
 import json
 import logging
 
+from ..derived.network_graph import WALKING_EDGE_TYPES
+
 log = logging.getLogger(__name__)
 
 
@@ -226,14 +228,21 @@ def _resolve_target_edges(intv, params, network_gdf=None, parcels_gdf=None):
     return [target_str]
 
 
-def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf,
-                           max_edges=1):
+def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf, max_edges=5):
     """
     Return the edge id(s) nearest to the given asset's parcel centroid.
 
-    Uses Euclidean distance in the analysis CRS (EPSG:32647). This is
-    a coarse match used only for target resolution; the actual routing
-    cost is computed later by the network pipeline.
+    Parallel edges are common in OSM (a pedestrian path and a
+    residential road connecting the same two nodes, geometrically
+    identical). Selecting only the single nearest edge risks picking
+    the wrong one when distances tie, which would raise canopy on an
+    edge the walking graph later discards in favour of its parallel
+    counterpart.
+
+    To avoid this, the function returns up to `max_edges` candidate
+    edges and prefers walking-eligible types. Each candidate is
+    treated as a target by the caller, so the intervention reaches
+    whichever parallel edge actually survives graph construction.
     """
     if network_gdf is None or parcels_gdf is None:
         return []
@@ -251,8 +260,17 @@ def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf,
     if distances.empty:
         return []
 
-    # Take the nearest `max_edges` edges.
     idx = distances.nsmallest(max_edges).index
+
+    # Prefer walking-eligible edges where the type is available.
+    if "edge_type" in network_gdf.columns:
+        walking_idx = [
+            i for i in idx
+            if network_gdf.loc[i, "edge_type"] in WALKING_EDGE_TYPES
+        ]
+        if walking_idx:
+            idx = walking_idx
+
     edge_ids = []
     for i in idx:
         eid = network_gdf.loc[i, "edge_id"]

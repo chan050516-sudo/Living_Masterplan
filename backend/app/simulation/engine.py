@@ -150,6 +150,21 @@ _ALL_TYPE_EXCLUSIVE_FIELDS = frozenset().union(*_TYPE_EXCLUSIVE_FIELDS.values())
 
 
 # ------------------------------------------------------------------
+# Demand-change sensitivity
+# ------------------------------------------------------------------
+# When a commercial asset has no direct intervention, its occupancy
+# normally holds steady. But if the surrounding demand pool has
+# materially changed — a competitor delivered, a network upgrade
+# shifted the catchment — the asset should re-converge toward the
+# Huff-derived target. This threshold is the relative change in the
+# Huff-assigned demand that triggers that re-convergence.
+#
+# Too low: SC-CURRENT drifts on noise. Too high: SC-DELAY and
+# SC-CURRENT stay identical even when a large competitor is delivered.
+_DEMAND_CHANGE_THRESHOLD = 0.05
+
+
+# ------------------------------------------------------------------
 # Spatial-derived metric refresh
 # ------------------------------------------------------------------
 # When the walking network changes (a spatial intervention activates),
@@ -549,6 +564,11 @@ def simulate_scenario(
         occupancy_prev[aid] = prev_value
 
     state_by_year = {}
+    # Tracks the Huff-assigned demand for each asset from the previous
+    # simulated year. Used to detect material demand-pool changes so
+    # commercial assets without direct interventions can re-converge
+    # when a competitor delivers or the network changes.
+    year_demand_prev: dict = {}
 
     for year_idx, year in enumerate(years):
         # ---- Base year: use B3 output as-is ----
@@ -561,7 +581,8 @@ def simulate_scenario(
             scenario_interventions, year,
         )
         new_tag = network_version_tag(active_spatial)
-        if new_tag != current_tag:
+        network_changed = (new_tag != current_tag)
+        if network_changed:
             log.info(
                 "Year %d: network version changed %s -> %s",
                 year, current_tag, new_tag,
@@ -667,10 +688,32 @@ def simulate_scenario(
                 new_util = 0.0
             else:
                 if effective_type == "commercial":
-                    if activated is None:
+                    # Decide whether the asset should re-converge to a
+                    # new target this year. Without an intervention it
+                    # normally holds steady. But if the demand pool
+                    # shifted materially — a competitor delivered, the
+                    # walking network changed — it must be allowed to
+                    # follow the change.
+                    curr_demand = huff_m2.get(aid)
+                    prev_demand = year_demand_prev.get(aid)
+                    demand_changed = (
+                        prev_demand is not None
+                        and curr_demand is not None
+                        and float(prev_demand) > 0
+                        and abs(float(curr_demand) - float(prev_demand))
+                            / float(prev_demand) > _DEMAND_CHANGE_THRESHOLD
+                    )
+
+                    if (activated is None
+                            and not demand_changed
+                            and not network_changed):
+                        # Nothing about the environment changed; hold.
                         target_occ = prev_occ
                     else:
-                        demand_m2 = huff_m2.get(aid)
+                        # Something changed: intervention applied, or
+                        # demand pool / network materially different.
+                        # Converge toward the Huff-derived target.
+                        demand_m2 = curr_demand
                         effective_supply = (
                             eff.get("lettable_area_m2")
                             or eff.get("capacity")
@@ -679,7 +722,7 @@ def simulate_scenario(
                         if (demand_m2 is not None
                                 and effective_supply
                                 and float(effective_supply) > 0):
-                            dsr = demand_m2 / float(effective_supply)
+                            dsr = float(demand_m2) / float(effective_supply)
                         else:
                             dsr = None
                         target_occ = target_occupancy_from_dsr(dsr)
@@ -818,6 +861,11 @@ def simulate_scenario(
         for proj in active_projects:
             _add_project_state(year_state, proj, year, emission_factor)
 
+        # Remember this year's Huff output for every asset so that next
+        # year's commercial loop can detect a material demand shift.
+        for aid in assets_df["asset_id"].tolist():
+            year_demand_prev[aid] = huff_m2.get(aid)
+
         state_by_year[year] = year_state
 
     # ---- Comparison ----
@@ -888,6 +936,7 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "_project_gfa_m2": gfa,
         "_project_delivery_year": year,
         "_project_land_use": proj.get("land_use"),
+        "_project_target_asset_id": proj.get("asset_id"),
     }
 
 
@@ -1146,6 +1195,48 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
 
     per_asset = {aid: _compare_one(aid) for aid in ids}
 
+    # ---- Link project pseudo-entries back to their target asset ----
+    # A new_development intervention on P-05 produces a PRJ:: entry in
+    # after_state. That project carries the GFA, energy, and carbon of
+    # the delivered building. Without this link, the target parcel's
+    # comparison block would show no change (it remains "vacant"), and
+    # the LLM would see "development applied but nothing happened".
+    #
+    # Each target asset gains a `_linked_projects` sub-block that
+    # surfaces the project's contribution.
+    project_by_target: dict = {}
+    for prj_id, st in after_state.items():
+        if not prj_id.startswith(PROJECT_ID_PREFIX):
+            continue
+        target = st.get("_project_target_asset_id")
+        if not target:
+            continue
+        if target not in per_asset:
+            continue
+        project_by_target.setdefault(target, []).append(prj_id)
+
+    for target_aid, prj_ids in project_by_target.items():
+        linked = []
+        for prj_id in prj_ids:
+            prj = after_state.get(prj_id, {})
+            linked.append({
+                "project_id": prj.get("_project_id"),
+                "project_name": prj.get("_project_name"),
+                "gfa_m2": prj.get("_project_gfa_m2"),
+                "delivery_year": prj.get("_project_delivery_year"),
+                "carbon_operational_tco2e": {
+                    "before": None,
+                    "after": prj.get("carbon_operational_tco2e"),
+                    "unit": "tCO2e",
+                },
+                "energy_kwh": {
+                    "before": None,
+                    "after": prj.get("energy_kwh"),
+                    "unit": "kWh",
+                },
+            })
+        per_asset[target_aid]["_linked_projects"] = linked
+
     # ---- Focus asset (largest absolute delta on occupancy/utilisation) ----
     focus_asset = None
     best_delta = 0.0
@@ -1263,16 +1354,22 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
     # final_year. A project delivered earlier contributes to more
     # simulated years, so a delay visibly reduces this total.
     project_carbon_cumulative = 0.0
-    for y in years:
+    for idx, y in enumerate(years):
         if y > final_year:
-            continue
+            break
+        # Time-weighted integral. Each snapshot represents the interval
+        # from the previous snapshot up to itself. The simulation's
+        # year list is non-uniform (2028→2030 is 2 years, 2030→2033 is
+        # 3 years), so a naive per-snapshot sum undercounts. The first
+        # snapshot uses a 1-year fallback interval.
+        dt = (y - years[idx - 1]) if idx > 0 else 1
         year_state = state_by_year.get(y, {})
         for aid, st in year_state.items():
             if not _is_project(aid):
                 continue
             c = st.get("carbon_operational_tco2e")
             if _is_valid(c):
-                project_carbon_cumulative += float(c)
+                project_carbon_cumulative += float(c) * dt
 
     return {
         "walk_15min_avg_coverage_before": walk_before,

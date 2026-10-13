@@ -437,27 +437,46 @@ def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2)
 
 
 def merge_into_asset_metrics(derived_df, existing_df, year):
+    """
+    Merge B3-derived columns into the existing asset_metrics frame.
+
+    The existing frame was authored with a fixed set of columns. B3
+    produces additional columns (catchment population, coverage ratios,
+    demographic mismatch, neighborhood diversity, demand_supply_gap,
+    developable_area_m2, ...) that do not appear in the authored set.
+    Without expanding the schema first, the `if col in existing.columns`
+    filter silently drops every one of them, which breaks B6 (its new
+    flags never fire) and every downstream consumer that reads the
+    enriched CSV.
+
+    This function grows the frame's schema to include every derived
+    column before writing, so no metric is lost at the boundary.
+    """
     derived_cols = [c for c in derived_df.columns if c not in ("asset_id", "year")]
 
     if "year" not in existing_df.columns:
         raise ValueError("existing asset_metrics has no 'year' column")
 
     existing = existing_df.copy()
+
+    # Grow the schema to include every derived column.
+    for col in derived_cols:
+        if col not in existing.columns:
+            existing[col] = None
+
     existing = existing.set_index(["asset_id", "year"])
 
     for _, row in derived_df.iterrows():
         key = (row["asset_id"], year)
         if key in existing.index:
             for col in derived_cols:
-                if col in existing.columns:
-                    existing.at[key, col] = row[col]
+                existing.at[key, col] = row[col]
         else:
             new_row = {c: None for c in existing.columns}
             new_row["asset_id"] = row["asset_id"]
             new_row["year"] = year
             for col in derived_cols:
-                if col in new_row:
-                    new_row[col] = row[col]
+                new_row[col] = row[col]
             existing.loc[key, list(new_row.keys())] = list(new_row.values())
 
     return existing.reset_index()

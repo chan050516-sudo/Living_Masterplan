@@ -287,10 +287,15 @@ class ProposalValidator:
                 )
 
         # Budget hints.
-        # Pass the repurpose target subtype so the estimator hits the
-        # subtype-specific rate table rather than falling back to the
-        # asset's current class.
-        to_subtype = params.get("to_subtype") if itype == "repurpose" else None
+        # Pass the target subtype for every subtype-changing
+        # intervention (repurpose and new_development), so the
+        # estimator hits the subtype-specific rate table instead of
+        # falling back to the asset's current class.
+        to_subtype = (
+            params.get("to_subtype")
+            if itype in ("repurpose", "new_development")
+            else None
+        )
         capex = self._estimate_capex(
             itype, asset_row, params, target_subtype=to_subtype,
         )
@@ -448,7 +453,23 @@ class ProposalValidator:
         floor = _CAPEX_FLOOR.get(itype, 0.0)
         floor_area = _as_positive_float(asset_row.get("floor_area_m2"))
 
-        if itype in ("repurpose", "new_development"):
+        if itype == "new_development":
+            # New development is measured by the target GFA the LLM
+            # specified, not by the current floor area of the vacant
+            # parcel (which is typically zero). Using the parcel's own
+            # area would always fall back to the floor value and let
+            # any sized development pass the budget check.
+            gfa = _as_positive_float(params.get("target_gfa_m2"))
+            rate = None
+            if target_subtype:
+                rate = _CAPEX_RATE_BY_SUBTYPE.get(target_subtype)
+            if rate is None:
+                rate = _CAPEX_RATE_BY_CLASS.get("commercial", 200.0)
+            if gfa > 0:
+                return max(floor, gfa * rate)
+            return floor
+
+        if itype == "repurpose":
             rate = None
             if target_subtype:
                 rate = _CAPEX_RATE_BY_SUBTYPE.get(target_subtype)

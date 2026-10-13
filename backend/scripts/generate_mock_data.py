@@ -144,20 +144,15 @@ print(f"Wrote {MOCK_BUSINESS / 'assets.csv'} ({len(assets)} rows, {len(assets.co
 # ----------------------------------------------------------------
 # asset_metrics.csv — critical: define ALL columns in order
 # ----------------------------------------------------------------
-metric_cols = [
-    "asset_id", "year",
-    "occupancy_rate", "vacancy_rate", "vacancy_duration_months",
-    "footfall_daily", "rental_income_per_visit_proxy",   # renamed
-    "utilisation_rate",
-    "rental_income_rm", "noi_rm", "noi_yield",
-    "accessibility_score", "service_coverage",
-    "effective_demand", "effective_demand_m2",           # added
-    "effective_supply", "dsr",
-    "carbon_operational_tco2e", "energy_kwh",
-    "green_coverage", "canopy_coverage", "shade_proxy_score",   # renamed
-    "financial_score", "environmental_score", "social_score",
-    "performance_score", "delta_score",
-    "metric_source", "model_version",
+# Load the authoritative column list from field_metadata.yml so the
+# generated CSV stays aligned with the schema as B3 evolves.
+import yaml as _yaml
+_FIELD_META_PATH = REPO_ROOT / "backend" / "configs" / "field_metadata.yml"
+with open(_FIELD_META_PATH, "r", encoding="utf-8") as _f:
+    _field_meta = _yaml.safe_load(_f)
+metric_cols = ["asset_id", "year"] + [
+    k for k in _field_meta.get("asset_metrics", {}).keys()
+    if k not in ("year",)
 ]
 
 # Build each row as a dict; missing keys become NaN automatically
