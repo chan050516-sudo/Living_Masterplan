@@ -1,0 +1,2 @@
+scenario_id,intervention_id,target_asset_id,intervention_type,parameters_json,expected_derived_json,expected_source,construction_start_year,construction_duration_months,activation_year,during_construction_status,capex_delta_rm,opex_delta_rm,validation_status,status
+SC-CURRENT,INT-000,,no_op,{},,,2026,0,2026,operational,0,0,validated,applied

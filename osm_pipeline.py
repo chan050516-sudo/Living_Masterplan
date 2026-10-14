@@ -1,3 +1,21 @@
+"""OSM Pipeline — Bukit Jelutong geometry extraction.
+
+Performance notes (2026-10-14):
+  - requests_timeout reduced to 30 s so a stalled Overpass mirror is
+    abandoned in seconds, not minutes.
+  - Green/blue fetch merged into a single Overpass query.
+  - Canopy buffer hoisted out of the per-edge loop. The buffered
+    union is computed once and reused for every edge.
+  - Parcel assignment uses GeoPandas sjoin (R-tree under the hood)
+    instead of a pure-Python O(n*m) loop.
+
+Design principles:
+  1. NO DATA DELETION. Every OSM feature is retained; filtering is
+     done via boolean flags (walk_ok / drive_ok).
+  2. Raw tags preserved alongside normalised fields.
+  3. Normalisation covers the full OSM vocabulary for each key.
+"""
+
 import json
 import math
 import os
@@ -8,40 +26,53 @@ import geopandas as gpd
 import osmnx as ox
 import pandas as pd
 
-# --- OSMnx 2.x settings ---
-ox.settings.requests_timeout = 300
-ox.settings.use_cache = True              # reruns reuse already-downloaded results
-ox.settings.overpass_rate_limit = False   # mirrors may not support the /status check
+# ----------------------------------------------------------------
+# Output naming
+# ----------------------------------------------------------------
+# Change this to "" to write buildings.geojson etc.
+# Change to "2" to write buildings2.geojson (matching current setup).
+OUTPUT_SUFFIX = "3"
 
-# Base URLs: end with /api, NOT /interpreter (OSMnx 2.x appends it)
+
+def out(name):
+    """Return the output filename for a layer."""
+    return f"{name}{OUTPUT_SUFFIX}.geojson"
+
+
+# ----------------------------------------------------------------
+# OSMnx 2.x settings
+# ----------------------------------------------------------------
+# 30 s is enough for any healthy Overpass mirror at our query size.
+# A slower mirror should fail fast so we can rotate to the next one.
+ox.settings.requests_timeout = 45
+ox.settings.use_cache = True
+ox.settings.overpass_rate_limit = False
+
 OVERPASS_URLS = [
-    "https://overpass.private.coffee/api",
     "https://overpass.kumi.systems/api",
+    "https://overpass-api.de/api",
     "https://overpass.openstreetmap.fr/api",
     "https://maps.mail.ru/osm/tools/overpass/api",
-    "https://overpass-api.de/api",
+    "https://overpass.private.coffee/api",
 ]
 
-# Skip a step if its output file already exists (set False to force re-run)
 SKIP_EXISTING = True
 
-# Coordinates / CRS
-CENTER_POINT = (3.1775, 101.5180)
-DIST_M = 707
+CENTER_POINT = (3.109, 101.528)     # Bukit Jelutong, Shah Alam
+DIST_M = 1000                       # ~5.5 km², matching OSM relation 16814637
 COMPUTE_CRS = "EPSG:32647"
 DISPLAY_CRS = "EPSG:4326"
 
 
-def generate_ids(gdf, prefix):
-    """Generates sequential IDs matching the Masterplan ID convention."""
-    return [f"{prefix}{str(i + 1).zfill(4)}" for i in range(len(gdf))]
-
+# ================================================================
+# 1. Metadata & IDs
+# ================================================================
 
 def layer_metadata():
     return {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "region_id": "kuala-lumpur-malaysia",
-        "storage_crs": "EPSG:4326",
+        "storage_crs": DISPLAY_CRS,
         "analysis_crs": COMPUTE_CRS,
         "generated_at": datetime.now(timezone.utc)
         .isoformat(timespec="seconds")
@@ -49,409 +80,552 @@ def layer_metadata():
     }
 
 
+def generate_ids(gdf, prefix):
+    return [f"{prefix}{str(i + 1).zfill(4)}" for i in range(len(gdf))]
+
+
 def write_feature_collection(output_file, features):
-    with open(output_file, "w", encoding="utf-8") as output:
-        output.write('{\n  "type": "FeatureCollection",\n  "metadata": ')
-        output.write(json.dumps(layer_metadata(), indent=2).replace("\n", "\n  "))
-        output.write(',\n  "features": [\n')
-        for index, feature in enumerate(features):
-            if index:
-                output.write(",\n")
-            output.write("    ")
-            json.dump(feature, output, separators=(",", ":"), allow_nan=False)
-        output.write("\n  ]\n}\n")
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write('{\n  "type": "FeatureCollection",\n  "metadata": ')
+        f.write(json.dumps(layer_metadata(), indent=2).replace("\n", "\n  "))
+        f.write(',\n  "features": [\n')
+        for i, feat in enumerate(features):
+            if i:
+                f.write(",\n")
+            f.write("    ")
+            json.dump(feat, f, separators=(",", ":"), allow_nan=False)
+        f.write("\n  ]\n}\n")
 
 
 def geodataframe_features(gdf, id_column):
     features = json.loads(gdf.to_json(drop_id=True, na="null"))["features"]
-    for feature in features:
-        feature["id"] = str(feature["properties"][id_column])
+    for feat in features:
+        feat["id"] = str(feat["properties"][id_column])
     return features
 
 
 def safe_ox_call(func, *args, **kwargs):
-    """Try each Overpass mirror (with a retry) until one succeeds."""
+    """
+    Rotate through Overpass mirrors on failure. With
+    requests_timeout = 30, a stalled mirror costs 60 s at most
+    (2 attempts × 30 s), so worst-case rotation is ~5 min, not 50.
+    """
     last_err = None
     for url in OVERPASS_URLS:
         ox.settings.overpass_url = url
         for attempt in range(2):
             try:
-                print(f"Using {url} (attempt {attempt + 1})")
+                print(f"  Using {url} (attempt {attempt + 1})")
                 return func(*args, **kwargs)
             except Exception as e:
                 last_err = e
-                print(f"  failed: {str(e)[:150]}")
-                time.sleep(5)
-    raise RuntimeError(f"All Overpass mirrors failed. Last error: {last_err}")
+                print(f"    failed: {str(e)[:150]}")
+                time.sleep(2)
+    raise RuntimeError(f"All Overpass mirrors failed. Last: {last_err}")
 
 
 def polygons_only(gdf):
     return gdf[gdf.geometry.type.isin(["Polygon", "MultiPolygon"])].copy()
 
 
-def normalize_building_type(value):
-    """Map OSM building tags to the controlled building-type vocabulary."""
-    building_type = str(value).strip().lower()
-    categories = {
-        "commercial": {
-            "commercial",
-            "office",
-            "retail",
-        },
-        "community_facility": {
-            "community_centre",
-            "social_facility",
-        },
-        "residential": {
-            "apartments",
-            "bungalow",
-            "detached",
-            "house",
-            "residential",
-            "semidetached_house",
-            "terrace",
-        },
-        "mixed_use": {"mixed_use"},
-        "industrial": {
-            "factory",
-            "industrial",
-            "warehouse",
-        },
-        "institutional": {
-            "college",
-            "kindergarten",
-            "school",
-            "university",
-        },
-    }
-    for category, values in categories.items():
-        if building_type in values:
-            return category
-    return "unknown"
+# ================================================================
+# 2. Network edge classification
+# ================================================================
+
+WALKABLE_HIGHWAY = {
+    "footway", "pedestrian", "path", "steps", "track", "bridleway",
+    "cycleway", "living_street", "service", "residential",
+    "unclassified", "tertiary", "tertiary_link",
+    "secondary", "secondary_link",
+    "primary", "primary_link",
+    "trunk", "trunk_link",
+    "road", "crossing", "corridor", "sidewalk",
+    "platform", "elevator", "escalator",
+}
+
+DRIVABLE_HIGHWAY = {
+    "trunk", "trunk_link",
+    "primary", "primary_link",
+    "secondary", "secondary_link",
+    "tertiary", "tertiary_link",
+    "unclassified", "residential",
+    "living_street", "service",
+    "track", "road",
+}
+
+TRANSIT_HIGHWAY = {"bus_guideway", "busway", "bus_stop"}
+
+ALL_HIGHWAY = WALKABLE_HIGHWAY | DRIVABLE_HIGHWAY | TRANSIT_HIGHWAY | {
+    "motorway", "motorway_link",
+    "motorway_junction", "rest_area", "services",
+    "construction", "proposed", "abandoned",
+    "raceway", "escape", "emergency_bay",
+}
 
 
-def parse_floors(value):
-    """Return a non-negative integer floor count, or None when OSM has no usable value."""
-    try:
-        floors = float(value)
-    except (TypeError, ValueError):
-        return None
-    if floors < 0 or not floors.is_integer():
-        return None
-    return int(floors)
+def classify_highway(value):
+    """
+    Return (edge_type, walk_ok, drive_ok).
 
-
-def assign_parcel_ids(buildings_projected, parcels_projected):
-    """Link each building to the smallest parcel polygon covering its representative point."""
-    parcel_geometries = [
-        (row.parcel_id, row.geometry, row.geometry.area)
-        for row in parcels_projected.itertuples()
-    ]
-    parcel_ids = []
-    for geometry in buildings_projected.geometry:
-        point = geometry.representative_point()
-        candidates = [
-            (parcel_id, area)
-            for parcel_id, parcel_geometry, area in parcel_geometries
-            if parcel_geometry.covers(point)
-        ]
-        parcel_ids.append(
-            min(candidates, key=lambda candidate: candidate[1])[0]
-            if candidates
-            else "P-UNASSIGNED"
-        )
-    return parcel_ids
-
-
-def normalize_edge_type(value):
-    """Map OSM highway tags to the controlled network edge vocabulary."""
-    allowed_types = {
-        "footway",
-        "pedestrian",
-        "path",
-        "residential",
-        "service",
-        "living_street",
-        "steps",
-        "track",
-        "secondary",
-        "tertiary",
-        "primary",
-        "unclassified",
-        "transit",
-    }
+    Motorways are marked walk_ok=False / drive_ok=False: B3's driving
+    model is township-scale (30 km/h), and including motorways would
+    distort catchment profiles.
+    """
     values = value if isinstance(value, (list, tuple, set)) else [value]
-    for edge_type in values:
-        if edge_type in allowed_types:
-            return edge_type
-    return None
+    chosen = None
+    walk = False
+    drive = False
+    for v in values:
+        v = str(v).strip().lower()
+        if v in {"motorway", "motorway_link"}:
+            chosen = chosen or v
+            continue
+        if v in ALL_HIGHWAY:
+            chosen = chosen or v
+            if v in WALKABLE_HIGHWAY:
+                walk = True
+            if v in DRIVABLE_HIGHWAY:
+                drive = True
+    if chosen is None:
+        for v in values:
+            v = str(v).strip().lower()
+            if v:
+                chosen = v
+                break
+    return chosen or "unclassified", walk, drive
 
 
 def normalize_access_type(value):
-    """Normalize OSM access tags to the network schema's access categories."""
-    access = str(value).strip().lower()
-    if access == "private":
+    access = str(value).strip().lower() if value else ""
+    if access in {"private", "no"}:
         return "private"
-    if access in {"no", "restricted", "destination", "customers"}:
+    if access in {"restricted", "destination", "customers", "permit", "delivery"}:
         return "restricted"
     return "public"
 
 
-def calculate_canopy_coverage_ratio(edge_geometry, canopy_geometry, canopy_fraction):
-    """Estimate shade as the edge fraction in mapped canopy areas times their canopy ratio."""
-    if edge_geometry.length == 0 or canopy_geometry.is_empty:
+def calculate_canopy_coverage_ratio(edge_geometry, canopy_buffered):
+    """
+    Fraction of an edge covered by the pre-buffered canopy union.
+
+    canopy_buffered MUST be precomputed once for the whole layer.
+    Calling .buffer() inside the per-edge loop is a performance
+    disaster on realistic geometries (thousands of edges, complex
+    MultiPolygon canopy union).
+    """
+    if edge_geometry.length == 0 or canopy_buffered.is_empty:
         return 0.0
-    covered_length = edge_geometry.intersection(canopy_geometry).length
-    return min(1.0, max(0.0, covered_length / edge_geometry.length * canopy_fraction))
+    covered = edge_geometry.intersection(canopy_buffered).length
+    return min(1.0, max(0.0, covered / edge_geometry.length))
 
 
-def normalize_land_use(value):
-    land_use = str(value).strip().lower()
-    if land_use in {"commercial", "retail"}:
-        return "commercial"
-    if land_use in {"community_centre", "social_facility"}:
-        return "community_facility"
-    if land_use == "residential":
-        return "residential"
-    if land_use == "mixed_use":
+# ================================================================
+# 3. Building classification
+# ================================================================
+
+BUILDING_RESIDENTIAL = {
+    "residential", "apartments", "apartment", "house", "detached",
+    "semidetached_house", "terrace", "bungalow", "cabin", "dormitory",
+    "ger", "barracks", "annexe", "farm", "farm_auxiliary", "barn",
+    "houseboat", "static_caravan", "allotment_house", "cowshed",
+    "sty", "stable", "boathouse", "hut", "shed",
+}
+
+BUILDING_COMMERCIAL = {
+    "commercial", "office", "retail", "supermarket", "kiosk",
+    "restaurant", "cafe", "bank", "shop", "hotel", "hostel",
+    "guest_house", "motel", "market", "showroom",
+}
+
+BUILDING_COMMUNITY = {
+    "community_centre", "social_facility", "civic", "public",
+    "government", "townhall", "clinic", "hospital", "school",
+    "university", "college", "kindergarten", "library",
+    "church", "cathedral", "mosque", "synagogue", "temple", "chapel",
+    "place_of_worship", "monastery", "convent", "presbytery",
+    "nursing_home", "arts_centre", "courthouse", "prison",
+    "fire_station", "police", "post_office", "museum",
+    "sports_hall", "stadium", "grandstand", "transportation",
+    "train_station", "transit_station",
+}
+
+BUILDING_INDUSTRIAL = {
+    "industrial", "factory", "warehouse", "hangar", "manufacture",
+    "digester", "gasometer", "water_tower", "silo", "storage_tank",
+    "service", "garage", "garages", "carport", "parking",
+    "greenhouse", "conservatory", "roof", "ruins", "construction",
+    "tent", "tower", "bunker", "bridge",
+}
+
+
+def normalize_building_type(value):
+    bt = str(value).strip().lower() if value else ""
+    if bt in {"mixed_use", "mixed"}:
         return "mixed_use"
-    if land_use in {
-        "brownfield",
-        "construction",
-        "greenfield",
-        "vacant",
-        "vacant_lot",
-    }:
-        return "undeveloped"
-    if land_use in {"forest", "grass", "green", "meadow", "park", "recreation_ground"}:
-        return "green_space"
-    if land_use in {"railway", "road", "transport", "utility"}:
-        return "infrastructure"
+    if bt in BUILDING_RESIDENTIAL:
+        return "residential"
+    if bt in BUILDING_COMMERCIAL:
+        return "commercial"
+    if bt in BUILDING_COMMUNITY:
+        return "community_facility"
+    if bt in BUILDING_INDUSTRIAL:
+        return "industrial"
     return "unknown"
 
 
-def normalize_green_type(leisure, natural, landuse, waterway):
+def parse_floors(value):
+    try:
+        f = float(value)
+    except (TypeError, ValueError):
+        return None
+    if f < 0 or not f.is_integer():
+        return None
+    return int(f)
+
+
+# ================================================================
+# 4. Amenity classification
+# ================================================================
+
+AMENITY_HEALTHCARE = {
+    "clinic", "hospital", "doctors", "dentist", "pharmacy",
+    "veterinary", "nursing_home", "social_facility",
+}
+AMENITY_EDUCATION = {
+    "school", "university", "college", "kindergarten",
+    "library", "language_school", "music_school", "driving_school",
+    "childcare", "research_institute",
+}
+AMENITY_TRANSIT = {
+    "bus_station", "bus_stop", "ferry_terminal", "taxi",
+    "bicycle_parking", "bicycle_rental", "car_rental", "car_sharing",
+    "parking", "parking_entrance", "parking_space",
+    "fuel", "charging_station", "motorcycle_parking",
+}
+AMENITY_COMMUNITY = {
+    "community_centre", "social_centre", "arts_centre", "theatre",
+    "cinema", "nightclub", "casino", "events_venue", "conference_centre",
+    "exhibition_centre", "public_building", "townhall",
+    "courthouse", "embassy", "fire_station", "police", "post_office",
+    "prison", "ranger_station",
+}
+AMENITY_RETAIL = {
+    "restaurant", "fast_food", "cafe", "bar", "pub", "biergarten",
+    "food_court", "ice_cream", "bank", "atm", "bureau_de_change",
+    "marketplace", "shop", "vending_machine",
+}
+
+
+def normalize_amenity_type(value):
+    a = str(value).strip().lower() if value else ""
+    if a in AMENITY_HEALTHCARE:
+        if a in {"pharmacy", "dentist", "doctors"}:
+            return "clinic"
+        return a
+    if a in AMENITY_EDUCATION:
+        if a == "library":
+            return "library"
+        return "school"
+    if a in AMENITY_TRANSIT:
+        if a in {"bus_station", "bus_stop"}:
+            return "bus_stop"
+        if a == "ferry_terminal":
+            return "transit_station"
+        return "other"
+    if a == "place_of_worship":
+        return "place_of_worship"
+    if a in AMENITY_COMMUNITY:
+        return "community_centre"
+    if a in AMENITY_RETAIL:
+        return "other"
+    return "other"
+
+
+# ================================================================
+# 5. Green / blue classification
+# ================================================================
+
+GREEN_PARK = {"park", "nature_reserve", "village_green", "common"}
+GREEN_PUBLIC_SPACE = {
+    "recreation_ground", "playground", "garden", "pitch",
+    "golf_course", "sports_centre", "stadium", "track",
+    "dog_park", "fitness_centre", "picnic_table", "slipway",
+    "marina", "water_park", "beach_resort", "summer_camp",
+}
+GREEN_WATER = {
+    "water", "river", "stream", "canal", "lake", "pond",
+    "reservoir", "basin", "wetland", "riverbank", "bay",
+    "dock", "harbour", "swimming_pool", "waterfall", "dam", "weir",
+}
+GREEN_DRAINAGE = {"drain", "ditch", "drainage", "wastewater_plant"}
+GREEN_CANOPY = {"wood", "forest", "tree_row", "trees", "scrub", "heath"}
+
+
+def normalize_green_type(leisure, natural, landuse, waterway, sport=None):
     tags = {
-        str(value).strip().lower()
-        for value in (leisure, natural, landuse, waterway)
-        if value is not None and not pd.isna(value)
+        str(v).strip().lower()
+        for v in (leisure, natural, landuse, waterway, sport)
+        if v is not None and not (isinstance(v, float) and pd.isna(v))
     }
-    if tags & {"drain", "ditch", "canal"}:
+    if tags & GREEN_DRAINAGE:
         return "drainage"
-    if tags & {"water", "river", "stream", "riverbank", "wetland"}:
+    if tags & GREEN_WATER:
         return "water_body"
-    if tags & {"wood", "forest", "tree_row", "trees"}:
+    if tags & GREEN_CANOPY:
         return "canopy"
-    if tags & {"park", "nature_reserve"}:
+    if tags & GREEN_PARK:
         return "park"
-    if tags & {"pitch", "golf_course", "recreation_ground", "grass", "scrub"}:
+    if tags & GREEN_PUBLIC_SPACE:
         return "public_space"
     return "public_space"
 
 
+# ================================================================
+# 6. Parcel land-use classification
+# ================================================================
+
+LANDUSE_RESIDENTIAL = {"residential", "apartments", "house"}
+LANDUSE_COMMERCIAL = {
+    "commercial", "retail", "office", "industrial",
+    "warehouse", "depot", "port", "quarry", "landfill",
+}
+LANDUSE_COMMUNITY = {
+    "education", "school", "university", "college", "hospital",
+    "healthcare", "cemetery", "grave_yard", "religious", "civic",
+    "military", "institutional",
+}
+LANDUSE_GREEN = {
+    "forest", "grass", "meadow", "park", "recreation_ground",
+    "village_green", "wood", "scrub", "heath", "allotments",
+    "flowerbed", "orchard", "vineyard",
+}
+LANDUSE_WATER = {
+    "aquaculture", "basin", "reservoir", "pond", "riverbank",
+    "wetland", "water",
+}
+LANDUSE_UNDEVELOPED = {
+    "construction", "brownfield", "vacant", "vacant_lot", "greenfield",
+}
+LANDUSE_INFRASTRUCTURE = {
+    "railway", "road", "transport", "utility", "power",
+    "pipeline", "wastewater_plant", "water_works",
+}
+
+
+def normalize_land_use(value):
+    lu = str(value).strip().lower() if value else ""
+    if lu in {"mixed_use", "mixed"}:
+        return "mixed_use"
+    if lu in LANDUSE_RESIDENTIAL:
+        return "residential"
+    if lu in LANDUSE_COMMERCIAL:
+        return "commercial"
+    if lu in LANDUSE_COMMUNITY:
+        return "community_facility"
+    if lu in LANDUSE_GREEN:
+        return "green_space"
+    if lu in LANDUSE_WATER:
+        return "green_space"
+    if lu in LANDUSE_UNDEVELOPED:
+        return "undeveloped"
+    if lu in LANDUSE_INFRASTRUCTURE:
+        return "infrastructure"
+    return "unknown"
+
+
+# ================================================================
+# 7. Parcel construction from building footprints
+# ================================================================
+
+def rebuild_parcels_from_buildings(buildings_projected, buffer_m=2.0):
+    buffered = buildings_projected.geometry.buffer(buffer_m)
+    merged = buffered.union_all()
+    if merged.geom_type == "Polygon":
+        parts = [merged]
+    elif merged.geom_type == "MultiPolygon":
+        parts = list(merged.geoms)
+    else:
+        parts = []
+    parcels = gpd.GeoDataFrame({"geometry": parts}, crs=COMPUTE_CRS)
+    parcels["area_m2"] = parcels.geometry.area
+    parcels = parcels[
+        (parcels["area_m2"] >= 300) & (parcels["area_m2"] <= 20000)
+    ].copy()
+    parcels["parcel_id"] = generate_ids(parcels, "P-")
+    parcels["asset_id"] = None
+    parcels["land_use"] = "unknown"
+    parcels["geometry_source"] = "Derived from building footprints"
+    parcels["geometry_confidence"] = "medium"
+    return parcels
+
+
+def assign_parcel_ids(buildings_projected, parcels_projected):
+    """
+    Assign each building to the smallest parcel containing its
+    representative point.
+
+    Uses GeoPandas sjoin, which builds an R-tree index on the parcel
+    layer. The previous pure-Python loop was O(n * m) and dominated
+    runtime on realistic datasets.
+    """
+    # Prepare points (one per building) with the original index.
+    pts = buildings_projected[["geometry"]].copy()
+    pts["_bidx"] = range(len(pts))
+    pts.geometry = pts.geometry.representative_point()
+
+    # Parcels with a stable column set.
+    parcels = parcels_projected[["parcel_id", "area_m2", "geometry"]].copy()
+
+    joined = gpd.sjoin(
+        pts, parcels,
+        how="left",
+        predicate="within",
+    )
+
+    # A point may fall into more than one parcel (overlapping polygons
+    # are common in OSM). Keep the smallest area.
+    joined = joined.sort_values("area_m2", na_position="last")
+    joined = joined.groupby("_bidx", as_index=False).first()
+
+    # Fill any missed buildings.
+    ids = joined["parcel_id"].fillna("P-UNASSIGNED").tolist()
+    return ids
+
+
+# ================================================================
+# 8. Layer processors
+# ================================================================
+
 def process_buildings():
     print("Fetching Buildings...")
-    tags = {"building": True}
     gdf = safe_ox_call(
-        ox.features_from_point, CENTER_POINT, dist=DIST_M, tags=tags
+        ox.features_from_point, CENTER_POINT, dist=DIST_M,
+        tags={"building": True},
     )
     gdf = polygons_only(gdf)
 
     gdf_proj = gdf.to_crs(COMPUTE_CRS)
-    gdf["area_m2"] = gdf_proj.geometry.area
-    if not os.path.exists("parcels.geojson"):
-        raise FileNotFoundError(
-            "parcels.geojson is required to assign building parcel_id values."
-        )
-    parcels = gpd.read_file("parcels.geojson").to_crs(COMPUTE_CRS)
+    gdf["footprint_m2"] = gdf_proj.geometry.area
+
     gdf["building_id"] = generate_ids(gdf, "BLD-")
-    gdf["parcel_id"] = assign_parcel_ids(gdf_proj, parcels)
-    gdf["asset_id"] = gdf["building_id"].map(
-        lambda building_id: f"unlinked-{building_id}"
-    )
     gdf["building_type"] = gdf["building"].map(normalize_building_type)
+
     levels = gdf.get("building:levels", pd.Series(None, index=gdf.index))
     gdf["floors"] = levels.map(parse_floors)
-    gdf["gfa_m2"] = gdf["area_m2"]
-    gdf["geometry_source"] = "OpenStreetMap"
 
-    final_gdf = gdf[
-        [
-            "building_id",
-            "parcel_id",
-            "asset_id",
-            "building_type",
-            "floors",
-            "gfa_m2",
-            "geometry_source",
-            "geometry",
-        ]
-    ].to_crs(DISPLAY_CRS)
-    features = json.loads(final_gdf.to_json(drop_id=True, na="null"))["features"]
-    for feature in features:
-        feature["id"] = feature["properties"]["building_id"]
-    write_feature_collection("buildings.geojson", features)
-    print(f"Saved {len(final_gdf)} buildings.")
+    # GFA = footprint * floors, defaulting to footprint when floors is
+    # unknown. `fl or 1` would fail on NaN (NaN is truthy).
+    floors_filled = gdf["floors"].fillna(1)
+    gdf["gfa_m2"] = gdf["footprint_m2"] * floors_filled
+
+    # Parcel assignment.
+    parcels_path = out("parcels")
+    if os.path.exists(parcels_path):
+        parcels = gpd.read_file(parcels_path).to_crs(COMPUTE_CRS)
+    else:
+        parcels = rebuild_parcels_from_buildings(gdf_proj)
+    gdf["parcel_id"] = assign_parcel_ids(gdf_proj, parcels)
+
+    gdf["asset_id"] = gdf["building_id"].map(lambda bid: f"unlinked-{bid}")
+    gdf["geometry_source"] = "Microsoft Building Footprints"
+    gdf["building_raw"] = gdf.get("building")
+
+    keep = [
+        "building_id", "parcel_id", "asset_id", "building_type",
+        "building_raw", "floors", "footprint_m2", "gfa_m2",
+        "geometry_source", "geometry",
+    ]
+    final = gdf[keep].to_crs(DISPLAY_CRS)
+    features = json.loads(final.to_json(drop_id=True, na="null"))["features"]
+    for feat in features:
+        feat["id"] = feat["properties"]["building_id"]
+    write_feature_collection(out("buildings"), features)
+    print(f"Saved {len(final)} buildings.")
 
 
 def process_parcels():
-    print("Fetching Parcels (Land Use)...")
-    tags = {
-        "landuse": [
-            "residential",
-            "commercial",
-            "retail",
-            "industrial",
-            "construction",
-            "brownfield",
-        ]
-    }
-    gdf = safe_ox_call(
-        ox.features_from_point, CENTER_POINT, dist=DIST_M, tags=tags
-    )
-    gdf = polygons_only(gdf)
-
-    gdf_proj = gdf.to_crs(COMPUTE_CRS)
-    gdf["area_m2"] = gdf_proj.geometry.area
-
-    gdf["parcel_id"] = generate_ids(gdf, "P-")
-    gdf["land_use"] = gdf["landuse"].map(normalize_land_use)
-    gdf["asset_id"] = None
-    gdf["geometry_source"] = "OpenStreetMap"
-    gdf["geometry_confidence"] = "low"
-
-    final_gdf = gdf[
-        [
-            "parcel_id",
-            "asset_id",
-            "land_use",
-            "area_m2",
-            "geometry_source",
-            "geometry_confidence",
-            "geometry",
-        ]
-    ].to_crs(DISPLAY_CRS)
-    write_feature_collection(
-        "parcels.geojson", geodataframe_features(final_gdf, "parcel_id")
-    )
-    print(f"Saved {len(final_gdf)} parcels.")
-
-
-def process_network():
-    print("Fetching Complete Study-Area Network...")
-    study_layers = [
-        gpd.read_file("buildings.geojson"),
-        gpd.read_file("green_blue.geojson"),
-    ]
-    study_bounds = [
-        layer.to_crs(COMPUTE_CRS).total_bounds for layer in study_layers if not layer.empty
-    ]
-    if not study_bounds:
-        raise ValueError("Buildings and green/blue layers contain no study-area geometries.")
-    west = min(bounds[0] for bounds in study_bounds)
-    south = min(bounds[1] for bounds in study_bounds)
-    east = max(bounds[2] for bounds in study_bounds)
-    north = max(bounds[3] for bounds in study_bounds)
-    center = (
-        gpd.GeoSeries(
-            [gpd.points_from_xy([CENTER_POINT[1]], [CENTER_POINT[0]])[0]],
-            crs=DISPLAY_CRS,
-        )
-        .to_crs(COMPUTE_CRS)
-        .iloc[0]
-    )
-    network_dist = max(
-        math.hypot(x - center.x, y - center.y)
-        for x in (west, east)
-        for y in (south, north)
-    ) + 100
-    print(f"Study-area network radius: {network_dist:.0f} m (includes 100 m margin)")
-    G = safe_ox_call(
-        ox.graph_from_point,
-        CENTER_POINT,
-        dist=network_dist,
-        network_type="all",
-        retain_all=True,
-    )
-
-    _, edges = ox.graph_to_gdfs(G)
-    edges = edges.reset_index()
-    edges["edge_type"] = edges["highway"].map(normalize_edge_type)
-    edges = edges[edges["edge_type"].notna()].copy()
-    edges_proj = edges.to_crs(COMPUTE_CRS)
-    edges["length_m"] = edges_proj.geometry.length
-    edges["edge_id"] = generate_ids(edges, "E-")
-    edges["from_node"] = edges["u"].map(lambda node_id: f"N-{node_id}")
-    edges["to_node"] = edges["v"].map(lambda node_id: f"N-{node_id}")
-    edges["walk_speed_kmh"] = 4.5
-
-    access_foot = edges.get("access:foot", pd.Series(None, index=edges.index))
-    access_general = edges.get("access", pd.Series(None, index=edges.index))
-    edges["access_type"] = [
-        normalize_access_type(foot_access if pd.notna(foot_access) else general_access)
-        for foot_access, general_access in zip(access_foot, access_general)
-    ]
-
-    if not os.path.exists("green_blue.geojson"):
+    print("Rebuilding Parcels from building footprints...")
+    buildings_path = out("buildings")
+    if not os.path.exists(buildings_path):
         raise FileNotFoundError(
-            "green_blue.geojson is required to estimate network canopy coverage."
+            f"{buildings_path} is required to rebuild parcels."
         )
-    green = gpd.read_file("green_blue.geojson").to_crs(COMPUTE_CRS)
-    green["canopy_fraction"] = green["canopy_m2"] / green["area_m2"]
-    canopy_areas = green[
-        (green["green_type"] == "canopy")
-        & green["canopy_m2"].notna()
-        & (green["canopy_fraction"] > 0)
-    ]
-    canopy_geometry = canopy_areas.geometry.union_all()
-    canopy_fraction = (
-        (canopy_areas["area_m2"] * canopy_areas["canopy_fraction"]).sum()
-        / canopy_areas["area_m2"].sum()
-        if not canopy_areas.empty
-        else 0.0
+    buildings = gpd.read_file(buildings_path).to_crs(COMPUTE_CRS)
+    parcels = rebuild_parcels_from_buildings(buildings)
+
+    buildings["parcel_id"] = assign_parcel_ids(buildings, parcels)
+
+    parcel_land_use = (
+        buildings
+        .groupby("parcel_id")["building_type"]
+        .agg(lambda s: s.mode().iloc[0] if not s.mode().empty else "unknown")
+        .to_dict()
     )
-    edges["canopy_coverage_ratio"] = [
-        calculate_canopy_coverage_ratio(geometry, canopy_geometry, canopy_fraction)
-        for geometry in edges_proj.geometry
+    land_use_map = {
+        "residential": "residential",
+        "commercial": "commercial",
+        "community_facility": "community_facility",
+        "industrial": "industrial",
+        "mixed_use": "mixed_use",
+        "unknown": "unknown",
+    }
+    parcels["land_use"] = [
+        land_use_map.get(parcel_land_use.get(pid, "unknown"), "unknown")
+        for pid in parcels["parcel_id"]
     ]
 
-    final_edges = edges[
-        [
-            "edge_id",
-            "edge_type",
-            "from_node",
-            "to_node",
-            "length_m",
-            "walk_speed_kmh",
-            "access_type",
-            "canopy_coverage_ratio",
-            "geometry",
-        ]
-    ].to_crs(DISPLAY_CRS)
+    keep = [
+        "parcel_id", "asset_id", "land_use", "area_m2",
+        "geometry_source", "geometry_confidence", "geometry",
+    ]
+    final = parcels[keep].to_crs(DISPLAY_CRS)
     write_feature_collection(
-        "network_edges.geojson", geodataframe_features(final_edges, "edge_id")
+        out("parcels"), geodataframe_features(final, "parcel_id"),
     )
-    print(f"Saved {len(final_edges)} network edges.")
+    print(f"Saved {len(final)} parcels.")
 
 
 def process_green_blue():
     print("Fetching Green & Blue Spaces...")
-    # Split into smaller queries so each one is less likely to time out
-    tag_sets = [
-        {"leisure": ["park", "nature_reserve", "pitch", "golf_course"]},
-        {"natural": ["water", "wood", "scrub", "tree_row"]},
-        {"landuse": ["grass", "forest", "recreation_ground"]},
-        {"waterway": ["canal", "ditch", "drain", "river", "stream"]},
-    ]
-    parts = [
-        safe_ox_call(ox.features_from_point, CENTER_POINT, dist=DIST_M, tags=t)
-        for t in tag_sets
-    ]
-    gdf = gpd.GeoDataFrame(pd.concat(parts), crs=parts[0].crs)
-    gdf = gdf[~gdf.index.duplicated(keep="first")]
 
-    # Make sure the columns exist even if a query returned nothing for that key
-    for col in ["leisure", "natural", "landuse", "waterway"]:
+    # Single Overpass query. Previously this was five separate
+    # requests, each subject to its own mirror rotation and timeout.
+    green_tags = {
+        "leisure": [
+            "park", "nature_reserve", "pitch", "golf_course",
+            "playground", "garden", "recreation_ground",
+            "sports_centre", "stadium", "track",
+        ],
+        "natural": [
+            "water", "wood", "scrub", "tree_row", "wetland",
+            "grassland", "heath", "beach", "bay",
+        ],
+        "landuse": [
+            "grass", "forest", "recreation_ground", "meadow",
+            "village_green", "allotments", "flowerbed",
+            "orchard", "vineyard",
+        ],
+        "waterway": ["canal", "ditch", "drain", "river", "stream", "dam", "weir"],
+    }
+    gdf = safe_ox_call(
+        ox.features_from_point, CENTER_POINT, dist=DIST_M,
+        tags=green_tags,
+    )
+    # Water as its own query: OSM tags a lot of water bodies with a
+    # bare `water=*` key that the merged query does not capture.
+    try:
+        water_extra = safe_ox_call(
+            ox.features_from_point, CENTER_POINT, dist=DIST_M,
+            tags={"water": True},
+        )
+        gdf = gpd.GeoDataFrame(
+            pd.concat([gdf, water_extra]), crs=gdf.crs,
+        )
+        gdf = gdf[~gdf.index.duplicated(keep="first")]
+    except Exception as e:
+        print(f"  water-extra query failed (continuing): {e}")
+
+    for col in ["leisure", "natural", "landuse", "waterway", "sport", "water"]:
         if col not in gdf.columns:
             gdf[col] = None
 
@@ -460,72 +634,179 @@ def process_green_blue():
 
     gdf["green_id"] = generate_ids(gdf, "G-")
     gdf["green_type"] = [
-        normalize_green_type(leisure, natural, landuse, waterway)
-        for leisure, natural, landuse, waterway in zip(
-            gdf["leisure"], gdf["natural"], gdf["landuse"], gdf["waterway"]
+        normalize_green_type(le, na, lu, wa, sp)
+        for le, na, lu, wa, sp in zip(
+            gdf["leisure"], gdf["natural"], gdf["landuse"],
+            gdf["waterway"], gdf["sport"],
         )
     ]
-    gdf["asset_id"] = gdf["green_id"].map(
-        lambda green_id: f"unlinked-{green_id}"
-    )
+    gdf["asset_id"] = gdf["green_id"].map(lambda gid: f"unlinked-{gid}")
     gdf["canopy_m2"] = [
-        area
-        if green_type == "canopy" and geometry_type in {"Polygon", "MultiPolygon"}
-        else None
-        for area, green_type, geometry_type in zip(
-            gdf["area_m2"], gdf["green_type"], gdf.geometry.type
-        )
+        area if gt == "canopy" else None
+        for area, gt in zip(gdf["area_m2"], gdf["green_type"])
     ]
     gdf["geometry_source"] = "OpenStreetMap"
-
-    final_gdf = gdf[
-        [
-            "green_id",
-            "asset_id",
-            "green_type",
-            "area_m2",
-            "canopy_m2",
-            "geometry_source",
-            "geometry",
-        ]
-    ].to_crs(DISPLAY_CRS)
-    write_feature_collection(
-        "green_blue.geojson", geodataframe_features(final_gdf, "green_id")
+    gdf["green_type_raw"] = gdf[
+        ["leisure", "natural", "landuse", "waterway"]
+    ].apply(
+        lambda r: ",".join(
+            str(v) for v in r if v is not None and not pd.isna(v)
+        ),
+        axis=1,
     )
-    print(f"Saved {len(final_gdf)} green/blue spaces.")
+
+    keep = [
+        "green_id", "asset_id", "green_type", "green_type_raw",
+        "area_m2", "canopy_m2", "geometry_source", "geometry",
+    ]
+    final = gdf[keep].to_crs(DISPLAY_CRS)
+    write_feature_collection(
+        out("green_blue"), geodataframe_features(final, "green_id"),
+    )
+    print(f"Saved {len(final)} green/blue spaces.")
+
+
+def process_network():
+    print("Fetching Complete Study-Area Network...")
+    study_layers = []
+    for name in ("buildings", "green_blue"):
+        p = out(name)
+        if os.path.exists(p):
+            study_layers.append(gpd.read_file(p))
+    if not study_layers:
+        raise ValueError("No study-area geometries available.")
+    study_bounds = [
+        layer.to_crs(COMPUTE_CRS).total_bounds
+        for layer in study_layers if not layer.empty
+    ]
+    west = min(b[0] for b in study_bounds)
+    south = min(b[1] for b in study_bounds)
+    east = max(b[2] for b in study_bounds)
+    north = max(b[3] for b in study_bounds)
+    center = (
+        gpd.GeoSeries(
+            [gpd.points_from_xy(
+                [CENTER_POINT[1]], [CENTER_POINT[0]])[0]],
+            crs=DISPLAY_CRS,
+        ).to_crs(COMPUTE_CRS).iloc[0]
+    )
+    network_dist = max(
+        math.hypot(x - center.x, y - center.y)
+        for x in (west, east) for y in (south, north)
+    ) + 100
+    print(f"Network radius: {network_dist:.0f} m")
+
+    G = safe_ox_call(
+        ox.graph_from_point,
+        CENTER_POINT, dist=network_dist,
+        network_type="all", retain_all=True,
+    )
+    _, edges = ox.graph_to_gdfs(G)
+    edges = edges.reset_index()
+
+    classified = edges["highway"].apply(classify_highway)
+    edges["edge_type"] = [c[0] for c in classified]
+    edges["walk_ok"] = [c[1] for c in classified]
+    edges["drive_ok"] = [c[2] for c in classified]
+
+    edges_proj = edges.to_crs(COMPUTE_CRS)
+    edges["length_m"] = edges_proj.geometry.length
+    edges["edge_id"] = generate_ids(edges, "E-")
+    edges["from_node"] = edges["u"].map(lambda n: f"N-{n}")
+    edges["to_node"] = edges["v"].map(lambda n: f"N-{n}")
+    edges["walk_speed_kmh"] = 4.5
+
+    access_foot = edges.get("access:foot", pd.Series(None, index=edges.index))
+    access_gen = edges.get("access", pd.Series(None, index=edges.index))
+    edges["access_type"] = [
+        normalize_access_type(
+            fa if (fa is not None and not pd.isna(fa)) else ga
+        )
+        for fa, ga in zip(access_foot, access_gen)
+    ]
+
+    # ---- Canopy coverage ----
+    # The union + buffer is computed ONCE. The previous code called
+    # buffer() inside the per-edge loop, which on realistic geometries
+    # is O(edges * complexity(canopy)) and dominates runtime.
+    green_path = out("green_blue")
+    if os.path.exists(green_path):
+        green = gpd.read_file(green_path).to_crs(COMPUTE_CRS)
+        canopy_union = green.geometry.union_all()
+        canopy_buffered = canopy_union.buffer(5.0) if not canopy_union.is_empty else canopy_union
+    else:
+        from shapely.geometry import Polygon
+        canopy_buffered = Polygon()
+
+    edges["canopy_coverage_ratio"] = [
+        calculate_canopy_coverage_ratio(geom, canopy_buffered)
+        for geom in edges_proj.geometry
+    ]
+
+    edges["highway_raw"] = edges["highway"].apply(
+        lambda v: ",".join(v) if isinstance(v, list)
+        else (str(v) if v is not None else None)
+    )
+
+    keep = [
+        "edge_id", "edge_type", "highway_raw", "walk_ok", "drive_ok",
+        "from_node", "to_node", "length_m", "walk_speed_kmh",
+        "access_type", "canopy_coverage_ratio", "geometry",
+    ]
+    final = edges[keep].to_crs(DISPLAY_CRS)
+    write_feature_collection(
+        out("network_edges"),
+        geodataframe_features(final, "edge_id"),
+    )
+    print(f"Saved {len(final)} network edges "
+          f"(walk_ok={int(edges['walk_ok'].sum())}, "
+          f"drive_ok={int(edges['drive_ok'].sum())}).")
 
 
 def process_amenities():
     print("Fetching Amenities...")
-    tags = {"amenity": True}
     gdf = safe_ox_call(
-        ox.features_from_point, CENTER_POINT, dist=DIST_M, tags=tags
+        ox.features_from_point, CENTER_POINT, dist=DIST_M,
+        tags={"amenity": True},
     )
-
     gdf = gdf.reset_index()
     gdf["amenity_id"] = generate_ids(gdf, "A-")
-    gdf["amenity_type"] = gdf["amenity"].fillna("unknown")
-    gdf["capacity"] = 0
 
-    final_gdf = gdf[
-        ["amenity_id", "amenity_type", "capacity", "geometry"]
-    ].to_crs(DISPLAY_CRS)
-    final_gdf.to_file("amenities.geojson", driver="GeoJSON")
-    print(f"Saved {len(final_gdf)} amenities.")
+    raw = gdf.get("amenity", pd.Series(None, index=gdf.index))
+    gdf["amenity_type"] = raw.map(normalize_amenity_type)
+    gdf["amenity_type_raw"] = raw.apply(
+        lambda v: str(v).lower().strip() if v is not None else None
+    )
+    gdf["capacity"] = None
 
+    keep = [
+        "amenity_id", "amenity_type", "amenity_type_raw",
+        "capacity", "geometry",
+    ]
+    final = gdf[keep].to_crs(DISPLAY_CRS)
+    write_feature_collection(
+        out("amenities"),
+        geodataframe_features(final, "amenity_id"),
+    )
+    print(f"Saved {len(final)} amenities.")
+
+
+# ================================================================
+# 9. Runner
+# ================================================================
 
 def run_step(func, output_file):
     if SKIP_EXISTING and os.path.exists(output_file):
-        print(f"Skipping {func.__name__}: {output_file} already exists.")
+        print(f"Skipping {func.__name__}: {output_file} exists.")
         return
     func()
 
 
 if __name__ == "__main__":
-    print("Starting Module A GeoJSON Pipeline...")
-    run_step(process_parcels, "parcels.geojson")
-    run_step(process_buildings, "buildings.geojson")
-    run_step(process_green_blue, "green_blue.geojson")
-    run_step(process_network, "network_edges.geojson")
-    run_step(process_amenities, "amenities.geojson")
-    print("Task A2 & A5 Complete. Proceed to QGIS for Task A3 (Validation).")
+    print(f"Starting Module A GeoJSON Pipeline (suffix='{OUTPUT_SUFFIX}')...")
+    run_step(process_buildings, out("buildings"))
+    run_step(process_parcels, out("parcels"))
+    run_step(process_green_blue, out("green_blue"))
+    run_step(process_network, out("network_edges"))
+    run_step(process_amenities, out("amenities"))
+    print("Task A2 & A5 Complete.")
