@@ -34,18 +34,25 @@
       "type": "object",
       "required": [
         "edge_id", "edge_type", "from_node", "to_node",
-        "length_m", "access_type", "canopy_coverage_ratio"
+        "length_m", "access_type", "canopy_coverage_ratio",
+        "walk_ok", "drive_ok"
       ],
       "properties": {
         "edge_id": { "type": "string", "pattern": "^E-" },
         "edge_type": {
           "enum": [
-            "footway", "pedestrian", "path", "residential", "service",
-            "living_street", "steps", "track",
-            "secondary", "tertiary", "primary", "unclassified",
+            "footway", "pedestrian", "path", "steps", "track", "bridleway",
+            "cycleway", "living_street", "service", "residential",
+            "unclassified", "road", "crossing", "corridor", "sidewalk",
+            "platform",
+            "tertiary", "tertiary_link",
+            "secondary", "secondary_link",
+            "primary", "primary_link",
+            "trunk", "trunk_link",
+            "motorway", "motorway_link",
             "transit"
           ],
-          "$comment": "Union of derived/network_graph.WALKING_EDGE_TYPES and DRIVING_EDGE_TYPES, plus 'transit'. Keep in sync with network_graph.py when either set changes."
+          "$comment": "Union of WALKABLE_HIGHWAY, DRIVABLE_HIGHWAY, and TRANSIT_HIGHWAY from osm_pipeline.py. Keep in sync when either set changes."
         },
         "from_node": { "type": "string", "pattern": "^N-" },
         "to_node": { "type": "string", "pattern": "^N-" },
@@ -57,6 +64,18 @@
           "minimum": 0,
           "maximum": 1,
           "description": "Fraction of edge shaded by canopy. 0 = no shade, 1 = fully shaded."
+        },
+        "walk_ok": {
+          "type": "boolean",
+          "$comment": "True when the edge is eligible for the walking graph. Motorways are False."
+        },
+        "drive_ok": {
+          "type": "boolean",
+          "$comment": "True when the edge is eligible for the driving graph. Motorways are False in this model (township-scale driving only)."
+        },
+        "highway_raw": {
+          "type": ["string", "null"],
+          "$comment": "Raw OSM highway tag value. Preserved for audit."
         }
       }
     }

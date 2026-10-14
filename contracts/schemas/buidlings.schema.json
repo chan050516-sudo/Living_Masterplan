@@ -32,7 +32,10 @@
   "$defs": {
     "BuildingProperties": {
       "type": "object",
-      "required": ["building_id", "parcel_id", "asset_id", "building_type", "geometry_source"],
+      "required": [
+          "building_id", "parcel_id", "asset_id", "building_type",
+          "subtype", "geometry_source"
+      ],
       "properties": {
         "building_id": { "type": "string", "pattern": "^BLD-" },
         "parcel_id": { "type": "string", "pattern": "^P-" },
@@ -44,7 +47,23 @@
         "floors": { "type": ["integer", "null"], "minimum": 0 },
         "gfa_m2": { "type": ["number", "null"], "minimum": 0 },
         "completion_year": { "type": ["integer", "null"] },
-        "geometry_source": { "enum": ["OpenStreetMap", "Microsoft Building Footprints", "Manual", "Derived"] }
+        "geometry_source": { "enum": ["OpenStreetMap", "Microsoft Building Footprints", "Manual", "Derived"] },
+        "subtype": {
+            "type": ["string", "null"],
+            "$comment": "Taxonomy subtype derived from building_raw + footprint + building_type. Null when the building is an attachment or below the asset footprint threshold."
+        },
+        "is_asset": {
+            "type": "boolean",
+            "$comment": "False for attachments and undersized structures. Excluded from assets.csv."
+        },
+        "building_raw": {
+            "type": ["string", "null"],
+            "$comment": "Raw OSM building tag value. Preserved for audit."
+        },
+        "footprint_m2": {
+            "type": "number",
+            "minimum": 0
+        }
       }
     }
   }

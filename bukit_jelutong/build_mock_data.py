@@ -75,8 +75,12 @@ def seeded_uniform(key: str, lo: float, hi: float) -> float:
     return lo + (hi - lo) * u
 
 
+import math
+
 def seeded_int(key: str, lo: int, hi: int) -> int:
-    return int(round(seeded_uniform(key, lo, hi + 0.999999)))
+    """Return integer between [lo, hi], ensure each integer with same existence probability"""
+    u = seeded_uniform(key, 0.0, 1.0)
+    return lo + int(math.floor(u * (hi - lo + 1)))
 
 
 # ================================================================
@@ -214,11 +218,11 @@ def infer_subtype(raw, footprint_m2, building_type):
 
     # building_type == "unknown" (OSM building=yes).
     if building_type in {"unknown", "yes", ""}:
-        if fp > 8000:
+        if fp > 5000:
             return "school"
-        if fp > 4000:
+        if fp > 2500:
             return "apartment_lowrise"
-        if fp > 1500:
+        if fp > 1200:
             return "terrace"
         if fp > 400:
             return "detached"
@@ -447,38 +451,62 @@ TARGET_DEMOGRAPHIC_BY_SUBTYPE = {
 # 5. Geometry processors
 # ================================================================
 
+SUBTYPE_TO_BUILDING_TYPE = {
+    "bungalow": "residential",
+    "detached": "residential",
+    "semidetached": "residential",
+    "terrace": "residential",
+    "apartment_lowrise": "residential",
+    "apartment_highrise": "residential",
+    "affordable_housing": "residential",
+    "dormitory": "residential",
+    "convenience_retail": "commercial",
+    "f_and_b": "commercial",
+    "supermarket": "commercial",
+    "medical_retail": "commercial",
+    "services": "commercial",
+    "office": "commercial",
+    "showroom": "commercial",
+}
+
 def process_buildings_geometry(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     gdf = buildings.copy()
 
     subtypes, floors_list, gfa_list, is_asset = [], [], [], []
+    updated_btypes = []
+
     for _, row in gdf.iterrows():
+        orig_btype = row.get("building_type") or "unknown"
         subtype = infer_subtype(
             raw=row.get("building_raw"),
             footprint_m2=float(row.get("footprint_m2") or 0),
-            building_type=row.get("building_type") or "unknown",
+            building_type=orig_btype,
         )
         subtypes.append(subtype)
+
         if subtype is None:
             floors_list.append(None)
             gfa_list.append(None)
             is_asset.append(False)
+            updated_btypes.append(orig_btype)
             continue
+
+        derived_btype = SUBTYPE_TO_BUILDING_TYPE.get(subtype, orig_btype)
+        updated_btypes.append(derived_btype)
+
         lo, hi = FLOOR_RANGE_BY_SUBTYPE.get(subtype, (1, 2))
         fl = seeded_int(f"{row['building_id']}-floors", lo, hi)
-        floors_list.append(fl)
+        floors_list.append(int(fl))
         fp = float(row.get("footprint_m2") or 0)
         gfa_list.append(fp * fl)
         is_asset.append(True)
 
     gdf["subtype"] = subtypes
-    gdf["floors_derived"] = floors_list
-    gdf["gfa_derived_m2"] = gfa_list
+    gdf["building_type"] = updated_btypes
     gdf["is_asset"] = is_asset
-    gdf["floors"] = gdf["floors_derived"]
-    gdf["gfa_m2"] = gdf["gfa_derived_m2"]
+    gdf["floors"] = floors_list
+    gdf["gfa_m2"] = gfa_list
 
-    n_assets = int(sum(is_asset))
-    print(f"  buildings: {n_assets} assets, {len(gdf) - n_assets} excluded")
     return gdf
 
 
@@ -499,6 +527,7 @@ def process_amenities_geometry(amenities: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Generate population nodes from residential buildings."""
     residential = buildings[
         buildings["subtype"].isin({
             "terrace", "semidetached", "bungalow", "detached",
@@ -508,12 +537,7 @@ def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     ].copy()
 
     if residential.empty:
-        return gpd.GeoDataFrame(
-            columns=["population_id", "total_population", "age_0_14",
-                     "age_15_64", "age_65_plus", "household_size",
-                     "source", "geometry"],
-            crs=DISPLAY_CRS,
-        )
+        return _empty_population_gdf()
 
     residential = residential.to_crs(COMPUTE_CRS)
     centroids = residential.geometry.representative_point()
@@ -528,7 +552,7 @@ def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     for i, (cell, group) in enumerate(residential.groupby("_cell"), 1):
         total = 0.0
         for _, b in group.iterrows():
-            gfa = float(b.get("gfa_derived_m2") or 0)
+            gfa = float(b.get("gfa_m2") or 0)
             total += gfa * CAPACITY_PER_M2.get(b["subtype"], 1 / 60)
         total = int(round(total))
         if total < 50:
@@ -556,7 +580,31 @@ def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
             "geometry": centroid,
         })
 
-    return gpd.GeoDataFrame(rows, geometry="geometry", crs=COMPUTE_CRS).to_crs(DISPLAY_CRS)
+    if not rows:
+        return _empty_population_gdf()
+
+    return gpd.GeoDataFrame(
+        rows, geometry="geometry", crs=COMPUTE_CRS,
+    ).to_crs(DISPLAY_CRS)
+
+
+def _empty_population_gdf() -> gpd.GeoDataFrame:
+    """Return an empty GeoDataFrame with the population schema."""
+    from shapely.geometry import Point
+    gdf = gpd.GeoDataFrame(
+        {
+            "population_id": pd.Series(dtype="object"),
+            "total_population": pd.Series(dtype="int64"),
+            "age_0_14": pd.Series(dtype="int64"),
+            "age_15_64": pd.Series(dtype="int64"),
+            "age_65_plus": pd.Series(dtype="int64"),
+            "household_size": pd.Series(dtype="float64"),
+            "source": pd.Series(dtype="object"),
+        },
+        geometry=pd.Series(dtype="object"),  # empty geometry series
+        crs=DISPLAY_CRS,
+    )
+    return gdf
 
 
 # ================================================================
