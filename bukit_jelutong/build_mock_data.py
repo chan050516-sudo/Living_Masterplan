@@ -304,7 +304,8 @@ def amenity_to_asset_row(row, index: int) -> dict:
 
     Footprint resolution:
       - Polygon geometry: use its projected area.
-      - Point geometry or very small polygon: use the subtype default.
+      - Point with intersected building: inherit building footprint.
+      - Point geometry without building: use subtype default.
     """
     atype_map = AMENITY_TO_ASSET.get(row["amenity_type"])
     if atype_map is None:
@@ -312,15 +313,18 @@ def amenity_to_asset_row(row, index: int) -> dict:
 
     asset_type, subtype, default_fp = atype_map
 
-    # Footprint from geometry.
-    geom = row.get("geometry")
-    if geom is not None and geom.geom_type in ("Polygon", "MultiPolygon"):
-        # Read the geometry from the projected copy.
-        fp = float(row.get("_area_m2") or 0.0)
-        if fp < MIN_BUILDING_FOOTPRINT_M2:
-            fp = default_fp
+    # Footprint resolution prioritizing physical building footprint, then polygon area, then fallback default.
+    matched_fp = row.get("_matched_footprint_m2")
+    if pd.notna(matched_fp) and float(matched_fp) >= MIN_BUILDING_FOOTPRINT_M2:
+        fp = float(matched_fp)
     else:
-        fp = default_fp
+        geom = row.get("geometry")
+        if geom is not None and geom.geom_type in ("Polygon", "MultiPolygon"):
+            fp = float(row.get("_area_m2") or 0.0)
+            if fp < MIN_BUILDING_FOOTPRINT_M2:
+                fp = default_fp
+        else:
+            fp = default_fp
 
     # Floors from subtype range, deterministically seeded.
     lo, hi = FLOOR_RANGE_BY_SUBTYPE.get(subtype, (1, 2))
@@ -337,12 +341,15 @@ def amenity_to_asset_row(row, index: int) -> dict:
         f"{row['amenity_id']}-age", 2, 25,
     )
 
+    b_id = row.get("building_id")
+    p_id = row.get("parcel_id")
+
     return {
         "asset_id": row["amenity_id"],
         "asset_type": asset_type,
         "subtype": subtype,
-        "parcel_id": None,
-        "building_id": None,
+        "parcel_id": p_id if pd.notna(p_id) else None,
+        "building_id": b_id if pd.notna(b_id) else None,
         "asset_name": f"{subtype.replace('_', ' ').title()} {row['amenity_id']}",
         "land_use": asset_type,
         "development_phase": 1,
@@ -356,8 +363,8 @@ def amenity_to_asset_row(row, index: int) -> dict:
         "opex_annual_rm": round(opex, 2),
         "maintenance_annual_rm": round(maintenance, 2),
         "capacity": capacity,
-        "data_completeness": 0.70,
-        "data_sources": "osm_amenity;derived",
+        "data_completeness": 0.85 if pd.notna(b_id) else 0.70,
+        "data_sources": "osm_amenity;building_linked;derived" if pd.notna(b_id) else "osm_amenity;derived",
     }
 
 
@@ -510,19 +517,31 @@ def process_buildings_geometry(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-def process_amenities_geometry(amenities: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def process_amenities_geometry(amenities: gpd.GeoDataFrame, buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """
-    Add the normalised amenity_type and a projected area column.
-    The raw amenity_type_raw is preserved.
+    Add the normalised amenity_type, compute projected area,
+    and spatially link amenities to intersecting buildings and parcels.
     """
     gdf = amenities.copy()
     if "amenity_type_raw" not in gdf.columns:
         gdf["amenity_type_raw"] = gdf.get("amenity_type")
     gdf["amenity_type"] = gdf["amenity_type_raw"].apply(normalize_amenity_type)
 
-    # Projected area (used by amenity_to_asset_row).
+    # Projected area calculation.
     proj = gdf.to_crs(COMPUTE_CRS)
     gdf["_area_m2"] = proj.geometry.area
+
+    # Spatial join with buildings in projected CRS to inherit building_id and parcel_id.
+    b_proj = buildings.to_crs(COMPUTE_CRS)[["building_id", "parcel_id", "footprint_m2", "geometry"]]
+    joined = gpd.sjoin(proj, b_proj, how="left", predicate="intersects")
+    
+    # Remove duplicates from multiple spatial intersections, retaining first match.
+    joined = joined[~joined.index.duplicated(keep="first")]
+
+    gdf["building_id"] = joined["building_id"].values
+    gdf["parcel_id"] = joined["parcel_id"].values
+    gdf["_matched_footprint_m2"] = joined["footprint_m2"].values
+
     return gdf
 
 
@@ -839,7 +858,7 @@ def main():
 
     print("\nProcessing geometry...")
     buildings_p = process_buildings_geometry(buildings)
-    amenities_p = process_amenities_geometry(amenities)
+    amenities_p = process_amenities_geometry(amenities, buildings_p)
     population_p = generate_population(buildings_p)
 
     print("\nWriting processed geometry...")
@@ -865,21 +884,30 @@ def main():
             if records:
                 print(f"  [{src:<12}] {atype:<22} {len(records)}")
 
-    # ---- assets.csv ----
+# ---- assets.csv ----
     print("\nBuilding assets.csv...")
     asset_rows = []
 
-    # 1. Buildings: residential + commercial
-    for atype, records in building_assets.items():
-        for i, rec in enumerate(records):
-            asset_rows.append(derive_asset_row(rec, atype, i))
-
-    # 2. Amenities: community_facility + commercial
+    # 1. Amenities: community_facility + commercial (takes precedence)
+    amenity_rows = []
+    occupied_building_ids = set()
     for atype, records in amenity_assets.items():
         for i, rec in enumerate(records):
             row = amenity_to_asset_row(rec, i)
             if row is not None:
-                asset_rows.append(row)
+                amenity_rows.append(row)
+                if row.get("building_id"):
+                    occupied_building_ids.add(row["building_id"])
+
+    # 2. Buildings: residential + commercial (filter out buildings already registered via amenities)
+    for atype, records in building_assets.items():
+        for i, rec in enumerate(records):
+            if rec.get("building_id") in occupied_building_ids:
+                continue
+            asset_rows.append(derive_asset_row(rec, atype, i))
+
+    # Merge amenity assets into total asset list
+    asset_rows.extend(amenity_rows)
 
     # 3. Green / parcel
     for atype, records in env_assets.items():

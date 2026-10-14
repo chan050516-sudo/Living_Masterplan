@@ -28,7 +28,7 @@ import pandas as pd
 # ----------------------------------------------------------------
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_GEOM_DIR = REPO_ROOT / "bukit_jelutong" / "raw" / "geometry"
+DEFAULT_GEOM_DIR = REPO_ROOT / "bukit_jelutong" / "processed" / "geometry"
 
 COMPUTE_CRS = "EPSG:32647"
 STORAGE_CRS = "EPSG:4326"
