@@ -748,47 +748,47 @@ BLD-0022,residential,terrace,P-0133,BLD-0022,Residential 766,residential,1,exist
 BLD-0724,residential,semidetached,P-0003,BLD-0724,Residential 767,residential,1,existing,2006,families,530.88,530.88,265.44,1327188.73,53087.55,19907.83,10,0.75,osm;derived
 BLD-0827,residential,semidetached,P-0003,BLD-0827,Residential 768,residential,1,existing,2008,families,530.87,530.87,265.43,1327163.71,53086.55,19907.46,10,0.75,osm;derived
 BLD-0823,residential,semidetached,P-0001,BLD-0823,Residential 769,residential,1,existing,2012,families,349.44,349.44,174.72,873600.46,34944.02,13104.01,6,0.75,osm;derived
-BLD-0075,residential,terrace,P-UNASSIGNED,BLD-0075,Residential 770,residential,1,existing,2005,young_families,349.39,349.39,174.7,873477.51,34939.1,13102.16,7,0.75,osm;derived
+BLD-0075,residential,terrace,P-FIX-0020,BLD-0075,Residential 770,residential,1,existing,2005,young_families,349.39,349.39,174.7,873477.51,34939.1,13102.16,7,0.75,osm;derived
 BLD-0757,residential,terrace,P-0336,BLD-0757,Residential 771,residential,1,existing,2018,young_families,348.45,348.45,174.23,871129.78,34845.19,13066.95,7,0.75,osm;derived
-BLD-0087,residential,terrace,P-UNASSIGNED,BLD-0087,Residential 772,residential,1,existing,2018,young_families,343.9,343.9,171.95,859761.67,34390.47,12896.43,7,0.75,osm;derived
-BLD-0112,residential,terrace,P-UNASSIGNED,BLD-0112,Residential 773,residential,1,existing,2007,young_families,342.99,342.99,171.5,857487.29,34299.49,12862.31,7,0.75,osm;derived
+BLD-0087,residential,terrace,P-FIX-0024,BLD-0087,Residential 772,residential,1,existing,2018,young_families,343.9,343.9,171.95,859761.67,34390.47,12896.43,7,0.75,osm;derived
+BLD-0112,residential,terrace,P-FIX-0040,BLD-0112,Residential 773,residential,1,existing,2007,young_families,342.99,342.99,171.5,857487.29,34299.49,12862.31,7,0.75,osm;derived
 BLD-0841,residential,semidetached,P-0055,BLD-0841,Residential 774,residential,1,existing,2005,families,513.61,513.61,256.81,1284030.02,51361.2,19260.45,9,0.75,osm;derived
 BLD-0717,residential,semidetached,P-0055,BLD-0717,Residential 775,residential,1,existing,2007,families,513.14,513.14,256.57,1282843.33,51313.73,19242.65,9,0.75,osm;derived
 BLD-0825,residential,semidetached,P-0003,BLD-0825,Residential 776,residential,1,existing,2014,families,341.98,341.98,170.99,854956.36,34198.25,12824.35,6,0.75,osm;derived
 BLD-0723,residential,semidetached,P-0003,BLD-0723,Residential 777,residential,1,existing,2023,families,341.78,341.78,170.89,854442.66,34177.71,12816.64,6,0.75,osm;derived
-BLD-0794,residential,semidetached,P-UNASSIGNED,BLD-0794,Residential 778,residential,1,existing,2022,families,506.82,506.82,253.41,1267057.06,50682.28,19005.86,9,0.75,osm;derived
-BLD-0840,residential,terrace,P-UNASSIGNED,BLD-0840,Residential 779,residential,1,existing,2019,young_families,337.67,337.67,168.83,844170.71,33766.83,12662.56,7,0.75,osm;derived
-BLD-0045,residential,terrace,P-UNASSIGNED,BLD-0045,Residential 780,residential,1,existing,2016,young_families,336.41,336.41,168.21,841030.36,33641.21,12615.46,7,0.75,osm;derived
+BLD-0794,residential,semidetached,P-FIX-0042,BLD-0794,Residential 778,residential,1,existing,2022,families,506.82,506.82,253.41,1267057.06,50682.28,19005.86,9,0.75,osm;derived
+BLD-0840,residential,terrace,P-FIX-0049,BLD-0840,Residential 779,residential,1,existing,2019,young_families,337.67,337.67,168.83,844170.71,33766.83,12662.56,7,0.75,osm;derived
+BLD-0045,residential,terrace,P-FIX-0002,BLD-0045,Residential 780,residential,1,existing,2016,young_families,336.41,336.41,168.21,841030.36,33641.21,12615.46,7,0.75,osm;derived
 BLD-0036,residential,terrace,P-0102,BLD-0036,Residential 782,residential,1,existing,2009,young_families,333.88,333.88,166.94,834704.8,33388.19,12520.57,7,0.75,osm;derived
 BLD-0819,residential,semidetached,P-0002,BLD-0819,Residential 783,residential,1,existing,2017,families,330.75,330.75,165.38,826882.9,33075.32,12403.24,6,0.75,osm;derived
 BLD-0113,residential,terrace,P-0184,BLD-0113,Residential 784,residential,1,existing,2008,young_families,328.1,328.1,164.05,820243.18,32809.73,12303.65,7,0.75,osm;derived
 BLD-0034,residential,terrace,P-0102,BLD-0034,Residential 785,residential,1,existing,2016,young_families,327.41,327.41,163.7,818513.71,32740.55,12277.71,7,0.75,osm;derived
 BLD-0716,residential,semidetached,P-0056,BLD-0716,Residential 786,residential,1,existing,2015,families,486.85,486.85,243.42,1217120.84,48684.83,18256.81,9,0.75,osm;derived
 BLD-0842,residential,semidetached,P-0056,BLD-0842,Residential 787,residential,1,existing,2002,families,486.44,486.44,243.22,1216098.88,48643.96,18241.48,9,0.75,osm;derived
-BLD-0106,residential,terrace,P-UNASSIGNED,BLD-0106,Residential 788,residential,1,existing,2013,young_families,305.99,305.99,152.99,764962.62,30598.5,11474.44,6,0.75,osm;derived
+BLD-0106,residential,terrace,P-FIX-0036,BLD-0106,Residential 788,residential,1,existing,2013,young_families,305.99,305.99,152.99,764962.62,30598.5,11474.44,6,0.75,osm;derived
 BLD-0088,residential,terrace,P-0088,BLD-0088,Residential 789,residential,1,existing,2021,young_families,304.73,304.73,152.36,761821.43,30472.86,11427.32,6,0.75,osm;derived
-BLD-0060,residential,terrace,P-UNASSIGNED,BLD-0060,Residential 790,residential,1,existing,2019,young_families,304.23,304.23,152.12,760578.03,30423.12,11408.67,6,0.75,osm;derived
-BLD-0058,residential,terrace,P-UNASSIGNED,BLD-0058,Residential 791,residential,1,existing,2006,young_families,304.16,304.16,152.08,760392.41,30415.7,11405.89,6,0.75,osm;derived
-BLD-0080,residential,terrace,P-UNASSIGNED,BLD-0080,Residential 792,residential,1,existing,2001,young_families,302.91,302.91,151.45,757269.51,30290.78,11359.04,6,0.75,osm;derived
+BLD-0060,residential,terrace,P-FIX-0011,BLD-0060,Residential 790,residential,1,existing,2019,young_families,304.23,304.23,152.12,760578.03,30423.12,11408.67,6,0.75,osm;derived
+BLD-0058,residential,terrace,P-FIX-0009,BLD-0058,Residential 791,residential,1,existing,2006,young_families,304.16,304.16,152.08,760392.41,30415.7,11405.89,6,0.75,osm;derived
+BLD-0080,residential,terrace,P-FIX-0022,BLD-0080,Residential 792,residential,1,existing,2001,young_families,302.91,302.91,151.45,757269.51,30290.78,11359.04,6,0.75,osm;derived
 BLD-0119,residential,terrace,P-0305,BLD-0119,Residential 793,residential,1,existing,2009,young_families,300.74,300.74,150.37,751840.51,30073.62,11277.61,6,0.75,osm;derived
 BLD-0097,residential,terrace,P-0073,BLD-0097,Residential 794,residential,1,existing,2005,young_families,299.57,299.57,149.78,748913.2,29956.53,11233.7,6,0.75,osm;derived
 BLD-0499,residential,terrace,P-0028,BLD-0499,Residential 795,residential,1,existing,2022,young_families,298.89,298.89,149.44,747223.12,29888.92,11208.35,6,0.75,osm;derived
-BLD-0074,residential,terrace,P-UNASSIGNED,BLD-0074,Residential 796,residential,1,existing,2007,young_families,297.32,297.32,148.66,743299.55,29731.98,11149.49,6,0.75,osm;derived
+BLD-0074,residential,terrace,P-FIX-0019,BLD-0074,Residential 796,residential,1,existing,2007,young_families,297.32,297.32,148.66,743299.55,29731.98,11149.49,6,0.75,osm;derived
 BLD-0094,residential,terrace,P-0017,BLD-0094,Residential 797,residential,1,existing,2004,young_families,293.04,293.04,146.52,732602.7,29304.11,10989.04,6,0.75,osm;derived
 BLD-0056,residential,terrace,P-0206,BLD-0056,Residential 798,residential,1,existing,2008,young_families,291.99,291.99,145.99,729966.82,29198.67,10949.5,6,0.75,osm;derived
-BLD-0093,residential,terrace,P-UNASSIGNED,BLD-0093,Residential 799,residential,1,existing,2020,young_families,282.33,282.33,141.16,705812.67,28232.51,10587.19,6,0.75,osm;derived
+BLD-0093,residential,terrace,P-FIX-0028,BLD-0093,Residential 799,residential,1,existing,2020,young_families,282.33,282.33,141.16,705812.67,28232.51,10587.19,6,0.75,osm;derived
 BLD-0728,residential,semidetached,P-0004,BLD-0728,Residential 800,residential,1,existing,2022,families,280.33,280.33,140.16,700817.94,28032.72,10512.27,5,0.75,osm;derived
 BLD-0822,residential,semidetached,P-0004,BLD-0822,Residential 801,residential,1,existing,2011,families,420.09,420.09,210.04,1050217.78,42008.71,15753.27,8,0.75,osm;derived
 BLD-0507,residential,terrace,P-0031,BLD-0507,Residential 802,residential,1,existing,2024,young_families,278.38,278.38,139.19,695960.8,27838.43,10439.41,6,0.75,osm;derived
 BLD-0107,residential,terrace,P-0054,BLD-0107,Residential 803,residential,1,existing,2003,young_families,275.29,275.29,137.64,688218.06,27528.72,10323.27,6,0.75,osm;derived
-BLD-0047,residential,terrace,P-UNASSIGNED,BLD-0047,Residential 804,residential,1,existing,2004,young_families,272.7,272.7,136.35,681759.56,27270.38,10226.39,5,0.75,osm;derived
-BLD-0104,residential,terrace,P-UNASSIGNED,BLD-0104,Residential 805,residential,1,existing,2015,young_families,271.73,271.73,135.87,679333.76,27173.35,10190.01,5,0.75,osm;derived
-BLD-0067,residential,terrace,P-UNASSIGNED,BLD-0067,Residential 806,residential,1,existing,2018,young_families,270.79,270.79,135.39,676969.14,27078.77,10154.54,5,0.75,osm;derived
-BLD-0848,residential,terrace,P-UNASSIGNED,BLD-0848,Residential 807,residential,1,existing,2004,young_families,268.38,268.38,134.19,670946.86,26837.87,10064.2,5,0.75,osm;derived
-BLD-0064,residential,terrace,P-UNASSIGNED,BLD-0064,Residential 808,residential,1,existing,2012,young_families,267.9,267.9,133.95,669746.82,26789.87,10046.2,5,0.75,osm;derived
-BLD-0046,residential,terrace,P-UNASSIGNED,BLD-0046,Residential 809,residential,1,existing,2016,young_families,267.05,267.05,133.52,667614.83,26704.59,10014.22,5,0.75,osm;derived
-BLD-0076,residential,terrace,P-UNASSIGNED,BLD-0076,Residential 810,residential,1,existing,2008,young_families,264.67,264.67,132.34,661681.53,26467.26,9925.22,5,0.75,osm;derived
-BLD-0101,residential,terrace,P-UNASSIGNED,BLD-0101,Residential 811,residential,1,existing,2021,young_families,260.1,260.1,130.05,650250.43,26010.02,9753.76,5,0.75,osm;derived
+BLD-0047,residential,terrace,P-FIX-0004,BLD-0047,Residential 804,residential,1,existing,2004,young_families,272.7,272.7,136.35,681759.56,27270.38,10226.39,5,0.75,osm;derived
+BLD-0104,residential,terrace,P-FIX-0034,BLD-0104,Residential 805,residential,1,existing,2015,young_families,271.73,271.73,135.87,679333.76,27173.35,10190.01,5,0.75,osm;derived
+BLD-0067,residential,terrace,P-FIX-0014,BLD-0067,Residential 806,residential,1,existing,2018,young_families,270.79,270.79,135.39,676969.14,27078.77,10154.54,5,0.75,osm;derived
+BLD-0848,residential,terrace,P-FIX-0051,BLD-0848,Residential 807,residential,1,existing,2004,young_families,268.38,268.38,134.19,670946.86,26837.87,10064.2,5,0.75,osm;derived
+BLD-0064,residential,terrace,P-FIX-0013,BLD-0064,Residential 808,residential,1,existing,2012,young_families,267.9,267.9,133.95,669746.82,26789.87,10046.2,5,0.75,osm;derived
+BLD-0046,residential,terrace,P-FIX-0003,BLD-0046,Residential 809,residential,1,existing,2016,young_families,267.05,267.05,133.52,667614.83,26704.59,10014.22,5,0.75,osm;derived
+BLD-0076,residential,terrace,P-FIX-0021,BLD-0076,Residential 810,residential,1,existing,2008,young_families,264.67,264.67,132.34,661681.53,26467.26,9925.22,5,0.75,osm;derived
+BLD-0101,residential,terrace,P-FIX-0031,BLD-0101,Residential 811,residential,1,existing,2021,young_families,260.1,260.1,130.05,650250.43,26010.02,9753.76,5,0.75,osm;derived
 BLD-0095,residential,terrace,P-0071,BLD-0095,Residential 812,residential,1,existing,2021,young_families,252.96,252.96,126.48,632395.13,25295.81,9485.93,5,0.75,osm;derived
 BLD-0861,residential,terrace,P-0231,BLD-0861,Residential 813,residential,1,existing,2021,young_families,243.46,243.46,121.73,608647.32,24345.89,9129.71,5,0.75,osm;derived
 BLD-0858,residential,terrace,P-0231,BLD-0858,Residential 814,residential,1,existing,2020,young_families,243.46,243.46,121.73,608647.12,24345.88,9129.71,5,0.75,osm;derived
@@ -804,18 +804,18 @@ BLD-0859,residential,terrace,P-0231,BLD-0859,Residential 823,residential,1,exist
 BLD-0849,residential,terrace,P-0231,BLD-0849,Residential 824,residential,1,existing,2006,young_families,243.29,243.29,121.65,608230.89,24329.24,9123.46,5,0.75,osm;derived
 BLD-0856,residential,terrace,P-0231,BLD-0856,Residential 825,residential,1,existing,2024,young_families,243.09,243.09,121.54,607713.28,24308.53,9115.7,5,0.75,osm;derived
 BLD-0852,residential,terrace,P-0231,BLD-0852,Residential 826,residential,1,existing,2018,young_families,242.96,242.96,121.48,607398.29,24295.93,9110.97,5,0.75,osm;derived
-BLD-0051,residential,terrace,P-UNASSIGNED,BLD-0051,Residential 827,residential,1,existing,2012,young_families,241.98,241.98,120.99,604959.01,24198.36,9074.39,5,0.75,osm;derived
-BLD-0837,residential,terrace,P-UNASSIGNED,BLD-0837,Residential 828,residential,1,existing,2003,young_families,228.04,228.04,114.02,570104.73,22804.19,8551.57,5,0.75,osm;derived
+BLD-0051,residential,terrace,P-FIX-0007,BLD-0051,Residential 827,residential,1,existing,2012,young_families,241.98,241.98,120.99,604959.01,24198.36,9074.39,5,0.75,osm;derived
+BLD-0837,residential,terrace,P-FIX-0047,BLD-0837,Residential 828,residential,1,existing,2003,young_families,228.04,228.04,114.02,570104.73,22804.19,8551.57,5,0.75,osm;derived
 BLD-0004,residential,terrace,P-0137,BLD-0004,Residential 829,residential,1,existing,2016,young_families,227.9,227.9,113.95,569745.46,22789.82,8546.18,5,0.75,osm;derived
-BLD-0068,residential,terrace,P-UNASSIGNED,BLD-0068,Residential 830,residential,1,existing,2022,young_families,225.1,225.1,112.55,562749.47,22509.98,8441.24,5,0.75,osm;derived
-BLD-0836,residential,terrace,P-UNASSIGNED,BLD-0836,Residential 831,residential,1,existing,2013,young_families,221.69,221.69,110.84,554223.13,22168.93,8313.35,4,0.75,osm;derived
-BLD-0102,residential,terrace,P-UNASSIGNED,BLD-0102,Residential 832,residential,1,existing,2016,young_families,219.71,219.71,109.85,549269.32,21970.77,8239.04,4,0.75,osm;derived
-BLD-0006,residential,terrace,P-UNASSIGNED,BLD-0006,Residential 835,residential,1,existing,2022,young_families,217.06,217.06,108.53,542658.04,21706.32,8139.87,4,0.75,osm;derived
-BLD-0048,residential,terrace,P-UNASSIGNED,BLD-0048,Residential 836,residential,1,existing,2016,young_families,214.66,214.66,107.33,536657.32,21466.29,8049.86,4,0.75,osm;derived
-BLD-0050,residential,terrace,P-UNASSIGNED,BLD-0050,Residential 837,residential,1,existing,2006,young_families,212.65,212.65,106.32,531615.95,21264.64,7974.24,4,0.75,osm;derived
-BLD-0072,residential,terrace,P-UNASSIGNED,BLD-0072,Residential 838,residential,1,existing,2018,young_families,211.89,211.89,105.94,529717.42,21188.7,7945.76,4,0.75,osm;derived
-BLD-0073,residential,terrace,P-UNASSIGNED,BLD-0073,Residential 839,residential,1,existing,2023,young_families,211.19,211.19,105.6,527983.99,21119.36,7919.76,4,0.75,osm;derived
-BLD-0833,residential,terrace,P-UNASSIGNED,BLD-0833,Residential 840,residential,1,existing,2020,young_families,209.29,209.29,104.65,523228.38,20929.14,7848.43,4,0.75,osm;derived
+BLD-0068,residential,terrace,P-FIX-0015,BLD-0068,Residential 830,residential,1,existing,2022,young_families,225.1,225.1,112.55,562749.47,22509.98,8441.24,5,0.75,osm;derived
+BLD-0836,residential,terrace,P-FIX-0046,BLD-0836,Residential 831,residential,1,existing,2013,young_families,221.69,221.69,110.84,554223.13,22168.93,8313.35,4,0.75,osm;derived
+BLD-0102,residential,terrace,P-FIX-0032,BLD-0102,Residential 832,residential,1,existing,2016,young_families,219.71,219.71,109.85,549269.32,21970.77,8239.04,4,0.75,osm;derived
+BLD-0006,residential,terrace,P-FIX-0001,BLD-0006,Residential 835,residential,1,existing,2022,young_families,217.06,217.06,108.53,542658.04,21706.32,8139.87,4,0.75,osm;derived
+BLD-0048,residential,terrace,P-FIX-0005,BLD-0048,Residential 836,residential,1,existing,2016,young_families,214.66,214.66,107.33,536657.32,21466.29,8049.86,4,0.75,osm;derived
+BLD-0050,residential,terrace,P-FIX-0006,BLD-0050,Residential 837,residential,1,existing,2006,young_families,212.65,212.65,106.32,531615.95,21264.64,7974.24,4,0.75,osm;derived
+BLD-0072,residential,terrace,P-FIX-0017,BLD-0072,Residential 838,residential,1,existing,2018,young_families,211.89,211.89,105.94,529717.42,21188.7,7945.76,4,0.75,osm;derived
+BLD-0073,residential,terrace,P-FIX-0018,BLD-0073,Residential 839,residential,1,existing,2023,young_families,211.19,211.19,105.6,527983.99,21119.36,7919.76,4,0.75,osm;derived
+BLD-0833,residential,terrace,P-FIX-0044,BLD-0833,Residential 840,residential,1,existing,2020,young_families,209.29,209.29,104.65,523228.38,20929.14,7848.43,4,0.75,osm;derived
 BLD-0057,residential,terrace,P-0206,BLD-0057,Residential 841,residential,1,existing,2021,young_families,208.22,208.22,104.11,520550.13,20822.01,7808.25,4,0.75,osm;derived
 BLD-0037,commercial,supermarket,P-0179,BLD-0037,Commercial 3,commercial,1,existing,2007,all,4809.18,4087.81,2404.59,16832146.97,1346571.76,420803.67,321,0.75,osm;derived
 A-0002,community_facility,school,P-0141,BLD-0066,School A-0002,community_facility,1,existing,2013,young_families,24844.01,24844.01,6211.0,74532043.25,7453204.33,2235961.3,3106,0.85,osm_amenity;building_linked;derived
@@ -825,7 +825,7 @@ A-0013,community_facility,school,P-0141,BLD-0066,School A-0013,community_facilit
 A-0014,community_facility,clinic,P-0141,BLD-0066,Clinic A-0014,community_facility,1,existing,2002,all,12422.01,12422.01,6211.0,37266021.63,3726602.16,1117980.65,414,0.85,osm_amenity;building_linked;derived
 A-0018,community_facility,community_hall,P-0297,BLD-0078,Community Hall A-0018,community_facility,1,existing,2016,all,3345.93,3345.93,1672.97,10037790.71,1003779.07,301133.72,558,0.85,osm_amenity;building_linked;derived
 A-0019,community_facility,school,P-0297,BLD-0078,School A-0019,community_facility,1,existing,2004,young_families,3345.93,3345.93,1672.97,10037790.71,1003779.07,301133.72,418,0.85,osm_amenity;building_linked;derived
-A-0020,community_facility,clinic,P-UNASSIGNED,BLD-0081,Clinic A-0020,community_facility,1,existing,2011,all,74116.53,74116.53,37058.26,222349579.98,22234958.0,6670487.4,2471,0.85,osm_amenity;building_linked;derived
+A-0020,community_facility,clinic,P-FIX-0023,BLD-0081,Clinic A-0020,community_facility,1,existing,2011,all,74116.53,74116.53,37058.26,222349579.98,22234958.0,6670487.4,2471,0.85,osm_amenity;building_linked;derived
 A-0025,community_facility,clinic,P-0134,BLD-0009,Clinic A-0025,community_facility,1,existing,2008,all,385.56,385.56,385.56,1156670.83,115667.08,34700.12,13,0.85,osm_amenity;building_linked;derived
 A-0029,community_facility,clinic,P-0135,BLD-0020,Clinic A-0029,community_facility,1,existing,2022,all,394.23,394.23,394.23,1182690.95,118269.09,35480.73,13,0.85,osm_amenity;building_linked;derived
 A-0031,community_facility,clinic,P-0133,BLD-0114,Clinic A-0031,community_facility,1,existing,2023,all,166.97,166.97,166.97,500916.56,50091.66,15027.5,6,0.85,osm_amenity;building_linked;derived
@@ -920,3 +920,6 @@ G-0005,green_space,park,,,Green Space 53,green_space,1,existing,2020,all,0.0,0.0
 G-0006,green_space,park,,,Green Space 54,green_space,1,existing,2024,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
 G-0007,green_space,park,,,Green Space 55,green_space,1,existing,2017,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
 G-0008,green_space,park,,,Green Space 56,green_space,1,existing,2016,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+P-VAC-01,undeveloped_parcel,vacant,P-VAC-01,,Undeveloped Parcel 1,undeveloped_parcel,1,existing,2007,all,0.0,0.0,16191.42,0.0,0.0,0.0,0,0.75,osm;derived
+P-VAC-02,undeveloped_parcel,vacant,P-VAC-02,,Undeveloped Parcel 2,undeveloped_parcel,1,existing,2015,all,0.0,0.0,11590.42,0.0,0.0,0.0,0,0.75,osm;derived
+P-VAC-03,undeveloped_parcel,vacant,P-VAC-03,,Undeveloped Parcel 3,undeveloped_parcel,1,existing,2013,all,0.0,0.0,10902.56,0.0,0.0,0.0,0,0.75,osm;derived

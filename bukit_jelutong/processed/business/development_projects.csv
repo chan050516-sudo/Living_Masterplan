@@ -1,1 +1,4 @@
-
+project_id,parcel_id,asset_id,project_name,project_status,planned_start_year,planned_delivery_year,gfa_m2,units,land_use,capex_rm,scenario_dependency
+PRJ-01,P-VAC-01,,Proposed development on P-VAC-01,proposed,2027,2030,12000,80,commercial,2700000,current_plan
+PRJ-02,P-VAC-02,,Proposed development on P-VAC-02,proposed,2027,2030,12000,80,commercial,2700000,current_plan
+PRJ-03,P-VAC-03,,Proposed development on P-VAC-03,proposed,2027,2030,12000,80,commercial,2700000,current_plan
