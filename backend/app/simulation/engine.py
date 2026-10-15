@@ -1,7 +1,7 @@
 """B4 — Future state simulation engine.
 
 Phase 5 changes:
-  - Uses per-subtype Huff (m² demand) matching B3.
+  - Uses per-subtype Huff (m2 demand) matching B3.
   - Carbon uses subtype-aware energy intensity from taxonomy.
   - Post-intervention facility occupancy is driven by the LLM
     expectation (expected_derived_json) when present, otherwise by the
@@ -24,23 +24,27 @@ Phase 7 changes:
 
 Phase 8 changes:
   - New development projects (development_projects.csv) are now
-    first-class citizens of the simulation. Each delivered project is
-    added to state_by_year as a virtual entry keyed "PRJ::<id>", so it
-    contributes operational carbon to township totals and appears in
-    the per-year asset listing with an explicit _state_kind marker.
-  - Township metrics now report project carbon separately (annual
-    snapshot + cumulative across the simulated year list). This makes
-    the carbon cost of a delay directly comparable between scenarios.
-  - map_diff gains a "project_schedule" block that shows, per project,
-    the baseline vs scenario delivery year and a status enum
-    (unchanged / delayed / advanced / cancelled / added).
+    first-class citizens of the simulation.
+  - Township metrics report project carbon separately.
+  - map_diff gains a "project_schedule" block.
 
 Phase 9 changes:
-  - simulate_scenario() accepts selected_ids. When given, the
-    comparison block restricts to those assets and returns a per-asset
-    structure, so a multi-asset LLM plan can be evaluated in a single
-    simulation pass. A focus_asset_id + metrics pair is still returned
-    at the top level for backward compatibility with the UI.
+  - simulate_scenario() accepts selected_ids.
+
+Phase 10 (Circular & Planet fixes):
+  - Integrates Avoided Embodied Carbon into the comparison block.
+  - Adds UHI surface temp proxy (surface_temp_delta_c).
+  - Supports interim_solar_farm for generating clean energy offsets.
+
+Phase 11 (2026-10-16):
+  - Productive vs stranded carbon split in every year's state row.
+  - Energy sub-system breakdown (HVAC / lighting / base load) with
+    canopy-based HVAC relief.
+  - UHI proxy pulled from the B3-derived canopy field, evaluated
+    BEFORE metric_row is constructed (metric_row is only created
+    after the environmental block, so accessing it earlier raises
+    UnboundLocalError).
+  - _add_project_state records embodied carbon for new construction.
 """
 
 import json
@@ -58,7 +62,6 @@ from ..derived.network_graph import (
     build_walk_graph,
     extract_nodes,
     find_entry_point,
-    find_nearest_node,
     insert_all_entries,
 )
 from ..derived.huff import huff_gravity_by_subtype
@@ -98,27 +101,16 @@ log = logging.getLogger(__name__)
 
 DEFAULT_YEARS = [2026, 2027, 2028, 2030, 2033]
 
-# Prefix for project pseudo-entries in state_by_year. Kept distinct
-# from real asset IDs (which use plain alphanumeric codes) so the
-# two populations can be told apart without extra metadata.
+# Prefix for project pseudo-entries in state_by_year.
 PROJECT_ID_PREFIX = "PRJ::"
 
-# The "do nothing" baseline scenario. Used only to compute the delta
-# shown in map_diff.project_schedule. Not a real simulated scenario.
+# The "do nothing" baseline scenario used for project schedule deltas.
 BASELINE_SCENARIO_ID = "SC-CURRENT"
 
 
 # ------------------------------------------------------------------
 # Asset-type field ownership
 # ------------------------------------------------------------------
-# Each asset type produces a distinct set of derived fields. When a
-# repurpose intervention flips the effective type mid-simulation, the
-# metric_row inherits the previous year's values — including fields
-# that no longer apply to the new type. Left unchecked, the comparison
-# block shows e.g. "occupancy_rate: before 0.21, after 0.0" for a
-# building that is now a community hall, which reads as "the repurpose
-# made things worse" when in fact the metric is simply no longer
-# meaningful.
 _TYPE_EXCLUSIVE_FIELDS = {
     "commercial": frozenset({
         "occupancy_rate",
@@ -132,6 +124,7 @@ _TYPE_EXCLUSIVE_FIELDS = {
         "maintenance_surge_rm",
         "dsr",
         "effective_supply",
+        # Phase 11 — carbon ledger fields owned by every type
         "energy_kwh_hvac",
         "energy_kwh_lighting_equipment",
         "energy_kwh_base_load",
@@ -180,16 +173,9 @@ _TYPE_EXCLUSIVE_FIELDS = {
         "canopy_ratio_benchmark",
         "green_per_capita_m2",
         "shade_proxy_score",
-        "energy_kwh_hvac",
-        "energy_kwh_lighting_equipment",
-        "energy_kwh_base_load",
-        "carbon_productive_tco2e",
-        "carbon_stranded_tco2e",
-        "stranded_carbon_ratio",
-        "embodied_carbon_total_tco2e",
-        "embodied_carbon_amortised_tco2e",
-        "maintenance_carbon_tco2e",
         "surface_temp_delta_c",
+        "embodied_carbon_total_tco2e",
+        "maintenance_carbon_tco2e",
     }),
     "undeveloped_parcel": frozenset({
         "developable_area_m2",
@@ -203,34 +189,9 @@ _TYPE_EXCLUSIVE_FIELDS = {
 
 _ALL_TYPE_EXCLUSIVE_FIELDS = frozenset().union(*_TYPE_EXCLUSIVE_FIELDS.values())
 
-
-# ------------------------------------------------------------------
-# Demand-change sensitivity
-# ------------------------------------------------------------------
-# When a commercial asset has no direct intervention, its occupancy
-# normally holds steady. But if the surrounding demand pool has
-# materially changed — a competitor delivered, a network upgrade
-# shifted the catchment — the asset should re-converge toward the
-# Huff-derived target. This threshold is the relative change in the
-# Huff-assigned demand that triggers that re-convergence.
-#
-# Too low: SC-CURRENT drifts on noise. Too high: SC-DELAY and
-# SC-CURRENT stay identical even when a large competitor is delivered.
 _DEMAND_CHANGE_THRESHOLD = 0.05
 
-
-# ------------------------------------------------------------------
-# Spatial-derived metric refresh
-# ------------------------------------------------------------------
-# When the walking network changes (a spatial intervention activates),
-# every catchment metric must be pulled from the freshly recomputed
-# derived frame rather than inherited from the previous year.
-#
-# These are the fields B3 recomputes from the network. Other fields
-# (occupancy, NOI, ...) are driven by the simulation and are not
-# refreshed here.
 _SPATIAL_REFRESH_FIELDS = (
-    # Walking catchment
     "catchment_population_5min_walk",
     "catchment_population_10min_walk",
     "catchment_population_15min_walk",
@@ -242,8 +203,6 @@ _SPATIAL_REFRESH_FIELDS = (
     "p90_walk_distance_m",
     "reachable_population_walk",
     "total_catchment_population",
-    # Driving catchment (canopy does not affect driving, but refresh
-    # for consistency so all coverage fields move together)
     "catchment_population_5min_drive",
     "catchment_population_10min_drive",
     "catchment_population_15min_drive",
@@ -254,7 +213,6 @@ _SPATIAL_REFRESH_FIELDS = (
     "median_drive_distance_m",
     "p90_drive_distance_m",
     "reachable_population_drive",
-    # Derived from walking coverage
     "accessibility_score",
     "service_coverage",
 )
@@ -289,20 +247,9 @@ def _recompute_commercial_financials(
     """
     Mutates `metric_row` in place to reflect the current occupancy.
 
-    The simulation changes occupancy but the baseline financial figures
-    (rental income, footfall) were recorded at the base-year occupancy.
-    Carrying those forward unchanged produces an internally inconsistent
-    output: the comparison block would show occupancy_rate falling to 5%
-    while noi_rm stays at the base-year value.
-
-    Approach: scale rental income and footfall linearly with the
-    occupancy ratio, recompute maintenance with the aging factor, and
-    derive NOI and NOI yield from those.
-
-    This is a first-order approximation. Real commercial rents exhibit
-    non-linearity (backfilling vacancy typically happens at lower
-    marginal rents), but any monotone approximation is more honest than
-    leaving the figures static.
+    Rental income and footfall scale linearly with the occupancy
+    ratio. Maintenance is recomputed with the aging factor. NOI and
+    NOI yield follow.
     """
     baseline = state_by_year.get(base_year, {}).get(aid, {})
     base_occ = baseline.get("occupancy_rate")
@@ -328,8 +275,6 @@ def _recompute_commercial_financials(
         else:
             metric_row["rental_income_per_visit_proxy"] = None
 
-    # Maintenance: recompute with the aging factor from the asset's
-    # original base, not the previous year's already-escalated value.
     maintenance_base = eff.get("maintenance_annual_rm")
     completion_year = eff.get("completion_year")
     maintenance_current = None
@@ -342,14 +287,12 @@ def _recompute_commercial_financials(
         maintenance_current = float(maintenance_base) * (1.0 + alpha) ** years_old
     metric_row["maintenance_surge_rm"] = maintenance_current
 
-    # NOI = rental income - opex - maintenance
     opex = eff.get("opex_annual_rm")
     opex_f = float(opex) if _is_valid_number(opex) else 0.0
     maint_f = maintenance_current if maintenance_current is not None else 0.0
     noi = scaled_rental - opex_f - maint_f
     metric_row["noi_rm"] = noi
 
-    # NOI yield = NOI / initial CAPEX
     capex = eff.get("capex_initial_rm")
     if _is_valid_number(capex) and float(capex) > 0:
         metric_row["noi_yield"] = noi / float(capex)
@@ -362,17 +305,6 @@ def _synthesize_new_development_projects(
 ) -> list:
     """
     Turn `new_development` interventions into virtual project entries.
-
-    The static development_projects.csv is authored by planners. LLM
-    proposals are appended to interventions.csv. Without this bridge,
-    a proposed development would pass validation and be charged CAPEX
-    but never reach the supply model — the parcel would stay vacant in
-    every simulated year.
-
-    A synthesized project is emitted when its activation_year has
-    arrived. The project dict matches the shape of an entry from
-    development_projects.csv so downstream code (`_add_project_state`,
-    `_new_project_supply_nodes`) handles it without branching.
     """
     if scenario_interventions is None or scenario_interventions.empty:
         return []
@@ -508,14 +440,11 @@ def simulate_scenario(
     g_rate = pop_cfg["growth_rate"]["medium"]
     base_pop = float(pop_cfg["base_population"])
 
-    # Huff params
     alpha = assumptions["huff"]["alpha"]
     beta = assumptions["huff"]["beta"]
 
-    # Occupancy dynamics
     lambda_ = assumptions.get("occupancy_dynamics", {}).get("lambda", 0.35)
-    critical = assumptions.get("occupancy_dynamics", {}).get("threshold") if False else \
-        assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
+    critical = assumptions.get("occupancy_dynamics", {}).get("critical_threshold")
     kappa = assumptions.get("occupancy_dynamics", {}).get("kappa", 0.0)
 
     emission_factor = assumptions.get("environmental", {}).get(
@@ -651,7 +580,7 @@ def simulate_scenario(
         pipeline_nodes_gdf = current_pipeline["nodes_gdf"]
         year_derived = current_pipeline["derived"]
 
-        # ---- Resolve effective asset state for every asset ----
+        # ---- Resolve effective asset state ----
         effective_assets = {}
         activated_interventions = {}
         for _, asset in assets_df.iterrows():
@@ -689,16 +618,11 @@ def simulate_scenario(
             )
             year_supply_nodes.append(s_copy)
 
-        # New supply from delivered projects.
-        # New supply from delivered projects.
+        # ---- New supply from delivered projects ----
         active_projects = active_projects_in_year(
             projects_df, year, scenario_id,
             interventions_df=scenario_interventions,
         )
-        # NEW: LLM-proposed new_development interventions become virtual
-        # projects so they actually enter the supply model and township
-        # carbon totals. Without this bridge, a validated proposal would
-        # be charged CAPEX but never delivered.
         active_projects.extend(
             _synthesize_new_development_projects(
                 scenario_interventions, assets_df, year,
@@ -706,7 +630,8 @@ def simulate_scenario(
         )
         year_supply_nodes.extend(
             _new_project_supply_nodes(
-                active_projects, geometry, pipeline_nodes_gdf, pipeline_supply_nodes,
+                active_projects, geometry, pipeline_nodes_gdf,
+                pipeline_supply_nodes,
             )
         )
 
@@ -743,12 +668,6 @@ def simulate_scenario(
                 new_util = 0.0
             else:
                 if effective_type == "commercial":
-                    # Decide whether the asset should re-converge to a
-                    # new target this year. Without an intervention it
-                    # normally holds steady. But if the demand pool
-                    # shifted materially — a competitor delivered, the
-                    # walking network changed — it must be allowed to
-                    # follow the change.
                     curr_demand = huff_m2.get(aid)
                     prev_demand = year_demand_prev.get(aid)
                     demand_changed = (
@@ -762,12 +681,8 @@ def simulate_scenario(
                     if (activated is None
                             and not demand_changed
                             and not network_changed):
-                        # Nothing about the environment changed; hold.
                         target_occ = prev_occ
                     else:
-                        # Something changed: intervention applied, or
-                        # demand pool / network materially different.
-                        # Converge toward the Huff-derived target.
                         demand_m2 = curr_demand
                         effective_supply = (
                             eff.get("lettable_area_m2")
@@ -815,6 +730,21 @@ def simulate_scenario(
 
             occupancy_prev[aid] = new_occ
 
+            # -------------------------------------------------------------
+            # Phase 11 — canopy extraction.
+            # metric_row is only built AFTER the environmental block, so
+            # anything that needs canopy must be resolved from the B3
+            # frame here. If B3 returned None (OSM has no canopy polygon
+            # for this parcel), the helpers fall back to class-typical
+            # defaults.
+            # -------------------------------------------------------------
+            _yr_canopy_match = year_derived[year_derived["asset_id"] == aid]
+            canopy_from_b3 = None
+            if not _yr_canopy_match.empty:
+                _cv = _yr_canopy_match.iloc[0].get("canopy_coverage")
+                if _is_valid_number(_cv):
+                    canopy_from_b3 = float(_cv)
+
             # ---- Environmental (subtype-aware) ----
             floor_area = float(eff.get("floor_area_m2") or 0)
 
@@ -851,10 +781,9 @@ def simulate_scenario(
                 breakdown = breakdown_energy(
                     energy, effective_type, assumptions
                 )
-                canopy_for_hvac = metric_row.get("canopy_coverage")
-                if not _is_valid_number(canopy_for_hvac):
-                    # Fallback so the HVAC relief does not crash
-                    canopy_for_hvac = 0.0
+                canopy_for_hvac = (
+                    canopy_from_b3 if canopy_from_b3 is not None else 0.0
+                )
                 hvac_adj = apply_canopy_hvac_relief(
                     breakdown["hvac_kwh"], canopy_for_hvac
                 )
@@ -884,14 +813,14 @@ def simulate_scenario(
                 split = productive_stranded_carbon(carbon, rate)
 
             # Phase 11 — UHI proxy with type-specific canopy fallback
-            canopy_for_uhi = metric_row.get("canopy_coverage")
-            if not _is_valid_number(canopy_for_uhi):
-                if effective_type == "residential":
-                    canopy_for_uhi = 0.25
-                elif effective_type == "green_space":
-                    canopy_for_uhi = 0.60
-                else:
-                    canopy_for_uhi = 0.10
+            if canopy_from_b3 is not None and canopy_from_b3 > 0.01:
+                canopy_for_uhi = canopy_from_b3
+            elif effective_type == "residential":
+                canopy_for_uhi = 0.25
+            elif effective_type == "green_space":
+                canopy_for_uhi = 0.60
+            else:
+                canopy_for_uhi = 0.10
             uhi = calculate_surface_temp_delta(
                 canopy_coverage_ratio=canopy_for_uhi,
                 is_hard_surface=(effective_type != "green_space"),
@@ -909,14 +838,8 @@ def simulate_scenario(
                 metric_row[_field] = None
 
             # ---- Spatial refresh ----
-            # Overwrite every network-derived field with the current
-            # network version's value. When the network has not changed
-            # this is a no-op (year_derived equals base_derived). When
-            # a spatial intervention has activated, this is what makes
-            # coverage_ratio_* reflect the new network.
-            year_row_match = year_derived[year_derived["asset_id"] == aid]
-            if not year_row_match.empty:
-                fresh = year_row_match.iloc[0]
+            if not _yr_canopy_match.empty:
+                fresh = _yr_canopy_match.iloc[0]
                 for _field in _SPATIAL_REFRESH_FIELDS:
                     if _field not in fresh.index:
                         continue
@@ -941,8 +864,8 @@ def simulate_scenario(
                 # available (B3 computes it for every asset regardless
                 # of type) and equals service_coverage by construction.
                 if metric_row.get("service_coverage") is None:
-                    if not year_row_match.empty:
-                        fresh_cov = year_row_match.iloc[0].get(
+                    if not _yr_canopy_match.empty:
+                        fresh_cov = _yr_canopy_match.iloc[0].get(
                             "coverage_ratio_10min_walk",
                         )
                         if _is_valid_number(fresh_cov):
@@ -967,8 +890,6 @@ def simulate_scenario(
             metric_row["effective_demand_m2"] = huff_m2.get(aid)
             metric_row["carbon_operational_tco2e"] = carbon
             metric_row["energy_kwh"] = energy
-            metric_row["energy_kwh"] = energy
-            metric_row["carbon_operational_tco2e"] = carbon
             metric_row["energy_kwh_hvac"] = hvac_adj
             metric_row["energy_kwh_lighting_equipment"] = breakdown["lighting_equipment_kwh"]
             metric_row["energy_kwh_base_load"] = breakdown["base_load_kwh"]
@@ -976,8 +897,6 @@ def simulate_scenario(
             metric_row["carbon_stranded_tco2e"] = split["carbon_stranded_tco2e"]
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
             metric_row["surface_temp_delta_c"] = uhi
-            metric_row["metric_source"] = "simulated"
-            metric_row["model_version"] = __version__
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -1036,17 +955,18 @@ def simulate_scenario(
     }
 
 
-# ---- Helpers ----------------------------------------------------
+# ------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------
 
 
 def _add_project_state(year_state, proj, year, emission_factor):
     """
     Insert a delivered project as a virtual entry into year_state.
 
-    Projects do not carry the full asset schema, so only the fields
-    that are meaningful for them are populated: GFA, energy, carbon,
-    subtype. Asset-specific keys (occupancy_rate, NOI, ...) are
-    intentionally absent.
+    Phase 11: records embodied carbon for new construction (materials
+    + demolition) so the delay-vs-deliver comparison can quantify the
+    avoided life-cycle carbon.
     """
     pid = proj.get("project_id")
     if not pid:
@@ -1061,14 +981,13 @@ def _add_project_state(year_state, proj, year, emission_factor):
     energy = energy_from_subtype(subtype, gfa)
     carbon = operational_carbon(energy, emission_factor)
 
-    # Phase 11 — projects are new construction: full embodied carbon
-    # plus demolition of whatever was on the parcel.
+    # Phase 11 — new construction: full embodied carbon plus demolition
+    # of whatever was on the parcel.
     embodied_total = (
         gfa * (MATERIAL_INTENSITY_NEW_BUILD + DEMOLITION_CARBON_INTENSITY)
     )
     maintenance_carbon = maintenance_carbon_annual(embodied_total)
 
-    # Phase 11 — new construction is fully hard surface
     uhi = calculate_surface_temp_delta(
         canopy_coverage_ratio=0.05,
         is_hard_surface=True,
@@ -1079,13 +998,11 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "year": year,
         "subtype": subtype,
         "carbon_operational_tco2e": carbon,
-        "carbon_productive_tco2e": carbon,   # assumed fully used
+        "carbon_productive_tco2e": carbon,
         "carbon_stranded_tco2e": 0.0,
         "stranded_carbon_ratio": 0.0,
         "embodied_carbon_total_tco2e": embodied_total,
-        "embodied_carbon_amortised_tco2e": (
-            embodied_total / 50.0
-        ),
+        "embodied_carbon_amortised_tco2e": embodied_total / 50.0,
         "maintenance_carbon_tco2e": maintenance_carbon,
         "surface_temp_delta_c": uhi,
         "energy_kwh": energy,
@@ -1100,22 +1017,10 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "_project_target_asset_id": proj.get("asset_id"),
     }
 
+
 def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
     """
     Build the walking graph and demand/supply node lists for Huff.
-
-    Uses the same entry-point pipeline as B3 (find_entry_point +
-    insert_all_entries) so that base-year and simulated coverage are
-    computed against an identical network geometry.
-
-    Parameters
-    ----------
-    network_gdf : gpd.GeoDataFrame, optional
-        A modified network layer. When None, the layer from `geometry`
-        is used. B4 passes a modified layer when a spatial intervention
-        has activated, so that the Huff competition and every
-        subsequent distance computation sees the post-intervention
-        network.
     """
     if network_gdf is None:
         network_gdf = geometry["network"]["analysis"]
@@ -1123,7 +1028,6 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
     gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
     G = build_walk_graph(network_gdf, gamma=gamma)
 
-    # --- Project all entries (assets + demand points) ---
     all_entries = {}
     for _, asset in assets_df.iterrows():
         aid = asset["asset_id"]
@@ -1144,7 +1048,6 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
             continue
         all_entries[f"D::{pid}"] = (p, off_d, eid)
 
-    # --- Single insertion pass ---
     G_aug = G.copy()
     inserted = insert_all_entries(G_aug, network_gdf, all_entries)
 
@@ -1156,7 +1059,6 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
         elif key.startswith("D::"):
             demand_entries_map[key[3:]] = val
 
-    # --- Demand node list (virtual nodes) ---
     demand_nodes = []
     for _, pop in pop_analysis.iterrows():
         pid = pop["population_id"]
@@ -1169,7 +1071,6 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
             "population": float(pop["total_population"]),
         })
 
-    # --- Commercial supply node list (virtual nodes) ---
     supply_nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
@@ -1192,15 +1093,8 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
 def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_supply_nodes):
     """
     Virtual supply nodes for projects delivered this year.
-
-    NOTE: projects are inserted into the graph each year and therefore
-    cannot participate in the one-time virtual-node pass. Node snapping
-    (no off-network component) is used here instead. This is a known
-    approximation vs the asset-side door-to-door distances.
-
-    Projects whose parcel cannot be resolved are SKIPPED rather than
-    placed on a fallback node.
     """
+    from ..derived.network_graph import find_nearest_node
     new_nodes = []
 
     for proj in active_projects:
@@ -1210,28 +1104,16 @@ def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_sup
 
         pid = proj.get("parcel_id")
         if not pid:
-            log.warning(
-                "Project %s has no parcel_id; skipping supply node.",
-                proj.get("project_id"),
-            )
             continue
 
         parcels = geometry["parcels"]["analysis"]
         pmatch = parcels[parcels["parcel_id"] == pid]
         if pmatch.empty:
-            log.warning(
-                "Project %s references missing parcel %s; skipping supply node.",
-                proj.get("project_id"), pid,
-            )
             continue
 
         try:
             proj_node = find_nearest_node(pmatch.iloc[0].geometry, nodes_gdf)
-        except Exception as e:
-            log.warning(
-                "Could not resolve node for project %s: %s",
-                proj.get("project_id"), e,
-            )
+        except Exception:
             continue
 
         new_nodes.append({
@@ -1300,26 +1182,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
                       selected_ids=None, interventions_df=None):
     """
     Per-asset comparison between base year and final year.
-
-    When selected_ids is None, every non-project asset that appears in
-    the base year is compared. When given, only the listed assets are
-    included. Unknown IDs are silently skipped.
-
-    Returns
-    -------
-    {
-      "per_asset": {asset_id: {metric_key: {before, after, unit}}},
-      "aggregate": {
-          "asset_count": int,
-          "total_carbon_before_tco2e": float | None,
-          "total_carbon_after_tco2e":  float | None,
-          "carbon_delta_pct":          float | None,
-      },
-      # Backward-compat aliases. Downstream code that expects the
-      # single-focus format continues to work unchanged.
-      "focus_asset_id": str | None,
-      "metrics": {metric_key: {before, after, unit}},
-    }
     """
     before_state = state_by_year.get(base_year, {})
     after_state = state_by_year.get(final_year, {})
@@ -1336,7 +1198,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
     def _num_or_zero(v):
         return float(v) if _valid(v) else 0.0
 
-    # ---- Resolve the id list ----
     if selected_ids is None:
         ids = [aid for aid in before_state if not aid.startswith(PROJECT_ID_PREFIX)]
     else:
@@ -1345,7 +1206,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             if not aid.startswith(PROJECT_ID_PREFIX)
         ]
 
-    # ---- Per-asset metric comparison ----
     def _compare_one(aid: str) -> dict:
         b = before_state.get(aid, {})
         a = after_state.get(aid, {})
@@ -1391,14 +1251,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
                 }
 
     # ---- Link project pseudo-entries back to their target asset ----
-    # A new_development intervention on P-05 produces a PRJ:: entry in
-    # after_state. That project carries the GFA, energy, and carbon of
-    # the delivered building. Without this link, the target parcel's
-    # comparison block would show no change (it remains "vacant"), and
-    # the LLM would see "development applied but nothing happened".
-    #
-    # Each target asset gains a `_linked_projects` sub-block that
-    # surfaces the project's contribution.
     project_by_target: dict = {}
     for prj_id, st in after_state.items():
         if not prj_id.startswith(PROJECT_ID_PREFIX):
@@ -1479,7 +1331,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
                 avoided_embodied_total if avoided_embodied_total > 0 else None
             ),
         },
-        # Backward-compat:
         "focus_asset_id": focus_asset,
         "metrics": per_asset.get(focus_asset, {}) if focus_asset else {},
     }
@@ -1538,28 +1389,18 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
     walk_before = _avg_coverage(before, "coverage_ratio_15min_walk")
     walk_after = _avg_coverage(after, "coverage_ratio_15min_walk")
 
-    # Total carbon includes both real assets and delivered projects.
     carbon_before = _sum_carbon(before)
     carbon_after = _sum_carbon(after)
     carbon_delta_pct = None
     if carbon_before is not None and carbon_before > 0 and carbon_after is not None:
         carbon_delta_pct = (carbon_after - carbon_before) / carbon_before
 
-    # Project carbon, reported separately for scenario comparison.
     project_carbon_after = _sum_carbon(after, _is_project)
 
-    # Cumulative project carbon across every simulated year up to
-    # final_year. A project delivered earlier contributes to more
-    # simulated years, so a delay visibly reduces this total.
     project_carbon_cumulative = 0.0
     for idx, y in enumerate(years):
         if y > final_year:
             break
-        # Time-weighted integral. Each snapshot represents the interval
-        # from the previous snapshot up to itself. The simulation's
-        # year list is non-uniform (2028→2030 is 2 years, 2030→2033 is
-        # 3 years), so a naive per-snapshot sum undercounts. The first
-        # snapshot uses a 1-year fallback interval.
         dt = (y - years[idx - 1]) if idx > 0 else 1
         year_state = state_by_year.get(y, {})
         for aid, st in year_state.items():
@@ -1593,14 +1434,6 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
 
 
 def _resolve_project_delivery_year(proj, scenario_id, interventions_df):
-    """
-    Return the effective delivery year for a project under a given
-    scenario. Returns None if the project is cancelled.
-
-    delay_development directives replace the planned delivery year
-    with parameters_json["until"]. cancel_development removes the
-    project entirely.
-    """
     planned = proj.get("planned_delivery_year")
     if planned is None:
         return None
@@ -1707,11 +1540,7 @@ def _build_map_diff(assets_df, interventions_df, projects_df, scenario_id):
         elif itype == "delay_development":
             changed.append({"asset_id": aid, "change_type": "delayed", "color": "blue"})
         elif itype == "interim_solar_farm":
-            changed.append({
-                "asset_id": aid,
-                "change_type": "solar_farm",
-                "color": "yellow",
-            })
+            changed.append({"asset_id": aid, "change_type": "solar_farm", "color": "yellow"})
 
     project_schedule = _build_project_schedule(
         projects_df, interventions_df, scenario_id,
@@ -1738,9 +1567,7 @@ def _scenario_name(scenario_id: str) -> str:
 def _json_safe(obj):
     """
     Recursively replace float NaN with None so json.dump emits valid
-    JSON. pandas-originated dicts carry float('nan') for missing
-    values; the default json encoder writes those as the literal NaN
-    token, which is not valid JSON and breaks strict parsers.
+    JSON.
     """
     if isinstance(obj, dict):
         return {k: _json_safe(v) for k, v in obj.items()}
