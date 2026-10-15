@@ -21,6 +21,7 @@ from .environmental import (
     embodied_amortised,
     maintenance_carbon_annual,
     calculate_surface_temp_delta,
+    embodied_amortised_for_subtype,
     MATERIAL_INTENSITY_REPURPOSE,
 )
 
@@ -98,7 +99,7 @@ def derive_facility(ctx: DerivationContext) -> dict:
     split = productive_stranded_carbon(carbon, utilisation)
 
     # Phase 11 — life-cycle
-    amortised = embodied_amortised(floor_area, MATERIAL_INTENSITY_REPURPOSE)
+    amortised = embodied_amortised_for_subtype(floor_area, subtype)
     maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
 
     # Phase 11 — UHI

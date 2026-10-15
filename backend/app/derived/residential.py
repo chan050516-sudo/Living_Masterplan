@@ -20,6 +20,7 @@ from .environmental import (
     maintenance_carbon_annual,
     calculate_surface_temp_delta,
     shade_proxy_score_from_canopy,
+    embodied_amortised_for_subtype,
     MATERIAL_INTENSITY_REPURPOSE,
 )
 
@@ -78,7 +79,7 @@ def derive_residential(ctx: DerivationContext) -> dict:
 
     # Phase 11 — life-cycle
     fa = float(floor_area) if floor_area else 0.0
-    amortised = embodied_amortised(fa, MATERIAL_INTENSITY_REPURPOSE)
+    amortised = embodied_amortised_for_subtype(fa, subtype)
     maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
 
     # Phase 11 — UHI

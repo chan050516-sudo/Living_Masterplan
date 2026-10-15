@@ -12,7 +12,7 @@ Phase 11 additions:
   - Life-cycle (embodied + maintenance) carbon helpers.
 """
 
-from ..taxonomy import get_energy_intensity
+from ..taxonomy import get_energy_intensity, get_subtype
 
 
 # ----------------------------------------------------------------
@@ -58,6 +58,48 @@ def energy_from_intensity(floor_area: float, intensity_kwh_m2: float) -> float:
 def embodied_carbon(floor_area: float, material_intensity: float) -> float:
     """tCO2e for a given material intensity."""
     return floor_area * material_intensity
+
+
+def embodied_carbon_for_subtype(
+    floor_area_m2: float,
+    subtype: str,
+    fallback_intensity: float = 0.45,
+) -> dict:
+    """
+    Look up the subtype-specific material intensity and structural
+    lifespan from taxonomy.yml, then compute the total embodied
+    carbon and its annual amortised share.
+
+    Falls back to `fallback_intensity` and STRUCTURAL_LIFESPAN_YEARS
+    when the subtype has no taxonomy entry.
+
+    Phase 11b — the single global 0.45 tCO2e/m2 is replaced by a
+    per-structure-type value. Sources: CIDB Embodied Carbon Inventory
+    Data for Construction Materials (500 records), which localises
+    the UK ICE database to Malaysian construction practice.
+    """
+    defn = get_subtype(subtype) or {}
+    intensity = defn.get("material_intensity_tco2e_m2", fallback_intensity)
+    lifespan = defn.get("structural_lifespan_years", STRUCTURAL_LIFESPAN_YEARS)
+
+    try:
+        intensity = float(intensity)
+    except (TypeError, ValueError):
+        intensity = fallback_intensity
+    try:
+        lifespan = int(lifespan)
+    except (TypeError, ValueError):
+        lifespan = STRUCTURAL_LIFESPAN_YEARS
+    if lifespan <= 0:
+        lifespan = STRUCTURAL_LIFESPAN_YEARS
+
+    total = embodied_carbon(floor_area_m2 or 0.0, intensity)
+    return {
+        "embodied_carbon_total_tco2e": total,
+        "embodied_carbon_amortised_tco2e": total / lifespan,
+        "material_intensity_used": intensity,
+        "structural_lifespan_years": lifespan,
+    }
 
 
 def energy_from_subtype(
@@ -239,6 +281,17 @@ def embodied_amortised(
     }
 
 
+def embodied_amortised_for_subtype(
+    floor_area_m2: float,
+    subtype: str,
+) -> dict:
+    """
+    Convenience wrapper: look up intensity and lifespan from taxonomy
+    by subtype, then return the amortised embodied carbon.
+    """
+    return embodied_carbon_for_subtype(floor_area_m2, subtype)
+
+
 def maintenance_carbon_annual(
     embodied_total_tco2e: float,
     rate: float = None,
@@ -309,6 +362,69 @@ def calculate_surface_temp_delta(
         delta_t += UHI_HARD_SURFACE_PENALTY_C * (1.0 - c)
     delta_t -= UHI_CANOPY_COOLING_C * c
     return round(delta_t, 1)
+
+
+# ----------------------------------------------------------------
+# Phase 11b — Canopy growth model
+# ----------------------------------------------------------------
+
+def canopy_growth(
+    initial_canopy: float,
+    years_elapsed: int,
+    growth_rate: float = 0.025,
+    ceiling: float = 0.60,
+) -> float:
+    """
+    Model urban tree canopy growth over time.
+
+    Tropical urban trees in Malaysia grow at roughly 0.98 cm DBH
+    per year (UPM urban forest study, Putrajaya). Canopy area growth
+    is proportional to DBH², so a mature 10-year-old tree has
+    roughly 4x the canopy area of a 5-year-old. The growth curve is
+    asymptotic: it accelerates early then saturates as the canopy
+    reaches the site's carrying capacity.
+
+    Uses a geometric convergence model:
+        C(t) = C_ceiling - (C_ceiling - C_0) * (1 - r)^t
+
+    Parameters
+    ----------
+    initial_canopy : float
+        Current canopy coverage ratio [0, 1].
+    years_elapsed : int
+        Years since the base year.
+    growth_rate : float
+        Annual fraction of the remaining gap that closes.
+        Default 0.025 = 2.5%/yr.
+    ceiling : float
+        Maximum achievable canopy ratio for the site.
+        Default 0.60 for township-scale.
+
+    Returns
+    -------
+    float : canopy coverage ratio [0, ceiling], clipped.
+    """
+    if initial_canopy is None:
+        return 0.0
+    try:
+        c0 = max(0.0, min(1.0, float(initial_canopy)))
+    except (TypeError, ValueError):
+        return 0.0
+
+    if years_elapsed <= 0:
+        return c0
+
+    if growth_rate <= 0 or growth_rate >= 1:
+        growth_rate = 0.025
+
+    gap = ceiling - c0
+    if gap <= 0:
+        return min(1.0, c0)
+
+    decay = (1.0 - growth_rate) ** years_elapsed
+    new_c = ceiling - gap * decay
+
+    return max(0.0, min(1.0, new_c))
 
 
 # ----------------------------------------------------------------

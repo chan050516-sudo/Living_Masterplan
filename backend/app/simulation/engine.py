@@ -75,6 +75,8 @@ from ..derived.environmental import (
     maintenance_carbon_annual,
     calculate_surface_temp_delta,
     interim_solar_generation,
+    canopy_growth,
+    embodied_carbon_for_subtype,
     MATERIAL_INTENSITY_NEW_BUILD,
     MATERIAL_INTENSITY_REPURPOSE,
     DEMOLITION_CARBON_INTENSITY,
@@ -745,6 +747,25 @@ def simulate_scenario(
                 if _is_valid_number(_cv):
                     canopy_from_b3 = float(_cv)
 
+            # Phase 11b — canopy grows over time.
+            # Trees planted at the base year gain canopy area each
+            # simulated year. Growth applies to all asset types (a
+            # commercial lot's street trees also grow). The growth
+            # model is geometric, saturating at the township ceiling.
+            _canopy_cfg = assumptions.get("environmental", {})
+            _growth_rate = _canopy_cfg.get("canopy_growth_rate_annual", 0.025)
+            _ceiling = _canopy_cfg.get("canopy_ceiling_ratio", 0.60)
+            _growth_start = _canopy_cfg.get("canopy_growth_start_year", base_year)
+            _years_elapsed = max(0, year - _growth_start)
+
+            if canopy_from_b3 is not None and _years_elapsed > 0:
+                canopy_from_b3 = canopy_growth(
+                    initial_canopy=canopy_from_b3,
+                    years_elapsed=_years_elapsed,
+                    growth_rate=_growth_rate,
+                    ceiling=_ceiling,
+                )
+
             # ---- Environmental (subtype-aware) ----
             floor_area = float(eff.get("floor_area_m2") or 0)
 
@@ -897,6 +918,7 @@ def simulate_scenario(
             metric_row["carbon_stranded_tco2e"] = split["carbon_stranded_tco2e"]
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
             metric_row["surface_temp_delta_c"] = uhi
+            metric_row["canopy_coverage"] = canopy_from_b3
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -981,10 +1003,12 @@ def _add_project_state(year_state, proj, year, emission_factor):
     energy = energy_from_subtype(subtype, gfa)
     carbon = operational_carbon(energy, emission_factor)
 
-    # Phase 11 — new construction: full embodied carbon plus demolition
-    # of whatever was on the parcel.
-    embodied_total = (
-        gfa * (MATERIAL_INTENSITY_NEW_BUILD + DEMOLITION_CARBON_INTENSITY)
+    # Phase 11b — subtype-aware embodied carbon for new construction.
+    _ec = embodied_carbon_for_subtype(
+        gfa, subtype, fallback_intensity=MATERIAL_INTENSITY_NEW_BUILD,
+    )
+    embodied_total = _ec["embodied_carbon_total_tco2e"] + (
+        gfa * DEMOLITION_CARBON_INTENSITY
     )
     maintenance_carbon = maintenance_carbon_annual(embodied_total)
 

@@ -23,30 +23,37 @@ supply:
   include_proposed: true
 
 environmental:
-  emission_factor_energy: 0.58       # kgCO2e per kWh
+  # Phase 11b: updated from ST Grid Emission Factor 2022-2024
+  # (Provisional), Suruhanjaya Tenaga. Was 0.58 (2017 CDM baseline).
+  emission_factor_energy: 0.769      # kgCO2e per kWh
 
-  # Phase 11 — Life-cycle carbon
-  # `material_intensity` is kept for backward compatibility; new code
-  # should read the explicit new_build / repurpose pair below.
+  # Phase 11b: fallback only. New code reads material_intensity_tco2e_m2
+  # and structural_lifespan_years from taxonomy.yml per subtype.
   material_intensity: 0.45
-  material_intensity_new_build:   0.45   # tCO2e/m2 — full rebuild
-  material_intensity_repurpose:   0.08   # tCO2e/m2 — adaptive reuse (retains frame)
-  demolition_carbon_intensity:    0.05   # tCO2e/m2 — rubble clearing on rebuild
-  structural_lifespan_years:      50     # amortisation horizon for embodied carbon
-  maintenance_carbon_rate:        0.015  # annual maintenance carbon as fraction of embodied
+  material_intensity_new_build:   0.45
+  material_intensity_repurpose:   0.08
+  demolition_carbon_intensity:    0.05
+  structural_lifespan_years:      50
+  maintenance_carbon_rate:        0.015
+  energy_intensity_default: 120
 
-  energy_intensity_default: 120      # kWh/m2/year fallback
+  solar_yield_kwh_per_kwp:            1350.0
+  solar_capacity_density_kwp_per_m2:  0.15
+  solar_usable_land_fraction:         0.60
+  solar_installation_carbon_tco2e_per_kwp: 0.05
+  hvac_canopy_relief_per_unit: 0.10
+  uhi_hard_surface_penalty_c:  8.0
+  uhi_canopy_cooling_c:        4.5
 
-  # Phase 11 — Interim solar farm (undeveloped parcel, pre-development)
-  solar_yield_kwh_per_kwp:            1350.0  # Malaysia tropical yield
-  solar_capacity_density_kwp_per_m2:  0.15    # kWp per m2 of panel area
-  solar_usable_land_fraction:         0.60    # share of land available for panels
-  solar_installation_carbon_tco2e_per_kwp: 0.05  # embodied carbon of the panels themselves
-
-  # Phase 11 — Microclimate
-  hvac_canopy_relief_per_unit: 0.10   # HVAC load reduced 10% at canopy=1.0
-  uhi_hard_surface_penalty_c:  8.0    # ΔT penalty for fully exposed hard surface
-  uhi_canopy_cooling_c:        4.5    # ΔT cooling per unit canopy coverage
+  # Phase 11b — canopy growth model
+  # Urban tropical trees in Malaysia: mean annual DBH increment of
+  # 0.98 cm and height increment of 0.73 m per year (UPM urban forest
+  # study, Taman Rimba Alam, Putrajaya). Canopy area growth is
+  # proportional to DBH². Stabilisation occurs at 30-40 years in
+  # tropical zones.
+  canopy_growth_rate_annual:   0.025    # 2.5%/yr of remaining gap to ceiling
+  canopy_ceiling_ratio:        0.60    # township-scale upper bound
+  canopy_growth_start_year:    2026    # growth starts from the base year
 
 # Phase 11 — Energy sub-system split (industry benchmarks, tropical climate)
 energy_breakdown:

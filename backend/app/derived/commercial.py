@@ -24,6 +24,8 @@ from .environmental import (
     calculate_surface_temp_delta,
     MATERIAL_INTENSITY_NEW_BUILD,
     MATERIAL_INTENSITY_REPURPOSE,
+    embodied_amortised_for_subtype,
+    canopy_growth,
 )
 
 
@@ -125,7 +127,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     split = productive_stranded_carbon(carbon, occupancy)
 
     # Phase 11 — life-cycle
-    amortised = embodied_amortised(floor_area, MATERIAL_INTENSITY_REPURPOSE)
+    amortised = embodied_amortised_for_subtype(floor_area, subtype)
     maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
 
     # Phase 11 — UHI proxy with OSM-data fallback
