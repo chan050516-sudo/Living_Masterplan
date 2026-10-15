@@ -128,9 +128,11 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     amortised = embodied_amortised(floor_area, MATERIAL_INTENSITY_REPURPOSE)
     maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
 
-    # Phase 11 — UHI proxy
+    # Phase 11 — UHI proxy with OSM-data fallback
+    from .environmental import effective_canopy_for_uhi
+    canopy_for_uhi = effective_canopy_for_uhi(ctx.canopy_coverage, "commercial")
     uhi = calculate_surface_temp_delta(
-        canopy_coverage_ratio=ctx.canopy_coverage,
+        canopy_coverage_ratio=canopy_for_uhi,
         is_hard_surface=True,
     )
 

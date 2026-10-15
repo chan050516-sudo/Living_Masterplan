@@ -9,39 +9,28 @@ and produces:
       assets, asset_metrics, development_projects,
       development_candidates, interventions.
 
-Asset sources (2026-10-15):
+Asset sources:
     buildings     -> residential, commercial (from OSM building tags)
     amenities     -> community_facility (school, clinic, worship, ...)
                      + commercial (food_beverage, finance, retail)
     green_blue    -> green_space (park, public_space)
-    parcels       -> undeveloped_parcel (synthesised; see below)
-
-    Facilities are pulled from the amenities layer rather than from
-    buildings because OSM tags school / clinic / worship zones as
-    amenity polygons, not as typed building footprints. This removes
-    the need for spatial joins and gives every facility a real
-    location. Buildings with a community_facility tag are excluded
-    from the asset layer to avoid duplication.
+    parcels       -> undeveloped_parcel (synthesised)
 
 Schema alignment pass (2026-10-15b):
-  - Subtypes emitted by the building deriver are normalised to the
-    taxonomy vocabulary BEFORE writing assets.csv:
-        bungalow   -> detached
-        dormitory  -> apartment_lowrise
-    Neither key exists in taxonomy.yml, so leaking them into
-    assets.csv silently breaks energy intensity lookup, Huff
-    competition radii, and occupancy benchmarks inside B3/B4.
-  - Undeveloped parcels are synthesised. The raw pipeline rebuilds
-    every parcel from building buffers, so no naturally vacant
-    parcel ever survives. Without mock vacancies:
-        B4's SC-DELAY scenario has no project to delay,
-        B6's negative_demand_supply_gap flag never fires,
-        B7's validator never sees undeveloped_parcel in action space.
-  - Buildings whose parcel_id came back as "P-UNASSIGNED" get fresh
-    parcel geometries derived from their own footprint.
-  - parcels.asset_id is now populated from assets.csv. B3 resolves
-    every asset's geometry via parcels.asset_id == assets.asset_id;
-    leaving it null would cause B3 to skip every asset silently.
+  - bungalow / dormitory -> taxonomy-legal subtypes.
+  - Undeveloped parcels synthesised.
+  - P-UNASSIGNED orphans given real parcel geometries.
+  - parcels.asset_id populated so B3 resolves asset geometry.
+
+Schema alignment pass (2026-10-15c):
+  - green_blue.asset_id rewritten from "unlinked-G-xxxx" to "G-xxxx"
+    so derived/green.py can resolve canopy area per asset.
+  - green_blue.canopy_m2 backfilled from area_m2 for vegetation
+    polygons, so B3's canopy coverage is continuous instead of 0/1.
+  - Amenity-derived assets receive their own synthetic parcel, so
+    B3's walking pipeline and Huff supply model can resolve them.
+    Without this, every f_and_b / services / clinic asset was
+    silently skipped and DSR was NaN.
 
 Usage:
     python bukit_jelutong/build_mock_data.py
@@ -51,10 +40,12 @@ Usage:
 import argparse
 import hashlib
 import math
+import json
 from pathlib import Path
 
 import geopandas as gpd
 import pandas as pd
+import yaml
 
 # ----------------------------------------------------------------
 # Paths
@@ -76,6 +67,38 @@ BASE_YEAR = 2026
 MIN_BUILDING_FOOTPRINT_M2 = 40.0
 
 
+# ----------------------------------------------------------------
+# Taxonomy access (for target_area_m2 caps)
+# ----------------------------------------------------------------
+_TAXONOMY_PATH = BUKIT_DIR.parent / "backend" / "configs" / "taxonomy.yml"
+
+try:
+    with open(_TAXONOMY_PATH, encoding="utf-8") as _f:
+        _TAXONOMY = yaml.safe_load(_f) or {}
+except FileNotFoundError:
+    _TAXONOMY = {}
+
+_SUBTYPE_DEFS = _TAXONOMY.get("subtypes", {})
+
+
+def _subtype_max_area(subtype: str):
+    """
+    Return the upper bound of target_area_m2 for a subtype, or None.
+
+    Used to cap amenity floor area so an amenity hosted inside a
+    much larger building does not inherit the building's entire
+    footprint.
+    """
+    defn = _SUBTYPE_DEFS.get(subtype) or {}
+    rng = defn.get("target_area_m2")
+    if isinstance(rng, list) and len(rng) == 2:
+        try:
+            return float(rng[1])
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
 # ================================================================
 # 1. Seeded randomness
 # ================================================================
@@ -87,7 +110,6 @@ def seeded_uniform(key: str, lo: float, hi: float) -> float:
 
 
 def seeded_int(key: str, lo: int, hi: int) -> int:
-    """Return an integer in [lo, hi] with uniform probability."""
     u = seeded_uniform(key, 0.0, 1.0)
     return lo + int(math.floor(u * (hi - lo + 1)))
 
@@ -95,10 +117,6 @@ def seeded_int(key: str, lo: int, hi: int) -> int:
 # ================================================================
 # 2. Building subtype inference
 # ================================================================
-# FIX: FLOOR_RANGE_BY_SUBTYPE no longer contains 'bungalow' or
-#      'dormitory'. Those keys are not in taxonomy.yml, so they must
-#      never be emitted as a subtype. The raw OSM tag is still
-#      honoured, just mapped to a taxonomy-legal subtype below.
 
 FLOOR_RANGE_BY_SUBTYPE = {
     # Residential
@@ -137,11 +155,7 @@ ATTACHMENT_RAW_VALUES = {
 
 
 def infer_subtype(raw, footprint_m2, building_type):
-    """
-    Return the taxonomy subtype, or None when the building is an
-    attachment or below MIN_BUILDING_FOOTPRINT_M2.
-
-    Every return value is guaranteed to be a key in taxonomy.yml.
+    """Return the taxonomy subtype, or None for attachments / tiny."
     """
     bt = str(raw).strip().lower() if raw else ""
     fp = float(footprint_m2 or 0)
@@ -151,8 +165,6 @@ def infer_subtype(raw, footprint_m2, building_type):
     if fp < MIN_BUILDING_FOOTPRINT_M2:
         return None
 
-    # Residential explicit tags.
-    # FIX: bungalow -> detached (bungalow is not a taxonomy key).
     if bt == "bungalow":
         return "detached"
     if bt in {"detached", "detached_house"}:
@@ -163,7 +175,6 @@ def infer_subtype(raw, footprint_m2, building_type):
         return "terrace"
     if bt in {"apartments", "apartment"}:
         return "apartment_highrise" if fp > 2000 else "apartment_lowrise"
-    # FIX: dormitory -> apartment_lowrise.
     if bt == "dormitory":
         return "apartment_lowrise"
     if bt == "house":
@@ -173,7 +184,6 @@ def infer_subtype(raw, footprint_m2, building_type):
             return "semidetached"
         return "detached"
 
-    # Commercial.
     if bt == "supermarket":
         return "supermarket"
     if bt in {"convenience", "kiosk"}:
@@ -185,7 +195,6 @@ def infer_subtype(raw, footprint_m2, building_type):
     if bt == "showroom":
         return "showroom"
 
-    # Community.
     if bt in {"school", "university", "college"}:
         return "school"
     if bt == "kindergarten":
@@ -204,7 +213,6 @@ def infer_subtype(raw, footprint_m2, building_type):
     if bt in {"government", "public", "civic", "townhall", "police"}:
         return "public_service"
 
-    # Fallback by building_type.
     if building_type == "residential":
         if fp < 150:
             return "terrace"
@@ -229,7 +237,6 @@ def infer_subtype(raw, footprint_m2, building_type):
     if building_type == "industrial":
         return "office"
 
-    # building_type == "unknown" (OSM building=yes).
     if building_type in {"unknown", "yes", ""}:
         if fp > 5000:
             return "school"
@@ -293,7 +300,6 @@ def normalize_amenity_type(raw: str) -> str:
     return "other"
 
 
-# amenity_type -> (asset_type, subtype, default_footprint_m2)
 AMENITY_TO_ASSET = {
     "school":             ("community_facility", "school",           3000.0),
     "clinic":             ("community_facility", "clinic",            400.0),
@@ -315,8 +321,6 @@ def amenity_to_asset_row(row, index: int) -> dict:
 
     asset_type, subtype, default_fp = atype_map
 
-    # Footprint resolution: prefer the physically matched building
-    # footprint, then the amenity polygon area, then the subtype default.
     matched_fp = row.get("_matched_footprint_m2")
     if pd.notna(matched_fp) and float(matched_fp) >= MIN_BUILDING_FOOTPRINT_M2:
         fp = float(matched_fp)
@@ -328,6 +332,13 @@ def amenity_to_asset_row(row, index: int) -> dict:
                 fp = default_fp
         else:
             fp = default_fp
+
+    # FIX (2026-10-15c): cap by taxonomy target_area_m2 upper bound.
+    # Without this, an amenity hosted inside a large commercial block
+    # inherits the whole block's footprint and its carbon balloons.
+    max_fp = _subtype_max_area(subtype)
+    if max_fp is not None and fp > max_fp:
+        fp = max_fp
 
     lo, hi = FLOOR_RANGE_BY_SUBTYPE.get(subtype, (1, 2))
     floors = seeded_int(f"{row['amenity_id']}-floors", lo, hi)
@@ -374,9 +385,6 @@ def amenity_to_asset_row(row, index: int) -> dict:
 # ================================================================
 # 4. Capacity and cost tables
 # ================================================================
-# FIX: 'bungalow' and 'dormitory' entries removed. Their raw OSM tags
-#      are mapped to 'detached' and 'apartment_lowrise' in
-#      infer_subtype() before reaching any of these lookups.
 
 CAPACITY_PER_M2 = {
     "terrace":            1 / 50,
@@ -522,18 +530,7 @@ def resolve_unassigned_parcels(
     buildings: gpd.GeoDataFrame,
     parcels: gpd.GeoDataFrame,
 ) -> tuple:
-    """
-    NEW: Give every building a resolvable parcel_id.
-
-    The raw pipeline assigns "P-UNASSIGNED" when a building's
-    representative point falls outside every buffered building
-    cluster. Those rows silently break:
-      - B3's entry-point projection (parcels.asset_id join misses)
-      - B7's centroid lookup for get_nearby_assets
-
-    This function creates a fresh parcel from each orphan building's
-    own footprint, so the join never misses.
-    """
+    """Give every building a resolvable parcel_id."""
     mask = (
         buildings["parcel_id"].isna()
         | (buildings["parcel_id"].astype(str) == "P-UNASSIGNED")
@@ -576,28 +573,10 @@ def mock_undeveloped_parcels(
     parcels: gpd.GeoDataFrame,
     n: int = 3,
 ) -> gpd.GeoDataFrame:
-    """
-    NEW: Synthesise a handful of vacant parcels.
-
-    Rationale: osm_pipeline rebuilds every parcel from building
-    footprints, so no naturally vacant parcel ever exists in the
-    processed layer. Without mock vacancies:
-      - B4's SC-DELAY scenario has no development project to delay
-      - B6's negative_demand_supply_gap flag never fires
-      - B7's validator never sees undeveloped_parcel in action space
-
-    The mocks are copies of large existing parcels, relabelled with
-    a "P-VAC-" prefix. Their geometry is preserved (so area_m2 stays
-    consistent with the geometry and the validator does not flag
-    area mismatch), and they intentionally overlap the source
-    parcels. This is harmless: parcel_id is the join key, not the
-    geometry.
-    """
+    """Synthesise a handful of vacant parcels."""
     if parcels.empty or n <= 0:
         return parcels.iloc[0:0].copy()
 
-    # Prefer large parcels, spread across the study area so the mocks
-    # are not clustered at one end.
     ranked = parcels.sort_values("area_m2", ascending=False).head(n * 4)
     step = max(1, len(ranked) // n)
     picked = ranked.iloc[::step].head(n).copy()
@@ -615,10 +594,7 @@ def process_amenities_geometry(
     amenities: gpd.GeoDataFrame,
     buildings: gpd.GeoDataFrame,
 ) -> gpd.GeoDataFrame:
-    """
-    Add the normalised amenity_type, compute projected area,
-    and spatially link amenities to intersecting buildings and parcels.
-    """
+    """Normalise amenity_type and link to intersecting buildings."""
     gdf = amenities.copy()
     if "amenity_type_raw" not in gdf.columns:
         gdf["amenity_type_raw"] = gdf.get("amenity_type")
@@ -703,7 +679,7 @@ def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
 
 def _empty_population_gdf() -> gpd.GeoDataFrame:
-    from shapely.geometry import Point
+    from shapely.geometry import Point  # noqa: F401
     gdf = gpd.GeoDataFrame(
         {
             "population_id": pd.Series(dtype="object"),
@@ -735,7 +711,6 @@ SAMPLE_QUOTA = {
 
 def select_building_assets(buildings: gpd.GeoDataFrame,
                            full: bool = True) -> dict:
-    """Building-sourced assets: residential and commercial only."""
     out = {"residential": [], "commercial": []}
     eligible = buildings[buildings["subtype"].notna()].copy()
     for atype in out.keys():
@@ -749,7 +724,6 @@ def select_building_assets(buildings: gpd.GeoDataFrame,
 
 def select_amenity_assets(amenities: gpd.GeoDataFrame,
                           full: bool = True) -> dict:
-    """Amenity-sourced assets bucketed into facility / commercial."""
     out = {"community_facility": [], "commercial": []}
     for _, row in amenities.iterrows():
         atype_map = AMENITY_TO_ASSET.get(row["amenity_type"])
@@ -901,40 +875,25 @@ def derive_metrics_row(asset: dict, demo_role: str) -> dict:
 # ================================================================
 # 8. Write helpers
 # ================================================================
-# NOTE: set_index is intentional. GeoPandas writes the index as the
-#       GeoJSON feature-level `id`. validate_geometry.py flags
-#       "column missing" because it inspects gdf.columns, which does
-#       not include the feature id. That is a validator artefact, not
-#       a data problem. Do not remove the set_index call.
 
 def write_layer(gdf: gpd.GeoDataFrame, name: str, id_col: str = None):
     """
     Write a GeoDataFrame to processed/geometry as GeoJSON.
 
-    IMPORTANT: we do NOT call set_index() on the id column.
-    GeoPandas writes the index as the GeoJSON feature-level `id`,
-    which read_file() does NOT restore as a column. Downstream code
-    (B3's find_entry_point, B7's centroid lookup) reads `edge_id`,
-    `parcel_id`, `building_id`, etc. as normal columns, so the id
-    must stay in `properties`.
-
-    The feature-level `id` is also set to the same value for
-    GeoJSON-spec compliance, via GeoPandas' native index handling
-    AFTER writing — but the primary contract is the property column.
+    The id column (edge_id / parcel_id / building_id / ...) is kept as
+    a normal property column. We do NOT call set_index, because
+    GeoPandas would then write it as a feature-level `id` that
+    read_file() does not restore as a column. Downstream B3 code reads
+    these ids as ordinary columns.
     """
     path = PROCESSED_GEOM_DIR / f"{name}{SUFFIX}.geojson"
     out = gdf.to_crs(DISPLAY_CRS).copy()
 
-    # Drop helper columns (any column starting with "_").
     drop = [c for c in out.columns if c.startswith("_")]
     if drop:
         out = out.drop(columns=drop)
 
-    # Ensure we have a clean RangeIndex so GeoPandas does not write a
-    # stray feature id from a previous set_index call.
     out = out.reset_index(drop=True)
-
-    # Write normally. The id column stays as a normal property.
     out.to_file(path, driver="GeoJSON")
     print(f"  wrote {path.name}  ({len(out)} features)")
 
@@ -967,18 +926,36 @@ def main():
     print(f"  network_edges:  {len(network)}")
     print(f"  amenities:      {len(amenities)}")
 
+    # ------------------------------------------------------------------
+    # FIX (2026-10-15c) — green layer normalisation
+    # ------------------------------------------------------------------
+    # (a) raw pipeline writes asset_id = "unlinked-G-xxxx", but
+    #     assets.csv uses plain "G-xxxx" (from green_id). B3's
+    #     green.py looks up by asset_id, so without this rewrite
+    #     every green asset ends up with green_coverage = NaN.
+    if "asset_id" in green_blue.columns and "green_id" in green_blue.columns:
+        green_blue["asset_id"] = green_blue["green_id"]
+
+    # (b) raw canopy_m2 is almost always NaN because OSM rarely maps
+    #     tree canopy as a standalone polygon. Backfill it from the
+    #     polygon's own area for vegetation types so B3's per-asset
+    #     sum has something to work with.
+    if "canopy_m2" in green_blue.columns and "green_type" in green_blue.columns:
+        veg_types = {
+            "canopy", "park", "pocket_park",
+            "green_corridor", "public_space",
+        }
+        is_veg = green_blue["green_type"].isin(veg_types)
+        needs_fill = is_veg & green_blue["canopy_m2"].isna()
+        green_blue.loc[needs_fill, "canopy_m2"] = green_blue.loc[needs_fill, "area_m2"]
+
     print("\nProcessing geometry...")
     buildings_p = process_buildings_geometry(buildings)
-
-    # FIX: resolve orphan parcels before anything that joins on
-    #      parcel_id (amenity linking, asset writing, parcels export).
     buildings_p, parcels = resolve_unassigned_parcels(buildings_p, parcels)
 
     amenities_p = process_amenities_geometry(amenities, buildings_p)
     population_p = generate_population(buildings_p)
 
-    # NEW: synthesise vacant parcels so B4/B6/B7 have an
-    #      undeveloped_parcel class to work with.
     undeveloped_mocks = mock_undeveloped_parcels(parcels, n=3)
     parcels = gpd.GeoDataFrame(
         pd.concat([parcels, undeveloped_mocks], ignore_index=True),
@@ -1004,8 +981,6 @@ def main():
     print("\nBuilding assets.csv...")
     asset_rows = []
 
-    # 1. Amenities take precedence: any building already represented as
-    #    an amenity-sourced asset must not also appear as a building.
     amenity_rows = []
     occupied_building_ids = set()
     for atype, records in amenity_assets.items():
@@ -1016,8 +991,6 @@ def main():
                 if row.get("building_id"):
                     occupied_building_ids.add(row["building_id"])
 
-    # 2. Buildings: residential + commercial, minus any building already
-    #    consumed by an amenity-derived asset.
     for atype, records in building_assets.items():
         for i, rec in enumerate(records):
             if rec.get("building_id") in occupied_building_ids:
@@ -1026,11 +999,9 @@ def main():
 
     asset_rows.extend(amenity_rows)
 
-    # 3. Green space from the green_blue layer.
     for i, rec in enumerate(env_assets["green_space"]):
         asset_rows.append(derive_asset_row(rec, "green_space", i))
 
-    # 4. NEW: synthesised undeveloped parcels.
     for i, (_, rec) in enumerate(undeveloped_mocks.iterrows()):
         asset_rows.append(
             derive_asset_row(rec.to_dict(), "undeveloped_parcel", i)
@@ -1038,11 +1009,135 @@ def main():
 
     assets_df = pd.DataFrame(asset_rows)
 
-    # FIX: B3 resolves asset geometry via parcels.asset_id. Populate
-    #      that column from the parcel_id -> asset_id map declared in
-    #      assets.csv. Where multiple assets share a parcel, the first
-    #      one wins (a known limitation of the 1:1 join; see B3's
-    #      engine for details).
+    # ------------------------------------------------------------------
+    # FIX (2026-10-15c) — amenity independent parcels
+    # ------------------------------------------------------------------
+    # Amenity-derived assets (A-xxxx) share a host building's parcel.
+    # B3 resolves every asset's entry point by looking up
+    # `parcels.asset_id == aid`, so the 1:1 mapping leaves them
+    # without a resolvable parcel and silently skips them from the
+    # walking pipeline and the Huff supply model. This is the root
+    # cause of missing DSR on every f_and_b / services asset.
+    #
+    # Give each amenity its own synthetic parcel so it becomes a
+    # first-class citizen in B3.
+    amenity_aids = [
+        aid for aid in assets_df["asset_id"]
+        if isinstance(aid, str) and aid.startswith("A-")
+    ]
+
+    if amenity_aids:
+        new_amenity_parcels = []
+        for i, aid in enumerate(amenity_aids):
+            match = amenities_p[amenities_p["amenity_id"] == aid]
+            if match.empty:
+                continue
+            geom = match.iloc[0].geometry
+            if geom is None or geom.is_empty:
+                continue
+
+            try:
+                geom_proj = gpd.GeoSeries(
+                    [geom], crs=amenities_p.crs
+                ).to_crs(COMPUTE_CRS).iloc[0]
+                if geom_proj.geom_type == "Point":
+                    parcel_geom_proj = geom_proj.buffer(15.0)
+                else:
+                    parcel_geom_proj = geom_proj.buffer(2.0)
+                parcel_geom = gpd.GeoSeries(
+                    [parcel_geom_proj], crs=COMPUTE_CRS
+                ).to_crs(parcels.crs).iloc[0]
+            except Exception:
+                continue
+
+            new_pid = f"P-AMN-{i + 1:04d}"
+            new_amenity_parcels.append({
+                "parcel_id": new_pid,
+                "asset_id": aid,
+                "land_use": "community_facility",
+                "area_m2": float(parcel_geom_proj.area),
+                "geometry_source": "Derived",
+                "geometry_confidence": "low",
+                "geometry": parcel_geom,
+            })
+            assets_df.loc[
+                assets_df["asset_id"] == aid, "parcel_id"
+            ] = new_pid
+
+        if new_amenity_parcels:
+            ap_gdf = gpd.GeoDataFrame(
+                new_amenity_parcels, crs=parcels.crs,
+            )
+            parcels = gpd.GeoDataFrame(
+                pd.concat([parcels, ap_gdf], ignore_index=True),
+                crs=parcels.crs,
+            )
+            print(f"  created {len(new_amenity_parcels)} amenity parcels")
+
+     # ------------------------------------------------------------------
+    # FIX (2026-10-15d) — green_space independent parcels
+    # ------------------------------------------------------------------
+    # Green space assets have no parcel_id in the green_blue layer,
+    # so B3 cannot resolve their geometry and skips them entirely.
+    # This is why `reachable_population_walk` was 0 for every park and
+    # `green_per_capita_m2` was always NaN. Give each green asset its
+    # own parcel derived from its polygon.
+    green_aids = [
+        aid for aid in assets_df["asset_id"]
+        if isinstance(aid, str) and aid.startswith("G-")
+    ]
+
+    if green_aids:
+        new_green_parcels = []
+        for i, aid in enumerate(green_aids):
+            match = green_blue[green_blue["green_id"] == aid]
+            if match.empty:
+                continue
+            geom = match.iloc[0].geometry
+            if geom is None or geom.is_empty:
+                continue
+
+            try:
+                geom_proj = gpd.GeoSeries(
+                    [geom], crs=green_blue.crs
+                ).to_crs(COMPUTE_CRS).iloc[0]
+                if geom_proj.geom_type in ("Point", "LineString", "MultiLineString"):
+                    # Points / lines do not have meaningful area;
+                    # buffer them into a small polygon.
+                    parcel_geom_proj = geom_proj.buffer(15.0)
+                else:
+                    parcel_geom_proj = geom_proj
+                parcel_geom = gpd.GeoSeries(
+                    [parcel_geom_proj], crs=COMPUTE_CRS
+                ).to_crs(parcels.crs).iloc[0]
+            except Exception:
+                continue
+
+            new_pid = f"P-GRN-{i + 1:04d}"
+            new_green_parcels.append({
+                "parcel_id": new_pid,
+                "asset_id": aid,
+                "land_use": "green_space",
+                "area_m2": float(parcel_geom_proj.area),
+                "geometry_source": "Derived",
+                "geometry_confidence": "low",
+                "geometry": parcel_geom,
+            })
+            assets_df.loc[
+                assets_df["asset_id"] == aid, "parcel_id"
+            ] = new_pid
+
+        if new_green_parcels:
+            gp_gdf = gpd.GeoDataFrame(
+                new_green_parcels, crs=parcels.crs,
+            )
+            parcels = gpd.GeoDataFrame(
+                pd.concat([parcels, gp_gdf], ignore_index=True),
+                crs=parcels.crs,
+            )
+            print(f"  created {len(new_green_parcels)} green parcels")
+
+    # ---- Write parcel -> asset_id mapping ----
     if not parcels.empty and not assets_df.empty:
         pid_to_aid = {}
         for _, r in assets_df.iterrows():
@@ -1064,7 +1159,6 @@ def main():
     print(f"  {len(assets_df)} assets total")
     print(f"    by type:    {dict(assets_df['asset_type'].value_counts())}")
 
-    # ---- Write geometry (parcels now carries asset_id) ----
     print("\nWriting processed geometry...")
     write_layer(buildings_p, "buildings", "building_id")
     write_layer(parcels, "parcels", "parcel_id")
@@ -1165,8 +1259,12 @@ def main():
         print("  0 candidates")
 
     # ---- interventions.csv ----
+    # Baseline + two contrasting scenarios so B4 has something to
+    # compare. All IDs are resolved dynamically because OSM-derived
+    # asset IDs are not known ahead of time.
     print("\nBuilding interventions.csv...")
-    pd.DataFrame([{
+
+    intervention_rows = [{
         "scenario_id": "SC-CURRENT",
         "intervention_id": "INT-000",
         "target_asset_id": None,
@@ -1182,8 +1280,81 @@ def main():
         "opex_delta_rm": 0,
         "validation_status": "validated",
         "status": "applied",
-    }]).to_csv(PROCESSED_BIZ_DIR / "interventions.csv", index=False)
-    print("  1 intervention (SC-CURRENT baseline)")
+    }]
+
+    # SC-REPURPOSE: repurpose the first commercial asset to a clinic,
+    # plus a walkability upgrade on the same asset's nearest edge.
+    if not commercial.empty:
+        repurpose_target = commercial.iloc[0]["asset_id"]
+        intervention_rows.append({
+            "scenario_id": "SC-REPURPOSE",
+            "intervention_id": "INT-001",
+            "target_asset_id": repurpose_target,
+            "intervention_type": "repurpose",
+            "parameters_json": json.dumps({
+                "to_subtype": "clinic",
+                "new_capacity": 200,
+            }),
+            "expected_derived_json": json.dumps({
+                "utilisation": 0.72,
+                "service_coverage": 0.65,
+            }),
+            "expected_source": "mock_estimate",
+            "construction_start_year": BASE_YEAR + 1,
+            "construction_duration_months": 18,
+            "activation_year": BASE_YEAR + 2,
+            "during_construction_status": "unavailable",
+            "capex_delta_rm": 1_200_000,
+            "opex_delta_rm": 60_000,
+            "validation_status": "validated",
+            "status": "simulated",
+        })
+        intervention_rows.append({
+            "scenario_id": "SC-REPURPOSE",
+            "intervention_id": "INT-002",
+            "target_asset_id": repurpose_target,
+            "intervention_type": "pedestrian_upgrade",
+            "parameters_json": json.dumps({"canopy_boost": 0.30}),
+            "expected_derived_json": None,
+            "expected_source": None,
+            "construction_start_year": BASE_YEAR + 1,
+            "construction_duration_months": 6,
+            "activation_year": BASE_YEAR + 2,
+            "during_construction_status": "partial",
+            "capex_delta_rm": 180_000,
+            "opex_delta_rm": 5_000,
+            "validation_status": "validated",
+            "status": "simulated",
+        })
+
+    # SC-DELAY: postpone the first development project to 2033.
+    if not undeveloped.empty:
+        first_project_id = "PRJ-01"   # matches the naming above
+        intervention_rows.append({
+            "scenario_id": "SC-DELAY",
+            "intervention_id": "INT-003",
+            "target_asset_id": first_project_id,
+            "intervention_type": "delay_development",
+            "parameters_json": json.dumps({"until": 2033}),
+            "expected_derived_json": None,
+            "expected_source": None,
+            "construction_start_year": BASE_YEAR + 1,
+            "construction_duration_months": 0,
+            "activation_year": BASE_YEAR + 1,
+            "during_construction_status": "operational",
+            "capex_delta_rm": 0,
+            "opex_delta_rm": 0,
+            "validation_status": "validated",
+            "status": "simulated",
+        })
+
+    pd.DataFrame(intervention_rows).to_csv(
+        PROCESSED_BIZ_DIR / "interventions.csv", index=False,
+    )
+    print(f"  {len(intervention_rows)} interventions "
+          f"({sum(1 for r in intervention_rows if r['scenario_id'] == 'SC-CURRENT')} current, "
+          f"{sum(1 for r in intervention_rows if r['scenario_id'] == 'SC-REPURPOSE')} repurpose, "
+          f"{sum(1 for r in intervention_rows if r['scenario_id'] == 'SC-DELAY')} delay)")
 
     print("\n" + "=" * 72)
     print(f"  Processed geometry -> {PROCESSED_GEOM_DIR}")

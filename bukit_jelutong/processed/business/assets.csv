@@ -818,108 +818,108 @@ BLD-0073,residential,terrace,P-FIX-0018,BLD-0073,Residential 839,residential,1,e
 BLD-0833,residential,terrace,P-FIX-0044,BLD-0833,Residential 840,residential,1,existing,2020,young_families,209.29,209.29,104.65,523228.38,20929.14,7848.43,4,0.75,osm;derived
 BLD-0057,residential,terrace,P-0206,BLD-0057,Residential 841,residential,1,existing,2021,young_families,208.22,208.22,104.11,520550.13,20822.01,7808.25,4,0.75,osm;derived
 BLD-0037,commercial,supermarket,P-0179,BLD-0037,Commercial 3,commercial,1,existing,2007,all,4809.18,4087.81,2404.59,16832146.97,1346571.76,420803.67,321,0.75,osm;derived
-A-0002,community_facility,school,P-0141,BLD-0066,School A-0002,community_facility,1,existing,2013,young_families,24844.01,24844.01,6211.0,74532043.25,7453204.33,2235961.3,3106,0.85,osm_amenity;building_linked;derived
-A-0005,community_facility,clinic,P-0141,BLD-0066,Clinic A-0005,community_facility,1,existing,2006,all,6211.0,6211.0,6211.0,18633010.81,1863301.08,558990.32,207,0.85,osm_amenity;building_linked;derived
-A-0010,community_facility,school,P-0141,BLD-0066,School A-0010,community_facility,1,existing,2015,young_families,24844.01,24844.01,6211.0,74532043.25,7453204.33,2235961.3,3106,0.85,osm_amenity;building_linked;derived
-A-0013,community_facility,school,P-0141,BLD-0066,School A-0013,community_facility,1,existing,2006,young_families,18633.01,18633.01,6211.0,55899032.44,5589903.24,1676970.97,2329,0.85,osm_amenity;building_linked;derived
-A-0014,community_facility,clinic,P-0141,BLD-0066,Clinic A-0014,community_facility,1,existing,2002,all,12422.01,12422.01,6211.0,37266021.63,3726602.16,1117980.65,414,0.85,osm_amenity;building_linked;derived
-A-0018,community_facility,community_hall,P-0297,BLD-0078,Community Hall A-0018,community_facility,1,existing,2016,all,3345.93,3345.93,1672.97,10037790.71,1003779.07,301133.72,558,0.85,osm_amenity;building_linked;derived
-A-0019,community_facility,school,P-0297,BLD-0078,School A-0019,community_facility,1,existing,2004,young_families,3345.93,3345.93,1672.97,10037790.71,1003779.07,301133.72,418,0.85,osm_amenity;building_linked;derived
-A-0020,community_facility,clinic,P-FIX-0023,BLD-0081,Clinic A-0020,community_facility,1,existing,2011,all,74116.53,74116.53,37058.26,222349579.98,22234958.0,6670487.4,2471,0.85,osm_amenity;building_linked;derived
-A-0025,community_facility,clinic,P-0134,BLD-0009,Clinic A-0025,community_facility,1,existing,2008,all,385.56,385.56,385.56,1156670.83,115667.08,34700.12,13,0.85,osm_amenity;building_linked;derived
-A-0029,community_facility,clinic,P-0135,BLD-0020,Clinic A-0029,community_facility,1,existing,2022,all,394.23,394.23,394.23,1182690.95,118269.09,35480.73,13,0.85,osm_amenity;building_linked;derived
-A-0031,community_facility,clinic,P-0133,BLD-0114,Clinic A-0031,community_facility,1,existing,2023,all,166.97,166.97,166.97,500916.56,50091.66,15027.5,6,0.85,osm_amenity;building_linked;derived
-A-0032,community_facility,clinic,P-0133,BLD-0023,Clinic A-0032,community_facility,1,existing,2021,all,756.08,756.08,378.04,2268253.63,226825.36,68047.61,25,0.85,osm_amenity;building_linked;derived
-A-0034,community_facility,clinic,P-0132,BLD-0029,Clinic A-0034,community_facility,1,existing,2023,all,514.05,514.05,257.02,1542140.39,154214.04,46264.21,17,0.85,osm_amenity;building_linked;derived
-A-0038,community_facility,school,P-0206,BLD-0055,School A-0038,community_facility,1,existing,2007,young_families,141.64,141.64,70.82,424913.47,42491.35,12747.4,18,0.85,osm_amenity;building_linked;derived
-A-0039,community_facility,school,P-0202,BLD-0065,School A-0039,community_facility,1,existing,2018,young_families,623.33,623.33,311.66,1869975.4,186997.54,56099.26,78,0.85,osm_amenity;building_linked;derived
-A-0040,community_facility,place_of_worship,P-0210,BLD-0070,Place Of Worship A-0040,community_facility,1,existing,2008,all,1019.58,1019.58,1019.58,3058735.23,305873.52,91762.06,255,0.85,osm_amenity;building_linked;derived
-A-0041,community_facility,school,P-0209,BLD-0071,School A-0041,community_facility,1,existing,2003,young_families,2941.19,2941.19,1470.59,8823563.4,882356.34,264706.9,368,0.85,osm_amenity;building_linked;derived
-A-0042,community_facility,school,P-0296,BLD-0079,School A-0042,community_facility,1,existing,2024,young_families,8125.45,8125.45,2031.36,24376364.48,2437636.45,731290.93,1016,0.85,osm_amenity;building_linked;derived
-A-0043,community_facility,school,,,School A-0043,community_facility,1,existing,2002,young_families,25097.43,25097.43,12548.72,75292291.16,7529229.12,2258768.73,3137,0.7,osm_amenity;derived
-A-0044,community_facility,place_of_worship,P-0107,BLD-0082,Place Of Worship A-0044,community_facility,1,existing,2008,all,1483.0,1483.0,1483.0,4449000.32,444900.03,133470.01,371,0.85,osm_amenity;building_linked;derived
-A-0045,community_facility,community_hall,P-0070,BLD-0090,Community Hall A-0045,community_facility,1,existing,2001,all,1166.7,1166.7,1166.7,3500111.69,350011.17,105003.35,194,0.85,osm_amenity;building_linked;derived
-A-0051,community_facility,place_of_worship,P-0309,BLD-0116,Place Of Worship A-0051,community_facility,1,existing,2019,all,305.47,305.47,305.47,916398.33,91639.83,27491.95,76,0.85,osm_amenity;building_linked;derived
-A-0052,community_facility,community_hall,P-0311,BLD-0117,Community Hall A-0052,community_facility,1,existing,2023,all,108.9,108.9,108.9,326710.22,32671.02,9801.31,18,0.85,osm_amenity;building_linked;derived
-A-0003,commercial,f_and_b,P-0141,BLD-0066,F And B A-0003,commercial,1,existing,2021,workers,12422.01,10558.71,6211.0,43477025.23,3478162.02,1086925.63,621,0.85,osm_amenity;building_linked;derived
-A-0004,commercial,f_and_b,P-0141,BLD-0066,F And B A-0004,commercial,1,existing,2006,workers,12422.01,10558.71,6211.0,43477025.23,3478162.02,1086925.63,621,0.85,osm_amenity;building_linked;derived
-A-0006,commercial,f_and_b,P-0141,BLD-0066,F And B A-0006,commercial,1,existing,2011,workers,6211.0,5279.35,6211.0,21738512.61,1739081.01,543462.82,311,0.85,osm_amenity;building_linked;derived
-A-0007,commercial,f_and_b,P-0141,BLD-0066,F And B A-0007,commercial,1,existing,2008,workers,12422.01,10558.71,6211.0,43477025.23,3478162.02,1086925.63,621,0.85,osm_amenity;building_linked;derived
-A-0008,commercial,f_and_b,P-0141,BLD-0066,F And B A-0008,commercial,1,existing,2011,workers,6211.0,5279.35,6211.0,21738512.61,1739081.01,543462.82,311,0.85,osm_amenity;building_linked;derived
-A-0009,commercial,f_and_b,P-0141,BLD-0066,F And B A-0009,commercial,1,existing,2003,workers,6211.0,5279.35,6211.0,21738512.61,1739081.01,543462.82,311,0.85,osm_amenity;building_linked;derived
-A-0011,commercial,f_and_b,P-0141,BLD-0066,F And B A-0011,commercial,1,existing,2024,workers,6211.0,5279.35,6211.0,21738512.61,1739081.01,543462.82,311,0.85,osm_amenity;building_linked;derived
-A-0012,commercial,f_and_b,P-0141,BLD-0066,F And B A-0012,commercial,1,existing,2020,workers,12422.01,10558.71,6211.0,43477025.23,3478162.02,1086925.63,621,0.85,osm_amenity;building_linked;derived
-A-0015,commercial,f_and_b,P-0141,BLD-0066,F And B A-0015,commercial,1,existing,2001,workers,6211.0,5279.35,6211.0,21738512.61,1739081.01,543462.82,311,0.85,osm_amenity;building_linked;derived
-A-0016,commercial,f_and_b,P-0141,BLD-0066,F And B A-0016,commercial,1,existing,2006,workers,6211.0,5279.35,6211.0,21738512.61,1739081.01,543462.82,311,0.85,osm_amenity;building_linked;derived
-A-0017,commercial,services,P-0141,BLD-0066,Services A-0017,commercial,1,existing,2003,all,12422.01,10558.71,6211.0,43477025.23,3478162.02,1086925.63,207,0.85,osm_amenity;building_linked;derived
-A-0022,commercial,f_and_b,,,F And B A-0022,commercial,1,existing,2002,workers,250.0,212.5,250.0,875000.0,70000.0,21875.0,12,0.7,osm_amenity;derived
-A-0023,commercial,f_and_b,P-0137,BLD-0003,F And B A-0023,commercial,1,existing,2004,workers,990.68,842.08,990.68,3467378.92,277390.31,86684.47,50,0.85,osm_amenity;building_linked;derived
-A-0024,commercial,f_and_b,P-0103,BLD-0010,F And B A-0024,commercial,1,existing,2022,workers,277.5,235.87,277.5,971241.89,77699.35,24281.05,14,0.85,osm_amenity;building_linked;derived
-A-0026,commercial,f_and_b,P-0135,BLD-0018,F And B A-0026,commercial,1,existing,2006,workers,565.38,480.57,282.69,1978833.82,158306.71,49470.85,28,0.85,osm_amenity;building_linked;derived
-A-0027,commercial,f_and_b,P-0135,BLD-0020,F And B A-0027,commercial,1,existing,2009,workers,788.46,670.19,394.23,2759612.21,220768.98,68990.31,39,0.85,osm_amenity;building_linked;derived
-A-0028,commercial,f_and_b,P-0135,BLD-0016,F And B A-0028,commercial,1,existing,2012,workers,521.99,443.69,261.0,1826971.5,146157.72,45674.29,26,0.85,osm_amenity;building_linked;derived
-A-0030,commercial,f_and_b,P-0133,BLD-0024,F And B A-0030,commercial,1,existing,2023,workers,109.77,93.3,109.77,384184.37,30734.75,9604.61,5,0.85,osm_amenity;building_linked;derived
-A-0033,commercial,f_and_b,P-0132,BLD-0026,F And B A-0033,commercial,1,existing,2022,workers,358.92,305.09,358.92,1256236.19,100498.9,31405.9,18,0.85,osm_amenity;building_linked;derived
-A-0035,commercial,f_and_b,P-0132,BLD-0027,F And B A-0035,commercial,1,existing,2006,workers,493.67,419.62,246.83,1727844.76,138227.58,43196.12,25,0.85,osm_amenity;building_linked;derived
-A-0036,commercial,f_and_b,P-0102,BLD-0031,F And B A-0036,commercial,1,existing,2014,workers,272.31,231.46,272.31,953082.2,76246.58,23827.06,14,0.85,osm_amenity;building_linked;derived
-A-0037,commercial,f_and_b,P-0102,BLD-0033,F And B A-0037,commercial,1,existing,2007,workers,317.72,270.06,317.72,1112028.37,88962.27,27800.71,16,0.85,osm_amenity;building_linked;derived
-A-0047,commercial,f_and_b,P-0133,BLD-0115,F And B A-0047,commercial,1,existing,2020,workers,495.86,421.48,247.93,1735501.03,138840.08,43387.53,25,0.85,osm_amenity;building_linked;derived
-G-0017,green_space,park,,,Green Space 1,green_space,1,existing,2005,all,0.0,0.0,8230267.19,0.0,0.0,0.0,0,0.75,osm;derived
-G-0013,green_space,park,,,Green Space 2,green_space,1,existing,2021,all,0.0,0.0,183105.64,0.0,0.0,0.0,0,0.75,osm;derived
-G-0068,green_space,park,,,Green Space 3,green_space,1,existing,2020,all,0.0,0.0,121780.4,0.0,0.0,0.0,0,0.75,osm;derived
-G-0020,green_space,park,,,Green Space 4,green_space,1,existing,2004,all,0.0,0.0,43034.43,0.0,0.0,0.0,0,0.75,osm;derived
-G-0070,green_space,park,,,Green Space 5,green_space,1,existing,2012,all,0.0,0.0,41279.74,0.0,0.0,0.0,0,0.75,osm;derived
-G-0054,green_space,park,,,Green Space 6,green_space,1,existing,2022,all,0.0,0.0,29035.97,0.0,0.0,0.0,0,0.75,osm;derived
-G-0062,green_space,park,,,Green Space 7,green_space,1,existing,2021,all,0.0,0.0,28003.47,0.0,0.0,0.0,0,0.75,osm;derived
-G-0063,green_space,park,,,Green Space 8,green_space,1,existing,2019,all,0.0,0.0,23606.68,0.0,0.0,0.0,0,0.75,osm;derived
-G-0034,green_space,park,,,Green Space 9,green_space,1,existing,2013,all,0.0,0.0,19992.91,0.0,0.0,0.0,0,0.75,osm;derived
-G-0058,green_space,park,,,Green Space 10,green_space,1,existing,2009,all,0.0,0.0,18194.57,0.0,0.0,0.0,0,0.75,osm;derived
-G-0066,green_space,park,,,Green Space 11,green_space,1,existing,2024,all,0.0,0.0,13505.99,0.0,0.0,0.0,0,0.75,osm;derived
-G-0025,green_space,park,,,Green Space 12,green_space,1,existing,2002,all,0.0,0.0,12878.05,0.0,0.0,0.0,0,0.75,osm;derived
-G-0030,green_space,park,,,Green Space 13,green_space,1,existing,2015,all,0.0,0.0,12015.37,0.0,0.0,0.0,0,0.75,osm;derived
-G-0045,green_space,park,,,Green Space 14,green_space,1,existing,2019,all,0.0,0.0,9579.31,0.0,0.0,0.0,0,0.75,osm;derived
-G-0059,green_space,park,,,Green Space 15,green_space,1,existing,2024,all,0.0,0.0,7983.73,0.0,0.0,0.0,0,0.75,osm;derived
-G-0044,green_space,park,,,Green Space 16,green_space,1,existing,2023,all,0.0,0.0,7818.51,0.0,0.0,0.0,0,0.75,osm;derived
-G-0036,green_space,park,,,Green Space 17,green_space,1,existing,2015,all,0.0,0.0,7065.05,0.0,0.0,0.0,0,0.75,osm;derived
-G-0037,green_space,park,,,Green Space 18,green_space,1,existing,2010,all,0.0,0.0,6842.02,0.0,0.0,0.0,0,0.75,osm;derived
-G-0053,green_space,park,,,Green Space 19,green_space,1,existing,2020,all,0.0,0.0,5771.86,0.0,0.0,0.0,0,0.75,osm;derived
-G-0051,green_space,park,,,Green Space 20,green_space,1,existing,2021,all,0.0,0.0,5595.07,0.0,0.0,0.0,0,0.75,osm;derived
-G-0035,green_space,park,,,Green Space 21,green_space,1,existing,2009,all,0.0,0.0,5451.23,0.0,0.0,0.0,0,0.75,osm;derived
-G-0050,green_space,park,,,Green Space 22,green_space,1,existing,2014,all,0.0,0.0,4670.3,0.0,0.0,0.0,0,0.75,osm;derived
-G-0026,green_space,park,,,Green Space 23,green_space,1,existing,2007,all,0.0,0.0,4594.61,0.0,0.0,0.0,0,0.75,osm;derived
-G-0065,green_space,park,,,Green Space 24,green_space,1,existing,2020,all,0.0,0.0,4465.23,0.0,0.0,0.0,0,0.75,osm;derived
-G-0047,green_space,park,,,Green Space 25,green_space,1,existing,2014,all,0.0,0.0,3551.29,0.0,0.0,0.0,0,0.75,osm;derived
-G-0032,green_space,park,,,Green Space 26,green_space,1,existing,2014,all,0.0,0.0,3175.6,0.0,0.0,0.0,0,0.75,osm;derived
-G-0046,green_space,park,,,Green Space 27,green_space,1,existing,2019,all,0.0,0.0,2989.15,0.0,0.0,0.0,0,0.75,osm;derived
-G-0043,green_space,park,,,Green Space 28,green_space,1,existing,2017,all,0.0,0.0,2858.69,0.0,0.0,0.0,0,0.75,osm;derived
-G-0061,green_space,park,,,Green Space 29,green_space,1,existing,2012,all,0.0,0.0,2639.59,0.0,0.0,0.0,0,0.75,osm;derived
-G-0064,green_space,park,,,Green Space 30,green_space,1,existing,2010,all,0.0,0.0,2492.65,0.0,0.0,0.0,0,0.75,osm;derived
-G-0042,green_space,park,,,Green Space 31,green_space,1,existing,2006,all,0.0,0.0,2472.88,0.0,0.0,0.0,0,0.75,osm;derived
-G-0021,green_space,park,,,Green Space 32,green_space,1,existing,2023,all,0.0,0.0,2340.3,0.0,0.0,0.0,0,0.75,osm;derived
-G-0041,green_space,park,,,Green Space 33,green_space,1,existing,2018,all,0.0,0.0,1802.79,0.0,0.0,0.0,0,0.75,osm;derived
-G-0052,green_space,park,,,Green Space 34,green_space,1,existing,2001,all,0.0,0.0,1577.38,0.0,0.0,0.0,0,0.75,osm;derived
-G-0060,green_space,park,,,Green Space 35,green_space,1,existing,2002,all,0.0,0.0,1389.45,0.0,0.0,0.0,0,0.75,osm;derived
-G-0027,green_space,park,,,Green Space 36,green_space,1,existing,2023,all,0.0,0.0,918.91,0.0,0.0,0.0,0,0.75,osm;derived
-G-0029,green_space,park,,,Green Space 37,green_space,1,existing,2005,all,0.0,0.0,684.5,0.0,0.0,0.0,0,0.75,osm;derived
-G-0069,green_space,park,,,Green Space 38,green_space,1,existing,2014,all,0.0,0.0,683.68,0.0,0.0,0.0,0,0.75,osm;derived
-G-0031,green_space,park,,,Green Space 39,green_space,1,existing,2003,all,0.0,0.0,634.19,0.0,0.0,0.0,0,0.75,osm;derived
-G-0028,green_space,park,,,Green Space 40,green_space,1,existing,2007,all,0.0,0.0,601.43,0.0,0.0,0.0,0,0.75,osm;derived
-G-0040,green_space,park,,,Green Space 41,green_space,1,existing,2008,all,0.0,0.0,461.54,0.0,0.0,0.0,0,0.75,osm;derived
-G-0033,green_space,park,,,Green Space 42,green_space,1,existing,2014,all,0.0,0.0,382.61,0.0,0.0,0.0,0,0.75,osm;derived
-G-0039,green_space,park,,,Green Space 43,green_space,1,existing,2014,all,0.0,0.0,161.28,0.0,0.0,0.0,0,0.75,osm;derived
-G-0038,green_space,park,,,Green Space 44,green_space,1,existing,2011,all,0.0,0.0,152.65,0.0,0.0,0.0,0,0.75,osm;derived
-G-0012,green_space,park,,,Green Space 45,green_space,1,existing,2021,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0011,green_space,park,,,Green Space 46,green_space,1,existing,2015,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0010,green_space,park,,,Green Space 47,green_space,1,existing,2015,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0009,green_space,park,,,Green Space 48,green_space,1,existing,2017,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0001,green_space,park,,,Green Space 49,green_space,1,existing,2015,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0002,green_space,park,,,Green Space 50,green_space,1,existing,2016,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0003,green_space,park,,,Green Space 51,green_space,1,existing,2008,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0004,green_space,park,,,Green Space 52,green_space,1,existing,2020,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0005,green_space,park,,,Green Space 53,green_space,1,existing,2020,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0006,green_space,park,,,Green Space 54,green_space,1,existing,2024,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0007,green_space,park,,,Green Space 55,green_space,1,existing,2017,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
-G-0008,green_space,park,,,Green Space 56,green_space,1,existing,2016,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+A-0002,community_facility,school,P-AMN-0001,BLD-0066,School A-0002,community_facility,1,existing,2013,young_families,24844.01,24844.01,6211.0,74532043.25,7453204.33,2235961.3,3106,0.85,osm_amenity;building_linked;derived
+A-0005,community_facility,clinic,P-AMN-0002,BLD-0066,Clinic A-0005,community_facility,1,existing,2006,all,800.0,800.0,800.0,2400000.0,240000.0,72000.0,27,0.85,osm_amenity;building_linked;derived
+A-0010,community_facility,school,P-AMN-0003,BLD-0066,School A-0010,community_facility,1,existing,2015,young_families,24844.01,24844.01,6211.0,74532043.25,7453204.33,2235961.3,3106,0.85,osm_amenity;building_linked;derived
+A-0013,community_facility,school,P-AMN-0004,BLD-0066,School A-0013,community_facility,1,existing,2006,young_families,18633.01,18633.01,6211.0,55899032.44,5589903.24,1676970.97,2329,0.85,osm_amenity;building_linked;derived
+A-0014,community_facility,clinic,P-AMN-0005,BLD-0066,Clinic A-0014,community_facility,1,existing,2002,all,1600.0,1600.0,800.0,4800000.0,480000.0,144000.0,53,0.85,osm_amenity;building_linked;derived
+A-0018,community_facility,community_hall,P-AMN-0006,BLD-0078,Community Hall A-0018,community_facility,1,existing,2016,all,2000.0,2000.0,1000.0,6000000.0,600000.0,180000.0,333,0.85,osm_amenity;building_linked;derived
+A-0019,community_facility,school,P-AMN-0007,BLD-0078,School A-0019,community_facility,1,existing,2004,young_families,3345.93,3345.93,1672.97,10037790.71,1003779.07,301133.72,418,0.85,osm_amenity;building_linked;derived
+A-0020,community_facility,clinic,P-AMN-0008,BLD-0081,Clinic A-0020,community_facility,1,existing,2011,all,1600.0,1600.0,800.0,4800000.0,480000.0,144000.0,53,0.85,osm_amenity;building_linked;derived
+A-0025,community_facility,clinic,P-AMN-0009,BLD-0009,Clinic A-0025,community_facility,1,existing,2008,all,385.56,385.56,385.56,1156670.83,115667.08,34700.12,13,0.85,osm_amenity;building_linked;derived
+A-0029,community_facility,clinic,P-AMN-0010,BLD-0020,Clinic A-0029,community_facility,1,existing,2022,all,394.23,394.23,394.23,1182690.95,118269.09,35480.73,13,0.85,osm_amenity;building_linked;derived
+A-0031,community_facility,clinic,P-AMN-0011,BLD-0114,Clinic A-0031,community_facility,1,existing,2023,all,166.97,166.97,166.97,500916.56,50091.66,15027.5,6,0.85,osm_amenity;building_linked;derived
+A-0032,community_facility,clinic,P-AMN-0012,BLD-0023,Clinic A-0032,community_facility,1,existing,2021,all,756.08,756.08,378.04,2268253.63,226825.36,68047.61,25,0.85,osm_amenity;building_linked;derived
+A-0034,community_facility,clinic,P-AMN-0013,BLD-0029,Clinic A-0034,community_facility,1,existing,2023,all,514.05,514.05,257.02,1542140.39,154214.04,46264.21,17,0.85,osm_amenity;building_linked;derived
+A-0038,community_facility,school,P-AMN-0014,BLD-0055,School A-0038,community_facility,1,existing,2007,young_families,141.64,141.64,70.82,424913.47,42491.35,12747.4,18,0.85,osm_amenity;building_linked;derived
+A-0039,community_facility,school,P-AMN-0015,BLD-0065,School A-0039,community_facility,1,existing,2018,young_families,623.33,623.33,311.66,1869975.4,186997.54,56099.26,78,0.85,osm_amenity;building_linked;derived
+A-0040,community_facility,place_of_worship,P-AMN-0016,BLD-0070,Place Of Worship A-0040,community_facility,1,existing,2008,all,1019.58,1019.58,1019.58,3058735.23,305873.52,91762.06,255,0.85,osm_amenity;building_linked;derived
+A-0041,community_facility,school,P-AMN-0017,BLD-0071,School A-0041,community_facility,1,existing,2003,young_families,2941.19,2941.19,1470.59,8823563.4,882356.34,264706.9,368,0.85,osm_amenity;building_linked;derived
+A-0042,community_facility,school,P-AMN-0018,BLD-0079,School A-0042,community_facility,1,existing,2024,young_families,8125.45,8125.45,2031.36,24376364.48,2437636.45,731290.93,1016,0.85,osm_amenity;building_linked;derived
+A-0043,community_facility,school,P-AMN-0019,,School A-0043,community_facility,1,existing,2002,young_families,25097.43,25097.43,12548.72,75292291.16,7529229.12,2258768.73,3137,0.7,osm_amenity;derived
+A-0044,community_facility,place_of_worship,P-AMN-0020,BLD-0082,Place Of Worship A-0044,community_facility,1,existing,2008,all,1483.0,1483.0,1483.0,4449000.32,444900.03,133470.01,371,0.85,osm_amenity;building_linked;derived
+A-0045,community_facility,community_hall,P-AMN-0021,BLD-0090,Community Hall A-0045,community_facility,1,existing,2001,all,1000.0,1000.0,1000.0,3000000.0,300000.0,90000.0,167,0.85,osm_amenity;building_linked;derived
+A-0051,community_facility,place_of_worship,P-AMN-0022,BLD-0116,Place Of Worship A-0051,community_facility,1,existing,2019,all,305.47,305.47,305.47,916398.33,91639.83,27491.95,76,0.85,osm_amenity;building_linked;derived
+A-0052,community_facility,community_hall,P-AMN-0023,BLD-0117,Community Hall A-0052,community_facility,1,existing,2023,all,108.9,108.9,108.9,326710.22,32671.02,9801.31,18,0.85,osm_amenity;building_linked;derived
+A-0003,commercial,f_and_b,P-AMN-0024,BLD-0066,F And B A-0003,commercial,1,existing,2021,workers,1000.0,850.0,500.0,3500000.0,280000.0,87500.0,50,0.85,osm_amenity;building_linked;derived
+A-0004,commercial,f_and_b,P-AMN-0025,BLD-0066,F And B A-0004,commercial,1,existing,2006,workers,1000.0,850.0,500.0,3500000.0,280000.0,87500.0,50,0.85,osm_amenity;building_linked;derived
+A-0006,commercial,f_and_b,P-AMN-0026,BLD-0066,F And B A-0006,commercial,1,existing,2011,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0007,commercial,f_and_b,P-AMN-0027,BLD-0066,F And B A-0007,commercial,1,existing,2008,workers,1000.0,850.0,500.0,3500000.0,280000.0,87500.0,50,0.85,osm_amenity;building_linked;derived
+A-0008,commercial,f_and_b,P-AMN-0028,BLD-0066,F And B A-0008,commercial,1,existing,2011,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0009,commercial,f_and_b,P-AMN-0029,BLD-0066,F And B A-0009,commercial,1,existing,2003,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0011,commercial,f_and_b,P-AMN-0030,BLD-0066,F And B A-0011,commercial,1,existing,2024,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0012,commercial,f_and_b,P-AMN-0031,BLD-0066,F And B A-0012,commercial,1,existing,2020,workers,1000.0,850.0,500.0,3500000.0,280000.0,87500.0,50,0.85,osm_amenity;building_linked;derived
+A-0015,commercial,f_and_b,P-AMN-0032,BLD-0066,F And B A-0015,commercial,1,existing,2001,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0016,commercial,f_and_b,P-AMN-0033,BLD-0066,F And B A-0016,commercial,1,existing,2006,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0017,commercial,services,P-AMN-0034,BLD-0066,Services A-0017,commercial,1,existing,2003,all,600.0,510.0,300.0,2100000.0,168000.0,52500.0,10,0.85,osm_amenity;building_linked;derived
+A-0022,commercial,f_and_b,P-AMN-0035,,F And B A-0022,commercial,1,existing,2002,workers,250.0,212.5,250.0,875000.0,70000.0,21875.0,12,0.7,osm_amenity;derived
+A-0023,commercial,f_and_b,P-AMN-0036,BLD-0003,F And B A-0023,commercial,1,existing,2004,workers,500.0,425.0,500.0,1750000.0,140000.0,43750.0,25,0.85,osm_amenity;building_linked;derived
+A-0024,commercial,f_and_b,P-AMN-0037,BLD-0010,F And B A-0024,commercial,1,existing,2022,workers,277.5,235.87,277.5,971241.89,77699.35,24281.05,14,0.85,osm_amenity;building_linked;derived
+A-0026,commercial,f_and_b,P-AMN-0038,BLD-0018,F And B A-0026,commercial,1,existing,2006,workers,565.38,480.57,282.69,1978833.82,158306.71,49470.85,28,0.85,osm_amenity;building_linked;derived
+A-0027,commercial,f_and_b,P-AMN-0039,BLD-0020,F And B A-0027,commercial,1,existing,2009,workers,788.46,670.19,394.23,2759612.21,220768.98,68990.31,39,0.85,osm_amenity;building_linked;derived
+A-0028,commercial,f_and_b,P-AMN-0040,BLD-0016,F And B A-0028,commercial,1,existing,2012,workers,521.99,443.69,261.0,1826971.5,146157.72,45674.29,26,0.85,osm_amenity;building_linked;derived
+A-0030,commercial,f_and_b,P-AMN-0041,BLD-0024,F And B A-0030,commercial,1,existing,2023,workers,109.77,93.3,109.77,384184.37,30734.75,9604.61,5,0.85,osm_amenity;building_linked;derived
+A-0033,commercial,f_and_b,P-AMN-0042,BLD-0026,F And B A-0033,commercial,1,existing,2022,workers,358.92,305.09,358.92,1256236.19,100498.9,31405.9,18,0.85,osm_amenity;building_linked;derived
+A-0035,commercial,f_and_b,P-AMN-0043,BLD-0027,F And B A-0035,commercial,1,existing,2006,workers,493.67,419.62,246.83,1727844.76,138227.58,43196.12,25,0.85,osm_amenity;building_linked;derived
+A-0036,commercial,f_and_b,P-AMN-0044,BLD-0031,F And B A-0036,commercial,1,existing,2014,workers,272.31,231.46,272.31,953082.2,76246.58,23827.06,14,0.85,osm_amenity;building_linked;derived
+A-0037,commercial,f_and_b,P-AMN-0045,BLD-0033,F And B A-0037,commercial,1,existing,2007,workers,317.72,270.06,317.72,1112028.37,88962.27,27800.71,16,0.85,osm_amenity;building_linked;derived
+A-0047,commercial,f_and_b,P-AMN-0046,BLD-0115,F And B A-0047,commercial,1,existing,2020,workers,495.86,421.48,247.93,1735501.03,138840.08,43387.53,25,0.85,osm_amenity;building_linked;derived
+G-0017,green_space,park,P-GRN-0001,,Green Space 1,green_space,1,existing,2005,all,0.0,0.0,8230267.19,0.0,0.0,0.0,0,0.75,osm;derived
+G-0013,green_space,park,P-GRN-0002,,Green Space 2,green_space,1,existing,2021,all,0.0,0.0,183105.64,0.0,0.0,0.0,0,0.75,osm;derived
+G-0068,green_space,park,P-GRN-0003,,Green Space 3,green_space,1,existing,2020,all,0.0,0.0,121780.4,0.0,0.0,0.0,0,0.75,osm;derived
+G-0020,green_space,park,P-GRN-0004,,Green Space 4,green_space,1,existing,2004,all,0.0,0.0,43034.43,0.0,0.0,0.0,0,0.75,osm;derived
+G-0070,green_space,park,P-GRN-0005,,Green Space 5,green_space,1,existing,2012,all,0.0,0.0,41279.74,0.0,0.0,0.0,0,0.75,osm;derived
+G-0054,green_space,park,P-GRN-0006,,Green Space 6,green_space,1,existing,2022,all,0.0,0.0,29035.97,0.0,0.0,0.0,0,0.75,osm;derived
+G-0062,green_space,park,P-GRN-0007,,Green Space 7,green_space,1,existing,2021,all,0.0,0.0,28003.47,0.0,0.0,0.0,0,0.75,osm;derived
+G-0063,green_space,park,P-GRN-0008,,Green Space 8,green_space,1,existing,2019,all,0.0,0.0,23606.68,0.0,0.0,0.0,0,0.75,osm;derived
+G-0034,green_space,park,P-GRN-0009,,Green Space 9,green_space,1,existing,2013,all,0.0,0.0,19992.91,0.0,0.0,0.0,0,0.75,osm;derived
+G-0058,green_space,park,P-GRN-0010,,Green Space 10,green_space,1,existing,2009,all,0.0,0.0,18194.57,0.0,0.0,0.0,0,0.75,osm;derived
+G-0066,green_space,park,P-GRN-0011,,Green Space 11,green_space,1,existing,2024,all,0.0,0.0,13505.99,0.0,0.0,0.0,0,0.75,osm;derived
+G-0025,green_space,park,P-GRN-0012,,Green Space 12,green_space,1,existing,2002,all,0.0,0.0,12878.05,0.0,0.0,0.0,0,0.75,osm;derived
+G-0030,green_space,park,P-GRN-0013,,Green Space 13,green_space,1,existing,2015,all,0.0,0.0,12015.37,0.0,0.0,0.0,0,0.75,osm;derived
+G-0045,green_space,park,P-GRN-0014,,Green Space 14,green_space,1,existing,2019,all,0.0,0.0,9579.31,0.0,0.0,0.0,0,0.75,osm;derived
+G-0059,green_space,park,P-GRN-0015,,Green Space 15,green_space,1,existing,2024,all,0.0,0.0,7983.73,0.0,0.0,0.0,0,0.75,osm;derived
+G-0044,green_space,park,P-GRN-0016,,Green Space 16,green_space,1,existing,2023,all,0.0,0.0,7818.51,0.0,0.0,0.0,0,0.75,osm;derived
+G-0036,green_space,park,P-GRN-0017,,Green Space 17,green_space,1,existing,2015,all,0.0,0.0,7065.05,0.0,0.0,0.0,0,0.75,osm;derived
+G-0037,green_space,park,P-GRN-0018,,Green Space 18,green_space,1,existing,2010,all,0.0,0.0,6842.02,0.0,0.0,0.0,0,0.75,osm;derived
+G-0053,green_space,park,P-GRN-0019,,Green Space 19,green_space,1,existing,2020,all,0.0,0.0,5771.86,0.0,0.0,0.0,0,0.75,osm;derived
+G-0051,green_space,park,P-GRN-0020,,Green Space 20,green_space,1,existing,2021,all,0.0,0.0,5595.07,0.0,0.0,0.0,0,0.75,osm;derived
+G-0035,green_space,park,P-GRN-0021,,Green Space 21,green_space,1,existing,2009,all,0.0,0.0,5451.23,0.0,0.0,0.0,0,0.75,osm;derived
+G-0050,green_space,park,P-GRN-0022,,Green Space 22,green_space,1,existing,2014,all,0.0,0.0,4670.3,0.0,0.0,0.0,0,0.75,osm;derived
+G-0026,green_space,park,P-GRN-0023,,Green Space 23,green_space,1,existing,2007,all,0.0,0.0,4594.61,0.0,0.0,0.0,0,0.75,osm;derived
+G-0065,green_space,park,P-GRN-0024,,Green Space 24,green_space,1,existing,2020,all,0.0,0.0,4465.23,0.0,0.0,0.0,0,0.75,osm;derived
+G-0047,green_space,park,P-GRN-0025,,Green Space 25,green_space,1,existing,2014,all,0.0,0.0,3551.29,0.0,0.0,0.0,0,0.75,osm;derived
+G-0032,green_space,park,P-GRN-0026,,Green Space 26,green_space,1,existing,2014,all,0.0,0.0,3175.6,0.0,0.0,0.0,0,0.75,osm;derived
+G-0046,green_space,park,P-GRN-0027,,Green Space 27,green_space,1,existing,2019,all,0.0,0.0,2989.15,0.0,0.0,0.0,0,0.75,osm;derived
+G-0043,green_space,park,P-GRN-0028,,Green Space 28,green_space,1,existing,2017,all,0.0,0.0,2858.69,0.0,0.0,0.0,0,0.75,osm;derived
+G-0061,green_space,park,P-GRN-0029,,Green Space 29,green_space,1,existing,2012,all,0.0,0.0,2639.59,0.0,0.0,0.0,0,0.75,osm;derived
+G-0064,green_space,park,P-GRN-0030,,Green Space 30,green_space,1,existing,2010,all,0.0,0.0,2492.65,0.0,0.0,0.0,0,0.75,osm;derived
+G-0042,green_space,park,P-GRN-0031,,Green Space 31,green_space,1,existing,2006,all,0.0,0.0,2472.88,0.0,0.0,0.0,0,0.75,osm;derived
+G-0021,green_space,park,P-GRN-0032,,Green Space 32,green_space,1,existing,2023,all,0.0,0.0,2340.3,0.0,0.0,0.0,0,0.75,osm;derived
+G-0041,green_space,park,P-GRN-0033,,Green Space 33,green_space,1,existing,2018,all,0.0,0.0,1802.79,0.0,0.0,0.0,0,0.75,osm;derived
+G-0052,green_space,park,P-GRN-0034,,Green Space 34,green_space,1,existing,2001,all,0.0,0.0,1577.38,0.0,0.0,0.0,0,0.75,osm;derived
+G-0060,green_space,park,P-GRN-0035,,Green Space 35,green_space,1,existing,2002,all,0.0,0.0,1389.45,0.0,0.0,0.0,0,0.75,osm;derived
+G-0027,green_space,park,P-GRN-0036,,Green Space 36,green_space,1,existing,2023,all,0.0,0.0,918.91,0.0,0.0,0.0,0,0.75,osm;derived
+G-0029,green_space,park,P-GRN-0037,,Green Space 37,green_space,1,existing,2005,all,0.0,0.0,684.5,0.0,0.0,0.0,0,0.75,osm;derived
+G-0069,green_space,park,P-GRN-0038,,Green Space 38,green_space,1,existing,2014,all,0.0,0.0,683.68,0.0,0.0,0.0,0,0.75,osm;derived
+G-0031,green_space,park,P-GRN-0039,,Green Space 39,green_space,1,existing,2003,all,0.0,0.0,634.19,0.0,0.0,0.0,0,0.75,osm;derived
+G-0028,green_space,park,P-GRN-0040,,Green Space 40,green_space,1,existing,2007,all,0.0,0.0,601.43,0.0,0.0,0.0,0,0.75,osm;derived
+G-0040,green_space,park,P-GRN-0041,,Green Space 41,green_space,1,existing,2008,all,0.0,0.0,461.54,0.0,0.0,0.0,0,0.75,osm;derived
+G-0033,green_space,park,P-GRN-0042,,Green Space 42,green_space,1,existing,2014,all,0.0,0.0,382.61,0.0,0.0,0.0,0,0.75,osm;derived
+G-0039,green_space,park,P-GRN-0043,,Green Space 43,green_space,1,existing,2014,all,0.0,0.0,161.28,0.0,0.0,0.0,0,0.75,osm;derived
+G-0038,green_space,park,P-GRN-0044,,Green Space 44,green_space,1,existing,2011,all,0.0,0.0,152.65,0.0,0.0,0.0,0,0.75,osm;derived
+G-0012,green_space,park,P-GRN-0045,,Green Space 45,green_space,1,existing,2021,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0011,green_space,park,P-GRN-0046,,Green Space 46,green_space,1,existing,2015,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0010,green_space,park,P-GRN-0047,,Green Space 47,green_space,1,existing,2015,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0009,green_space,park,P-GRN-0048,,Green Space 48,green_space,1,existing,2017,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0001,green_space,park,P-GRN-0049,,Green Space 49,green_space,1,existing,2015,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0002,green_space,park,P-GRN-0050,,Green Space 50,green_space,1,existing,2016,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0003,green_space,park,P-GRN-0051,,Green Space 51,green_space,1,existing,2008,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0004,green_space,park,P-GRN-0052,,Green Space 52,green_space,1,existing,2020,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0005,green_space,park,P-GRN-0053,,Green Space 53,green_space,1,existing,2020,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0006,green_space,park,P-GRN-0054,,Green Space 54,green_space,1,existing,2024,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0007,green_space,park,P-GRN-0055,,Green Space 55,green_space,1,existing,2017,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
+G-0008,green_space,park,P-GRN-0056,,Green Space 56,green_space,1,existing,2016,all,0.0,0.0,0.0,0.0,0.0,0.0,0,0.75,osm;derived
 P-VAC-01,undeveloped_parcel,vacant,P-VAC-01,,Undeveloped Parcel 1,undeveloped_parcel,1,existing,2007,all,0.0,0.0,16191.42,0.0,0.0,0.0,0,0.75,osm;derived
 P-VAC-02,undeveloped_parcel,vacant,P-VAC-02,,Undeveloped Parcel 2,undeveloped_parcel,1,existing,2015,all,0.0,0.0,11590.42,0.0,0.0,0.0,0,0.75,osm;derived
 P-VAC-03,undeveloped_parcel,vacant,P-VAC-03,,Undeveloped Parcel 3,undeveloped_parcel,1,existing,2013,all,0.0,0.0,10902.56,0.0,0.0,0.0,0,0.75,osm;derived

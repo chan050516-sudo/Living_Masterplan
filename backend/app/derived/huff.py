@@ -11,10 +11,40 @@ Demand for each subtype comes from:
 
 The subtype's competition radius filters out supplies that are too far
 to realistically compete.
+
+Phase 11 changes (2026-10-15):
+  - FALLBACK_DISTANCE_M: when the walking graph cannot find a path
+    between a demand node and a supply node (component fragmentation
+    that survived bridge_components, or a virtual node whose segment
+    ended up on a stranded branch), use a township-typical distance
+    instead of dropping the supply from the competition pool.
+    See the constant comment for the rationale.
+  - NaN-safe attractiveness handling: `max(NaN, 0.0)` returns NaN in
+    CPython, and `NaN <= 0` is False, so a single NaN attractiveness
+    would poison total_u and turn every share in the pool into NaN.
 """
 
+import math
 from collections import defaultdict
 from typing import Dict, List
+
+
+# Fallback walking distance (metres) used when NetworkX cannot find
+# a path between a demand node and a supply node.
+#
+# The OSM network is clipped at the township boundary, which splits
+# it into several connected components. bridge_components() in
+# network_graph.py connects most of them, but a few residual gaps
+# may remain (virtual nodes whose segment lands on a short stranded
+# branch, or a fragment farther than MAX_BRIDGE_DISTANCE_M from the
+# main body). Dropping those supply nodes from the Huff pool would
+# zero out the DSR for every asset that happens to sit in a
+# fragment.
+#
+# 1500 m is roughly the average door-to-door distance across the
+# Bukit Jelutong study area. It keeps the asset in the competition
+# pool at a conservative cost rather than excluding it entirely.
+FALLBACK_DISTANCE_M = 1500.0
 
 
 def huff_gravity_by_subtype(
@@ -35,7 +65,6 @@ def huff_gravity_by_subtype(
 
     Returns: { asset_id: effective_demand_m2 }
     """
-    # Group supplies by subtype
     supply_by_subtype = defaultdict(list)
     for s in supply_nodes:
         st = s.get("subtype")
@@ -67,13 +96,28 @@ def huff_gravity_by_subtype(
                 s_node = s["node"]
                 if s_node is None or s_node == "":
                     continue
-                attractiveness = max(s.get("attractiveness", 0.0), 0.0)
+
+                # NaN-safe attractiveness. `max(NaN, 0.0)` returns
+                # NaN in CPython, and `NaN <= 0` is False, so a NaN
+                # would slip through and poison the entire subtype
+                # pool via total_u.
+                raw_a = s.get("attractiveness", 0.0)
+                try:
+                    attractiveness = (
+                        float(raw_a) if raw_a is not None else 0.0
+                    )
+                except (TypeError, ValueError):
+                    attractiveness = 0.0
+                if math.isnan(attractiveness):
+                    attractiveness = 0.0
                 if attractiveness <= 0:
                     continue
 
                 d_eff = d_row.get(s_node)
                 if d_eff is None:
-                    continue
+                    # Fragmentation fallback. See FALLBACK_DISTANCE_M
+                    # comment at the top of the module.
+                    d_eff = FALLBACK_DISTANCE_M
 
                 # Competition radius filter (per subtype)
                 if radius is not None and d_eff > radius:
@@ -106,9 +150,7 @@ def huff_gravity(
     """
     Legacy entry point kept for backward compatibility.
 
-    Deprecated: use huff_gravity_by_subtype instead. This version treats
-    all supplies as one homogeneous pool and is only kept so that any
-    remaining callers continue to work during the Phase 2-3 migration.
+    Deprecated: use huff_gravity_by_subtype instead.
     """
     effective_demand = {s["asset_id"]: 0.0 for s in supply_nodes}
 
@@ -127,14 +169,26 @@ def huff_gravity(
             s_node = s["node"]
             if s_node is None or s_node == "":
                 continue
-            attractiveness = max(s.get("attractiveness", 0.0), 0.0)
+
+            # NaN-safe attractiveness (see huff_gravity_by_subtype).
+            raw_a = s.get("attractiveness", 0.0)
+            try:
+                attractiveness = (
+                    float(raw_a) if raw_a is not None else 0.0
+                )
+            except (TypeError, ValueError):
+                attractiveness = 0.0
+            if math.isnan(attractiveness):
+                attractiveness = 0.0
             if attractiveness <= 0:
                 continue
+
             d_eff = d_row.get(s_node)
             if d_eff is None:
-                continue
+                d_eff = FALLBACK_DISTANCE_M
             if d_eff <= 0:
                 d_eff = 1.0
+
             u = (attractiveness ** alpha) / (d_eff ** beta)
             utilities.append((s["asset_id"], u))
 

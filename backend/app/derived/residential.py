@@ -82,8 +82,12 @@ def derive_residential(ctx: DerivationContext) -> dict:
     maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
 
     # Phase 11 — UHI
+    from .environmental import effective_canopy_for_uhi
+    canopy_for_uhi = effective_canopy_for_uhi(
+        ctx.canopy_coverage, "residential"
+    )
     uhi = calculate_surface_temp_delta(
-        canopy_coverage_ratio=ctx.canopy_coverage,
+        canopy_coverage_ratio=canopy_for_uhi,
         is_hard_surface=True,
     )
     shade = shade_proxy_score_from_canopy(ctx.canopy_coverage)

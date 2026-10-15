@@ -250,10 +250,28 @@ def _prepare_mode_pipeline(
 
     for _, asset in assets_df.iterrows():
         aid = asset["asset_id"]
-        parcels = parcels_gdf[parcels_gdf["asset_id"] == aid]
-        if parcels.empty:
+        geom = None
+
+        # Primary: resolve through parcels.asset_id, the 1:1 map
+        # written by build_mock_data.
+        match = parcels_gdf[parcels_gdf["asset_id"] == aid]
+        if not match.empty:
+            geom = match.iloc[0].geometry
+        else:
+            # Fallback: resolve through the asset's own parcel_id.
+            # Handles shared parcels and any asset whose parcel was
+            # not assigned a 1:1 asset_id back-reference.
+            pid = asset.get("parcel_id")
+            if pid is not None and not (
+                isinstance(pid, float) and pd.isna(pid)
+            ):
+                pmatch = parcels_gdf[parcels_gdf["parcel_id"] == pid]
+                if not pmatch.empty:
+                    geom = pmatch.iloc[0].geometry
+
+        if geom is None or geom.is_empty:
             continue
-        p, off_d, eid = find_entry_point(parcels.iloc[0].geometry, network_gdf, mode)
+        p, off_d, eid = find_entry_point(geom, network_gdf, mode)
         if p is None:
             continue
         all_entries[f"A::{aid}"] = (p, off_d, eid)
@@ -402,6 +420,21 @@ def _flatten_profiles(base_row, walking, driving):
 
 
 def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2):
+    """
+    Compute canopy coverage for one asset.
+
+    Previous implementation summed `canopy_m2` for rows whose
+    asset_id matched exactly. That collapsed to 0 or 1 because OSM
+    rarely tags canopy as a standalone polygon and the raw pipeline
+    does not populate canopy_m2 for most rows.
+
+    New implementation overlays the asset's geometry onto the
+    green/blue layer and sums the CLIPPED intersection area, weighted
+    by green_type. This yields a continuous 0-1 signal proportional
+    to how much vegetation actually overlaps the parcel. It does not
+    depend on asset_id matching, so it survives the "unlinked-G-xxxx"
+    id mismatch problem the previous version suffered from.
+    """
     if green_blue_gdf is None or green_blue_gdf.empty:
         return None
     if land_area_m2 is None:
@@ -412,28 +445,43 @@ def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2)
         return None
     if land_area_f <= 0:
         return None
-
-    canopy_m2 = 0.0
-    has_data = False
-
-    if "asset_id" in green_blue_gdf.columns:
-        by_id = green_blue_gdf[green_blue_gdf["asset_id"] == asset_id]
-        if not by_id.empty:
-            canopy_m2 = float(by_id["canopy_m2"].fillna(0).sum())
-            has_data = True
-
-    if not has_data and asset_geom is not None:
-        try:
-            clipped = gpd.clip(green_blue_gdf, asset_geom)
-            if not clipped.empty:
-                canopy_m2 = float(clipped["canopy_m2"].fillna(0).sum())
-                has_data = True
-        except Exception:
-            pass
-
-    if not has_data:
+    if asset_geom is None or asset_geom.is_empty:
         return None
-    return min(1.0, canopy_m2 / land_area_f)
+
+    # Relative shade / evapotranspiration weight per green type.
+    _weights = {
+        "canopy": 1.0,
+        "park": 1.0,
+        "pocket_park": 1.0,
+        "green_corridor": 1.0,
+        "public_space": 0.6,
+        "water_body": 0.5,
+        "drainage": 0.3,
+    }
+
+    try:
+        candidates = green_blue_gdf[
+            green_blue_gdf.geometry.intersects(asset_geom)
+        ]
+        if candidates.empty:
+            return 0.0
+
+        total_weighted = 0.0
+        for _, row in candidates.iterrows():
+            geom = row.geometry
+            if geom is None or geom.is_empty:
+                continue
+            try:
+                overlap_area = geom.intersection(asset_geom).area
+            except Exception:
+                continue
+            gtype = row.get("green_type")
+            w = _weights.get(gtype, 0.4)
+            total_weighted += overlap_area * w
+
+        return min(1.0, max(0.0, total_weighted / land_area_f))
+    except Exception:
+        return None
 
 
 def merge_into_asset_metrics(derived_df, existing_df, year):

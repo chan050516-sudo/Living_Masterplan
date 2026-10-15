@@ -7,9 +7,21 @@ Phase 1 changes:
     and returns the projected point plus the off-network distance.
   - insert_all_entries(): batch insertion with correct edge-splitting
     order when multiple entries fall on the same edge.
+
+Phase 11 changes (2026-10-15):
+  - bridge_components(): connects disconnected walking-graph components
+    with detour-adjusted edges, so Dijkstra can reach every node.
+    OSM network clips split the graph into ~12 pieces; without this
+    step, any asset in a minor component is unreachable from the
+    demand nodes and its Huff demand / catchment metrics collapse
+    to NaN.
+  - build_graph_by_mode() calls bridge_components() for the walking
+    mode only. Driving has a naturally well-connected main road
+    network, and B4's Huff uses the walking graph exclusively.
 """
 
 import logging
+import math
 from typing import Optional
 
 import geopandas as gpd
@@ -25,14 +37,38 @@ log = logging.getLogger(__name__)
 # ---------------------------------------------------------------
 
 WALKING_EDGE_TYPES = {
-    "footway", "pedestrian", "path", "residential", "service",
-    "living_street", "steps", "track",
+    # Explicit pedestrian infrastructure
+    "footway", "pedestrian", "path", "steps", "track", "bridleway",
+    "cycleway", "living_street", "service", "residential",
+    "corridor", "sidewalk", "crossing", "platform",
+    # Local and collector roads (pedestrians share the roadway)
+    "unclassified", "road",
+    "tertiary", "tertiary_link",
+    "secondary", "secondary_link",
+    "primary", "primary_link",
+    "trunk", "trunk_link",
 }
 
 DRIVING_EDGE_TYPES = {
     "secondary", "tertiary", "residential", "service",
     "living_street", "primary", "unclassified",
 }
+
+# Detour factor applied to the straight-line distance when bridging
+# two disconnected components. Pedestrians cannot walk through walls:
+# 100 m straight-line normally corresponds to ~135 m of actual
+# walking. 1.35 is a standard urban-planning detour ratio.
+DETOUR_FACTOR = 1.35
+
+# Maximum straight-line distance between two components that we are
+# willing to bridge. Anything larger is almost certainly a real
+# physical separation (motorway, river, hillside) and bridging would
+# distort every downstream distance.
+MAX_BRIDGE_DISTANCE_M = 500.0
+
+# Iteration cap for the bridging loop. 20 is well above the number
+# of components any township-scale graph produces.
+_MAX_BRIDGE_ITER = 20
 
 
 # ---------------------------------------------------------------
@@ -66,7 +102,6 @@ def build_graph_by_mode(
 
         # edge_type may be a string or a list (OSM sometimes emits lists)
         if isinstance(etype, list):
-            # Accept if ANY of the types is allowed
             if not any(t in allowed for t in etype):
                 continue
         else:
@@ -83,30 +118,15 @@ def build_graph_by_mode(
         else:
             effective = length
 
-        # Skip self-loops: they never appear in shortest paths, but
-        # removing them keeps node extraction clean.
+        # Skip self-loops: they never appear in shortest paths.
         if u == v:
             continue
 
-        # ------------------------------------------------------
-        # Parallel-edge policy
-        # ------------------------------------------------------
-        # OSM commonly maps a pedestrian path and a residential road
-        # between the same two endpoints. They are distinct GeoJSON
-        # features but they connect the same graph nodes. nx.Graph is
-        # a simple graph, so only one edge can exist per node pair;
-        # without a policy the last-seen edge silently wins and its
-        # attributes overwrite the earlier one.
-        #
-        # We keep the lowest-cost edge. The routing weight already
-        # reflects the mode's cost metric (canopy-adjusted length for
-        # walking, plain length for driving), so minimising it is the
-        # correct survivor for both modes.
+        # Parallel-edge policy: keep the lowest-cost edge for the pair.
         existing = G.get_edge_data(u, v)
         if existing is not None:
             existing_eff = existing.get("effective_length_m")
             if existing_eff is not None and effective >= existing_eff:
-                # Existing edge is at least as good; keep it.
                 continue
 
         G.add_edge(
@@ -117,7 +137,136 @@ def build_graph_by_mode(
             edge_id=row.get("edge_id"),
             mode=mode,
         )
+
+    # Phase 11 — bridge disconnected walking components so that every
+    # node is reachable from every other node. Driving skips this.
+    if mode == "walking":
+        G, bridges = bridge_components(G, network_gdf)
+        if bridges:
+            total_eff = sum(b["effective_m"] for b in bridges)
+            log.info(
+                "Bridged %d disconnected walking components "
+                "(total effective distance added: %.0f m)",
+                len(bridges), total_eff,
+            )
+
     return G
+
+
+def bridge_components(G: nx.Graph, network_gdf: gpd.GeoDataFrame) -> tuple:
+    """
+    Connect every disconnected component of the walking graph.
+
+    Algorithm
+    ---------
+    1. List all connected components, sorted by size (largest first).
+    2. Find the closest cross-component node pair (largest vs any
+       other) using Euclidean distance on the raw network geometry.
+    3. If that distance is below MAX_BRIDGE_DISTANCE_M, add a bridge
+       edge whose routing weight is `distance * DETOUR_FACTOR`.
+    4. Repeat until the graph is fully connected or the remaining
+       gap exceeds MAX_BRIDGE_DISTANCE_M.
+
+    Why this is needed
+    ------------------
+    An OSM network clipped to a township boundary splits into several
+    components. Nodes in a minor component are unreachable from the
+    demand nodes, so Dijkstra returns None for every path between
+    them. That silently kills catchment metrics, Huff demand, and
+    service coverage for any asset that lands in a fragment.
+
+    Parameters
+    ----------
+    G : nx.Graph
+        The walking graph produced by build_graph_by_mode.
+    network_gdf : gpd.GeoDataFrame
+        The raw network layer, used to read node coordinates from
+        edge endpoint geometries.
+
+    Returns
+    -------
+    (G, bridges_added)
+        G is modified in place. bridges_added is a list of dicts:
+        {"from", "to", "euclidean_m", "effective_m"}.
+    """
+    # Extract node coordinates from edge geometries. from_node maps
+    # to the first coordinate, to_node to the last.
+    coords = {}
+    for _, row in network_gdf.iterrows():
+        try:
+            geom_coords = list(row.geometry.coords)
+        except (AttributeError, TypeError):
+            continue
+        if len(geom_coords) < 2:
+            continue
+        u = row.get("from_node")
+        v = row.get("to_node")
+        if u is not None:
+            coords[u] = geom_coords[0]
+        if v is not None:
+            coords[v] = geom_coords[-1]
+
+    bridges_added = []
+
+    for _ in range(_MAX_BRIDGE_ITER):
+        components = list(nx.connected_components(G))
+        if len(components) <= 1:
+            break
+
+        # Sort by size descending so components[0] is the main body.
+        components.sort(key=len, reverse=True)
+
+        # Only nodes we have coordinates for can participate.
+        main_nodes = [n for n in components[0] if n in coords]
+        if not main_nodes:
+            break
+
+        best_pair = None
+        best_dist = float("inf")
+
+        for comp in components[1:]:
+            comp_nodes = [n for n in comp if n in coords]
+            for n1 in main_nodes:
+                x1, y1 = coords[n1]
+                for n2 in comp_nodes:
+                    x2, y2 = coords[n2]
+                    d = math.hypot(x1 - x2, y1 - y2)
+                    if d < best_dist:
+                        best_dist = d
+                        best_pair = (n1, n2)
+
+        if best_pair is None:
+            break
+        if best_dist > MAX_BRIDGE_DISTANCE_M:
+            # Remaining gap is too large to be a walkability issue;
+            # treat it as a real physical separation and stop.
+            break
+
+        n1, n2 = best_pair
+        eff_dist = best_dist * DETOUR_FACTOR
+
+        # Safety: if the pair already has an edge, skip this iteration
+        # to avoid an infinite loop.
+        if G.has_edge(n1, n2):
+            break
+
+        G.add_edge(
+            n1, n2,
+            length_m=best_dist,
+            effective_length_m=eff_dist,
+            canopy=0.0,
+            edge_id=f"BRIDGE-{len(bridges_added):03d}",
+            mode="walking",
+            is_bridge=True,
+        )
+        bridges_added.append({
+            "from": n1,
+            "to": n2,
+            "euclidean_m": round(best_dist, 1),
+            "effective_m": round(eff_dist, 1),
+        })
+
+    return G, bridges_added
 
 
 def _allowed_types_for_mode(mode: str) -> set:
@@ -134,7 +283,7 @@ def build_walk_graph(network_gdf: gpd.GeoDataFrame, gamma: float = 0.3) -> nx.Gr
 
 
 # ---------------------------------------------------------------
-# Node extraction (unchanged from before)
+# Node extraction
 # ---------------------------------------------------------------
 
 def extract_nodes(network_gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -170,7 +319,7 @@ def find_entry_point(
     geom,
     network_gdf: gpd.GeoDataFrame,
     mode: str,
-) -> tuple[Optional[Point], Optional[float], Optional[str]]:
+) -> tuple:
     """
     Project a geometry onto the nearest allowed edge.
 
@@ -217,18 +366,10 @@ def insert_all_entries(
     Returns:
         { entry_id: {"virtual_node": vn_id, "off_distance": off_distance} }
 
-    Grouping key is (from_node, to_node), NOT edge_id, because multiple
-    edges (e.g. a pedestrian edge and a residential edge) may share the
-    same node pair. Grouping by edge_id would cause the second group to
-    find no edge (the first group already split it) and silently skip
-    every entry in the second group.
-
-    Within a group, entries are sorted by their position along the edge
-    so that splitting is deterministic.
+    Grouping key is (from_node, to_node), NOT edge_id, because
+    multiple edges (e.g. a pedestrian edge and a residential edge)
+    may share the same node pair.
     """
-    # ------------------------------------------------------------------
-    # Step 1: resolve (u, v) for each entry and group by node pair
-    # ------------------------------------------------------------------
     by_pair: dict = {}
 
     for entry_id, (point, off_d, edge_id) in entries.items():
@@ -248,18 +389,12 @@ def insert_all_entries(
 
     result = {}
 
-    # ------------------------------------------------------------------
-    # Step 2: process each node pair
-    # ------------------------------------------------------------------
     for (u, v), group in by_pair.items():
         if u not in G or v not in G:
             continue
         if not G.has_edge(u, v):
             continue
 
-        # Use any edge geometry connecting this pair. All edges that
-        # share (u, v) have the same geometry in practice; if they
-        # differ, take the first one.
         matching = network_gdf[
             (network_gdf["from_node"] == u) & (network_gdf["to_node"] == v)
         ]
@@ -268,7 +403,6 @@ def insert_all_entries(
         edge_geom = matching.iloc[0].geometry
         edge_len_geom = edge_geom.length
 
-        # Read edge attributes from the augmented graph
         edge_data = G.edges[u, v]
         length_phys = edge_data["length_m"]
         effective_len = edge_data["effective_length_m"]
@@ -278,7 +412,6 @@ def insert_all_entries(
 
         effective_ratio = effective_len / length_phys if length_phys > 0 else 1.0
 
-        # Sort entries by their position ratio along the edge
         def _proj_ratio(item, _geom=edge_geom, _len=edge_len_geom):
             _, point, _ = item
             if _len <= 0:
@@ -287,7 +420,6 @@ def insert_all_entries(
 
         group.sort(key=_proj_ratio)
 
-        # Remove the original edge and split progressively
         G.remove_edge(u, v)
 
         current_anchor = u
@@ -295,7 +427,6 @@ def insert_all_entries(
 
         for idx, (entry_id, point, off_d) in enumerate(group):
             ratio = _proj_ratio((entry_id, point, off_d))
-            # Guard against out-of-order ratios
             if ratio < cumulative_ratio:
                 ratio = cumulative_ratio
 
@@ -322,7 +453,6 @@ def insert_all_entries(
             current_anchor = vn_id
             cumulative_ratio = ratio
 
-        # Final segment back to v
         seg_ratio = 1.0 - cumulative_ratio
         seg_phys = length_phys * seg_ratio
         seg_eff = seg_phys * effective_ratio

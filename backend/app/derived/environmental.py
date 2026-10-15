@@ -309,3 +309,38 @@ def calculate_surface_temp_delta(
         delta_t += UHI_HARD_SURFACE_PENALTY_C * (1.0 - c)
     delta_t -= UHI_CANOPY_COOLING_C * c
     return round(delta_t, 1)
+
+
+# ----------------------------------------------------------------
+# Phase 11 fix — canopy fallback
+# ----------------------------------------------------------------
+
+def effective_canopy_for_uhi(raw_canopy, asset_type: str) -> float:
+    """
+    Return a canopy ratio suitable for the UHI proxy.
+
+    OSM canopy coverage in a Malaysian township is sparse and
+    incomplete: most residential parcels show up as 0 because no
+    tree polygon was ever mapped there. Using that raw 0 directly
+    makes every residential asset collapse to the +8.0°C maximum
+    penalty, which is not credible.
+
+    When the raw value is 0 or missing we fall back to a
+    township-typical canopy for the asset class. When the raw value
+    is a positive number we trust it.
+    """
+    if raw_canopy is not None:
+        try:
+            r = float(raw_canopy)
+            if r > 0.01:
+                return min(1.0, r)
+        except (TypeError, ValueError):
+            pass
+
+    return {
+        "residential":         0.25,
+        "community_facility":  0.20,
+        "commercial":          0.10,
+        "green_space":         0.60,
+        "undeveloped_parcel":  0.05,
+    }.get(asset_type, 0.10)
