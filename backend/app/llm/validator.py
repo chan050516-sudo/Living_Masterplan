@@ -98,6 +98,8 @@ _CAPEX_FLOOR = {
     "pedestrian_upgrade": 180_000.0,
     "new_development":    500_000.0,
     "delay_development":        0.0,
+    # Phase 11 — interim solar farm on an undeveloped parcel
+    "interim_solar_farm":  80_000.0,
 }
 
 # Retrofit upgrades systems and finishes rather than reconstructing
@@ -156,6 +158,8 @@ DEFAULT_TIMING = {
     "pedestrian_upgrade":{"start_offset": 0, "duration_months": 6,  "during": "partial"},
     "new_development":   {"start_offset": 0, "duration_months": 36, "during": "unavailable"},
     "delay_development": {"start_offset": 0, "duration_months": 0,  "during": "operational"},
+    # Phase 11
+    "interim_solar_farm":{"start_offset": 0, "duration_months": 6,  "during": "operational"},
 }
 
 

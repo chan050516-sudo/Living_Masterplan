@@ -79,6 +79,46 @@
     "demographic_mismatch": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "neighborhood_diversity": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
 
+    "energy_kwh_hvac": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — HVAC sub-system energy."
+    },
+    "energy_kwh_lighting_equipment": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — lighting and tenant equipment energy."
+    },
+    "energy_kwh_base_load": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — base load (elevators, pumps, standby)."
+    },
+    "carbon_productive_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — operational carbon proportional to occupancy/utilisation."
+    },
+    "carbon_stranded_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — operational carbon wasted on unused capacity."
+    },
+    "stranded_carbon_ratio": {
+      "type": ["number", "null"], "minimum": 0, "maximum": 1
+    },
+    "embodied_carbon_total_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — life-cycle carbon locked into the structure."
+    },
+    "embodied_carbon_amortised_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — annual amortised share of embodied carbon."
+    },
+    "maintenance_carbon_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — annual carbon from maintenance activities."
+    },
+    "surface_temp_delta_c": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — UHI proxy. Positive = warmer, negative = cooler."
+    },
+
     "financial_score":     { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0. Kept for CSV column alignment. Do not consume." },
     "environmental_score": { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },
     "social_score":        { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },

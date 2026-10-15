@@ -62,7 +62,20 @@ from ..derived.network_graph import (
     insert_all_entries,
 )
 from ..derived.huff import huff_gravity_by_subtype
-from ..derived.environmental import energy_from_subtype, operational_carbon
+from ..derived.environmental import (
+    energy_from_subtype,
+    operational_carbon,
+    breakdown_energy,
+    apply_canopy_hvac_relief,
+    productive_stranded_carbon,
+    embodied_amortised,
+    maintenance_carbon_annual,
+    calculate_surface_temp_delta,
+    interim_solar_generation,
+    MATERIAL_INTENSITY_NEW_BUILD,
+    MATERIAL_INTENSITY_REPURPOSE,
+    DEMOLITION_CARBON_INTENSITY,
+)
 from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
@@ -119,17 +132,47 @@ _TYPE_EXCLUSIVE_FIELDS = {
         "maintenance_surge_rm",
         "dsr",
         "effective_supply",
+        "energy_kwh_hvac",
+        "energy_kwh_lighting_equipment",
+        "energy_kwh_base_load",
+        "carbon_productive_tco2e",
+        "carbon_stranded_tco2e",
+        "stranded_carbon_ratio",
+        "embodied_carbon_total_tco2e",
+        "embodied_carbon_amortised_tco2e",
+        "maintenance_carbon_tco2e",
+        "surface_temp_delta_c",
     }),
     "residential": frozenset({
         "occupancy_rate",
         "vacancy_rate",
         "noi_rm",
         "energy_intensity_kwh_m2",
+        "energy_kwh_hvac",
+        "energy_kwh_lighting_equipment",
+        "energy_kwh_base_load",
+        "carbon_productive_tco2e",
+        "carbon_stranded_tco2e",
+        "stranded_carbon_ratio",
+        "embodied_carbon_total_tco2e",
+        "embodied_carbon_amortised_tco2e",
+        "maintenance_carbon_tco2e",
+        "surface_temp_delta_c",
     }),
     "community_facility": frozenset({
         "utilisation_rate",
         "service_coverage",
         "cost_per_user_rm",
+        "energy_kwh_hvac",
+        "energy_kwh_lighting_equipment",
+        "energy_kwh_base_load",
+        "carbon_productive_tco2e",
+        "carbon_stranded_tco2e",
+        "stranded_carbon_ratio",
+        "embodied_carbon_total_tco2e",
+        "embodied_carbon_amortised_tco2e",
+        "maintenance_carbon_tco2e",
+        "surface_temp_delta_c",
     }),
     "green_space": frozenset({
         "green_coverage",
@@ -137,12 +180,24 @@ _TYPE_EXCLUSIVE_FIELDS = {
         "canopy_ratio_benchmark",
         "green_per_capita_m2",
         "shade_proxy_score",
+        "energy_kwh_hvac",
+        "energy_kwh_lighting_equipment",
+        "energy_kwh_base_load",
+        "carbon_productive_tco2e",
+        "carbon_stranded_tco2e",
+        "stranded_carbon_ratio",
+        "embodied_carbon_total_tco2e",
+        "embodied_carbon_amortised_tco2e",
+        "maintenance_carbon_tco2e",
+        "surface_temp_delta_c",
     }),
     "undeveloped_parcel": frozenset({
         "developable_area_m2",
         "potential_gfa_m2",
         "demand_supply_gap",
         "infrastructure_cost_rm",
+        "surface_temp_delta_c",
+        "embodied_carbon_total_tco2e",
     }),
 }
 
@@ -762,11 +817,85 @@ def simulate_scenario(
 
             # ---- Environmental (subtype-aware) ----
             floor_area = float(eff.get("floor_area_m2") or 0)
-            energy = energy_from_subtype(effective_subtype or "vacant", floor_area)
-            eff_mult = eff.get("_energy_efficiency_multiplier")
-            if _is_valid_number(eff_mult):
-                energy *= float(eff_mult)
-            carbon = operational_carbon(energy, emission_factor)
+
+            # Phase 11 — interim solar farm: the asset generates rather
+            # than consumes. Carbon is a negative offset.
+            carbon_offset = 0.0
+            is_interim_solar = (
+                bool(eff.get("_is_interim"))
+                and effective_subtype == "solar_farm"
+            )
+
+            if is_interim_solar:
+                solar = interim_solar_generation(
+                    float(eff.get("land_area_m2") or 0.0)
+                )
+                energy = 0.0
+                carbon = -1.0 * operational_carbon(
+                    solar["annual_kwh"], emission_factor
+                )
+                breakdown = {
+                    "hvac_kwh": 0.0,
+                    "lighting_equipment_kwh": 0.0,
+                    "base_load_kwh": 0.0,
+                }
+                hvac_adj = 0.0
+            else:
+                energy = energy_from_subtype(
+                    effective_subtype or "vacant", floor_area
+                )
+                eff_mult = eff.get("_energy_efficiency_multiplier")
+                if _is_valid_number(eff_mult):
+                    energy *= float(eff_mult)
+
+                breakdown = breakdown_energy(
+                    energy, effective_type, assumptions
+                )
+                canopy_for_hvac = metric_row.get("canopy_coverage")
+                if not _is_valid_number(canopy_for_hvac):
+                    # Fallback so the HVAC relief does not crash
+                    canopy_for_hvac = 0.0
+                hvac_adj = apply_canopy_hvac_relief(
+                    breakdown["hvac_kwh"], canopy_for_hvac
+                )
+                energy_adjusted = (
+                    hvac_adj
+                    + breakdown["lighting_equipment_kwh"]
+                    + breakdown["base_load_kwh"]
+                )
+                carbon = operational_carbon(energy_adjusted, emission_factor)
+
+            # Phase 11 — productive vs stranded split
+            if is_interim_solar:
+                split = {
+                    "carbon_productive_tco2e": carbon,
+                    "carbon_stranded_tco2e": 0.0,
+                    "stranded_carbon_ratio": 0.0,
+                }
+            else:
+                if effective_type in ("commercial", "residential"):
+                    rate = new_occ
+                elif effective_type == "community_facility":
+                    rate = new_util
+                elif effective_type == "green_space":
+                    rate = 1.0
+                else:
+                    rate = 0.0
+                split = productive_stranded_carbon(carbon, rate)
+
+            # Phase 11 — UHI proxy with type-specific canopy fallback
+            canopy_for_uhi = metric_row.get("canopy_coverage")
+            if not _is_valid_number(canopy_for_uhi):
+                if effective_type == "residential":
+                    canopy_for_uhi = 0.25
+                elif effective_type == "green_space":
+                    canopy_for_uhi = 0.60
+                else:
+                    canopy_for_uhi = 0.10
+            uhi = calculate_surface_temp_delta(
+                canopy_coverage_ratio=canopy_for_uhi,
+                is_hard_surface=(effective_type != "green_space"),
+            )
 
             # ---- Build metric row ----
             prev_metrics = _get_prev_metrics(state_by_year[years[year_idx - 1]], aid)
@@ -838,6 +967,17 @@ def simulate_scenario(
             metric_row["effective_demand_m2"] = huff_m2.get(aid)
             metric_row["carbon_operational_tco2e"] = carbon
             metric_row["energy_kwh"] = energy
+            metric_row["energy_kwh"] = energy
+            metric_row["carbon_operational_tco2e"] = carbon
+            metric_row["energy_kwh_hvac"] = hvac_adj
+            metric_row["energy_kwh_lighting_equipment"] = breakdown["lighting_equipment_kwh"]
+            metric_row["energy_kwh_base_load"] = breakdown["base_load_kwh"]
+            metric_row["carbon_productive_tco2e"] = split["carbon_productive_tco2e"]
+            metric_row["carbon_stranded_tco2e"] = split["carbon_stranded_tco2e"]
+            metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
+            metric_row["surface_temp_delta_c"] = uhi
+            metric_row["metric_source"] = "simulated"
+            metric_row["model_version"] = __version__
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -872,6 +1012,7 @@ def simulate_scenario(
     comparison = _build_comparison(
         state_by_year, base_year, years[-1], assets_df,
         selected_ids=selected_ids,
+        interventions_df=scenario_interventions,
     )
     comparison["township_metrics"] = _compute_township_metrics(
         state_by_year, years, base_year, years[-1],
@@ -916,17 +1057,37 @@ def _add_project_state(year_state, proj, year, emission_factor):
         return
 
     gfa = float(proj.get("gfa_m2") or 0.0)
-    # development_projects.csv has no explicit subtype column; fall
-    # back to a subtype derived from land_use via the taxonomy defaults.
     subtype = proj.get("subtype") or default_subtype_for(proj.get("land_use"))
     energy = energy_from_subtype(subtype, gfa)
     carbon = operational_carbon(energy, emission_factor)
+
+    # Phase 11 — projects are new construction: full embodied carbon
+    # plus demolition of whatever was on the parcel.
+    embodied_total = (
+        gfa * (MATERIAL_INTENSITY_NEW_BUILD + DEMOLITION_CARBON_INTENSITY)
+    )
+    maintenance_carbon = maintenance_carbon_annual(embodied_total)
+
+    # Phase 11 — new construction is fully hard surface
+    uhi = calculate_surface_temp_delta(
+        canopy_coverage_ratio=0.05,
+        is_hard_surface=True,
+    )
 
     year_state[key] = {
         "asset_id": key,
         "year": year,
         "subtype": subtype,
         "carbon_operational_tco2e": carbon,
+        "carbon_productive_tco2e": carbon,   # assumed fully used
+        "carbon_stranded_tco2e": 0.0,
+        "stranded_carbon_ratio": 0.0,
+        "embodied_carbon_total_tco2e": embodied_total,
+        "embodied_carbon_amortised_tco2e": (
+            embodied_total / 50.0
+        ),
+        "maintenance_carbon_tco2e": maintenance_carbon,
+        "surface_temp_delta_c": uhi,
         "energy_kwh": energy,
         "metric_source": "simulated",
         "model_version": __version__,
@@ -938,7 +1099,6 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "_project_land_use": proj.get("land_use"),
         "_project_target_asset_id": proj.get("asset_id"),
     }
-
 
 def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
     """
@@ -1126,11 +1286,18 @@ _COMPARISON_METRICS = [
     ("median_walk_distance_m", "m"),
     ("p90_walk_distance_m", "m"),
     ("carbon_operational_tco2e", "tCO2e"),
+    ("carbon_productive_tco2e", "tCO2e"),
+    ("carbon_stranded_tco2e", "tCO2e"),
+    ("stranded_carbon_ratio", "ratio"),
+    ("embodied_carbon_total_tco2e", "tCO2e"),
+    ("embodied_carbon_amortised_tco2e", "tCO2e/yr"),
+    ("maintenance_carbon_tco2e", "tCO2e/yr"),
+    ("surface_temp_delta_c", "Celsius"),
 ]
 
 
 def _build_comparison(state_by_year, base_year, final_year, assets_df,
-                      selected_ids=None):
+                      selected_ids=None, interventions_df=None):
     """
     Per-asset comparison between base year and final year.
 
@@ -1194,6 +1361,34 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
         return metrics
 
     per_asset = {aid: _compare_one(aid) for aid in ids}
+
+    # Phase 11 — avoided embodied carbon from choosing repurpose over
+    # new build. Uses the material intensity difference times the
+    # asset's floor area.
+    avoided_embodied_total = 0.0
+    if interventions_df is not None:
+        for aid in ids:
+            intvs = interventions_for_asset(aid, interventions_df)
+            if not any(
+                i.get("intervention_type") == "repurpose" for i in intvs
+            ):
+                continue
+            a_row = assets_df[assets_df["asset_id"] == aid]
+            if a_row.empty:
+                continue
+            gfa = _num_or_zero(a_row.iloc[0].get("floor_area_m2"))
+            saved = gfa * (
+                MATERIAL_INTENSITY_NEW_BUILD
+                + DEMOLITION_CARBON_INTENSITY
+                - MATERIAL_INTENSITY_REPURPOSE
+            )
+            if saved > 0:
+                avoided_embodied_total += saved
+                per_asset[aid]["avoided_embodied_carbon_tco2e"] = {
+                    "before": 0.0,
+                    "after": saved,
+                    "unit": "tCO2e",
+                }
 
     # ---- Link project pseudo-entries back to their target asset ----
     # A new_development intervention on P-05 produces a PRJ:: entry in
@@ -1280,6 +1475,9 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             "total_carbon_before_tco2e": total_before if has_before else None,
             "total_carbon_after_tco2e": total_after if has_after else None,
             "carbon_delta_pct": carbon_delta_pct,
+            "avoided_embodied_carbon_tco2e": (
+                avoided_embodied_total if avoided_embodied_total > 0 else None
+            ),
         },
         # Backward-compat:
         "focus_asset_id": focus_asset,
@@ -1508,6 +1706,12 @@ def _build_map_diff(assets_df, interventions_df, projects_df, scenario_id):
             spillover.append({"asset_id": aid, "change_type": itype, "color": "purple"})
         elif itype == "delay_development":
             changed.append({"asset_id": aid, "change_type": "delayed", "color": "blue"})
+        elif itype == "interim_solar_farm":
+            changed.append({
+                "asset_id": aid,
+                "change_type": "solar_farm",
+                "color": "yellow",
+            })
 
     project_schedule = _build_project_schedule(
         projects_df, interventions_df, scenario_id,

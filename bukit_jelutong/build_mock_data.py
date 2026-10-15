@@ -908,14 +908,33 @@ def derive_metrics_row(asset: dict, demo_role: str) -> dict:
 #       a data problem. Do not remove the set_index call.
 
 def write_layer(gdf: gpd.GeoDataFrame, name: str, id_col: str = None):
+    """
+    Write a GeoDataFrame to processed/geometry as GeoJSON.
+
+    IMPORTANT: we do NOT call set_index() on the id column.
+    GeoPandas writes the index as the GeoJSON feature-level `id`,
+    which read_file() does NOT restore as a column. Downstream code
+    (B3's find_entry_point, B7's centroid lookup) reads `edge_id`,
+    `parcel_id`, `building_id`, etc. as normal columns, so the id
+    must stay in `properties`.
+
+    The feature-level `id` is also set to the same value for
+    GeoJSON-spec compliance, via GeoPandas' native index handling
+    AFTER writing — but the primary contract is the property column.
+    """
     path = PROCESSED_GEOM_DIR / f"{name}{SUFFIX}.geojson"
     out = gdf.to_crs(DISPLAY_CRS).copy()
+
+    # Drop helper columns (any column starting with "_").
     drop = [c for c in out.columns if c.startswith("_")]
     if drop:
         out = out.drop(columns=drop)
-    if id_col and id_col in out.columns:
-        out = out.set_index(id_col)
-        out.index.name = None
+
+    # Ensure we have a clean RangeIndex so GeoPandas does not write a
+    # stray feature id from a previous set_index call.
+    out = out.reset_index(drop=True)
+
+    # Write normally. The id column stays as a normal property.
     out.to_file(path, driver="GeoJSON")
     print(f"  wrote {path.name}  ({len(out)} features)")
 

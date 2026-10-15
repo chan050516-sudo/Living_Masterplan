@@ -1,9 +1,10 @@
 """Commercial asset derived metrics.
 
-Phase 2 changes:
-  - Effective demand comes from per-subtype Huff pools.
-  - Energy / carbon intensity comes from the taxonomy by subtype.
-  - Adds demographic mismatch and neighborhood diversity.
+Phase 11 additions:
+  - Energy sub-system split.
+  - Productive vs stranded carbon.
+  - Life-cycle carbon (embodied amortised + maintenance).
+  - UHI surface temperature proxy.
 """
 
 import math
@@ -15,6 +16,14 @@ from .environmental import (
     energy_from_subtype,
     operational_carbon,
     shade_proxy_score_from_canopy,
+    breakdown_energy,
+    apply_canopy_hvac_relief,
+    productive_stranded_carbon,
+    embodied_amortised,
+    maintenance_carbon_annual,
+    calculate_surface_temp_delta,
+    MATERIAL_INTENSITY_NEW_BUILD,
+    MATERIAL_INTENSITY_REPURPOSE,
 )
 
 
@@ -69,7 +78,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     if noi is not None and capex is not None and float(capex) > 0:
         noi_yield = noi / float(capex)
 
-    # --- DSR (Phase 2: uses m² demand from per-subtype Huff) ---
+    # --- DSR ---
     demand_m2 = ctx.huff_effective_demand_m2
     effective_supply = asset.get("lettable_area_m2")
     dsr = None
@@ -84,19 +93,45 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     if rental_income is not None and footfall and footfall > 0:
         rental_income_per_visit = rental_income / (footfall * 365.0)
 
-    # --- Accessibility (from Phase 1 profile) ---
+    # --- Accessibility ---
     walking = ctx.walking_profile or {}
     driving = ctx.driving_profile or {}
 
     # --- Shade proxy ---
     shade = shade_proxy_score_from_canopy(ctx.canopy_coverage)
 
-    # --- Carbon (Phase 2: subtype-aware) ---
+    # --- Energy / carbon ---
     floor_area = float(asset.get("floor_area_m2") or 0.0)
     energy_kwh = energy_from_subtype(subtype, floor_area)
-    carbon = operational_carbon(
-        energy_kwh,
-        assumptions.get("environmental", {}).get("emission_factor_energy", 0.58),
+
+    # Phase 11 — sub-system split with canopy HVAC relief
+    breakdown = breakdown_energy(energy_kwh, "commercial", assumptions)
+    hvac_adj = apply_canopy_hvac_relief(
+        breakdown["hvac_kwh"], ctx.canopy_coverage,
+    )
+    # Recombine with the canopy-adjusted HVAC
+    energy_kwh_adjusted = (
+        hvac_adj
+        + breakdown["lighting_equipment_kwh"]
+        + breakdown["base_load_kwh"]
+    )
+
+    emission_factor = assumptions.get("environmental", {}).get(
+        "emission_factor_energy", 0.58,
+    )
+    carbon = operational_carbon(energy_kwh_adjusted, emission_factor)
+
+    # Phase 11 — productive vs stranded
+    split = productive_stranded_carbon(carbon, occupancy)
+
+    # Phase 11 — life-cycle
+    amortised = embodied_amortised(floor_area, MATERIAL_INTENSITY_REPURPOSE)
+    maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
+
+    # Phase 11 — UHI proxy
+    uhi = calculate_surface_temp_delta(
+        canopy_coverage_ratio=ctx.canopy_coverage,
+        is_hard_surface=True,
     )
 
     # --- Demographic mismatch ---
@@ -105,7 +140,6 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         target_demographics = subtype_cfg.get("target_demographics", []) or []
         mismatch = demographic_mismatch(ctx.catchment_population_profile, target_demographics)
 
-    # --- Neighborhood diversity ---
     diversity = ctx.neighborhood_diversity
 
     return {
@@ -126,20 +160,25 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         "effective_supply": effective_supply,
         "dsr": dsr,
         "shade_proxy_score": shade,
-        "energy_kwh": energy_kwh,
+        "energy_kwh": energy_kwh_adjusted,
+        "energy_kwh_hvac": hvac_adj,
+        "energy_kwh_lighting_equipment": breakdown["lighting_equipment_kwh"],
+        "energy_kwh_base_load": breakdown["base_load_kwh"],
         "carbon_operational_tco2e": carbon,
+        "carbon_productive_tco2e": split["carbon_productive_tco2e"],
+        "carbon_stranded_tco2e": split["carbon_stranded_tco2e"],
+        "stranded_carbon_ratio": split["stranded_carbon_ratio"],
+        "embodied_carbon_total_tco2e": amortised["embodied_carbon_total_tco2e"],
+        "embodied_carbon_amortised_tco2e": amortised["embodied_carbon_amortised_tco2e"],
+        "maintenance_carbon_tco2e": maint_carbon,
+        "surface_temp_delta_c": uhi,
         "demographic_mismatch": mismatch,
         "neighborhood_diversity": diversity,
-        # Deprecated bridge
         "accessibility_score": ctx.accessibility_score,
         "metric_source": "derived",
         "model_version": __version__,
     }
 
-
-# ------------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------------
 
 def _get_metric_row(ctx: DerivationContext, asset_id: str, year: int):
     metrics = ctx.business["asset_metrics"]

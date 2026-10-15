@@ -122,7 +122,11 @@ def main():
     order = ["commercial", "community_facility", "green_space",
              "undeveloped_parcel", "residential"]
 
-    assets_path = repo_root / "mock" / "business" / "assets.csv"
+    from app.config import load_paths
+    paths = load_paths()
+    base_dir = repo_root / paths["base"] / "business"
+
+    assets_path = base_dir / "assets.csv"
     assets_df = pd.read_csv(assets_path)
     type_map = dict(zip(assets_df["asset_id"], assets_df["asset_type"]))
 
@@ -134,11 +138,11 @@ def main():
         for _, row in rows.iterrows():
             _print_asset(row, FIELDS_BY_TYPE.get(atype, []))
 
-    metrics_path = repo_root / "mock" / "business" / "asset_metrics.csv"
+    metrics_path = base_dir / "asset_metrics.csv"
     existing = pd.read_csv(metrics_path)
     merged = merge_into_asset_metrics(derived, existing, year=year)
 
-    out_path = repo_root / "mock" / "business" / "asset_metrics_enriched.csv"
+    out_path = base_dir / "asset_metrics_enriched.csv"
     merged.to_csv(out_path, index=False)
 
     print("\n" + "=" * 72)

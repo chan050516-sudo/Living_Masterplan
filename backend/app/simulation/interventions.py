@@ -5,10 +5,11 @@ Phase 6 changes:
     Falls back to mapping `to` (asset_type) to a default subtype.
   - Capacity / floor area / opex updates follow the subtype.
 
-FIX: NaN-safe numeric updates. Previously `value is not None` admitted
-NaN, which then propagated through the arithmetic.
-FIX: repurpose no longer overwrites `land_use` — that is a planning
-attribute and must not be replaced with asset_type.
+Phase 11 changes:
+  - `interim_solar_farm` marks the asset with `_is_interim` and sets
+    its effective subtype to `solar_farm`. The B4 engine detects this
+    marker and computes a negative carbon offset instead of a
+    positive operational load.
 """
 
 import json
@@ -21,10 +22,7 @@ log = logging.getLogger(__name__)
 
 
 def apply_intervention(asset: dict, intervention: dict) -> dict:
-    """
-    Returns a copy of asset with intervention state applied.
-    Called only when phase == POST.
-    """
+    """Returns a copy of asset with intervention state applied."""
     new_asset = dict(asset)
     itype = intervention["intervention_type"]
 
@@ -40,28 +38,24 @@ def apply_intervention(asset: dict, intervention: dict) -> dict:
         _apply_retrofit(new_asset, params, intervention)
 
     elif itype in ("pedestrian_upgrade", "green_corridor"):
-        # Spatial-layer interventions modify the walking network
-        # (canopy_coverage_ratio on target edges), not the asset row.
-        # They are applied in simulation.spatial and picked up by B4's
-        # network-version cache. No-op here.
+        # Spatial-layer interventions modify the walking network.
         pass
 
     elif itype in ("new_development", "delay_development"):
-        # Handled by the supply model (see supply.active_projects_in_year).
+        # Handled by the supply model.
         pass
+
+    elif itype == "interim_solar_farm":
+        # Phase 11 — marker only. B4 reads `_is_interim` and
+        # `subtype == "solar_farm"` to emit a negative carbon row.
+        new_asset["subtype"] = "solar_farm"
+        new_asset["asset_type"] = "undeveloped_parcel"
+        new_asset["_is_interim"] = True
 
     return new_asset
 
 
 def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
-    """
-    Mutates `asset` in place.
-
-    Resolution order for the new subtype:
-      1. `to_subtype` (explicit taxonomy key)
-      2. `to` mapped through DEFAULT_SUBTYPE_BY_ASSET_TYPE
-      3. current subtype (no change)
-    """
     new_subtype = params.get("to_subtype")
     if new_subtype is None:
         target_asset_type = params.get("to", "community_facility")
@@ -79,8 +73,6 @@ def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
 
     asset["subtype"] = new_subtype
     asset["asset_type"] = subtype_def.get("asset_class", asset.get("asset_type"))
-    # NOTE: `land_use` is a planning attribute (e.g. mixed_use) and must
-    # not be overwritten with asset_type.
 
     if "new_capacity" in params:
         asset["capacity"] = params["new_capacity"]
@@ -91,24 +83,13 @@ def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
 
 
 def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
-    """
-    Retrofit raises CAPEX, reduces maintenance, and reduces operational
-    energy intensity. The energy gain is expressed as a multiplier on
-    the subtype's baseline intensity, read by the simulation engine when
-    it computes `energy_kwh` and `carbon_operational_tco2e`.
-
-    Default efficiency gain: 15%. It can be overridden by the
-    intervention's parameters_json via an `energy_efficiency_gain`
-    key (0-1), for future sensitivity work.
-    """
     delta = intervention.get("capex_delta_rm") or 0
     if _is_number(asset.get("capex_initial_rm")):
         asset["capex_initial_rm"] = float(asset["capex_initial_rm"]) + float(delta)
+
     if _is_number(asset.get("maintenance_annual_rm")):
         asset["maintenance_annual_rm"] = float(asset["maintenance_annual_rm"]) * 0.8
 
-    # Energy gain. `params["energy_efficiency_gain"]` is a fractional
-    # reduction (0.15 → 15%). Falls back to 0.15 when absent.
     gain = 0.15
     try:
         if "energy_efficiency_gain" in params:
@@ -120,14 +101,12 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
 
 
 def apply_construction_state(asset: dict, status: str) -> dict:
-    """During construction: reduce metrics to reflect unavailable/partial state."""
     new_asset = dict(asset)
     new_asset["_construction_status"] = status
     return new_asset
 
 
 def _is_number(v) -> bool:
-    """Return True if v is a real number (not None, not NaN)."""
     if v is None:
         return False
     try:

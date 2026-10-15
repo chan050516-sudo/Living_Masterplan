@@ -318,6 +318,19 @@ subtypes:
     target_area_m2: [100, 50000]
     source: "N/A"
 
+  # ============ Interim / transitional ============
+  # Phase 11 — interim use of an undeveloped parcel awaiting
+  # development. Never emitted by build_mock_data; only created by
+  # B4 when an interim_solar_farm intervention activates.
+  solar_farm:
+    asset_class: undeveloped_parcel
+    display_name: "Interim solar farm"
+    target_area_m2: [500, 50000]
+    # Intentionally no energy_intensity: this subtype generates
+    # rather than consumes. Do not add a competition_radius_m either:
+    # it is not a demand-pool participant.
+    source: "Placeholder — interim use model"
+
 # ---------------------------------------------------------------
 # Core amenities (used for 15-minute coverage computation)
 # ---------------------------------------------------------------

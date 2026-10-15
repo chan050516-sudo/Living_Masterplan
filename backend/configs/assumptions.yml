@@ -13,19 +13,63 @@ population:
 
 demand:
   residential_target_per_household: 1.0
-  # Total 0.48 m²/person
   facility_service_per_capita:
     community_hall: 0.05
     clinic:         0.02
     library:        0.03
+
 supply:
   committed_only: false
   include_proposed: true
 
 environmental:
   emission_factor_energy: 0.58       # kgCO2e per kWh
-  material_intensity: 0.45           # tCO2e per m2 for new construction
-  energy_intensity_default: 120      # kWh/m2/year
+
+  # Phase 11 — Life-cycle carbon
+  # `material_intensity` is kept for backward compatibility; new code
+  # should read the explicit new_build / repurpose pair below.
+  material_intensity: 0.45
+  material_intensity_new_build:   0.45   # tCO2e/m2 — full rebuild
+  material_intensity_repurpose:   0.08   # tCO2e/m2 — adaptive reuse (retains frame)
+  demolition_carbon_intensity:    0.05   # tCO2e/m2 — rubble clearing on rebuild
+  structural_lifespan_years:      50     # amortisation horizon for embodied carbon
+  maintenance_carbon_rate:        0.015  # annual maintenance carbon as fraction of embodied
+
+  energy_intensity_default: 120      # kWh/m2/year fallback
+
+  # Phase 11 — Interim solar farm (undeveloped parcel, pre-development)
+  solar_yield_kwh_per_kwp:            1350.0  # Malaysia tropical yield
+  solar_capacity_density_kwp_per_m2:  0.15    # kWp per m2 of panel area
+  solar_usable_land_fraction:         0.60    # share of land available for panels
+  solar_installation_carbon_tco2e_per_kwp: 0.05  # embodied carbon of the panels themselves
+
+  # Phase 11 — Microclimate
+  hvac_canopy_relief_per_unit: 0.10   # HVAC load reduced 10% at canopy=1.0
+  uhi_hard_surface_penalty_c:  8.0    # ΔT penalty for fully exposed hard surface
+  uhi_canopy_cooling_c:        4.5    # ΔT cooling per unit canopy coverage
+
+# Phase 11 — Energy sub-system split (industry benchmarks, tropical climate)
+energy_breakdown:
+  commercial:
+    hvac:               0.60
+    lighting_equipment: 0.25
+    base_load:          0.15
+  community_facility:
+    hvac:               0.55
+    lighting_equipment: 0.25
+    base_load:          0.20
+  residential:
+    hvac:               0.40
+    lighting_equipment: 0.35
+    base_load:          0.25
+  green_space:
+    hvac:               0.00
+    lighting_equipment: 0.40
+    base_load:          0.60
+  undeveloped_parcel:
+    hvac:               0.00
+    lighting_equipment: 0.00
+    base_load:          0.00
 
 time_to_impact_months:
   repurpose:            8
@@ -34,6 +78,7 @@ time_to_impact_months:
   pedestrian_upgrade:   3
   new_development:      36
   delay_development:    0
+  interim_solar_farm:   6          # NEW
 
 construction_defaults:
   repurpose:            { start_offset: 1, duration_months: 18, during_status: "unavailable" }
@@ -42,14 +87,13 @@ construction_defaults:
   pedestrian_upgrade:   { start_offset: 0, duration_months: 6,  during_status: "partial" }
   new_development:      { start_offset: 0, duration_months: 36, during_status: "unavailable" }
   delay_development:    { start_offset: 0, duration_months: 0,  during_status: "operational" }
-
-# v0.3.0 additions
+  interim_solar_farm:   { start_offset: 0, duration_months: 6,  during_status: "operational" }
 
 accessibility:
   walking_speed_m_per_min: 80
   catchment_minutes: [5, 10, 15]
-  canopy_impedance_gamma: 0.30       # perceived distance reduction per unit canopy
-  falloff_threshold_m: 800           # Gaussian falloff characteristic distance
+  canopy_impedance_gamma: 0.30
+  falloff_threshold_m: 800
 
 huff:
   alpha: 1.0
@@ -74,22 +118,15 @@ deadspace:
     utilisation_rate_below: 0.40
     dsr_below: 0.80
     demand_supply_gap_below: 0.0
-    # Optional overrides for the diagnostic flags added in layer1.py:
-    # demographic_mismatch_above: 0.50
-    # neighborhood_diversity_below: 0.30
-    # driving_coverage_10min_below: 0.50
+    # Phase 11 — stranded carbon diagnostic
+    stranded_carbon_ratio_above: 0.50
+    stranded_carbon_floor_tco2e: 100.0
 
   layer2:
     noi_below: 0.0
     service_coverage_below: 0.60
     maintenance_surge_ratio_above: 1.5
-    # Renamed from `accessibility_below: 50.0` (0-100 score) to a 0-1
-    # coverage ratio, consistent with the rest of the pipeline.
     walking_coverage_10min_below: 0.30
-
-# ----------------------------------------------------------------
-# Phase 1 — Mode-based accessibility
-# ----------------------------------------------------------------
 
 mode_networks:
   walking:

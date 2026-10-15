@@ -1,6 +1,8 @@
 """Human-readable evidence strings for the diagnosis card.
 
-Phase 3 change: adds catchment profile evidence, drops score references.
+Phase 11 addition: surfaces the productive vs stranded carbon split
+and the UHI surface temperature proxy so the LLM (and the UI) can
+reference them directly.
 """
 
 
@@ -26,6 +28,9 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
 
     if subtype:
         lines.append(f"Subtype: {subtype}")
+
+    # Phase 11 — universal carbon evidence (present on every type)
+    _add_carbon_evidence(lines, metrics)
 
     if asset_type == "commercial":
         occ = metrics.get("occupancy_rate")
@@ -82,3 +87,47 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
             lines.append(f"Occupancy: {round(occ * 100, 1)}%")
 
     return lines
+
+
+def _add_carbon_evidence(lines: list, metrics: dict) -> None:
+    """
+    Phase 11 — surface the productive/stranded carbon split and UHI
+    proxy in every asset's evidence list. Only emits when the fields
+    are present, so this is a no-op for asset types that do not
+    compute carbon.
+    """
+    total = metrics.get("carbon_operational_tco2e")
+    productive = metrics.get("carbon_productive_tco2e")
+    stranded = metrics.get("carbon_stranded_tco2e")
+    ratio = metrics.get("stranded_carbon_ratio")
+
+    if total is not None:
+        tv = _fmt(total, 1)
+        if tv is not None:
+            lines.append(f"Operational carbon: {tv} tCO2e/yr")
+
+    if stranded is not None and ratio is not None:
+        sv = _fmt(stranded, 1)
+        if sv is not None:
+            pct = round(float(ratio) * 100, 1)
+            lines.append(
+                f"Stranded carbon (unused capacity): {sv} tCO2e/yr ({pct}%)"
+            )
+
+    if productive is not None:
+        pv = _fmt(productive, 1)
+        if pv is not None:
+            lines.append(f"Productive carbon (serving users): {pv} tCO2e/yr")
+
+    embodied = metrics.get("embodied_carbon_total_tco2e")
+    if embodied is not None:
+        ev = _fmt(embodied, 0)
+        if ev is not None:
+            lines.append(f"Embodied carbon locked in structure: {ev} tCO2e")
+
+    uhi = metrics.get("surface_temp_delta_c")
+    if uhi is not None:
+        uv = _fmt(uhi, 1)
+        if uv is not None:
+            sign = "+" if float(uhi) > 0 else ""
+            lines.append(f"Surface temperature delta (UHI proxy): {sign}{uv} °C")

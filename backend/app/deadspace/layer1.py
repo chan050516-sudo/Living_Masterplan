@@ -1,29 +1,27 @@
 """Layer 1 — Underperformance.
 
 Determine whether the asset is significantly below applicable
-benchmark. Layer 1 now uses pure observed / derived flags rather
-than a single score.
+benchmark.
 
-Phase 3 change: removed the dependency on performance_score. The
-flags-based approach is peer-relative and more directly interpretable.
+Phase 11 change: adds a stranded-carbon diagnostic flag. An asset
+whose operational carbon is mostly wasted (because it is underused)
+is flagged even if it does not breach any of the occupancy /
+utilisation thresholds directly.
 """
 
 DEFAULTS = {
-    # Peer-relative thresholds. Values here are fallbacks used when
-    # peer distribution is unavailable.
     "occupancy_rate_below": 0.50,
     "vacancy_duration_above_months": 12.0,
     "utilisation_rate_below": 0.40,
     "dsr_below": 0.80,
     "demand_supply_gap_below": 0.0,
     "walking_coverage_5min_below": 0.20,
-    # FIX: raised from 0.40. At township scale (30 km/h), a 10-min
-    # drive easily covers 5 km, so 0.40 almost never triggered. 0.50
-    # is a more meaningful "sparse driving catchment" threshold.
     "driving_coverage_10min_below": 0.50,
-    # Diagnostic indicators (derived per asset, see derived/commercial.py)
     "demographic_mismatch_above": 0.50,
     "neighborhood_diversity_below": 0.30,
+    # Phase 11 — stranded carbon diagnostics
+    "stranded_carbon_ratio_above": 0.50,
+    "stranded_carbon_floor_tco2e": 100.0,
 }
 
 
@@ -52,8 +50,6 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         if dcov is not None and dcov < t["driving_coverage_10min_below"]:
             reasons.append("driving_accessibility_deficit")
 
-        # Diagnostic flags (FLAG_WEIGHTS already reserved entries for these;
-        # previously nothing generated them, so they never entered urgency).
         mismatch = metrics.get("demographic_mismatch")
         if mismatch is not None and mismatch > t["demographic_mismatch_above"]:
             reasons.append("demographic_mismatch")
@@ -61,6 +57,8 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         diversity = metrics.get("neighborhood_diversity")
         if diversity is not None and diversity < t["neighborhood_diversity_below"]:
             reasons.append("low_neighborhood_diversity")
+
+        _check_stranded(reasons, metrics, t)
 
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
@@ -71,6 +69,11 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         if wcov is not None and wcov < t["walking_coverage_5min_below"]:
             reasons.append("walking_accessibility_deficit")
 
+        _check_stranded(reasons, metrics, t)
+
+    elif asset_type == "residential":
+        _check_stranded(reasons, metrics, t)
+
     elif asset_type == "undeveloped_parcel":
         gap = metrics.get("demand_supply_gap")
         if gap is not None and gap < t["demand_supply_gap_below"]:
@@ -80,5 +83,29 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         "triggered": len(reasons) > 0,
         "reasons": reasons,
     }
-    # NOTE: the old `urgency_contribution` field was computed here but
-    # never consumed by detector.py; removed as dead code.
+
+
+def _check_stranded(reasons: list, metrics: dict, t: dict) -> None:
+    """
+    Flag an asset whose operational carbon is mostly wasted.
+
+    Requires BOTH:
+      - stranded ratio above the threshold (default 50%), AND
+      - absolute stranded carbon above the floor (default 100 tCO2e)
+
+    The floor prevents small assets with high ratios but trivial
+    absolute emissions from dominating the urgency list.
+    """
+    ratio = metrics.get("stranded_carbon_ratio")
+    absolute = metrics.get("carbon_stranded_tco2e")
+
+    if ratio is None or absolute is None:
+        return
+    try:
+        r = float(ratio)
+        a = float(absolute)
+    except (TypeError, ValueError):
+        return
+
+    if r > t["stranded_carbon_ratio_above"] and a > t["stranded_carbon_floor_tco2e"]:
+        reasons.append("high_stranded_carbon")
