@@ -121,6 +121,22 @@ _OPEX_DELTA_BY_TARGET_CLASS = {
 }
 _RETROFIT_OPEX_SAVING_FRACTION = -0.10  # 10% reduction
 
+# ------------------------------------------------------------------
+# Retrofit measures — allowed vocabulary
+# ------------------------------------------------------------------
+# The LLM must declare which physical measures a retrofit applies.
+# The engine currently ignores the list (it only reads the aggregate
+# `energy_efficiency_gain`), but the vocabulary is enforced so that
+# the justification and the user-facing report stay auditable.
+RETROFIT_MEASURES = {
+    "hvac_upgrade",
+    "led_lighting",
+    "building_envelope",
+    "cool_roof",
+    "bms_controls",
+    "water_efficiency",
+}
+
 
 # ------------------------------------------------------------------
 # Result container
@@ -288,6 +304,50 @@ class ProposalValidator:
                 warnings.append(
                     f"{asset_id}: repurpose target equals current subtype "
                     f"'{to_subtype}' — no-op."
+                )
+
+        # Retrofit: measures must be declared and legal.
+        if itype == "retrofit":
+            measures = params.get("measures")
+            if not measures or not isinstance(measures, list):
+                errors.append(
+                    f"{asset_id}: retrofit requires parameters.measures "
+                    f"(a list of 2-4 measures from {sorted(RETROFIT_MEASURES)})."
+                )
+                return errors, warnings, None
+
+            if len(measures) < 1 or len(measures) > 5:
+                warnings.append(
+                    f"{asset_id}: retrofit measures list has "
+                    f"{len(measures)} entries; expected 2-4."
+                )
+
+            illegal = [m for m in measures if m not in RETROFIT_MEASURES]
+            if illegal:
+                errors.append(
+                    f"{asset_id}: unknown retrofit measures {illegal}. "
+                    f"Valid: {sorted(RETROFIT_MEASURES)}"
+                )
+                return errors, warnings, None
+
+            gain = params.get("energy_efficiency_gain")
+            if gain is None:
+                errors.append(
+                    f"{asset_id}: retrofit requires "
+                    f"parameters.energy_efficiency_gain."
+                )
+                return errors, warnings, None
+            try:
+                gain_f = float(gain)
+            except (TypeError, ValueError):
+                errors.append(
+                    f"{asset_id}: energy_efficiency_gain must be a number."
+                )
+                return errors, warnings, None
+            if not (0.0 <= gain_f <= 0.60):
+                warnings.append(
+                    f"{asset_id}: energy_efficiency_gain={gain_f} is "
+                    f"outside the typical 0.15-0.50 range; verify."
                 )
 
         # Budget hints.

@@ -594,14 +594,19 @@ def simulate_scenario(
                 p = resolve_phase(year, intv)
                 if p == Phase.POST:
                     eff = apply_intervention(eff, intv)
-                    # Phase 12c — only asset-level interventions count
-                    # as "activating" the asset for occupancy
-                    # re-convergence. Spatial interventions (pedestrian_
-                    # upgrade, green_corridor) modify the walking
-                    # network, not the asset's commercial purpose, so
-                    # they must not trigger a Huff re-evaluation.
+                    # Phase 12d — only `repurpose` changes the asset's
+                    # purpose and therefore its Huff-derived occupancy
+                    # target. `retrofit` upgrades systems but does not
+                    # change who uses the building. Spatial
+                    # interventions modify the walking network, not the
+                    # asset. `new_development` and `delay_development`
+                    # are handled by the supply model, not per-asset.
+                    #
+                    # Consequence: a retrofit will NOT magically
+                    # re-occupy a vacant asset. The occupancy stays at
+                    # its previous value; only energy and carbon change.
                     itype = intv.get("intervention_type")
-                    if itype not in ("pedestrian_upgrade", "green_corridor"):
+                    if itype == "repurpose":
                         activated = intv
                 elif p == Phase.DURING:
                     status = intv.get("during_construction_status", "unavailable")
