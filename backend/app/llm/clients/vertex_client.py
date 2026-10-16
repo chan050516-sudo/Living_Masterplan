@@ -9,6 +9,8 @@ expects:
 Authentication uses Application Default Credentials. Run
 `gcloud auth application-default login` once for local development.
 """
+from dotenv import load_dotenv
+load_dotenv()
 
 import json
 import logging
@@ -215,17 +217,48 @@ class VertexGeminiClient:
                 ))
 
             elif role == "assistant":
-                parts = []
-                if m.get("content"):
-                    parts.append(types.Part(text=m["content"]))
-                for tc in (m.get("tool_calls") or []):
-                    parts.append(types.Part(
-                        function_call=types.FunctionCall(
-                            name=tc["name"],
-                            args=tc.get("arguments") or {},
-                        ),
-                    ))
-                contents.append(types.Content(role="model", parts=parts))
+                # Prefer the preserved raw_parts when present: they
+                # carry thought_signature bytes required by Gemini 3.8
+                # Flash. Fall back to reconstructing from content +
+                # tool_calls when raw_parts is absent (older history,
+                # stub clients).
+                raw = m.get("raw_parts")
+                if raw:
+                    parts = []
+                    for rp in raw:
+                        kind = rp.get("kind")
+                        sig = rp.get("thought_signature")
+                        if kind == "text":
+                            parts.append(types.Part(
+                                text=rp.get("text", ""),
+                                thought_signature=sig,
+                            ))
+                        elif kind == "function_call":
+                            parts.append(types.Part(
+                                function_call=types.FunctionCall(
+                                    name=rp["name"],
+                                    args=rp.get("arguments") or {},
+                                ),
+                                thought_signature=sig,
+                            ))
+                        elif kind == "thought":
+                            parts.append(types.Part(
+                                thought=True,
+                                thought_signature=sig,
+                            ))
+                    contents.append(types.Content(role="model", parts=parts))
+                else:
+                    parts = []
+                    if m.get("content"):
+                        parts.append(types.Part(text=m["content"]))
+                    for tc in (m.get("tool_calls") or []):
+                        parts.append(types.Part(
+                            function_call=types.FunctionCall(
+                                name=tc["name"],
+                                args=tc.get("arguments") or {},
+                            ),
+                        ))
+                    contents.append(types.Content(role="model", parts=parts))
 
             elif role == "tool":
                 # Buffer, do not flush. The batch is flushed either when
@@ -255,23 +288,61 @@ class VertexGeminiClient:
         return [types.Tool(function_declarations=declarations)]
 
     def _normalise_response(self, response) -> dict:
-        """Convert a GenerateContentResponse to the orchestrator format."""
+        """
+        Convert a GenerateContentResponse to the orchestrator format.
+
+        Gemini 3.8 Flash is a thinking model. Each function_call part
+        carries a `thought_signature` — an encrypted representation of
+        the model's internal reasoning. When we replay the conversation
+        history on the next turn, we MUST return that signature
+        verbatim, otherwise the API rejects the request with
+        `Function call is missing a thought_signature`.
+
+        We therefore preserve two things per part:
+          - the signature bytes, and
+          - the ordering of text / function_call / thought parts.
+
+        The orchestrator format is extended with a `raw_parts` list
+        that carries everything needed to reconstruct the model turn.
+        """
         content = None
         tool_calls = []
+        raw_parts = []
 
         candidate = response.candidates[0] if response.candidates else None
         if candidate and candidate.content and candidate.content.parts:
             for part in candidate.content.parts:
+                sig = getattr(part, "thought_signature", None)
                 if part.text:
                     content = (content or "") + part.text
-                if part.function_call:
+                    raw_parts.append({
+                        "kind": "text",
+                        "text": part.text,
+                        "thought_signature": sig,
+                    })
+                elif part.function_call:
                     tool_calls.append({
                         "id": part.function_call.name,
                         "name": part.function_call.name,
                         "arguments": dict(part.function_call.args or {}),
+                        "thought_signature": sig,
+                    })
+                    raw_parts.append({
+                        "kind": "function_call",
+                        "name": part.function_call.name,
+                        "arguments": dict(part.function_call.args or {}),
+                        "thought_signature": sig,
+                    })
+                else:
+                    # Pure thought block (no text, no function call).
+                    # Replayed as-is with its signature.
+                    raw_parts.append({
+                        "kind": "thought",
+                        "thought_signature": sig,
                     })
 
         return {
             "content": content,
             "tool_calls": tool_calls or None,
+            "raw_parts": raw_parts or None,
         }

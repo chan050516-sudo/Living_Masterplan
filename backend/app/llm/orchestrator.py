@@ -311,6 +311,7 @@ def _gather_context(intent: dict, ds: TownshipDataSource, llm_client) -> dict:
             "role": "assistant",
             "content": content,
             "tool_calls": tool_calls,
+            "raw_parts": response.get("raw_parts"),
         })
 
         if not tool_calls:

@@ -32,29 +32,33 @@ class StubLLMClient:
     A deterministic stub. It exercises every code path without needing
     an external API key. Replace the methods with real LLM calls.
 
-    The stub is aware of the multi-asset demo: it produces a two-asset
-    plan (B-03 -> clinic, F-02 -> retrofit) and exercises the per-asset
-    comparison path.
+    Pass `target_asset_ids` at construction time to test against any
+    set of real asset IDs.
     """
 
     model = "stub-v1"
 
+    def __init__(self, target_asset_ids=None):
+        self.target_asset_ids = target_asset_ids or ["B-03", "F-02"]
+
     def chat_with_tools(self, messages, tools):
-        # First turn: call a couple of read tools for each asset.
-        # Second turn: return no tool calls, signalling completion.
         already = sum(1 for m in messages if m.get("role") == "tool")
         if already == 0:
+            aid_a = self.target_asset_ids[0]
+            aid_b = (self.target_asset_ids[1]
+                     if len(self.target_asset_ids) > 1
+                     else self.target_asset_ids[0])
             return {
                 "content": None,
                 "tool_calls": [
                     {"id": "t1", "name": "get_asset_evidence",
-                     "arguments": {"asset_id": "B-03"}},
+                     "arguments": {"asset_id": aid_a}},
                     {"id": "t2", "name": "get_catchment_profile",
-                     "arguments": {"asset_id": "B-03", "mode": "walk"}},
+                     "arguments": {"asset_id": aid_a, "mode": "walk"}},
                     {"id": "t3", "name": "get_deadspace_status",
-                     "arguments": {"asset_id": "F-02"}},
+                     "arguments": {"asset_id": aid_b}},
                     {"id": "t4", "name": "get_nearby_assets",
-                     "arguments": {"asset_id": "B-03", "radius_m": 800}},
+                     "arguments": {"asset_id": aid_a, "radius_m": 800}},
                 ],
             }
         return {"content": "I have enough context.", "tool_calls": []}
@@ -63,84 +67,42 @@ class StubLLMClient:
         # Intent stage
         if "target_asset_ids" in schema_hint:
             return {
-                "target_asset_ids": ["B-03", "F-02"],
+                "target_asset_ids": self.target_asset_ids,
                 "objective": "balanced",
-                "constraints": {"capex_limit": 3000000},
+                "constraints": {"capex_limit": 3_000_000},
                 "question_text": (
-                    "What should we do with B-03 and F-02? "
+                    "What should we do with these assets? "
                     "Budget is RM 3 million."
                 ),
             }
         # Proposal stage
         if "plan" in schema_hint:
+            plan = []
+            for aid in self.target_asset_ids:
+                row = None
+                # crude lookup — the stub only needs the asset_type
+                # to pick a legal intervention type
+                plan.append({
+                    "asset_id": aid,
+                    "type": "repurpose",
+                    "parameters": {
+                        "to_subtype": "clinic",
+                        "new_capacity": 200,
+                    },
+                    "expected_effects": {"utilisation": 0.72},
+                    "rationale": (
+                        "Repurpose to a clinic to eliminate stranded "
+                        "carbon and serve the senior catchment."
+                    ),
+                })
             return {
                 "reasoning_trace": (
-                    "B-03 has been vacant for 14 months with an extremely "
-                    "low DSR. The catchment is dominated by working-age "
-                    "residents but has a meaningful elderly minority. "
-                    "Nearby there is one community hall already "
-                    "underutilised (F-02 at 22%). Repurposing B-03 into a "
-                    "clinic fills a genuine gap that the catchment "
-                    "supports. F-02 does not benefit from a change of "
-                    "use; its problem is operational, not structural, so "
-                    "a retrofit that cuts energy cost and refreshes the "
-                    "space is the right lever."
+                    "Target assets show high stranded carbon and low "
+                    "utilisation. Repurpose to community facilities "
+                    "eliminates the waste and serves the population."
                 ),
-                "plan": [
-                    {
-                        "asset_id": "B-03",
-                        "type": "repurpose",
-                        "parameters": {
-                            "to_subtype": "clinic",
-                            "new_capacity": 200,
-                        },
-                        "expected_effects": {"utilisation": 0.72},
-                        "rationale": (
-                            "Retail demand is saturated. A clinic serves "
-                            "the elderly catchment and avoids duplicating "
-                            "the existing community hall."
-                        ),
-                    },
-                    {
-                        "asset_id": "F-02",
-                        "type": "retrofit",
-                        "parameters": {},
-                        "expected_effects": {"utilisation": 0.30},
-                        "rationale": (
-                            "F-02's issue is operational, not structural. "
-                            "Retrofit improves the space and reduces "
-                            "energy cost without changing land use."
-                        ),
-                    },
-                ],
+                "plan": plan,
             }
-        # Justification stage
-        return {
-            "summary": (
-                "B-03 is repurposed to a clinic, cutting its carbon by "
-                "about 92% and improving elderly catchment coverage. "
-                "F-02 is retrofitted to improve operating efficiency. "
-                "Combined, township carbon falls and service coverage "
-                "improves."
-            ),
-            "why_this_plan": (
-                "B-03's retail demand is saturated; the catchment skews "
-                "older and lacks a nearby clinic. F-02 is structurally "
-                "fine but operationally weak, so it needs a retrofit "
-                "rather than a change of use."
-            ),
-            "what_simulation_shows": (
-                "See the simulation brief for exact per-asset figures. "
-                "The key numbers to read: B-03's carbon and utilisation "
-                "shift; F-02's utilisation remains low but its carbon "
-                "declines modestly."
-            ),
-            "beyond_the_model": None,
-            "recommendation": (
-                "Proceed if social return is prioritised over near-term "
-                "cash flow."
-            ),
-        }
 
 
 # ------------------------------------------------------------------
@@ -155,14 +117,27 @@ def main():
     print("  B7 — LLM Reasoning Layer Demo (multi-asset batch)")
     print("=" * 72)
 
-    client = StubLLMClient()
+    # Pick real assets from the current township data.
+    from app.llm.tool_service import TownshipDataSource
+    ds = TownshipDataSource(repo_root, year=2026)
+    candidates = [
+        aid for aid, r in ds.deadspace.items()
+        if r.get("status") == "deadspace_candidate"
+    ]
+    if not candidates:
+        print("No deadspace_candidate assets found")
+        return
+    selected = candidates[:2]
+    print(f"Selected assets for the demo: {selected}\n")
+
+    client = StubLLMClient(target_asset_ids=selected)
 
     result = orchestrate_and_simulate_batch(
         user_query=(
-            "What should we do with B-03 and F-02? "
-            "Budget is RM 3 million."
+            f"What should we do with {', '.join(selected)}? "
+            f"Budget is RM 3 million."
         ),
-        selected_asset_ids=["B-03", "F-02"],
+        selected_asset_ids=selected,
         llm_client=client,
         repo_root=repo_root,
         base_year=2026,
