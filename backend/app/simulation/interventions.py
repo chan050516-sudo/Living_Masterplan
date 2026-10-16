@@ -83,21 +83,97 @@ def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
 
 
 def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
-    delta = intervention.get("capex_delta_rm") or 0
+    """
+    Apply a retrofit intervention.
+
+    Supports two modes:
+
+    1. Aggregate (legacy): `energy_efficiency_gain` applies a single
+       multiplier to the whole building's energy.
+
+    2. Per-subsystem (P1): `measure_breakdown` carries per-measure
+       capex and energy gain, each mapped to one or more subsystems
+       (hvac / lighting_equipment / base_load). The engine applies a
+       per-subsystem multiplier.
+
+    Capex resolution order:
+      1. Sum of measure_breakdown[*].capex_rm
+      2. params["capex_delta_rm"]
+      3. intervention["capex_delta_rm"]
+    """
+    breakdown = params.get("measure_breakdown") or []
+
+    # --- CAPEX ---
+    capex_from_breakdown = 0.0
+    if breakdown:
+        for m in breakdown:
+            try:
+                capex_from_breakdown += float(m.get("capex_rm") or 0)
+            except (TypeError, ValueError):
+                continue
+
+    if capex_from_breakdown > 0:
+        capex_total = capex_from_breakdown
+    else:
+        capex_total = (
+            params.get("capex_delta_rm")
+            or intervention.get("capex_delta_rm")
+            or 0.0
+        )
+
     if _is_number(asset.get("capex_initial_rm")):
-        asset["capex_initial_rm"] = float(asset["capex_initial_rm"]) + float(delta)
+        asset["capex_initial_rm"] = (
+            float(asset["capex_initial_rm"]) + float(capex_total)
+        )
 
+    # --- Maintenance reduction ---
     if _is_number(asset.get("maintenance_annual_rm")):
-        asset["maintenance_annual_rm"] = float(asset["maintenance_annual_rm"]) * 0.8
+        asset["maintenance_annual_rm"] = (
+            float(asset["maintenance_annual_rm"]) * 0.8
+        )
 
-    gain = 0.15
-    try:
-        if "energy_efficiency_gain" in params:
-            gain = float(params["energy_efficiency_gain"])
-    except (TypeError, ValueError):
-        pass
-    gain = max(0.0, min(0.90, gain))
-    asset["_energy_efficiency_multiplier"] = 1.0 - gain
+    # --- Energy multipliers ---
+    if breakdown:
+        hvac_mult = 1.0
+        lighting_mult = 1.0
+        base_mult = 1.0
+
+        for m in breakdown:
+            gain = m.get("energy_gain")
+            if gain is None:
+                continue
+            try:
+                g = float(gain)
+            except (TypeError, ValueError):
+                continue
+            g = max(0.0, min(0.9, g))
+
+            affected = m.get("affected") or []
+            if "hvac" in affected:
+                hvac_mult *= (1.0 - g)
+            if "lighting_equipment" in affected:
+                lighting_mult *= (1.0 - g)
+            if "base_load" in affected:
+                base_mult *= (1.0 - g)
+
+        asset["_hvac_multiplier"] = hvac_mult
+        asset["_lighting_multiplier"] = lighting_mult
+        asset["_base_multiplier"] = base_mult
+
+        # Backward-compat aggregate (weighted by typical breakdown
+        # shares: hvac 60%, lighting 25%, base 15%).
+        asset["_energy_efficiency_multiplier"] = (
+            0.60 * hvac_mult + 0.25 * lighting_mult + 0.15 * base_mult
+        )
+    else:
+        gain = 0.15
+        try:
+            if "energy_efficiency_gain" in params:
+                gain = float(params["energy_efficiency_gain"])
+        except (TypeError, ValueError):
+            pass
+        gain = max(0.0, min(0.90, gain))
+        asset["_energy_efficiency_multiplier"] = 1.0 - gain
 
 
 def apply_construction_state(asset: dict, status: str) -> dict:

@@ -1,19 +1,15 @@
 """Structured output schemas for the LLM reasoning layer.
 
-Phase 12 (2026-10-16): the orchestrator was refactored from an
-agentic tool-calling loop to a deterministic data-assembly pipeline.
-
-Phase 12b: removed every `nullable: True` from the schemas. Gemini's
-response_schema uses an OpenAPI 3.0 subset that does NOT support
-`nullable`. Optional fields are expressed by omitting them from
-`required`.
-
-Phase 13 (2026-10-16): widened the solution space. Every intervention
-now carries a `design_notes` field for free-form implementation
-detail, plus structured design fields (scale, target_demographic,
-program_mix) that are NOT consumed by the engine but ARE shown in the
-justification and user-facing report. `retrofit` additionally gains
-a `measures` array listing the physical upgrades applied.
+Phase 13 (2026-10-17):
+  - P0 — Multi-candidate generation. The LLM now produces 2-3
+    complete candidate plans (CANDIDATES_SCHEMA), each of which is
+    validated and simulated. A second LLM call picks the winner
+    from the simulation results (SELECTION_SCHEMA).
+  - P1 — Retrofit measure breakdown. `measure_breakdown` allows
+    per-measure capex / energy_gain / affected subsystems. The
+    engine applies per-subsystem multipliers when it is present,
+    and falls back to the aggregate `energy_efficiency_gain` when
+    it is not.
 """
 
 # ------------------------------------------------------------------
@@ -26,7 +22,6 @@ INTENT_SCHEMA = {
         "target_asset_ids": {
             "type": "ARRAY",
             "items": {"type": "STRING"},
-            "description": "Asset IDs the user wants to act on.",
         },
         "objective": {
             "type": "STRING",
@@ -46,15 +41,9 @@ INTENT_SCHEMA = {
 
 
 # ------------------------------------------------------------------
-# Stage 2 — Proposal
+# Stage 2 — Parameters (shared by candidates and final plan)
 # ------------------------------------------------------------------
 
-# The `parameters` object is intentionally wide: different intervention
-# types use different keys. The engine only consumes a subset
-# (to_subtype, new_capacity, target_gfa_m2, until, measures,
-# energy_efficiency_gain, canopy_boost). The rest are design-layer
-# fields that flow through to the justification and the user-facing
-# report without touching the simulation.
 PROPOSAL_PARAMETERS_SCHEMA = {
     "type": "OBJECT",
     "properties": {
@@ -64,7 +53,7 @@ PROPOSAL_PARAMETERS_SCHEMA = {
         "target_gfa_m2": {"type": "NUMBER"},
         "target_units": {"type": "INTEGER"},
 
-        # --- retrofit (new) ---
+        # --- retrofit (P1: measure_breakdown added) ---
         "energy_efficiency_gain": {"type": "NUMBER"},
         "measures": {
             "type": "ARRAY",
@@ -80,6 +69,35 @@ PROPOSAL_PARAMETERS_SCHEMA = {
                 ],
             },
         },
+        "measure_breakdown": {
+            "type": "ARRAY",
+            "description": (
+                "Optional detailed breakdown of each retrofit measure. "
+                "When present, the engine applies energy gains per "
+                "subsystem instead of a global multiplier. Each entry "
+                "must correspond to one name in `measures`."
+            ),
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "name": {"type": "STRING"},
+                    "capex_rm": {"type": "NUMBER"},
+                    "energy_gain": {"type": "NUMBER"},
+                    "affected": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "STRING",
+                            "enum": [
+                                "hvac",
+                                "lighting_equipment",
+                                "base_load",
+                            ],
+                        },
+                    },
+                },
+                "required": ["name", "capex_rm", "energy_gain", "affected"],
+            },
+        },
 
         # --- spatial interventions ---
         "canopy_boost": {"type": "NUMBER"},
@@ -87,26 +105,11 @@ PROPOSAL_PARAMETERS_SCHEMA = {
         # --- delay_development ---
         "until": {"type": "INTEGER"},
 
-        # --- design-layer fields (not consumed by the engine) ---
-        "scale": {
-            "type": "STRING",
-            "enum": ["small", "medium", "large"],
-        },
+        # --- design-layer fields ---
+        "scale": {"type": "STRING", "enum": ["small", "medium", "large"]},
         "target_demographic": {"type": "STRING"},
-        "program_mix": {
-            "type": "ARRAY",
-            "items": {"type": "STRING"},
-        },
-        "design_notes": {
-            "type": "STRING",
-            "description": (
-                "Free-form implementation detail. Use for anything the "
-                "schema does not cover: phasing, amenities, specific "
-                "materials, site constraints, operational sequencing. "
-                "This text is shown to the user and quoted in the "
-                "justification, but is NOT consumed by the simulation."
-            ),
-        },
+        "program_mix": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "design_notes": {"type": "STRING"},
 
         # --- optional cost overrides ---
         "capex_delta_rm": {"type": "NUMBER"},
@@ -115,112 +118,144 @@ PROPOSAL_PARAMETERS_SCHEMA = {
 }
 
 
-PROPOSAL_SCHEMA = {
+# ------------------------------------------------------------------
+# Reusable plan item (one intervention on one asset)
+# ------------------------------------------------------------------
+
+_PLAN_ITEM_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "asset_id": {"type": "STRING"},
+        "type": {
+            "type": "STRING",
+            "enum": [
+                "repurpose",
+                "retrofit",
+                "green_corridor",
+                "pedestrian_upgrade",
+                "new_development",
+                "delay_development",
+                "interim_solar_farm",
+            ],
+        },
+        "parameters": PROPOSAL_PARAMETERS_SCHEMA,
+        "rationale": {"type": "STRING"},
+        "investment_case": {
+            "type": "OBJECT",
+            "properties": {
+                "capital_invested": {"type": "STRING"},
+                "return_delivered": {"type": "STRING"},
+                "strategic_rationale": {"type": "STRING"},
+            },
+            "required": [
+                "capital_invested",
+                "return_delivered",
+                "strategic_rationale",
+            ],
+        },
+    },
+    "required": ["asset_id", "type", "parameters", "rationale"],
+}
+
+
+# ------------------------------------------------------------------
+# Stage 2 — Candidate generation (P0)
+# ------------------------------------------------------------------
+
+CANDIDATES_SCHEMA = {
     "type": "OBJECT",
     "properties": {
         "reasoning_trace": {
             "type": "STRING",
             "description": (
-                "Your strategic reasoning, up to 300 words. Walk through: "
-                "(a) what three capitals this asset consumes, "
-                "(b) what return it currently produces, "
-                "(c) the gap between them, "
-                "(d) at least THREE candidate interventions you considered, "
-                "(e) the trade-off that decided between them."
+                "Your strategic overview, up to 250 words. Explain how "
+                "you read the three capitals, what the deadspace gap "
+                "is, and what axes of variation distinguish the "
+                "candidates you are about to produce."
             ),
         },
-        "alternatives_considered": {
+        "candidates": {
             "type": "ARRAY",
             "description": (
-                "Two or three other interventions you seriously evaluated "
-                "and rejected. For each: what it was, and the specific "
-                "reason you did not choose it (cost, competition overlap, "
-                "wrong demographic, insufficient impact, etc.)."
+                "Two or three COMPLETE candidate plans. Each candidate "
+                "must cover every target asset. Candidates must differ "
+                "meaningfully in their strategy — not three flavours of "
+                "the same idea. At least one candidate should be a "
+                "bold move (repurpose / new_development); at least one "
+                "may be incremental (retrofit / upgrade)."
             ),
             "items": {
                 "type": "OBJECT",
                 "properties": {
-                    "asset_id": {"type": "STRING"},
-                    "type": {"type": "STRING"},
-                    "summary": {"type": "STRING"},
-                    "rejected_because": {"type": "STRING"},
-                },
-                "required": ["asset_id", "type", "summary", "rejected_because"],
-            },
-        },
-        "plan": {
-            "type": "ARRAY",
-            "items": {
-                "type": "OBJECT",
-                "properties": {
-                    "asset_id": {"type": "STRING"},
-                    "type": {
+                    "name": {
                         "type": "STRING",
-                        "enum": [
-                            "repurpose",
-                            "retrofit",
-                            "green_corridor",
-                            "pedestrian_upgrade",
-                            "new_development",
-                            "delay_development",
-                            "interim_solar_farm",
-                        ],
-                    },
-                    "parameters": PROPOSAL_PARAMETERS_SCHEMA,
-                    "rationale": {"type": "STRING"},
-                    "investment_case": {
-                        "type": "OBJECT",
                         "description": (
-                            "The explicit investment logic for this "
-                            "intervention. Every intervention consumes "
-                            "some combination of financial, environmental, "
-                            "and social capital. State what is spent and "
-                            "what is delivered."
+                            "A short strategy label, e.g. "
+                            "'Full repurpose', 'Cost recovery', "
+                            "'Mixed-use intervention'."
                         ),
-                        "properties": {
-                            "capital_invested": {
-                                "type": "STRING",
-                                "description": (
-                                    "What is spent: money, time, carbon, "
-                                    "land, disruption. Concrete, not vague."
-                                ),
-                            },
-                            "return_delivered": {
-                                "type": "STRING",
-                                "description": (
-                                    "What is returned: NOI improvement, "
-                                    "service coverage gain, carbon "
-                                    "reduction, jobs, equity. Must be "
-                                    "something the user can measure or "
-                                    "experience."
-                                ),
-                            },
-                            "strategic_rationale": {
-                                "type": "STRING",
-                                "description": (
-                                    "Why this trade-off is worth making "
-                                    "given the user's objective. One or "
-                                    "two sentences. Not a restatement of "
-                                    "the numbers — an argument."
-                                ),
-                            },
-                        },
-                        "required": [
-                            "capital_invested",
-                            "return_delivered",
-                            "strategic_rationale",
-                        ],
+                    },
+                    "strategy_summary": {
+                        "type": "STRING",
+                        "description": (
+                            "One sentence explaining what this "
+                            "candidate is trying to achieve."
+                        ),
+                    },
+                    "reasoning_trace": {
+                        "type": "STRING",
+                        "description": (
+                            "Why this candidate makes sense, up to "
+                            "120 words."
+                        ),
+                    },
+                    "plan": {
+                        "type": "ARRAY",
+                        "items": _PLAN_ITEM_SCHEMA,
                     },
                 },
-                "required": [
-                    "asset_id", "type", "parameters",
-                    "rationale", "investment_case",
-                ],
+                "required": ["name", "strategy_summary", "plan"],
             },
         },
     },
-    "required": ["reasoning_trace", "alternatives_considered", "plan"],
+    "required": ["reasoning_trace", "candidates"],
 }
+
+
+# ------------------------------------------------------------------
+# Stage 2.7 — Final selection (P0)
+# ------------------------------------------------------------------
+
+SELECTION_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "selected_candidate_name": {
+            "type": "STRING",
+            "description": (
+                "The exact `name` of the candidate you selected from "
+                "the list of simulated candidates."
+            ),
+        },
+        "selection_reasoning": {
+            "type": "STRING",
+            "description": (
+                "Why this candidate beats the others, up to 150 words. "
+                "Reference concrete numbers from the simulation briefs."
+            ),
+        },
+        "key_trade_offs": {
+            "type": "ARRAY",
+            "description": (
+                "Two to four trade-offs the selected candidate makes "
+                "relative to the alternatives. Each entry is one "
+                "sentence."
+            ),
+            "items": {"type": "STRING"},
+        },
+    },
+    "required": ["selected_candidate_name", "selection_reasoning"],
+}
+
 
 # ------------------------------------------------------------------
 # Stage 4 — Justification

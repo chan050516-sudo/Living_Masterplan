@@ -192,6 +192,7 @@ _TYPE_EXCLUSIVE_FIELDS = {
 _ALL_TYPE_EXCLUSIVE_FIELDS = frozenset().union(*_TYPE_EXCLUSIVE_FIELDS.values())
 
 _DEMAND_CHANGE_THRESHOLD = 0.05
+
 # Absolute floor for the demand-change test.
 #
 # The relative threshold alone misfires on multi-year simulation gaps.
@@ -205,6 +206,10 @@ _DEMAND_CHANGE_THRESHOLD = 0.05
 # Require BOTH a relative change above the threshold AND an absolute
 # change of at least this many m².
 _DEMAND_CHANGE_ABSOLUTE_FLOOR_M2 = 100.0
+
+# Default access-to-use conversion. Used when
+# assumptions.huff.access_to_use_conversion is absent.
+_DEFAULT_ACCESS_TO_USE_CONVERSION = 0.2
 
 _SPATIAL_REFRESH_FIELDS = (
     "catchment_population_5min_walk",
@@ -247,6 +252,72 @@ def _is_valid_number(v) -> bool:
     except (TypeError, ValueError):
         return False
     return not math.isnan(f)
+
+
+def _weak_coupling_occupancy(
+    prev_occ,
+    prev_demand,
+    curr_demand,
+    effective_supply,
+    conversion=0.25,
+):
+    """
+    Adjust occupancy by a fraction of the change in Huff share.
+
+    The Huff gravity model is a zero-sum allocation: a fixed total
+    demand is redistributed across competing assets according to
+    attractiveness ÷ distance². When the walking network changes or a
+    competitor delivers, the re-allocation is real, but the change in
+    the asset's *accessibility* does not translate 1:1 into a change
+    in its *occupancy*. Being easier to reach does not mean a
+    customer will change their behaviour.
+
+    Cervero (2002) and Ewing & Cervero (2010) show that a fractional
+    change in accessibility converts to a much smaller fractional
+    change in actual use — the meta-analytic range is 15-35%, with
+    ~25% as the mid-point.
+
+    This function therefore scales the occupancy response by
+    `conversion`, so a +12.7% Huff share change becomes a +3.2%
+    occupancy change, not a jump-to-target behaviour that collapses
+    occupancy when the mock initial value differs from the Huff
+    target.
+
+    Parameters
+    ----------
+    prev_occ : float
+        Occupancy before this year's adjustment.
+    prev_demand : float | None
+        Huff-assigned demand (m²) in the previous simulated year.
+    curr_demand : float | None
+        Huff-assigned demand (m²) in the current simulated year.
+    effective_supply : float
+        Lettable area or capacity used to normalise demand into a
+        demand-to-supply ratio.
+    conversion : float
+        Fraction of the Huff share change that translates to an
+        occupancy change. Default 0.25.
+
+    Returns
+    -------
+    float : the new occupancy target, clipped to [0.05, 0.98].
+    """
+    if (prev_demand is None or curr_demand is None
+            or float(prev_demand) <= 0
+            or effective_supply is None
+            or float(effective_supply) <= 0):
+        return prev_occ
+    try:
+        prev_dsr = float(prev_demand) / float(effective_supply)
+        curr_dsr = float(curr_demand) / float(effective_supply)
+    except (TypeError, ValueError, ZeroDivisionError):
+        return prev_occ
+    if prev_dsr <= 0:
+        return prev_occ
+
+    share_change = (curr_dsr - prev_dsr) / prev_dsr
+    new_occ = prev_occ * (1.0 + share_change * conversion)
+    return max(0.05, min(0.98, new_occ))
 
 
 def _recompute_commercial_financials(
@@ -406,30 +477,54 @@ def simulate_scenario(
     repo_root: Path = None,
     years: list = None,
     selected_ids: list = None,
+    _shared_cache: dict = None,
 ) -> dict:
     """
     Returns a ScenarioResult dict per scenario_result.schema.json.
 
     If selected_ids is provided, the comparison block restricts to
-    those assets and produces a per-asset structure (comparison.per_asset).
-    If None, every non-project asset is compared. Backward-compat
-    focus_asset_id + metrics are always present.
+    those assets. If None, every non-project asset is compared.
+
+    Parameters
+    ----------
+    _shared_cache : dict, optional
+        Cross-candidate cache. When multiple scenarios are simulated
+        in the same run (e.g. the B7 multi-candidate pipeline), pass
+        the same dict to every call. The heavy setup work — B3
+        derived metrics, the geometry bundle, the walking pipeline —
+        is computed once and reused. This is what makes N candidates
+        affordable: N candidates pay one setup cost, not N.
+
+        The cache is keyed on (repo_root, base_year). When either
+        changes, the cache auto-invalidates and everything is
+        recomputed.
+
+        The cache is READ-ONLY with respect to the caller: it is
+        populated on first use and reused thereafter. It is safe to
+        keep alive across the whole run.
 
     Network versions
     ----------------
     A scenario may include spatial interventions (pedestrian_upgrade,
     green_corridor). These modify the walking network rather than any
-    asset. B4 handles them by maintaining a cache keyed on the set of
-    active spatial interventions; when the set changes (i.e. when a
-    spatial intervention activates), the network is rebuilt, the
-    distance matrix is recomputed, Huff is re-run, and every asset's
-    catchment metrics are refreshed. Between activations the cache is
-    reused, so the cost is paid once per network version rather than
-    once per year.
+    asset. B4 handles them by maintaining a per-run cache keyed on the
+    set of active spatial interventions. Between candidate calls the
+    cache is shared, so a network version built for one candidate is
+    reused by any later candidate that uses the same interventions.
     """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
     years = years or DEFAULT_YEARS
     base_year = years[0]
+
+    # ---- Shared cache setup and validation ----
+    if _shared_cache is None:
+        _shared_cache = {}
+
+    cache_key = (str(repo_root), base_year)
+    if _shared_cache.get("_key") != cache_key:
+        # Different repo_root or base_year — invalidate everything.
+        _shared_cache.clear()
+        _shared_cache["_key"] = cache_key
 
     paths = load_paths()
     assumptions = load_assumptions()
@@ -437,18 +532,49 @@ def simulate_scenario(
     subtypes_config = taxonomy.get("subtypes", {})
 
     base = repo_root / paths["base"]
-    assets_df = pd.read_csv(base / "business" / "assets.csv")
+
+    # ---- Cached: static CSV frames (assets / projects) ----
+    if "assets_df" in _shared_cache and "projects_df" in _shared_cache:
+        assets_df = _shared_cache["assets_df"]
+        projects_df = _shared_cache["projects_df"]
+    else:
+        assets_df = pd.read_csv(base / "business" / "assets.csv")
+        projects_df = pd.read_csv(base / "business" / "development_projects.csv")
+        _shared_cache["assets_df"] = assets_df
+        _shared_cache["projects_df"] = projects_df
+
+    # interventions_df is NOT cached: the orchestrator appends rows
+    # between candidate calls, and each scenario_id must see the
+    # latest file state.
     interventions_df = pd.read_csv(base / "business" / "interventions.csv")
-    projects_df = pd.read_csv(base / "business" / "development_projects.csv")
 
     scenario_interventions = interventions_df[
         interventions_df["scenario_id"] == scenario_id
     ]
 
-    from ..loaders.geometry_loader import load_geometry
-    geometry = load_geometry(repo_root, paths)
+    # ---- Cached: geometry bundle ----
+    if "geometry" in _shared_cache:
+        geometry = _shared_cache["geometry"]
+    else:
+        from ..loaders.geometry_loader import load_geometry
+        geometry = load_geometry(repo_root, paths)
+        _shared_cache["geometry"] = geometry
 
-    base_derived = compute_derived_metrics(repo_root=repo_root, year=base_year)
+    # ---- Cached: B3 derived metrics (段 A) ----
+    if "base_derived" in _shared_cache:
+        base_derived = _shared_cache["base_derived"]
+        log.debug(
+            "Reusing cached B3 derived metrics for year %d", base_year,
+        )
+    else:
+        log.info(
+            "Computing B3 derived metrics for year %d "
+            "(first candidate in this run)", base_year,
+        )
+        base_derived = compute_derived_metrics(
+            repo_root=repo_root, year=base_year,
+        )
+        _shared_cache["base_derived"] = base_derived
 
     # ---- Population config ----
     pop_cfg = assumptions["population"]
@@ -467,16 +593,11 @@ def simulate_scenario(
     )
 
     # ------------------------------------------------------------------
-    # Network version cache
+    # Network version cache — shared across candidates (段 B)
     # ------------------------------------------------------------------
-    # Maps network_version_tag -> {
-    #     "distance_matrix": dict,
-    #     "demand_nodes":   list,
-    #     "supply_nodes":   list,
-    #     "nodes_gdf":      GeoDataFrame,
-    #     "derived":        DataFrame,   # B3 output for this network
-    # }
-    _pipeline_cache: dict = {}
+    if "_pipeline_cache" not in _shared_cache:
+        _shared_cache["_pipeline_cache"] = {}
+    _pipeline_cache = _shared_cache["_pipeline_cache"]
 
     def _get_pipeline(tag: str, active_spatial: list) -> dict:
         """
@@ -698,6 +819,7 @@ def simulate_scenario(
                 if effective_type == "commercial":
                     curr_demand = huff_m2.get(aid)
                     prev_demand = year_demand_prev.get(aid)
+
                     demand_delta_abs = (
                         abs(float(curr_demand) - float(prev_demand))
                         if (curr_demand is not None
@@ -711,19 +833,25 @@ def simulate_scenario(
                         and abs(float(curr_demand) - float(prev_demand))
                             / float(prev_demand) > _DEMAND_CHANGE_THRESHOLD
                         and demand_delta_abs > _DEMAND_CHANGE_ABSOLUTE_FLOOR_M2
-                    )                  
+                    )
 
-                    if (activated is None
-                            and not demand_changed
-                            and not network_changed):
-                        target_occ = prev_occ
-                    else:
+                    effective_supply = (
+                        eff.get("lettable_area_m2")
+                        or eff.get("capacity")
+                        or 1.0
+                    )
+                    conversion = (
+                        assumptions.get("huff", {})
+                        .get("access_to_use_conversion",
+                             _DEFAULT_ACCESS_TO_USE_CONVERSION)
+                    )
+
+                    if activated is not None:
+                        # The asset itself was repurposed. Its purpose
+                        # has changed, so full Huff re-evaluation is
+                        # appropriate — the new subtype's demand-
+                        # supply ratio defines the occupancy target.
                         demand_m2 = curr_demand
-                        effective_supply = (
-                            eff.get("lettable_area_m2")
-                            or eff.get("capacity")
-                            or 1.0
-                        )
                         if (demand_m2 is not None
                                 and effective_supply
                                 and float(effective_supply) > 0):
@@ -731,6 +859,24 @@ def simulate_scenario(
                         else:
                             dsr = None
                         target_occ = target_occupancy_from_dsr(dsr)
+
+                    elif demand_changed or network_changed:
+                        # The market or the walking network shifted,
+                        # but the asset itself was not acted on. Use
+                        # weak coupling: occupancy moves by a fraction
+                        # of the change in Huff share. Being easier to
+                        # reach does not mean customers change their
+                        # behaviour 1:1.
+                        target_occ = _weak_coupling_occupancy(
+                            prev_occ=prev_occ,
+                            prev_demand=prev_demand,
+                            curr_demand=curr_demand,
+                            effective_supply=effective_supply,
+                            conversion=conversion,
+                        )
+
+                    else:
+                        target_occ = prev_occ
 
                 elif effective_type == "community_facility":
                     if activated is None:
@@ -825,27 +971,62 @@ def simulate_scenario(
                 }
                 hvac_adj = 0.0
             else:
-                energy = energy_from_subtype(
+                # Raw energy from subtype (before canopy or retrofit)
+                energy_raw = energy_from_subtype(
                     effective_subtype or "vacant", floor_area
                 )
-                eff_mult = eff.get("_energy_efficiency_multiplier")
-                if _is_valid_number(eff_mult):
-                    energy *= float(eff_mult)
 
-                breakdown = breakdown_energy(
-                    energy, effective_type, assumptions
+                # Breakdown computed from RAW energy, so per-subsystem
+                # multipliers apply to the correct base.
+                breakdown_raw = breakdown_energy(
+                    energy_raw, effective_type, assumptions
                 )
+
+                # Canopy relief applies only to HVAC
                 canopy_for_hvac = (
                     canopy_from_b3 if canopy_from_b3 is not None else 0.0
                 )
-                hvac_adj = apply_canopy_hvac_relief(
-                    breakdown["hvac_kwh"], canopy_for_hvac
+                hvac_after_canopy = apply_canopy_hvac_relief(
+                    breakdown_raw["hvac_kwh"], canopy_for_hvac
                 )
-                energy_adjusted = (
-                    hvac_adj
-                    + breakdown["lighting_equipment_kwh"]
-                    + breakdown["base_load_kwh"]
+
+                # Per-subsystem retrofit multipliers (P1).
+                # Fall back to aggregate multiplier when per-subsystem
+                # values are absent (legacy retrofit).
+                hvac_mult = eff.get("_hvac_multiplier")
+                lighting_mult = eff.get("_lighting_multiplier")
+                base_mult = eff.get("_base_multiplier")
+
+                if (_is_valid_number(hvac_mult)
+                        and _is_valid_number(lighting_mult)
+                        and _is_valid_number(base_mult)):
+                    hvac_mult = float(hvac_mult)
+                    lighting_mult = float(lighting_mult)
+                    base_mult = float(base_mult)
+                else:
+                    agg = eff.get("_energy_efficiency_multiplier")
+                    if _is_valid_number(agg):
+                        hvac_mult = lighting_mult = base_mult = float(agg)
+                    else:
+                        hvac_mult = lighting_mult = base_mult = 1.0
+
+                hvac_adj = hvac_after_canopy * hvac_mult
+                lighting_adj = (
+                    breakdown_raw["lighting_equipment_kwh"] * lighting_mult
                 )
+                base_adj = breakdown_raw["base_load_kwh"] * base_mult
+
+                energy_adjusted = hvac_adj + lighting_adj + base_adj
+
+                # Rewrite breakdown so downstream reporting shows the
+                # post-retrofit per-subsystem values.
+                breakdown = {
+                    "hvac_kwh": hvac_adj,
+                    "lighting_equipment_kwh": lighting_adj,
+                    "base_load_kwh": base_adj,
+                }
+
+                energy = energy_adjusted
                 carbon = operational_carbon(energy_adjusted, emission_factor)
 
             # Phase 11 — productive vs stranded split

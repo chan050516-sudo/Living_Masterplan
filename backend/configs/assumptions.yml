@@ -106,6 +106,24 @@ huff:
   alpha: 1.0
   beta: 2.0
 
+  # Access-to-use conversion factor.
+  #
+  # When the walking network changes (a pedestrian_upgrade or
+  # green_corridor activates), the Huff model re-allocates demand
+  # across the subtype pool. But a change in accessibility does not
+  # translate 1:1 into a change in occupancy: being easier to reach
+  # does not mean a customer will actually change their behaviour.
+  #
+  # The published literature (Cervero 2002; Ewing & Cervero 2010,
+  # meta-analysis of built-environment effects on travel) consistently
+  # finds that a fractional change in accessibility converts to a much
+  # smaller fractional change in actual use. 0.25 is the mid-point of
+  # the meta-analytic range (15-35%).
+  #
+  # Interpretation: if Huff share rises 10% after a pedestrian
+  # upgrade, occupancy rises by 10% × 0.25 = 2.5%.
+  access_to_use_conversion: 0.25
+
 occupancy_dynamics:
   lambda: 0.35
   critical_threshold: 0.30

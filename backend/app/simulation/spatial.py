@@ -82,20 +82,35 @@ def network_version_tag(active_spatial):
     Stable, order-independent tag describing the network state produced
     by a set of active spatial interventions.
 
-    Used as a cache key in B4 so that the network pipeline is rebuilt
-    only when the set of active interventions actually changes. Two
-    sets with the same members produce the same tag.
+    The tag MUST vary whenever the network geometry could differ. Two
+    interventions with the same intervention_id but different
+    parameters (e.g. pedestrian_upgrade with canopy_boost=0.20 vs
+    green_corridor with canopy_boost=0.35) produce different networks,
+    so the tag must distinguish them.
+
+    Previously the tag was keyed only on intervention_id. Different
+    candidates in the same B7 run renumbered their interventions from
+    INT-LLM-001, so two structurally different interventions collided
+    on the same tag, and the second candidate silently reused the
+    first candidate's pipeline.
     """
+    import json as _json
+    import hashlib as _hashlib
+
     if not active_spatial:
         return "base"
 
-    ids = []
+    parts = []
     for intv in active_spatial:
-        iid = intv.get("intervention_id")
-        if not iid:
-            iid = intv.get("target_asset_id") or "?"
-        ids.append(str(iid))
-    return "post_" + "_".join(sorted(ids))
+        iid = intv.get("intervention_id") or intv.get("target_asset_id") or "?"
+        target = intv.get("target_asset_id") or "?"
+        itype = intv.get("intervention_type") or "?"
+        params = intv.get("parameters_json") or "{}"
+        parts.append(f"{iid}|{target}|{itype}|{params}")
+    parts.sort()
+
+    digest = _hashlib.md5("||".join(parts).encode("utf-8")).hexdigest()[:12]
+    return f"post_{digest}"
 
 
 def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):

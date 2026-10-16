@@ -1,7 +1,7 @@
 """Run the LLM reasoning layer against real Vertex AI Gemini.
 
-Phase 12 architecture: 4-stage pipeline, 3 LLM calls in the common
-case. No tool calling, no thought_signature handling.
+Phase 13 architecture: multi-candidate pipeline, 4 LLM calls
+(Stage 0, 2, 2.7, 4) plus N parallel B4 simulations.
 
 Requires:
   - google-genai installed
@@ -25,6 +25,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from app.llm.orchestrator import orchestrate_and_simulate_batch
 from app.llm.tool_service import TownshipDataSource
 from app.llm.vertex_client import VertexGeminiClient
+
+
+def _print_candidate_summary(cand):
+    brief = cand.get("simulation_brief") or {}
+    agg = brief.get("aggregate") or {}
+    tm = brief.get("township_metrics") or {}
+    print(f"\n  [{cand.get('name', '?')}]")
+    print(f"    strategy: {cand.get('strategy_summary', '')[:120]}")
+    for item in cand.get("plan", []):
+        print(f"      {item.get('asset_id')} -> {item.get('type')}")
+    print(f"    carbon_delta_pct:        {agg.get('carbon_delta_pct')}")
+    print(f"    avoided_embodied_carbon: {agg.get('avoided_embodied_carbon_tco2e')}")
+    print(f"    township_carbon_after:   {tm.get('total_carbon_after_tco2e')}")
 
 
 def main():
@@ -69,30 +82,18 @@ def main():
     print("\n--- Context summary ---")
     print(json.dumps(result.get("context"), indent=2, default=str))
 
-    print("\n--- Proposal ---")
-    proposal = result.get("proposal") or {}
-    trace = proposal.get("reasoning_trace", "")
-    print(f"  reasoning_trace: {trace[:600]}...")
+    print(f"\n--- Candidates ({result.get('meta', {}).get('candidate_count')}) ---")
+    for cand in result.get("candidates", []):
+        _print_candidate_summary(cand)
 
-    alts = proposal.get("alternatives_considered", [])
-    if alts:
-        print(f"\n  Alternatives considered ({len(alts)}):")
-        for a in alts:
-            print(f"    {a.get('asset_id')} -> {a.get('type')}")
-            print(f"      summary:  {a.get('summary', '')[:100]}")
-            print(f"      rejected: {a.get('rejected_because', '')[:120]}")
+    print("\n--- Selection ---")
+    sel = result.get("selection") or {}
+    print(f"  selected:  {sel.get('selected_candidate_name')}")
+    print(f"  reasoning: {sel.get('selection_reasoning', '')[:400]}")
+    for tf in sel.get("key_trade_offs", []):
+        print(f"  trade-off: {tf}")
 
-    print("\n  Final plan:")
-    for item in proposal.get("plan", []):
-        print(f"\n    {item.get('asset_id')} -> {item.get('type')}")
-        print(f"      params:  {item.get('parameters')}")
-        ic = item.get("investment_case") or {}
-        if ic:
-            print(f"      invest:  {ic.get('capital_invested', '')[:120]}")
-            print(f"      return:  {ic.get('return_delivered', '')[:120]}")
-            print(f"      why:     {ic.get('strategic_rationale', '')[:150]}")
-
-    print("\n--- Validation ---")
+    print("\n--- Validation (selected) ---")
     v = result.get("validation") or {}
     print(f"  valid:    {v.get('valid')}")
     print(f"  attempts: {result.get('meta', {}).get('attempts')}")
@@ -101,7 +102,16 @@ def main():
     for w in v.get("warnings", []):
         print(f"  WARN:  {w}")
 
-    print("\n--- Simulation ---")
+    print("\n--- Selected plan ---")
+    for item in (result.get("proposal") or {}).get("plan", []):
+        print(f"  {item.get('asset_id')} -> {item.get('type')}")
+        print(f"    params: {json.dumps(item.get('parameters'), default=str)[:200]}")
+        ic = item.get("investment_case") or {}
+        if ic:
+            print(f"    invest: {ic.get('capital_invested', '')[:100]}")
+            print(f"    return: {ic.get('return_delivered', '')[:100]}")
+
+    print("\n--- Simulation (selected) ---")
     sim = result.get("simulation") or {}
     if sim.get("error"):
         print(f"  ERROR: {sim['error']}")
@@ -110,12 +120,9 @@ def main():
         agg = brief.get("aggregate", {})
         tm = brief.get("township_metrics", {})
         print(f"  scenario_id:             {result.get('scenario_id')}")
-        print(f"  asset_count:             {agg.get('asset_count')}")
         print(f"  carbon_delta_pct:        {agg.get('carbon_delta_pct')}")
-        print(f"  avoided_embodied_carbon: "
-              f"{agg.get('avoided_embodied_carbon_tco2e')}")
-        print(f"  township_carbon_after:   "
-              f"{tm.get('total_carbon_after_tco2e')}")
+        print(f"  avoided_embodied_carbon: {agg.get('avoided_embodied_carbon_tco2e')}")
+        print(f"  township_carbon_after:   {tm.get('total_carbon_after_tco2e')}")
 
     print("\n--- Justification ---")
     j = result.get("justification") or {}

@@ -137,6 +137,30 @@ RETROFIT_MEASURES = {
     "water_efficiency",
 }
 
+# Plausible ranges for per-measure detail. These are advisory — the
+# validator warns, it does not reject.
+_MEASURE_ENERGY_GAIN_RANGE = {
+    "hvac_upgrade":      (0.10, 0.35),
+    "led_lighting":      (0.05, 0.20),
+    "building_envelope": (0.05, 0.15),
+    "cool_roof":         (0.03, 0.15),
+    "bms_controls":      (0.03, 0.12),
+    "water_efficiency":  (0.00, 0.05),
+}
+
+_MEASURE_CAPEX_RANGE_RM = {
+    "hvac_upgrade":      (150_000, 2_500_000),
+    "led_lighting":      (30_000, 800_000),
+    "building_envelope": (50_000, 1_500_000),
+    "cool_roof":         (20_000, 400_000),
+    "bms_controls":      (30_000, 500_000),
+    "water_efficiency":  (10_000, 200_000),
+}
+
+_MEASURE_AFFECTED_SUBSYSTEMS = {
+    "hvac", "lighting_equipment", "base_load",
+}
+
 
 # ------------------------------------------------------------------
 # Result container
@@ -349,6 +373,18 @@ class ProposalValidator:
                     f"{asset_id}: energy_efficiency_gain={gain_f} is "
                     f"outside the typical 0.15-0.50 range; verify."
                 )
+                        # Optional detailed breakdown (P1)
+            breakdown = params.get("measure_breakdown")
+            if breakdown is not None:
+                if not isinstance(breakdown, list):
+                    warnings.append(
+                        f"{asset_id}: measure_breakdown must be a list."
+                    )
+                else:
+                    _validate_measure_breakdown(
+                        asset_id, measures, breakdown, warnings,
+                        declared_capex=params.get("capex_delta_rm"),
+                    )
 
         # Budget hints.
         # Pass the target subtype for every subtype-changing
@@ -691,3 +727,73 @@ def _as_positive_float(v) -> float:
     if math.isnan(f) or f < 0:
         return 0.0
     return f
+
+
+def _validate_measure_breakdown(asset_id, measures, breakdown, warnings,
+                                 declared_capex=None):
+    """
+    Warn on implausible measure_breakdown entries. Never blocks.
+    """
+    names_in_breakdown = set()
+    total_capex = 0.0
+    for m in breakdown:
+        if not isinstance(m, dict):
+            warnings.append(f"{asset_id}: measure_breakdown entry is not an object.")
+            continue
+        name = m.get("name")
+        names_in_breakdown.add(name)
+
+        capex = m.get("capex_rm")
+        gain = m.get("energy_gain")
+        affected = m.get("affected") or []
+
+        if name in _MEASURE_CAPEX_RANGE_RM and capex is not None:
+            lo, hi = _MEASURE_CAPEX_RANGE_RM[name]
+            try:
+                c = float(capex)
+                total_capex += c
+                if not (lo <= c <= hi):
+                    warnings.append(
+                        f"{asset_id}: '{name}' capex RM {c:,.0f} is "
+                        f"outside the typical RM {lo:,.0f}-{hi:,.0f}."
+                    )
+            except (TypeError, ValueError):
+                warnings.append(f"{asset_id}: '{name}' capex is not numeric.")
+
+        if name in _MEASURE_ENERGY_GAIN_RANGE and gain is not None:
+            lo, hi = _MEASURE_ENERGY_GAIN_RANGE[name]
+            try:
+                g = float(gain)
+                if not (lo <= g <= hi):
+                    warnings.append(
+                        f"{asset_id}: '{name}' energy_gain {g} is "
+                        f"outside the typical {lo}-{hi}."
+                    )
+            except (TypeError, ValueError):
+                warnings.append(f"{asset_id}: '{name}' energy_gain is not numeric.")
+
+        for s in affected:
+            if s not in _MEASURE_AFFECTED_SUBSYSTEMS:
+                warnings.append(
+                    f"{asset_id}: '{name}' affects unknown subsystem '{s}'. "
+                    f"Valid: {sorted(_MEASURE_AFFECTED_SUBSYSTEMS)}."
+                )
+
+    declared_measures = set(measures)
+    if names_in_breakdown != declared_measures:
+        warnings.append(
+            f"{asset_id}: measure_breakdown names {sorted(names_in_breakdown)} "
+            f"do not match measures {sorted(declared_measures)}."
+        )
+
+    if declared_capex is not None and total_capex > 0:
+        try:
+            dc = float(declared_capex)
+            if abs(dc - total_capex) > max(10.0, dc * 0.02):
+                warnings.append(
+                    f"{asset_id}: sum of measure_breakdown capex "
+                    f"RM {total_capex:,.0f} does not match declared "
+                    f"capex_delta_rm RM {dc:,.0f}."
+                )
+        except (TypeError, ValueError):
+            pass
