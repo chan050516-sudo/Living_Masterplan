@@ -1,5 +1,7 @@
 scenario_id,intervention_id,target_asset_id,intervention_type,parameters_json,expected_derived_json,expected_source,construction_start_year,construction_duration_months,activation_year,during_construction_status,capex_delta_rm,opex_delta_rm,validation_status,status
-SC-CURRENT,INT-000,,no_op,{},,,2026,0,2026,operational,0,0,validated,applied
-SC-REPURPOSE,INT-001,BLD-0037,repurpose,"{""to_subtype"": ""clinic"", ""new_capacity"": 200}","{""utilisation"": 0.72, ""service_coverage"": 0.65}",mock_estimate,2027,18,2028,unavailable,1200000,60000,validated,simulated
-SC-REPURPOSE,INT-002,BLD-0037,pedestrian_upgrade,"{""canopy_boost"": 0.3}",,,2027,6,2028,partial,180000,5000,validated,simulated
-SC-DELAY,INT-003,PRJ-01,delay_development,"{""until"": 2033}",,,2027,0,2027,operational,0,0,validated,simulated
+SC-CURRENT,INT-000,,no_op,{},,,2026,0,2026,operational,0.0,0.0,validated,applied
+SC-REPURPOSE,INT-001,BLD-0037,repurpose,"{""to_subtype"": ""clinic"", ""new_capacity"": 200}","{""utilisation"": 0.72, ""service_coverage"": 0.65}",mock_estimate,2027,18,2028,unavailable,1200000.0,60000.0,validated,simulated
+SC-REPURPOSE,INT-002,BLD-0037,pedestrian_upgrade,"{""canopy_boost"": 0.3}",,,2027,6,2028,partial,180000.0,5000.0,validated,simulated
+SC-DELAY,INT-003,PRJ-01,delay_development,"{""until"": 2033}",,,2027,0,2027,operational,0.0,0.0,validated,simulated
+SC-LLM-c7a6ef6d,INT-LLM-001,BLD-0037,retrofit,"{""energy_efficiency_gain"": 0.35}",,,2026,12,2027,partial,384734.4,-134657.176,pending,simulated
+SC-LLM-c7a6ef6d,INT-LLM-002,A-0004,pedestrian_upgrade,"{""canopy_boost"": 0.2}",,,2026,6,2027,partial,180000.0,0.0,pending,simulated

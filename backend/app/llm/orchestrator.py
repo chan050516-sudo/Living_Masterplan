@@ -1,35 +1,25 @@
 """B7 — LLM orchestration.
 
-Implements the four-stage reasoning loop:
+Phase 12 (2026-10-16): replaced the agentic tool-calling loop with a
+deterministic 4-stage pipeline.
 
-  Stage 1  Context gathering        LLM calls read tools freely
-  Stage 2  Reasoning and proposal   LLM outputs a plan
-  Stage 3  Validation and sim       Deterministic; may reject and loop
-  Stage 4  Review and justification LLM writes the explanation
+  Stage 0  Intent parsing        1 LLM call
+  Stage 1  Context assembly      0 LLM calls  (deterministic)
+  Stage 2  Proposal              1 LLM call   (structured output)
+  Stage 3  Validate + simulate   0 LLM calls  (deterministic)
+  Stage 3b Retry once on reject  0-1 LLM call
+  Stage 4  Justification         1 LLM call
 
-Two entry points are exposed:
+Total: 3 LLM calls in the common case, 4 in the worst case. The
+previous agentic design averaged 6-8 calls and took 2-3 minutes; this
+design averages 30-60 seconds.
 
-  orchestrate(...)
-      Single-focus variant. Writes a plan as a scenario, runs the
-      simulation, and returns the full transcript. Kept for backward
-      compatibility.
+The LLM's role is narrowed to two decisions it is uniquely good at:
+  1. Given a complete context pack, what intervention fits?
+  2. Given a simulated outcome, how do we explain it?
 
-  orchestrate_and_simulate_batch(...)
-      Multi-asset variant. The LLM produces ONE plan covering every
-      selected asset in a single inference call. The plan is written
-      as a single scenario and simulated in one pass with
-      selected_ids set, so comparison.per_asset reports each asset's
-      own before/after.
-
-The orchestrator is LLM-client agnostic. It expects a client that
-implements two methods:
-
-  chat_with_tools(messages, tools) -> {
-      "content": str | None,
-      "tool_calls": [{"id": str, "name": str, "arguments": dict}] | None,
-  }
-
-  chat_json(messages, schema_hint) -> dict
+Everything else — data fetching, tool dispatch, validation, and the
+simulation itself — is deterministic code.
 """
 
 import json
@@ -39,7 +29,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from .tool_service import TownshipDataSource, dispatch
+from .context_builder import build_context_pack
+from .schemas import INTENT_SCHEMA, PROPOSAL_SCHEMA, JUSTIFICATION_SCHEMA
+from .tool_service import TownshipDataSource
 from .validator import ProposalValidator
 
 log = logging.getLogger(__name__)
@@ -50,10 +42,8 @@ log = logging.getLogger(__name__)
 # ------------------------------------------------------------------
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
-TOOLS_SCHEMA_PATH = Path(__file__).parent / "tools_schema.json"
 
-MAX_TOOL_ROUNDS = 8           # limit runaway tool calling
-MAX_PROPOSAL_ATTEMPTS = 3     # validator feedback loop
+MAX_PROPOSAL_ATTEMPTS = 2   # one initial try + one retry on reject
 
 
 # ------------------------------------------------------------------
@@ -68,11 +58,7 @@ def orchestrate(
     repo_root: Path = None,
     base_year: int = 2026,
 ) -> dict:
-    """
-    Single-focus variant kept for backward compatibility. Delegates to
-    the batch implementation; the underlying simulation now returns
-    both per_asset and focus_asset_id, so callers see no regression.
-    """
+    """Single-focus alias for orchestrate_and_simulate_batch."""
     return orchestrate_and_simulate_batch(
         user_query=user_query,
         selected_asset_ids=selected_asset_ids,
@@ -90,27 +76,8 @@ def orchestrate_and_simulate_batch(
     base_year: int = 2026,
 ) -> dict:
     """
-    Run the full reasoning loop for a user query against a set of
+    Run the full 4-stage pipeline for a user query against a set of
     selected assets.
-
-    The LLM produces ONE plan that covers every selected asset. That
-    plan is written to interventions.csv as a single scenario and
-    simulated in one pass with selected_ids set. The comparison block
-    then reports per-asset before/after metrics, and the justification
-    stage sees the entire multi-asset result at once.
-
-    Parameters
-    ----------
-    user_query : str
-        The user's natural-language question.
-    selected_asset_ids : list[str]
-        Assets the user selected on the map.
-    llm_client :
-        An object implementing chat_with_tools() and chat_json().
-    repo_root : Path, optional
-        Project root. Defaults to the repo containing this file.
-    base_year : int
-        The year the query is being made in.
 
     Returns
     -------
@@ -124,27 +91,53 @@ def orchestrate_and_simulate_batch(
     run_id = f"LLM-{uuid.uuid4().hex[:8]}"
 
     # ---- Stage 0: intent parsing ----
+    log.info("[%s] Stage 0 — intent parsing", run_id)
     intent = _parse_intent(user_query, selected_asset_ids, llm_client, base_year)
 
-    # ---- Stage 1: context gathering ----
-    context = _gather_context(intent, ds, llm_client)
+    # ---- Stage 1: context assembly (deterministic) ----
+    log.info("[%s] Stage 1 — context assembly", run_id)
+    context_pack = build_context_pack(intent, ds)
+    log.info(
+        "[%s] context pack: %d targets, %d asset classes",
+        run_id, len(context_pack["targets"]),
+        len(context_pack["available_subtypes"]),
+    )
 
     # ---- Stage 2 + 3: proposal loop ----
     proposal = None
     validation = None
+    validator_feedback = None
     attempt = 0
     for attempt in range(1, MAX_PROPOSAL_ATTEMPTS + 1):
-        proposal = _generate_proposal(intent, context, ds, llm_client, attempt)
+        log.info("[%s] Stage 2 — proposal (attempt %d)", run_id, attempt)
+        proposal = _generate_proposal(
+            intent=intent,
+            context_pack=context_pack,
+            llm_client=llm_client,
+            attempt=attempt,
+            validator_feedback=validator_feedback,
+        )
+
+        log.info("[%s] Stage 3 — validation", run_id)
         validation = validator.validate(
             proposal.get("plan", []),
             constraints=intent.get("constraints") or {},
         )
         if validation.valid:
             break
-        context = _append_validation_feedback(context, validation)
+
+        validator_feedback = {
+            "errors": list(validation.errors),
+            "warnings": list(validation.warnings),
+            "note": (
+                "The previous plan was rejected. Revise the plan to "
+                "address every error. You may keep any part of the "
+                "previous plan that was not flagged."
+            ),
+        }
         log.info(
-            "Proposal attempt %d rejected: %s",
-            attempt, "; ".join(validation.errors),
+            "[%s] proposal rejected: %s",
+            run_id, "; ".join(validation.errors),
         )
 
     if not validation.valid:
@@ -152,7 +145,7 @@ def orchestrate_and_simulate_batch(
             "run_id": run_id,
             "scenario_id": None,
             "intent": intent,
-            "context": _context_to_dict(context),
+            "context": _summarise_context(context_pack),
             "proposal": proposal,
             "validation": validation.to_dict(),
             "simulation": None,
@@ -160,13 +153,14 @@ def orchestrate_and_simulate_batch(
             "justification": None,
             "error": "max_proposal_attempts_reached",
             "meta": {
-                "attempts": MAX_PROPOSAL_ATTEMPTS,
+                "attempts": attempt,
                 "asset_count": len(intent["target_asset_ids"]),
                 "model": getattr(llm_client, "model", None),
             },
         }
 
-    # ---- Stage 3b: write interventions + simulate (single pass) ----
+    # ---- Stage 3b: write interventions + simulate ----
+    log.info("[%s] Stage 3b — write + simulate", run_id)
     scenario_id = f"SC-{run_id}"
     _write_interventions(ds, scenario_id, validation.normalised_plan)
 
@@ -174,16 +168,16 @@ def orchestrate_and_simulate_batch(
         scenario_id, repo_root,
         selected_ids=intent["target_asset_ids"],
     )
-
     sim_brief = _summarise_simulation(simulation_result)
 
-    # ---- Stage 4: review and justification ----
+    # ---- Stage 4: justification ----
+    log.info("[%s] Stage 4 — justification", run_id)
     justification = _write_justification(
         intent=intent,
         proposal=proposal,
         validation=validation,
         simulation=simulation_result,
-        ds=ds,
+        sim_brief=sim_brief,
         llm_client=llm_client,
     )
 
@@ -191,7 +185,7 @@ def orchestrate_and_simulate_batch(
         "run_id": run_id,
         "scenario_id": scenario_id,
         "intent": intent,
-        "context": _context_to_dict(context),
+        "context": _summarise_context(context_pack),
         "proposal": proposal,
         "validation": validation.to_dict(),
         "simulation": simulation_result,
@@ -213,9 +207,8 @@ def orchestrate_and_simulate_batch(
 def _parse_intent(user_query: str, selected_asset_ids: list,
                   llm_client, base_year: int) -> dict:
     """
-    Parse the user's question into a structured intent. If the LLM
-    fails to return valid JSON, fall back to a minimal default that
-    still lets the pipeline run.
+    Parse the user's question into a structured intent.
+    Falls back to a minimal default on failure.
     """
     system = _load_prompt("intent_parser.md")
     user = (
@@ -230,12 +223,7 @@ def _parse_intent(user_query: str, selected_asset_ids: list,
                 {"role": "system", "content": system},
                 {"role": "user", "content": user},
             ],
-            schema_hint={
-                "target_asset_ids": "list[str]",
-                "objective": "financial|environmental|social|balanced",
-                "constraints": "object | null",
-                "question_text": "str",
-            },
+            schema_hint=INTENT_SCHEMA,
         )
     except Exception as e:
         log.warning("Intent parsing failed: %s", e)
@@ -243,14 +231,17 @@ def _parse_intent(user_query: str, selected_asset_ids: list,
 
     if not isinstance(result, dict):
         result = {}
+
     targets = result.get("target_asset_ids") or selected_asset_ids
-    if not isinstance(targets, list):
+    if not isinstance(targets, list) or not targets:
         targets = selected_asset_ids
+
     objective = result.get("objective") or "balanced"
     if objective not in ("financial", "environmental", "social", "balanced"):
         objective = "balanced"
+
     constraints = result.get("constraints")
-    if constraints is not None and not isinstance(constraints, dict):
+    if not isinstance(constraints, dict):
         constraints = None
 
     return {
@@ -263,178 +254,59 @@ def _parse_intent(user_query: str, selected_asset_ids: list,
 
 
 # ------------------------------------------------------------------
-# Stage 1: context gathering
-# ------------------------------------------------------------------
-
-
-def _gather_context(intent: dict, ds: TownshipDataSource, llm_client) -> dict:
-    """
-    Let the LLM decide what to query. We seed it with a minimal bundle
-    (the selected assets' identity + status) and then let it call tools
-    to gather more.
-    """
-    seed = {
-        "user_query": intent["question_text"],
-        "objective": intent["objective"],
-        "constraints": intent["constraints"],
-        "selected_assets": [
-            {
-                "asset_id": aid,
-                "state_summary": _compact_state(ds, aid),
-                "deadspace_status": _compact_status(ds, aid),
-            }
-            for aid in intent["target_asset_ids"]
-        ],
-    }
-
-    tools_schema = _load_tools_schema()
-    messages = [
-        {"role": "system", "content": _load_prompt("context_gathering.md")},
-        {"role": "user", "content": json.dumps(seed, indent=2)},
-    ]
-
-    tool_calls_log = []
-    notes = []
-    validator_feedback = None
-
-    for _ in range(MAX_TOOL_ROUNDS):
-        try:
-            response = llm_client.chat_with_tools(messages, tools_schema)
-        except Exception as e:
-            log.warning("chat_with_tools failed: %s", e)
-            break
-
-        tool_calls = response.get("tool_calls") or []
-        content = response.get("content")
-
-        messages.append({
-            "role": "assistant",
-            "content": content,
-            "tool_calls": tool_calls,
-            "raw_parts": response.get("raw_parts"),
-        })
-
-        if not tool_calls:
-            if content:
-                notes.append(content)
-            break
-
-        for call in tool_calls:
-            name = call.get("name")
-            args = call.get("arguments") or {}
-            outcome = dispatch(ds, name, args)
-            tool_calls_log.append({
-                "name": name,
-                "arguments": args,
-                "ok": outcome["ok"],
-                "result_summary": _summarise(outcome),
-            })
-            messages.append({
-                "role": "tool",
-                "tool_call_id": call.get("id", name),
-                "name": name,
-                "content": json.dumps(outcome, default=str)[:8000],
-            })
-
-    return {
-        "seed": seed,
-        "messages": messages,
-        "tool_calls": tool_calls_log,
-        "notes": notes,
-        "validator_feedback": validator_feedback,
-    }
-
-
-def _compact_state(ds: TownshipDataSource, asset_id: str) -> dict:
-    from .tool_service import get_asset_state
-    s = get_asset_state(ds, asset_id)
-    if "identity" not in s:
-        return s
-    return {
-        "asset_type": s["identity"].get("asset_type"),
-        "subtype": s["identity"].get("subtype"),
-        "floor_area_m2": s["physical"].get("floor_area_m2"),
-        "lettable_area_m2": s["physical"].get("lettable_area_m2"),
-        "land_area_m2": s["physical"].get("land_area_m2"),
-        "capacity": s["physical"].get("capacity"),
-        "key_metrics": {
-            k: v for k, v in {
-                **s.get("observed_metrics", {}),
-                **s.get("derived_metrics", {}),
-            }.items() if v is not None
-        },
-    }
-
-
-def _compact_status(ds: TownshipDataSource, asset_id: str) -> dict:
-    from .tool_service import get_deadspace_status
-    s = get_deadspace_status(ds, asset_id)
-    return {
-        "status": s.get("status"),
-        "flags": s.get("flags", []),
-        "urgency_index": s.get("urgency_index"),
-    }
-
-
-def _context_to_dict(context: dict) -> dict:
-    """
-    Strip the raw message list before returning the context to the
-    caller. The messages are useful for debugging but heavy to ship.
-    """
-    return {
-        "seed": context.get("seed"),
-        "tool_calls": context.get("tool_calls", []),
-        "notes": context.get("notes", []),
-        "validator_feedback": context.get("validator_feedback"),
-    }
-
-
-# ------------------------------------------------------------------
 # Stage 2: proposal generation
 # ------------------------------------------------------------------
 
 
-def _generate_proposal(intent: dict, context: dict, ds: TownshipDataSource,
-                       llm_client, attempt: int) -> dict:
+def _generate_proposal(
+    intent: dict,
+    context_pack: dict,
+    llm_client,
+    attempt: int,
+    validator_feedback: dict = None,
+) -> dict:
     """
-    Ask the LLM to produce a plan. The context includes everything it
-    gathered plus any validator feedback from a previous attempt.
+    Ask the LLM to produce a plan from the context pack.
+
+    Uses strict structured output (chat_structured) with no thinking
+    config — see vertex_client.chat_structured for why. Timing is
+    logged so a stalled request is visible immediately.
     """
+    import time
+
     prompt = _load_prompt("proposal_generator.md")
 
-    township_snapshot = _build_township_snapshot(ds, intent["target_asset_ids"])
-
     user_content = {
-        "user_query": intent["question_text"],
-        "objective": intent["objective"],
-        "constraints": intent["constraints"],
-        "selected_assets": intent["target_asset_ids"],
-        "context_notes": context.get("notes", []),
-        "tool_calls_made": [c["name"] for c in context.get("tool_calls", [])],
-        "township_snapshot": township_snapshot,
+        "context_pack": context_pack,
         "attempt": attempt,
-        "validator_feedback": context.get("validator_feedback"),
     }
+    if validator_feedback:
+        user_content["validator_feedback"] = validator_feedback
+        log.info(
+            "Passing validator feedback into attempt %d: %s",
+            attempt, validator_feedback.get("errors"),
+        )
 
+    t0 = time.time()
     try:
-        result = llm_client.chat_json(
+        result = llm_client.chat_structured(
             messages=[
                 {"role": "system", "content": prompt},
-                {"role": "user", "content": json.dumps(user_content, default=str, indent=2)},
+                {"role": "user", "content": json.dumps(
+                    user_content, default=str, indent=2,
+                )},
             ],
-            schema_hint={
-                "reasoning_trace": "str",
-                "plan": [{
-                    "asset_id": "str",
-                    "type": "str",
-                    "parameters": "object",
-                    "expected_effects": "object | null",
-                    "rationale": "str",
-                }],
-            },
+            response_schema=PROPOSAL_SCHEMA,
+        )
+        log.info(
+            "Stage 2 attempt %d: LLM call returned in %.2fs",
+            attempt, time.time() - t0,
         )
     except Exception as e:
-        log.warning("Proposal generation failed: %s", e)
+        log.error(
+            "Stage 2 attempt %d failed after %.2fs: %s",
+            attempt, time.time() - t0, e,
+        )
         result = {}
 
     if not isinstance(result, dict):
@@ -447,38 +319,6 @@ def _generate_proposal(intent: dict, context: dict, ds: TownshipDataSource,
     return result
 
 
-def _build_township_snapshot(ds: TownshipDataSource, selected_ids: list) -> dict:
-    """
-    A compact snapshot the LLM can reason over without additional tool
-    calls. Includes the taxonomy summary for the relevant asset classes
-    and the selected assets' neighbours.
-    """
-    from .tool_service import get_nearby_assets, get_available_subtypes
-
-    asset_classes = set()
-    for aid in selected_ids:
-        row = ds._asset_row(aid)
-        if row:
-            asset_classes.add(row["asset_type"])
-
-    taxonomy_for_selected = {}
-    for cls in asset_classes:
-        taxonomy_for_selected[cls] = get_available_subtypes(ds, cls)
-
-    neighbours = {}
-    for aid in selected_ids:
-        neighbours[aid] = get_nearby_assets(ds, aid, radius_m=800.0)
-
-    return {
-        "available_subtypes_by_class": taxonomy_for_selected,
-        "nearby_assets_800m": neighbours,
-        "model_assumptions": {
-            "huff": ds.assumptions.get("huff", {}),
-            "occupancy_dynamics": ds.assumptions.get("occupancy_dynamics", {}),
-        },
-    }
-
-
 # ------------------------------------------------------------------
 # Stage 3b: write interventions and run simulation
 # ------------------------------------------------------------------
@@ -487,7 +327,7 @@ def _build_township_snapshot(ds: TownshipDataSource, selected_ids: list) -> dict
 def _write_interventions(ds: TownshipDataSource, scenario_id: str, plan: list) -> None:
     """
     Append the validated plan to interventions.csv under a fresh
-    scenario_id. The simulation reads that file.
+    scenario_id.
     """
     base = ds.repo_root / ds.paths["base"]
     path = base / "business" / "interventions.csv"
@@ -501,7 +341,11 @@ def _write_interventions(ds: TownshipDataSource, scenario_id: str, plan: list) -
             "intervention_type": item["intervention_type"],
             "parameters_json": json.dumps(item.get("parameters") or {}),
             "expected_derived_json": item.get("expected_derived_json"),
-            "expected_source": "llm_estimate" if item.get("expected_derived_json") else None,
+            "expected_source": (
+                "llm_estimate"
+                if item.get("expected_derived_json")
+                else None
+            ),
             "construction_start_year": item["construction_start_year"],
             "construction_duration_months": item["construction_duration_months"],
             "activation_year": item["activation_year"],
@@ -519,15 +363,15 @@ def _write_interventions(ds: TownshipDataSource, scenario_id: str, plan: list) -
     else:
         combined = new_df
     combined.to_csv(path, index=False)
-    log.info("Wrote %d LLM interventions to %s as scenario %s", len(rows), path, scenario_id)
+    log.info(
+        "Wrote %d LLM interventions to %s as scenario %s",
+        len(rows), path, scenario_id,
+    )
 
 
 def _run_simulation(scenario_id: str, repo_root: Path,
                     selected_ids: list = None) -> dict:
-    """
-    Run the deterministic simulation. Imported lazily to avoid a
-    circular import at module load time.
-    """
+    """Run the deterministic simulation. Imported lazily."""
     from ..simulation.engine import simulate_scenario
     try:
         return simulate_scenario(
@@ -543,21 +387,28 @@ def _run_simulation(scenario_id: str, repo_root: Path,
 # ------------------------------------------------------------------
 
 
-def _write_justification(intent: dict, proposal: dict, validation, simulation: dict,
-                         ds: TownshipDataSource, llm_client) -> dict:
+def _write_justification(
+    intent: dict,
+    proposal: dict,
+    validation,
+    simulation: dict,
+    sim_brief: dict,
+    llm_client,
+) -> dict:
     """
     Ask the LLM to write a justification grounded in the simulation
-    output. The LLM may add domain insight but must not invent numbers.
+    output.
     """
     prompt = _load_prompt("justification_writer.md")
-    sim_brief = _summarise_simulation(simulation)
 
     user_content = {
         "user_query": intent["question_text"],
         "objective": intent["objective"],
         "plan": validation.normalised_plan,
         "llm_reasoning_trace": proposal.get("reasoning_trace", ""),
-        "llm_expected_effects": _extract_expected_effects(validation.normalised_plan),
+        "llm_expected_effects": _extract_expected_effects(
+            validation.normalised_plan,
+        ),
         "validator_warnings": validation.warnings,
         "simulation_brief": sim_brief,
     }
@@ -566,15 +417,11 @@ def _write_justification(intent: dict, proposal: dict, validation, simulation: d
         result = llm_client.chat_json(
             messages=[
                 {"role": "system", "content": prompt},
-                {"role": "user", "content": json.dumps(user_content, default=str, indent=2)},
+                {"role": "user", "content": json.dumps(
+                    user_content, default=str, indent=2,
+                )},
             ],
-            schema_hint={
-                "summary": "str (≤80 words)",
-                "why_this_plan": "str",
-                "what_simulation_shows": "str",
-                "beyond_the_model": "str | null",
-                "recommendation": "str",
-            },
+            schema_hint=JUSTIFICATION_SCHEMA,
         )
     except Exception as e:
         log.warning("Justification failed: %s", e)
@@ -586,14 +433,13 @@ def _write_justification(intent: dict, proposal: dict, validation, simulation: d
     return result
 
 
-def _summarise_simulation(simulation: dict) -> dict:
-    """
-    Reduce a scenario result to the fields the LLM actually needs.
+# ------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------
 
-    Priority:
-      1. comparison.per_asset  (multi-asset format)
-      2. comparison.metrics    (legacy single-focus fallback)
-    """
+
+def _summarise_simulation(simulation: dict) -> dict:
+    """Reduce a scenario result to the fields the LLM actually needs."""
     if not simulation or simulation.get("error"):
         return {"error": (simulation or {}).get("error", "no simulation result")}
 
@@ -628,37 +474,35 @@ def _extract_expected_effects(plan: list) -> dict:
         if not raw:
             continue
         try:
-            out[item["asset_id"]] = json.loads(raw) if isinstance(raw, str) else raw
+            out[item["asset_id"]] = (
+                json.loads(raw) if isinstance(raw, str) else raw
+            )
         except (json.JSONDecodeError, TypeError):
             continue
     return out
 
 
-# ------------------------------------------------------------------
-# Validator feedback
-# ------------------------------------------------------------------
-
-
-def _append_validation_feedback(context: dict, validation) -> dict:
+def _summarise_context(context_pack: dict) -> dict:
     """
-    Return a new context dict with the validator's errors and warnings
-    stored under a key the proposal prompt can read.
+    Strip the heavy parts of the context pack before returning it in
+    the result dict. The full pack is useful for debugging but too
+    large to ship in every API response.
     """
-    new_context = dict(context)
-    new_context["validator_feedback"] = {
-        "errors": list(validation.errors),
-        "warnings": list(validation.warnings),
-        "note": (
-            "The previous plan was rejected. Revise the plan to address "
-            "each error. You may keep any part of the previous plan that "
-            "was not flagged."
+    targets = context_pack.get("targets", [])
+    return {
+        "target_count": len(targets),
+        "target_ids": [t["asset_id"] for t in targets],
+        "asset_classes": sorted(
+            set(t["identity"].get("asset_type") for t in targets
+                if t.get("identity"))
         ),
+        "objective": context_pack.get("objective"),
+        "constraints": context_pack.get("constraints"),
     }
-    return new_context
 
 
 # ------------------------------------------------------------------
-# Prompt and schema loading
+# Prompt loading
 # ------------------------------------------------------------------
 
 
@@ -668,29 +512,3 @@ def _load_prompt(name: str) -> str:
         log.warning("Prompt file missing: %s", path)
         return ""
     return path.read_text(encoding="utf-8")
-
-
-def _load_tools_schema() -> list:
-    if not TOOLS_SCHEMA_PATH.exists():
-        log.warning("tools_schema.json missing")
-        return []
-    with open(TOOLS_SCHEMA_PATH, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("tools", [])
-
-
-# ------------------------------------------------------------------
-# Utilities
-# ------------------------------------------------------------------
-
-
-def _summarise(outcome: dict) -> str:
-    """Very short summary of a tool result for the audit log."""
-    if not outcome.get("ok"):
-        return f"ERROR: {outcome.get('error')}"
-    r = outcome.get("result")
-    if isinstance(r, list):
-        return f"list[{len(r)}]"
-    if isinstance(r, dict):
-        return f"dict({len(r)} keys)"
-    return str(type(r).__name__)

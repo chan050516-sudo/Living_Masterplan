@@ -594,7 +594,15 @@ def simulate_scenario(
                 p = resolve_phase(year, intv)
                 if p == Phase.POST:
                     eff = apply_intervention(eff, intv)
-                    activated = intv
+                    # Phase 12c — only asset-level interventions count
+                    # as "activating" the asset for occupancy
+                    # re-convergence. Spatial interventions (pedestrian_
+                    # upgrade, green_corridor) modify the walking
+                    # network, not the asset's commercial purpose, so
+                    # they must not trigger a Huff re-evaluation.
+                    itype = intv.get("intervention_type")
+                    if itype not in ("pedestrian_upgrade", "green_corridor"):
+                        activated = intv
                 elif p == Phase.DURING:
                     status = intv.get("during_construction_status", "unavailable")
                     eff = apply_construction_state(eff, status)
