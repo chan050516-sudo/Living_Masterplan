@@ -122,20 +122,20 @@ PROPOSAL_SCHEMA = {
             "type": "STRING",
             "description": (
                 "Your strategic reasoning, up to 300 words. Walk through: "
-                "(a) what the diagnosis is telling you, (b) at least THREE "
-                "candidate interventions you considered, (c) the trade-off "
-                "that decided between them, (d) why the chosen plan is the "
-                "best fit for the user's objective."
+                "(a) what three capitals this asset consumes, "
+                "(b) what return it currently produces, "
+                "(c) the gap between them, "
+                "(d) at least THREE candidate interventions you considered, "
+                "(e) the trade-off that decided between them."
             ),
         },
         "alternatives_considered": {
             "type": "ARRAY",
             "description": (
                 "Two or three other interventions you seriously evaluated "
-                "and rejected. This is how the user sees your reasoning. "
-                "For each: what it was, and the specific reason you did "
-                "not choose it (cost, competition overlap, wrong "
-                "demographic, insufficient impact, etc.)."
+                "and rejected. For each: what it was, and the specific "
+                "reason you did not choose it (cost, competition overlap, "
+                "wrong demographic, insufficient impact, etc.)."
             ),
             "items": {
                 "type": "OBJECT",
@@ -168,8 +168,54 @@ PROPOSAL_SCHEMA = {
                     },
                     "parameters": PROPOSAL_PARAMETERS_SCHEMA,
                     "rationale": {"type": "STRING"},
+                    "investment_case": {
+                        "type": "OBJECT",
+                        "description": (
+                            "The explicit investment logic for this "
+                            "intervention. Every intervention consumes "
+                            "some combination of financial, environmental, "
+                            "and social capital. State what is spent and "
+                            "what is delivered."
+                        ),
+                        "properties": {
+                            "capital_invested": {
+                                "type": "STRING",
+                                "description": (
+                                    "What is spent: money, time, carbon, "
+                                    "land, disruption. Concrete, not vague."
+                                ),
+                            },
+                            "return_delivered": {
+                                "type": "STRING",
+                                "description": (
+                                    "What is returned: NOI improvement, "
+                                    "service coverage gain, carbon "
+                                    "reduction, jobs, equity. Must be "
+                                    "something the user can measure or "
+                                    "experience."
+                                ),
+                            },
+                            "strategic_rationale": {
+                                "type": "STRING",
+                                "description": (
+                                    "Why this trade-off is worth making "
+                                    "given the user's objective. One or "
+                                    "two sentences. Not a restatement of "
+                                    "the numbers — an argument."
+                                ),
+                            },
+                        },
+                        "required": [
+                            "capital_invested",
+                            "return_delivered",
+                            "strategic_rationale",
+                        ],
+                    },
                 },
-                "required": ["asset_id", "type", "parameters", "rationale"],
+                "required": [
+                    "asset_id", "type", "parameters",
+                    "rationale", "investment_case",
+                ],
             },
         },
     },

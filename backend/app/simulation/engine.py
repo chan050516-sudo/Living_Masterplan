@@ -192,6 +192,19 @@ _TYPE_EXCLUSIVE_FIELDS = {
 _ALL_TYPE_EXCLUSIVE_FIELDS = frozenset().union(*_TYPE_EXCLUSIVE_FIELDS.values())
 
 _DEMAND_CHANGE_THRESHOLD = 0.05
+# Absolute floor for the demand-change test.
+#
+# The relative threshold alone misfires on multi-year simulation gaps.
+# The simulation year list is non-uniform: 2027→2028 is 1 year,
+# 2030→2033 is 3 years. Population growth compounds across the gap,
+# so a 3-year step easily produces a +6% demand shift on every asset
+# — not because the market changed, but because the population grew.
+# That false positive triggers Huff re-convergence for every
+# commercial asset and collapses their occupancy.
+#
+# Require BOTH a relative change above the threshold AND an absolute
+# change of at least this many m².
+_DEMAND_CHANGE_ABSOLUTE_FLOOR_M2 = 100.0
 
 _SPATIAL_REFRESH_FIELDS = (
     "catchment_population_5min_walk",
@@ -685,13 +698,20 @@ def simulate_scenario(
                 if effective_type == "commercial":
                     curr_demand = huff_m2.get(aid)
                     prev_demand = year_demand_prev.get(aid)
+                    demand_delta_abs = (
+                        abs(float(curr_demand) - float(prev_demand))
+                        if (curr_demand is not None
+                            and prev_demand is not None)
+                        else 0.0
+                    )
                     demand_changed = (
                         prev_demand is not None
                         and curr_demand is not None
                         and float(prev_demand) > 0
                         and abs(float(curr_demand) - float(prev_demand))
                             / float(prev_demand) > _DEMAND_CHANGE_THRESHOLD
-                    )
+                        and demand_delta_abs > _DEMAND_CHANGE_ABSOLUTE_FLOOR_M2
+                    )                  
 
                     if (activated is None
                             and not demand_changed

@@ -72,10 +72,25 @@ def main():
     print("\n--- Proposal ---")
     proposal = result.get("proposal") or {}
     trace = proposal.get("reasoning_trace", "")
-    print(f"  reasoning_trace: {trace[:300]}...")
+    print(f"  reasoning_trace: {trace[:600]}...")
+
+    alts = proposal.get("alternatives_considered", [])
+    if alts:
+        print(f"\n  Alternatives considered ({len(alts)}):")
+        for a in alts:
+            print(f"    {a.get('asset_id')} -> {a.get('type')}")
+            print(f"      summary:  {a.get('summary', '')[:100]}")
+            print(f"      rejected: {a.get('rejected_because', '')[:120]}")
+
+    print("\n  Final plan:")
     for item in proposal.get("plan", []):
-        print(f"  {item.get('asset_id')} -> {item.get('type')} "
-              f"params={item.get('parameters')}")
+        print(f"\n    {item.get('asset_id')} -> {item.get('type')}")
+        print(f"      params:  {item.get('parameters')}")
+        ic = item.get("investment_case") or {}
+        if ic:
+            print(f"      invest:  {ic.get('capital_invested', '')[:120]}")
+            print(f"      return:  {ic.get('return_delivered', '')[:120]}")
+            print(f"      why:     {ic.get('strategic_rationale', '')[:150]}")
 
     print("\n--- Validation ---")
     v = result.get("validation") or {}

@@ -406,6 +406,10 @@ def _write_justification(
         "objective": intent["objective"],
         "plan": validation.normalised_plan,
         "llm_reasoning_trace": proposal.get("reasoning_trace", ""),
+        "alternatives_considered": proposal.get("alternatives_considered", []),
+        "investment_cases": _extract_investment_cases(
+            proposal.get("plan", []),
+        ),
         "llm_expected_effects": _extract_expected_effects(
             validation.normalised_plan,
         ),
@@ -479,6 +483,19 @@ def _extract_expected_effects(plan: list) -> dict:
             )
         except (json.JSONDecodeError, TypeError):
             continue
+    return out
+
+
+def _extract_investment_cases(plan: list) -> dict:
+    """Pull the investment_case block out of each plan item so the
+    justification writer can reference it directly. Returns
+    {asset_id: investment_case}."""
+    out = {}
+    for item in plan or []:
+        aid = item.get("asset_id")
+        ic = item.get("investment_case")
+        if aid and isinstance(ic, dict):
+            out[aid] = ic
     return out
 
 
