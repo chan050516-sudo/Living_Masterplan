@@ -537,15 +537,25 @@ def _write_interventions(ds, scenario_id, plan):
 
     rows = []
     for i, item in enumerate(plan, start=1):
+        # Phase 14 — stow capacity_ratio in parameters_json so the
+        # engine can read it back without a schema change. This is
+        # how the DURING phase of a construction learns how much
+        # usable capacity to assume.
+        params = dict(item.get("parameters") or {})
+        if "capacity_ratio" in item and item["capacity_ratio"] is not None:
+            params["_capacity_ratio"] = item["capacity_ratio"]
+
         rows.append({
             "scenario_id": scenario_id,
             "intervention_id": f"INT-LLM-{i:03d}",
             "target_asset_id": item["asset_id"],
             "intervention_type": item["intervention_type"],
-            "parameters_json": json.dumps(item.get("parameters") or {}),
+            "parameters_json": json.dumps(params),
             "expected_derived_json": item.get("expected_derived_json"),
             "expected_source": (
-                "llm_estimate" if item.get("expected_derived_json") else None
+                "llm_estimate"
+                if item.get("expected_derived_json")
+                else None
             ),
             "construction_start_year": item["construction_start_year"],
             "construction_duration_months": item["construction_duration_months"],
@@ -556,7 +566,7 @@ def _write_interventions(ds, scenario_id, plan):
             "validation_status": "pending",
             "status": "simulated",
         })
-
+        
     new_df = pd.DataFrame(rows)
     if path.exists() and path.stat().st_size > 0:
         existing = pd.read_csv(path)

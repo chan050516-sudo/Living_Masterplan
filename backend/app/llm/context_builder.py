@@ -19,6 +19,10 @@ Design principles:
 import logging
 import math
 
+from ..deadspace.layer3 import (
+    classify_by_authority,
+    default_authority_for,
+)
 from .tool_service import (
     get_asset_state,
     get_asset_evidence,
@@ -139,6 +143,14 @@ def _build_target_block(asset_id: str, ds) -> dict:
         get_development_candidates(ds, parcel_id) if parcel_id else []
     )
 
+    # Phase 14 — execution authority.
+    authority_level = _resolve_authority(ds, asset_id)
+    asset_type = state.get("identity", {}).get("asset_type") or ""
+    authority_block = {
+        "level": authority_level,
+        **_authority_split(asset_type, authority_level),
+    }
+
     return {
         "asset_id": asset_id,
         "identity": state.get("identity", {}),
@@ -160,6 +172,7 @@ def _build_target_block(asset_id: str, ds) -> dict:
         "population": _drop_none(population),
         "nearby_800m": nearby_filtered,
         "development_candidates": candidates,
+        "authority": authority_block,
     }
 
 
@@ -229,4 +242,64 @@ def _drop_none(d: dict) -> dict:
     return {
         k: v for k, v in d.items()
         if v is not None and not (isinstance(v, float) and math.isnan(v))
+    }
+
+
+def _resolve_authority(ds, asset_id: str) -> str:
+    """
+    Look up the execution authority level of an asset.
+
+    Resolution order:
+      1. The `authority` column on the asset row.
+      2. A default inferred from the asset type.
+      3. "advisory" as the safest fallback.
+    """
+    row = ds._asset_row(asset_id)
+    if row is None:
+        return "advisory"
+    raw = row.get("authority")
+    if isinstance(raw, str) and raw.strip():
+        return raw.strip()
+    asset_type = row.get("asset_type")
+    if isinstance(asset_type, str):
+        return default_authority_for(asset_type)
+    return "advisory"
+
+
+def _authority_split(asset_type: str, authority_level: str) -> dict:
+    """
+    Expand an authority level into the three execution buckets the
+    LLM needs to see. Includes a short human-readable note so the
+    LLM understands why some actions cannot be executed.
+    """
+    split = classify_by_authority(asset_type, authority_level)
+
+    if authority_level == "full_control":
+        note = (
+            "The developer owns this asset outright. Every legal "
+            "intervention is executable without external approval."
+        )
+    elif authority_level == "shared":
+        note = (
+            "This asset is strata-titled. Internal upgrades "
+            "(retrofit) are normally executable by the lot owner, "
+            "but structural changes (repurpose, new_development) "
+            "require the owners corporation (JMB / MC) to approve. "
+            "Propose them, but the validator will mark them as "
+            "requires_approval."
+        )
+    else:
+        note = (
+            "This asset has been transferred to a public authority. "
+            "The developer has no execution power. Every proposal is "
+            "a recommendation, not a commitment. Use role phrasing "
+            "such as 'recommend the responsible authority to...' in "
+            "the rationale."
+        )
+
+    return {
+        "executable": split["executable"],
+        "requires_approval": split["requires_approval"],
+        "recommendation_only": split["recommendation_only"],
+        "note": note,
     }

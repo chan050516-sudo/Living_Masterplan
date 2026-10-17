@@ -87,14 +87,37 @@ time_to_impact_months:
   delay_development:    0
   interim_solar_farm:   6          # NEW
 
+# Phase 14 (2026-10-17):
+# every construction default now carries a capacity_ratio — the
+# fraction of the asset's physical capacity that remains operational
+# while construction is in progress.
+#
+# The construction phase of an intervention does NOT reduce
+# occupancy. Existing residents and tenants remain on record; they
+# may be temporarily displaced from part of the building, but the
+# fraction of people who still intend to use the asset is a property
+# of the people, not the physical shell.
+#
+# The model represents this as two independent fields:
+#   - occupancy_rate / utilisation_rate   — how many people use the asset
+#   - operational_capacity_ratio          — how much of the asset is usable
+#
+# Effective utilisation during construction is
+# min(occupancy, operational_capacity_ratio).
+#
+# The specific ratio per intervention type reflects:
+#   - repurpose / new_development: shell is fully rebuilt, 0% usable
+#   - retrofit: partial shutdown, ~60% usable
+#   - pedestrian_upgrade / green_corridor: acts on the network, the
+#     asset itself is fully usable
 construction_defaults:
-  repurpose:            { start_offset: 1, duration_months: 18, during_status: "unavailable" }
-  retrofit:             { start_offset: 0, duration_months: 12, during_status: "partial" }
-  green_corridor:       { start_offset: 0, duration_months: 12, during_status: "operational" }
-  pedestrian_upgrade:   { start_offset: 0, duration_months: 6,  during_status: "partial" }
-  new_development:      { start_offset: 0, duration_months: 36, during_status: "unavailable" }
-  delay_development:    { start_offset: 0, duration_months: 0,  during_status: "operational" }
-  interim_solar_farm:   { start_offset: 0, duration_months: 6,  during_status: "operational" }
+  repurpose:            { start_offset: 1, duration_months: 18, during_status: "unavailable", capacity_ratio: 0.00 }
+  retrofit:             { start_offset: 0, duration_months: 12, during_status: "partial",     capacity_ratio: 0.60 }
+  green_corridor:       { start_offset: 0, duration_months: 12, during_status: "operational", capacity_ratio: 1.00 }
+  pedestrian_upgrade:   { start_offset: 0, duration_months: 6,  during_status: "partial",     capacity_ratio: 1.00 }
+  new_development:      { start_offset: 0, duration_months: 36, during_status: "unavailable", capacity_ratio: 0.00 }
+  delay_development:    { start_offset: 0, duration_months: 0,  during_status: "operational", capacity_ratio: 1.00 }
+  interim_solar_farm:   { start_offset: 0, duration_months: 6,  during_status: "operational", capacity_ratio: 1.00 }
 
 accessibility:
   walking_speed_m_per_min: 80

@@ -377,8 +377,15 @@ def amenity_to_asset_row(row, index: int) -> dict:
         "maintenance_annual_rm": round(maintenance, 2),
         "capacity": capacity,
         "data_completeness": 0.85 if pd.notna(b_id) else 0.70,
-        "data_sources": ("osm_amenity;building_linked;derived"
-                         if pd.notna(b_id) else "osm_amenity;derived"),
+        "data_sources": (
+            "osm_amenity;building_linked;derived"
+            if pd.notna(b_id) else "osm_amenity;derived"
+        ),
+        # Phase 14 — execution authority. Amenity-derived assets are
+        # split by asset_type: commercial amenity (food_beverage,
+        # finance, retail) stays full_control; community_facility
+        # amenities (school, clinic, etc.) are advisory.
+        "authority": _AUTHORITY_BY_ASSET_TYPE.get(asset_type, "advisory"),
     }
 
 
@@ -461,6 +468,15 @@ TARGET_DEMOGRAPHIC_BY_SUBTYPE = {
     "place_of_worship":   "all",
     "public_service":     "all",
     "sports_centre":      "young_adults",
+}
+
+# Phase 14 — execution authority per asset type.
+_AUTHORITY_BY_ASSET_TYPE = {
+    "commercial":          "full_control",
+    "residential":         "shared",
+    "community_facility":  "advisory",
+    "green_space":         "advisory",
+    "undeveloped_parcel":  "full_control",
 }
 
 
@@ -806,6 +822,10 @@ def derive_asset_row(record: dict, atype: str, index: int) -> dict:
         "capacity": capacity,
         "data_completeness": 0.75,
         "data_sources": "osm;derived",
+        # Phase 14 — execution authority. Community facilities and
+        # green spaces are assumed to have been transferred to the
+        # local authority; the developer retains advisory rights only.
+        "authority": _AUTHORITY_BY_ASSET_TYPE.get(atype, "advisory"),
     }
 
 

@@ -275,3 +275,149 @@ JUSTIFICATION_SCHEMA = {
         "what_simulation_shows", "recommendation",
     ],
 }
+
+
+# ------------------------------------------------------------------
+# Catalytic link — structured causal claim
+# ------------------------------------------------------------------
+# Phase 15 (2026-10-17): a catalytic intervention acts on one asset
+# (acting_on) to benefit another (beneficiary). Every catalytic link
+# carries a mechanism and a verification_level. The verification
+# level is set by the LLM to reflect what the deterministic
+# simulation can actually measure:
+#
+#   verified           — B4 re-computes the beneficiary's metric and
+#                        the delta is visible in comparison.per_asset
+#   partially_verified — B4 measures a proxy, but the causal step to
+#                        the beneficiary requires assumptions
+#   claimed            — B4 cannot measure the effect; the
+#                        intervention is offered as an informed
+#                        hypothesis, not a simulated outcome
+#
+# The validator enforces the following caps:
+#
+#   walkability_improvement  → may be verified
+#   catchment_growth         → may be verified (if the delivering
+#                              intervention is new_development)
+#   competition_relief       → may be partially_verified
+#   complementary_use        → may be claimed only
+#   footfall_injection       → may be claimed only
+#
+# An LLM that labels a footfall_injection as "verified" is claiming
+# more than the simulation can support; the validator downgrades it
+# to "claimed" and records a warning.
+
+CATALYTIC_LINK_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "acting_on_asset_id": {
+            "type": "STRING",
+            "description": (
+                "The asset the intervention physically acts on. "
+                "For a catalytic intervention this is NOT the "
+                "beneficiary."
+            ),
+        },
+        "beneficiary_asset_id": {
+            "type": "STRING",
+            "description": (
+                "The target asset this catalytic intervention is "
+                "intended to benefit. MUST be one of "
+                "context_pack.targets."
+            ),
+        },
+        "mechanism": {
+            "type": "STRING",
+            "enum": [
+                "walkability_improvement",
+                "catchment_growth",
+                "competition_relief",
+                "complementary_use",
+                "footfall_injection",
+            ],
+            "description": (
+                "walkability_improvement — spatial intervention that "
+                "raises the beneficiary's walking coverage\n"
+                "catchment_growth        — new residents within the "
+                "beneficiary's walking catchment raise demand\n"
+                "competition_relief      — reduces direct competitive "
+                "pressure on the beneficiary's subtype pool\n"
+                "complementary_use       — a nearby use attracts "
+                "customers who also consume at the beneficiary\n"
+                "footfall_injection      — an anchor use draws "
+                "visitors to the area"
+            ),
+        },
+        "verification_level": {
+            "type": "STRING",
+            "enum": ["verified", "partially_verified", "claimed"],
+            "description": (
+                "How much of this causal chain the simulation can "
+                "actually measure. See the vocabulary at the top of "
+                "the prompt. Do not overclaim: if B4 cannot compute "
+                "the delta, use 'claimed'."
+            ),
+        },
+        "explanation": {
+            "type": "STRING",
+            "description": (
+                "One sentence describing the causal chain from the "
+                "intervention to the beneficiary. Must be concrete: "
+                "name the quantity that changes, not just the hope."
+            ),
+        },
+    },
+    "required": [
+        "acting_on_asset_id",
+        "beneficiary_asset_id",
+        "mechanism",
+        "verification_level",
+        "explanation",
+    ],
+}
+
+
+_PLAN_ITEM_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "asset_id": {"type": "STRING"},
+        "type": {
+            "type": "STRING",
+            "enum": [
+                "repurpose",
+                "retrofit",
+                "green_corridor",
+                "pedestrian_upgrade",
+                "new_development",
+                "delay_development",
+                "interim_solar_farm",
+            ],
+        },
+        "role": {
+            "type": "STRING",
+            "enum": ["primary", "catalytic"],
+            "description": (
+                "primary   — acts on a target asset.\n"
+                "catalytic — acts on a nearby asset or the network "
+                "to benefit a target. Requires `catalytic_link`."
+            ),
+        },
+        "catalytic_link": CATALYTIC_LINK_SCHEMA,
+        "parameters": PROPOSAL_PARAMETERS_SCHEMA,
+        "rationale": {"type": "STRING"},
+        "investment_case": {
+            "type": "OBJECT",
+            "properties": {
+                "capital_invested": {"type": "STRING"},
+                "return_delivered": {"type": "STRING"},
+                "strategic_rationale": {"type": "STRING"},
+            },
+            "required": [
+                "capital_invested",
+                "return_delivered",
+                "strategic_rationale",
+            ],
+        },
+    },
+    "required": ["asset_id", "type", "role", "parameters", "rationale"],
+}

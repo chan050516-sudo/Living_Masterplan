@@ -728,23 +728,25 @@ def simulate_scenario(
                 p = resolve_phase(year, intv)
                 if p == Phase.POST:
                     eff = apply_intervention(eff, intv)
-                    # Phase 12d — only `repurpose` changes the asset's
-                    # purpose and therefore its Huff-derived occupancy
-                    # target. `retrofit` upgrades systems but does not
-                    # change who uses the building. Spatial
-                    # interventions modify the walking network, not the
-                    # asset. `new_development` and `delay_development`
-                    # are handled by the supply model, not per-asset.
-                    #
-                    # Consequence: a retrofit will NOT magically
-                    # re-occupy a vacant asset. The occupancy stays at
-                    # its previous value; only energy and carbon change.
                     itype = intv.get("intervention_type")
                     if itype == "repurpose":
                         activated = intv
                 elif p == Phase.DURING:
                     status = intv.get("during_construction_status", "unavailable")
-                    eff = apply_construction_state(eff, status)
+                    # Phase 14 — read the capacity_ratio the validator
+                    # stashed in parameters_json. Falls back to None
+                    # so apply_construction_state keeps whatever the
+                    # engine can infer from `status` alone.
+                    capacity_ratio = None
+                    try:
+                        _p = json.loads(intv.get("parameters_json") or "{}")
+                        if "_capacity_ratio" in _p:
+                            capacity_ratio = float(_p["_capacity_ratio"])
+                    except (json.JSONDecodeError, TypeError, ValueError):
+                        pass
+                    eff = apply_construction_state(
+                        eff, status, capacity_ratio,
+                    )
             effective_assets[aid] = eff
             activated_interventions[aid] = activated
 
@@ -812,7 +814,27 @@ def simulate_scenario(
             prev_occ = occupancy_prev.get(aid, 0.6)
 
             # ---- Target occupancy ----
-            if construction_status == "unavailable":
+            # Phase 14 — capacity_ratio replaces the automatic
+            # occupancy=0. Construction reduces usable capacity, not
+            # the number of people who live or work in the asset.
+            capacity_ratio = eff.get("_capacity_ratio")
+            if not _is_valid_number(capacity_ratio):
+                if construction_status == "unavailable":
+                    capacity_ratio = 0.0
+                elif construction_status == "partial":
+                    capacity_ratio = 0.60
+                else:
+                    capacity_ratio = 1.0
+            try:
+                capacity_ratio = max(0.0, min(1.0, float(capacity_ratio)))
+            except (TypeError, ValueError):
+                capacity_ratio = 1.0
+
+            # ---- Target occupancy ----
+            if capacity_ratio == 0.0:
+                # Fully unavailable: no usable area this year.
+                # The tenants/residents remain on record, but the
+                # asset provides no serviced capacity in this period.
                 new_occ = 0.0
                 new_util = 0.0
             else:
@@ -1133,6 +1155,7 @@ def simulate_scenario(
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
             metric_row["surface_temp_delta_c"] = uhi
             metric_row["canopy_coverage"] = canopy_from_b3
+            metric_row["operational_capacity_ratio"] = capacity_ratio
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -1141,7 +1164,15 @@ def simulate_scenario(
                 mt = float(eff.get("maintenance_annual_rm") or 0)
                 cap = float(eff.get("capacity") or 0)
                 util = float(metric_row.get("utilisation_rate") or 0)
-                annual_users = util * cap * 365 if cap > 0 else 0
+                # Phase 14 — effective service bounded by capacity.
+                # During construction the asset can only serve
+                # min(utilisation, capacity_ratio) of its nominal
+                # capacity.
+                if capacity_ratio < 1.0:
+                    effective_util = min(util, capacity_ratio)
+                else:
+                    effective_util = util
+                annual_users = effective_util * cap * 365 if cap > 0 else 0
                 metric_row["cost_per_user_rm"] = (
                     (op + mt) / annual_users if annual_users > 0 else None
                 )
@@ -1413,6 +1444,7 @@ _COMPARISON_METRICS = [
     ("embodied_carbon_amortised_tco2e", "tCO2e/yr"),
     ("maintenance_carbon_tco2e", "tCO2e/yr"),
     ("surface_temp_delta_c", "Celsius"),
+    ("operational_capacity_ratio", "ratio"),
 ]
 
 

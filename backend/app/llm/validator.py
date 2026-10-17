@@ -24,7 +24,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from ..taxonomy import get_subtype
-from ..deadspace.layer3 import ACTION_SPACE
+from ..deadspace.layer3 import (
+    ACTION_SPACE,
+    HARD_ACTIONS,
+    default_authority_for,
+)
 
 log = logging.getLogger(__name__)
 
@@ -192,14 +196,13 @@ class ValidationResult:
 # assumptions.yml: construction_defaults. Used when the LLM does not
 # specify timing.
 DEFAULT_TIMING = {
-    "repurpose":         {"start_offset": 1, "duration_months": 18, "during": "unavailable"},
-    "retrofit":          {"start_offset": 0, "duration_months": 12, "during": "partial"},
-    "green_corridor":    {"start_offset": 0, "duration_months": 12, "during": "operational"},
-    "pedestrian_upgrade":{"start_offset": 0, "duration_months": 6,  "during": "partial"},
-    "new_development":   {"start_offset": 0, "duration_months": 36, "during": "unavailable"},
-    "delay_development": {"start_offset": 0, "duration_months": 0,  "during": "operational"},
-    # Phase 11
-    "interim_solar_farm":{"start_offset": 0, "duration_months": 6,  "during": "operational"},
+    "repurpose":          {"start_offset": 1, "duration_months": 18, "during": "unavailable", "capacity_ratio": 0.00},
+    "retrofit":           {"start_offset": 0, "duration_months": 12, "during": "partial",     "capacity_ratio": 0.60},
+    "green_corridor":     {"start_offset": 0, "duration_months": 12, "during": "operational", "capacity_ratio": 1.00},
+    "pedestrian_upgrade": {"start_offset": 0, "duration_months": 6,  "during": "partial",     "capacity_ratio": 1.00},
+    "new_development":    {"start_offset": 0, "duration_months": 36, "during": "unavailable", "capacity_ratio": 0.00},
+    "delay_development":  {"start_offset": 0, "duration_months": 0,  "during": "operational", "capacity_ratio": 1.00},
+    "interim_solar_farm": {"start_offset": 0, "duration_months": 6,  "during": "operational", "capacity_ratio": 1.00},
 }
 
 
@@ -330,6 +333,31 @@ class ProposalValidator:
                     f"'{to_subtype}' — no-op."
                 )
 
+        # Phase 14 — authority check.
+        # Hard actions on a shared or advisory asset are not directly
+        # executable by the developer. This is not a legality error
+        # (the intervention is architecturally legal), but it is a
+        # feasibility constraint the plan must acknowledge.
+        authority = self._authority_for(asset_row)
+        if itype in HARD_ACTIONS and authority != "full_control":
+            if authority == "shared":
+                warnings.append(
+                    f"{asset_id}: '{itype}' on a strata-titled asset "
+                    f"requires owners corporation (JMB / MC) approval. "
+                    f"The plan is marked as 'requires_approval'; the "
+                    f"rationale should state this precondition."
+                )
+            else:  # advisory
+                warnings.append(
+                    f"{asset_id}: '{itype}' cannot be executed by this "
+                    f"actor — the asset is under advisory authority. "
+                    f"The plan is marked as 'recommendation_only'; the "
+                    f"rationale should be phrased as a recommendation "
+                    f"to the responsible authority."
+                )
+
+        # Retrofit: measures must be declared and legal.
+
         # Retrofit: measures must be declared and legal.
         if itype == "retrofit":
             measures = params.get("measures")
@@ -433,6 +461,17 @@ class ProposalValidator:
         expected = item.get("expected_effects") or {}
         expected_json = self._normalise_expected(expected)
 
+        # Phase 14 — derive the execution status from authority +
+        # intervention type.
+        if itype not in HARD_ACTIONS:
+            execution_status = "executable"
+        elif authority == "full_control":
+            execution_status = "executable"
+        elif authority == "shared":
+            execution_status = "requires_approval"
+        else:
+            execution_status = "recommendation_only"
+
         normalised_item = {
             "asset_id": asset_id,
             "intervention_type": itype,
@@ -442,6 +481,9 @@ class ProposalValidator:
             "construction_duration_months": duration,
             "activation_year": activation_year,
             "during_construction_status": timing["during"],
+            "capacity_ratio": timing.get("capacity_ratio", 1.0),
+            "execution_status": execution_status,
+            "authority": authority,
             "capex_delta_rm": capex,
             "opex_delta_rm": opex_delta,
         }
@@ -712,6 +754,21 @@ class ProposalValidator:
             if d <= radius_m:
                 results.append({"asset_id": row["asset_id"], "distance_m": round(d, 1)})
         return results
+
+    def _authority_for(asset_row: dict) -> str:
+        """
+        Look up an asset's execution authority from its row, falling back
+        to a default inferred from the asset type.
+        """
+        if not isinstance(asset_row, dict):
+            return "advisory"
+        raw = asset_row.get("authority")
+        if isinstance(raw, str) and raw.strip():
+            return raw.strip()
+        atype = asset_row.get("asset_type")
+        if isinstance(atype, str):
+            return default_authority_for(atype)
+        return "advisory"
 
 # ------------------------------------------------------------------
 # Utilities

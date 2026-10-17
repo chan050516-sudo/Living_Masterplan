@@ -176,9 +176,40 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
         asset["_energy_efficiency_multiplier"] = 1.0 - gain
 
 
-def apply_construction_state(asset: dict, status: str) -> dict:
+def apply_construction_state(
+    asset: dict,
+    status: str,
+    capacity_ratio: float = None,
+) -> dict:
+    """
+    Marks the asset as under construction.
+
+    This function does NOT modify occupancy. During construction the
+    asset's operational capacity shrinks; the existing occupants do
+    not disappear. The engine uses `_capacity_ratio` to constrain the
+    effective service the asset can provide, while occupancy is
+    tracked independently.
+
+    Parameters
+    ----------
+    asset : dict
+        The asset dict to clone and mark.
+    status : str
+        "unavailable" / "partial" / "operational".
+    capacity_ratio : float | None
+        Fraction of physical capacity usable during construction.
+        When None, the caller has not supplied a value and the
+        engine falls back to a status-only default (0.0 / 0.6 / 1.0).
+    """
     new_asset = dict(asset)
     new_asset["_construction_status"] = status
+    if capacity_ratio is not None:
+        try:
+            new_asset["_capacity_ratio"] = max(
+                0.0, min(1.0, float(capacity_ratio))
+            )
+        except (TypeError, ValueError):
+            pass
     return new_asset
 
 
