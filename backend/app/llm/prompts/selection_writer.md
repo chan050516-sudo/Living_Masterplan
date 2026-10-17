@@ -18,6 +18,31 @@ The user message contains:
         - `township_metrics` — township-scale figures
         - `map_diff` — which assets were changed
 
+## Catalytic effect score
+
+Each candidate carries `catalytic_effect_total` — a single number
+summarising the magnitude of its catalytic claims, weighted by how
+well the simulation can verify them:
+
+  effect_score = (primary_delta_pct * 0.6 + secondary_delta_pct * 0.4)
+                 * verification_weight
+
+  verification_weight: verified = 1.0, partially_verified = 0.5,
+                       claimed = 0.1
+
+A higher score means stronger catalytic effect with stronger
+verification. A claimed intervention with a large nominal delta
+scores low because the simulation cannot measure it.
+
+Use this as a tiebreaker, not as the primary filter. The primary
+filter remains the objective alignment (carbon / NOI / coverage).
+When two candidates hit the objective at similar strength, pick
+the one with the higher `catalytic_effect_total`.
+
+Per-item evidence is in `simulation_brief.catalytic_evidence`.
+When you cite a catalytic intervention in your reasoning, quote
+its specific primary metric delta, not the score alone.
+
 ## How to decide
 
 Read the simulation briefs, not the plans. The numbers decide.

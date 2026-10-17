@@ -115,6 +115,50 @@ Each plan item carries `parameters.design_notes` and an
 - In `what_simulation_shows`: for retrofit, name the specific
   `measures` applied.
 
+## Trajectory and lease — use them
+
+The `simulation_brief.per_asset_metrics` moves the numbers, but the
+narrative is what makes the numbers meaningful. Two rules:
+
+**Reference the trajectory when explaining "why now."**
+
+Bad: "The asset had low occupancy, so the retrofit reduces energy
+cost." (true for every underperforming asset)
+
+Good: "The asset is in rapid decline — from 82% peak two years ago
+to 45% today. The retrofit arrests the fall by removing the
+operational cost that was driving the tenant out. A stable asset
+in the same condition would receive a slower intervention."
+
+**Reference the lease when explaining "why this year."**
+
+Bad: "Construction begins in 2031." (a date with no reason)
+
+Good: "Construction begins in 2031, the year the anchor tenant's
+lease expires. Starting earlier would force an eviction; starting
+later loses a full cycle."
+
+When the simulation shows a carbon drop that begins in year Y, and
+a lease expires in year Y, say so explicitly. The reader wants to
+understand the timing.
+
+## Catalytic evidence — be precise
+
+`simulation_brief.catalytic_evidence` carries a structured block
+for every catalytic plan item. For each:
+
+- Name the acting asset and the beneficiary.
+- State the mechanism and the `verification_level`.
+- Quote the primary metric change: "reachable population rises
+  from 1192 to 2015, a 69% increase" — not "the project helps."
+- If `secondary` is present (catchment_growth), quote it too.
+- State what the simulation did NOT measure when the level is
+  `partially_verified` or `claimed`.
+
+Do NOT say a catalytic intervention "works" when its level is
+`claimed`. Say "the simulation cannot measure this effect; the
+mechanism is offered as an informed hypothesis."
+
 ## Numerical discipline
 
 - `simulation_brief.aggregate.carbon_delta_pct` covers selected

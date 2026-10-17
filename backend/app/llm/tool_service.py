@@ -56,6 +56,14 @@ class TownshipDataSource:
         self.candidates = self._read_optional(base / "business" / "development_candidates.csv")
         self.interventions = self._read_optional(base / "business" / "interventions.csv")
         self.deadspace = self._load_deadspace(base / "business" / f"deadspace_{year}.json")
+        # Phase E — lease schedule. Loaded once. Empty DataFrame when
+        # the file is absent.
+        lease_path = base / "business" / "asset_leases.csv"
+        self.leases = (
+            pd.read_csv(lease_path)
+            if lease_path.exists() and lease_path.stat().st_size > 0
+            else pd.DataFrame()
+        )
 
         # Lazy-loaded spatial caches.
         self._parcels_gdf = None
@@ -399,6 +407,83 @@ def get_action_space(ds: TownshipDataSource, asset_type: str) -> list:
     return list(ACTION_SPACE.get(asset_type, []))
 
 
+def get_lease_schedule(ds: TownshipDataSource, asset_id: str) -> dict:
+    """
+    Return the asset's lease schedule.
+
+    Only meaningful for commercial assets with a unit_mix. Returns
+    `{total_leases, next_expiry_year, anchor_lease, expiry_calendar}`,
+    or `{note}` when the asset has no leases.
+    """
+    if ds.leases is None or ds.leases.empty:
+        return {"asset_id": asset_id, "note": "no lease records"}
+    m = ds.leases[ds.leases["asset_id"] == asset_id]
+    if m.empty:
+        return {"asset_id": asset_id, "note": "no lease records for asset"}
+
+    active = m[m["lease_status"] == "active"]
+    ends = active["lease_end_year"].dropna()
+    next_end = None
+    if not ends.empty:
+        try:
+            next_end = int(ends.min())
+        except (TypeError, ValueError):
+            pass
+
+    anchor = active[active["tenant_type"] == "anchor"]
+    anchor_block = None
+    if not anchor.empty:
+        a = anchor.iloc[0]
+        anchor_block = {
+            "floor_area_m2": _nan_to_none(a.get("floor_area_m2")),
+            "end_year": _nan_to_none(a.get("lease_end_year")),
+        }
+
+    calendar = {}
+    for _, lease in active.iterrows():
+        yr = lease.get("lease_end_year")
+        if yr is None:
+            continue
+        try:
+            yr_int = int(yr)
+        except (TypeError, ValueError):
+            continue
+        calendar[str(yr_int)] = calendar.get(str(yr_int), 0) + 1
+
+    return {
+        "asset_id": asset_id,
+        "total_leases": int(len(m)),
+        "next_expiry_year": next_end,
+        "anchor_lease": anchor_block,
+        "expiry_calendar": calendar,
+    }
+
+
+def get_asset_trajectory(ds: TownshipDataSource, asset_id: str) -> dict:
+    """
+    Return the asset's five-year trajectory features.
+
+    Empty dict when the trajectory is unknown (non-time-series types).
+    """
+    m = ds._metric_row(asset_id, ds.year) or {}
+    tclass = m.get("trajectory_class")
+    if not tclass or tclass == "unknown":
+        return {"asset_id": asset_id, "trajectory_class": "unknown"}
+
+    def _f(v):
+        return _nan_to_none(v)
+
+    return {
+        "asset_id": asset_id,
+        "trajectory_class": tclass,
+        "peak_occupancy": _f(m.get("peak_occupancy")),
+        "years_since_peak": _f(m.get("years_since_peak")),
+        "occupancy_trend_3yr": _f(m.get("occupancy_trend_3yr")),
+        "years_below_benchmark": _f(m.get("years_below_benchmark")),
+        "vacancy_streak_months": _f(m.get("vacancy_streak_months")),
+    }
+
+
 # ------------------------------------------------------------------
 # Dispatch table
 # ------------------------------------------------------------------
@@ -419,6 +504,8 @@ TOOL_DISPATCH = {
     "get_assumptions_slice":     lambda ds, a: get_assumptions_slice(ds, a.get("keys", [])),
     "get_interventions_history": lambda ds, a: get_interventions_history(ds, a["asset_id"]),
     "get_action_space":          lambda ds, a: get_action_space(ds, a["asset_type"]),
+    "get_lease_schedule":        lambda ds, a: get_lease_schedule(ds, a["asset_id"]),
+    "get_asset_trajectory":      lambda ds, a: get_asset_trajectory(ds, a["asset_id"]),
 }
 
 

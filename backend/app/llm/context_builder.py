@@ -18,6 +18,7 @@ Design principles:
 
 import logging
 import math
+import json
 
 from ..deadspace.layer3 import (
     classify_by_authority,
@@ -177,6 +178,10 @@ def _build_target_block(asset_id: str, ds) -> dict:
         "population": _drop_none(population),
         "nearby_800m": nearby_filtered,
         "development_candidates": candidates,
+        # Phase E — structured decision inputs
+        "trajectory": _build_trajectory_block(ds, asset_id),
+        "lease_schedule": _build_lease_schedule(ds, asset_id),
+        "subtype_mix": _build_subtype_mix(ds, asset_id),
         "authority": authority_block,
     }
 
@@ -399,3 +404,196 @@ def _catalytic_vocabulary() -> dict:
             "max_verification": "claimed",
         },
     }
+
+
+# ------------------------------------------------------------------
+# Phase E — structured decision inputs
+# ------------------------------------------------------------------
+
+
+def _build_trajectory_block(ds, asset_id: str) -> dict:
+    """
+    Structured view of the asset's five-year trajectory.
+
+    The evidence block already summarises the trajectory as prose.
+    This block carries the numeric fields the LLM needs to reason
+    quantitatively about the asset's direction, not just read a
+    sentence about it.
+
+    Returns None when the trajectory is "unknown" (green_space,
+    undeveloped_parcel, and any asset B3 could not classify) — the
+    LLM sees a null and reasons accordingly.
+    """
+    m = ds._metric_row(asset_id, ds.year) or {}
+    tclass = m.get("trajectory_class")
+    if not tclass or tclass == "unknown":
+        return None
+
+    def _f(v):
+        try:
+            if v is None:
+                return None
+            f = float(v)
+            if math.isnan(f):
+                return None
+            return round(f, 4)
+        except (TypeError, ValueError):
+            return None
+
+    return {
+        "trajectory_class": tclass,
+        "peak_occupancy": _f(m.get("peak_occupancy")),
+        "years_since_peak": _f(m.get("years_since_peak")),
+        "occupancy_trend_3yr": _f(m.get("occupancy_trend_3yr")),
+        "years_below_benchmark": _f(m.get("years_below_benchmark")),
+        "vacancy_streak_months": _f(m.get("vacancy_streak_months")),
+    }
+
+
+def _build_lease_schedule(ds, asset_id: str) -> dict:
+    """
+    Structured view of the asset's lease schedule.
+
+    Returns None when the asset has no lease records (non-commercial
+    or a commercial asset with no unit_mix). When present, the block
+    summarises:
+      - total_leases: how many lease rows exist
+      - next_expiry_year: earliest active lease ending year
+      - anchor_lease: the (single) anchor tenant, if any
+      - expiry_calendar: count of active leases ending per year
+
+    The LLM uses this to decide `construction_start_year` on a
+    structural intervention. A mall whose anchor lease runs to 2031
+    cannot be repurposed before 2031 with a frictionless schedule.
+    """
+    leases = getattr(ds, "leases", None)
+    if leases is None or leases.empty:
+        return None
+    m = leases[leases["asset_id"] == asset_id]
+    if m.empty:
+        return None
+
+    total = int(len(m))
+    active = m[m["lease_status"] == "active"]
+    if active.empty:
+        return {
+            "total_leases": total,
+            "next_expiry_year": None,
+            "anchor_lease": None,
+            "expiry_calendar": {},
+        }
+
+    ends = active["lease_end_year"].dropna()
+    next_end = None
+    if not ends.empty:
+        try:
+            next_end = int(ends.min())
+        except (TypeError, ValueError):
+            next_end = None
+
+    anchor = active[active["tenant_type"] == "anchor"]
+    anchor_block = None
+    if not anchor.empty:
+        a = anchor.iloc[0]
+        anchor_block = {
+            "floor_area_m2": _nan_to_none(a.get("floor_area_m2")),
+            "end_year": _nan_to_none(a.get("lease_end_year")),
+        }
+
+    calendar = {}
+    for _, lease in active.iterrows():
+        yr = lease.get("lease_end_year")
+        if yr is None:
+            continue
+        try:
+            yr_int = int(yr)
+        except (TypeError, ValueError):
+            continue
+        calendar[str(yr_int)] = calendar.get(str(yr_int), 0) + 1
+
+    return {
+        "total_leases": total,
+        "next_expiry_year": next_end,
+        "anchor_lease": anchor_block,
+        "expiry_calendar": calendar,
+    }
+
+
+def _build_subtype_mix(ds, asset_id: str) -> dict:
+    """
+    Structured view of a mixed-use commercial asset's unit_mix.
+
+    Returns None for non-commercial assets or commercial assets
+    without a unit_mix (small shoplots). When present, the block
+    carries:
+      - subtypes: {st: area_m2}
+      - occupancy_by_subtype: {st: occupancy_ratio}
+      - dead_subtypes: subtypes with occupancy < 0.10
+      - low_subtypes: subtypes with 0.10 <= occupancy < 0.40
+
+    The LLM uses this to identify partial death — a mall whose
+    supermarket is at 0.95 but whose f_and_b floor is at 0.08 has a
+    dead F&B department even if the aggregate occupancy looks fine.
+    """
+    m = ds._metric_row(asset_id, ds.year) or {}
+    row = ds._asset_row(asset_id)
+    if row is None:
+        return None
+    if row.get("asset_type") != "commercial":
+        return None
+
+    raw_mix = row.get("unit_mix_json")
+    if raw_mix is None or (isinstance(raw_mix, float) and math.isnan(raw_mix)):
+        return None
+    try:
+        mix = json.loads(raw_mix) if isinstance(raw_mix, str) else raw_mix
+    except (json.JSONDecodeError, TypeError):
+        return None
+    if not isinstance(mix, dict) or not mix:
+        return None
+
+    subtypes = {}
+    for st, info in mix.items():
+        area = info.get("area_m2") if isinstance(info, dict) else None
+        if area is not None:
+            subtypes[st] = _nan_to_none(area)
+
+    occ_raw = m.get("occupancy_by_subtype_calc_json")
+    occ_by = {}
+    if occ_raw is not None and isinstance(occ_raw, str):
+        try:
+            parsed = json.loads(occ_raw)
+            if isinstance(parsed, dict):
+                for st, v in parsed.items():
+                    fv = _nan_to_none(v)
+                    if fv is not None:
+                        occ_by[st] = float(fv)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    dead = []
+    low = []
+    for st, v in occ_by.items():
+        if v < 0.10:
+            dead.append(st)
+        elif v < 0.40:
+            low.append(st)
+
+    return {
+        "subtypes": subtypes,
+        "occupancy_by_subtype": occ_by,
+        "dead_subtypes": sorted(dead),
+        "low_subtypes": sorted(low),
+    }
+
+
+def _nan_to_none(v):
+    """Local NaN-safe conversion for context_builder."""
+    if v is None:
+        return None
+    try:
+        if isinstance(v, float) and math.isnan(v):
+            return None
+    except (TypeError, ValueError):
+        pass
+    return v

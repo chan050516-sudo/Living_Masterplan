@@ -37,6 +37,85 @@ candidate must read as township-first reasoning:
 `reasoning_trace` must reflect this order. Do NOT begin with
 asset-by-asset summaries.
 
+## Reading the trajectory
+
+Each target carries a `trajectory` block (may be null for
+green_space / undeveloped_parcel). Read it before proposing a plan:
+
+- `stable` — steady occupancy near benchmark. A retrofit or a light
+  upgrade is usually right. Do not propose a structural change
+  unless a nearby intervention unlocks demand.
+- `rapid_decline` / `recent_failure` — occupancy dropped more than
+  20% in the last year. The asset is failing NOW. A retrofit alone
+  will not stop the fall; propose repurpose or new_development.
+- `declining` — slow bleed from a peak of 70%+ over 2+ years. The
+  asset is still functional. A repurpose to a subtype with genuine
+  demand, or a retrofit that removes the operational cost driving
+  the bleed, both work.
+- `chronic_low` — stable at a low level for 3+ years. Not an
+  emergency; the asset has settled. Repurpose to a subtype the
+  catchment can actually support.
+- `recovering` — improving from a previous low. Do NOT propose a
+  disruptive intervention. A light retrofit or "no action" is
+  often correct; a repurpose would interrupt the recovery.
+- `never_alive` — no occupancy since completion. The asset was
+  built to a market that never materialised. Repurpose is the
+  only viable move.
+
+Reference the trajectory explicitly in `rationale`. "Rapid
+decline (peak 82%, now 45%)" is more persuasive than "low
+occupancy".
+
+## Reading the lease schedule
+
+Commercial targets with a unit_mix carry a `lease_schedule` block:
+"lease_schedule": {
+"total_leases": 6,
+"next_expiry_year": 2028,
+"anchor_lease": {"floor_area_m2": 1226.3, "end_year": 2031},
+"expiry_calendar": {"2027": 2, "2028": 1, "2030": 2, "2031": 1}
+}
+
+A structural intervention (`repurpose`) that changes what the
+asset IS will be physically constrained until the anchor lease
+expires. If the anchor_lease block is present and its `end_year`
+is after the base year, set `construction_start_year` to that end
+year in `parameters`. State the reason in `rationale`:
+
+> "Anchor tenant's lease runs to 2031. Construction begins in
+> 2031, immediately after handover, to avoid a forced eviction
+> and the legal cost of breaking a commercial lease."
+
+A retrofit (which does not require vacating the entire asset) does
+not need this alignment — the `partial` construction state allows
+the mall to keep operating.
+
+## Reading the subtype mix
+
+Commercial targets with 2000+ m² lettable carry a `subtype_mix`
+block:
+"subtype_mix": {
+"subtypes": {"supermarket": 1226.3, "f_and_b": 899.3, ...},
+"occupancy_by_subtype": {"supermarket": 0.95, "f_and_b": 0.08, ...},
+"dead_subtypes": ["f_and_b"],
+"low_subtypes": []
+}
+
+A dead subtype (occupancy < 0.10) is real partial deadspace even
+when the aggregate occupancy looks fine. The B6 flags will already
+carry `subtype_mix_dead`. In your rationale:
+
+- Name the dead subtype.
+- Quantify the wasted capital ("the 899 m² F&B floor produces
+  nothing").
+- Explain why a full repurpose (not a retrofit) is the right
+  response — a retrofit fixes energy, not demand.
+
+You are proposing an intervention on the whole asset, not on the
+subtype alone. The simulation reflects aggregate effect. The
+subtype level is a DIAGNOSTIC, not a lever.
+
+
 ## Authority — read before proposing
 
 Each target carries an `authority` block:

@@ -636,6 +636,38 @@ class ProposalValidator:
                 f"is before base year {self.base_year}"
             )
             return errors, warnings, None
+        # Phase E — lease-aware timing warning.
+        # A structural intervention on a commercial asset whose
+        # anchor lease has not yet expired will be physically
+        # constrained. The simulation still runs (the lease ceiling
+        # in B4 caps occupancy), but the LLM should be told the
+        # timing is suboptimal. This is a soft warning; the plan
+        # remains valid.
+        if itype in HARD_ACTIONS and asset_type == "commercial":
+            leases_attr = getattr(self.ds, "leases", None)
+            if leases_attr is not None and not leases_attr.empty:
+                a_leases = leases_attr[
+                    (leases_attr["asset_id"] == asset_id)
+                    & (leases_attr["tenant_type"] == "anchor")
+                    & (leases_attr["lease_status"] == "active")
+                ]
+                if not a_leases.empty:
+                    ends = a_leases["lease_end_year"].dropna()
+                    if not ends.empty:
+                        try:
+                            anchor_end = int(ends.max())
+                        except (TypeError, ValueError):
+                            anchor_end = None
+                        if anchor_end is not None and start_year < anchor_end:
+                            warnings.append(
+                                f"{asset_id}: anchor lease is active "
+                                f"through {anchor_end}. Starting "
+                                f"construction in {start_year} will be "
+                                f"physically constrained by the "
+                                f"existing tenancy. Consider "
+                                f"construction_start_year >= "
+                                f"{anchor_end}."
+                            )
         if "activation_year" in params:
             try:
                 activation_year = int(params["activation_year"])

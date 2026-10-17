@@ -269,6 +269,143 @@ def _is_valid_number(v) -> bool:
     return not math.isnan(f)
 
 
+def _seeded_uniform(key: str, lo: float, hi: float) -> float:
+    """
+    Deterministic pseudo-random float in [lo, hi].
+
+    Phase D.2 — mirrors the seeded_uniform used by build_mock_data so
+    the same key yields the same value. Keeps the sell-off rate per
+    asset stable across repeated B4 runs of the same scenario.
+    """
+    import hashlib
+    h = int(hashlib.md5(key.encode("utf-8")).hexdigest(), 16)
+    u = (h % 10_000_000) / 10_000_000.0
+    return lo + (hi - lo) * u
+
+
+def _is_lease_active_at(lease, year):
+    """
+    True if the lease is still running at year Y, accounting for the
+    tenant's RENEWAL probability.
+
+    Phase D.2 fix — the model originally treated every expiring
+    lease as "tenant leaves". A mall with six 2-5 year leases then
+    cascaded from 0.86 occupancy to 0.15 over seven years, which is
+    too pessimistic. In real townships 70-80% of commercial tenants
+    renew.
+
+    A lease that expired at year E is active at year Y if the tenant
+    renewed every 3-year term from E to Y. Renewal probability is
+    0.75 per term; the renewal decision is seeded on
+    (lease_id, current_end) so it is stable across runs.
+    """
+    status = lease.get("lease_status")
+    if status == "never_leased":
+        return False
+
+    end = lease.get("lease_end_year")
+    if end is None:
+        return status in ("active", "expired")
+    try:
+        end = int(end)
+    except (TypeError, ValueError):
+        return status in ("active", "expired")
+
+    if year <= end:
+        return status in ("active", "expired")
+
+    # Lease has expired at `end`. Simulate the renewal chain
+    # forward to see whether the tenant is still there at `year`.
+    lease_id = lease.get("lease_id", "?")
+    current_end = end
+    term = 3
+    for _ in range(10):  # safety cap
+        if current_end >= year:
+            return True
+        u = _seeded_uniform(
+            f"{lease_id}-renewal-{current_end}", 0.0, 1.0,
+        )
+        if u > 0.75:
+            return False  # tenant did not renew this term
+        current_end += term
+    return True
+
+
+def _compute_lease_target_occupancy(leases_df, asset_id, year):
+    """
+    Occupancy implied by the lease schedule for a given year.
+
+    Each lease that is still active at `year` — accounting for
+    renewal probability via `_is_lease_active_at` — contributes its
+    floor area to the active total. The result is the fraction of
+    the asset's leased area that can possibly be occupied. Huff
+    decides where within this ceiling the actual occupancy sits.
+    """
+    if leases_df is None or leases_df.empty:
+        return None
+    asset_leases = leases_df[leases_df["asset_id"] == asset_id]
+    if asset_leases.empty:
+        return None
+
+    total_area = 0.0
+    active_area = 0.0
+    for _, lease in asset_leases.iterrows():
+        area = float(lease.get("floor_area_m2") or 0)
+        if area <= 0:
+            continue
+        total_area += area
+        if _is_lease_active_at(lease, year):
+            active_area += area
+
+    if total_area <= 0:
+        return None
+    return active_area / total_area
+
+
+def _compute_developer_held_decay(asset_row, year, base_year):
+    """
+    Phase D.2 — simulate the developer selling off unsold inventory.
+
+    Uses a cumulative decay formula, not an iterative one.
+
+    Why: with 2 held units and a 0.15 sell rate, the iterative
+    formula `round(remaining * (1 - rate))` computes
+    round(2 * 0.85) = round(1.7) = 2 every year. The remainder
+    never clears, so a 2-unit unsold inventory is indistinguishable
+    from a 0-unit one after five years.
+
+    The cumulative formula computes the total remaining after all
+    years at once: 2 * 0.85^7 = 0.64, round(0.64) = 1 at year 7,
+    round(0.32) = 0 at year 8. The inventory shrinks monotonically
+    as it should.
+    """
+    base_held = asset_row.get("developer_held_units")
+    if base_held is None:
+        return 0, 0
+    try:
+        base_held = int(float(base_held))
+    except (TypeError, ValueError):
+        return 0, 0
+    if base_held <= 0:
+        return 0, 0
+
+    years_since_base = max(0, year - base_year)
+    if years_since_base <= 0:
+        return base_held, 0
+
+    aid = asset_row.get("asset_id", "?")
+    sell_rate = _seeded_uniform(f"{aid}-sell", 0.10, 0.20)
+
+    remaining = base_held * ((1.0 - sell_rate) ** years_since_base)
+    remaining = int(round(remaining))
+    if remaining < 0:
+        remaining = 0
+    if remaining > base_held:
+        remaining = base_held
+
+    return remaining, base_held - remaining
+
+
 def _parse_unit_mix_engine(raw):
     """Parse unit_mix_json; NaN-safe."""
     if raw is None:
@@ -578,6 +715,19 @@ def simulate_scenario(
         _shared_cache["assets_df"] = assets_df
         _shared_cache["projects_df"] = projects_df
 
+    # Phase D.1 — lease schedule. Loaded once and cached across
+    # scenarios. Empty DataFrame when the file is absent so the
+    # lease-bound logic degenerates to a no-op.
+    if "leases_df" in _shared_cache:
+        leases_df = _shared_cache["leases_df"]
+    else:
+        lease_path = base / "business" / "asset_leases.csv"
+        if lease_path.exists():
+            leases_df = pd.read_csv(lease_path)
+        else:
+            leases_df = pd.DataFrame()
+        _shared_cache["leases_df"] = leases_df
+
     # interventions_df is NOT cached: the orchestrator appends rows
     # between candidate calls, and each scenario_id must see the
     # latest file state.
@@ -676,10 +826,14 @@ def simulate_scenario(
                 modified_network = None
                 derived = base_derived
 
-        G, demand, supply, nodes = _build_graph_and_nodes(
+        log.info("[pipeline %s] building walking graph...", tag)
+        G, demand, supply, nodes, asset_entries = _build_graph_and_nodes(
             geometry, assets_df, assumptions, network_gdf=modified_network,
         )
+        log.info("[pipeline %s] graph built: %d nodes, %d edges", tag, G.number_of_nodes(), G.number_of_edges())
+        log.info("[pipeline %s] computing all-pairs Dijkstra (cutoff 5000m)...", tag)
         matrix = _compute_distance_matrix(G)
+        log.info("[pipeline %s] Dijkstra complete: %d source nodes", tag, len(matrix))
 
         result = {
             "distance_matrix": matrix,
@@ -687,6 +841,7 @@ def simulate_scenario(
             "supply_nodes":    supply,
             "nodes_gdf":       nodes,
             "derived":         derived,
+            "asset_entries":   asset_entries,
         }
         _pipeline_cache[tag] = result
         return result
@@ -782,6 +937,30 @@ def simulate_scenario(
                     eff = apply_construction_state(
                         eff, status, capacity_ratio,
                     )
+            # Phase D.2 — residential developer-held inventory decays
+            # over time. This is the sell-off: a 21-unit terrace row
+            # built in 2024 with 5 units unsold in 2026 has 3 unsold
+            # in 2028, 1 in 2030, 0 in 2032, at a per-asset seeded
+            # 10-20% annual rate. The sold units become occupied.
+            if (
+                year > base_year
+                and eff.get("asset_type") == "residential"
+            ):
+                remaining, sold = _compute_developer_held_decay(
+                    eff, year, base_year,
+                )
+                base_held = asset.get("developer_held_units", 0)
+                try:
+                    base_held = int(float(base_held))
+                except (TypeError, ValueError):
+                    base_held = 0
+                if base_held > 0:
+                    eff["developer_held_units"] = remaining
+                    eff["_sold_units"] = sold
+                    if remaining == 0:
+                        eff["ownership_status"] = "sold"
+                        eff["authority"] = "advisory"
+
             effective_assets[aid] = eff
             activated_interventions[aid] = activated
 
@@ -961,10 +1140,6 @@ def simulate_scenario(
                     )
 
                     if activated is not None:
-                        # The asset itself was repurposed. Its purpose
-                        # has changed, so full Huff re-evaluation is
-                        # appropriate — the new subtype's demand-
-                        # supply ratio defines the occupancy target.
                         demand_m2 = curr_demand
                         if (demand_m2 is not None
                                 and effective_supply
@@ -975,12 +1150,6 @@ def simulate_scenario(
                         target_occ = target_occupancy_from_dsr(dsr)
 
                     elif demand_changed or network_changed:
-                        # The market or the walking network shifted,
-                        # but the asset itself was not acted on. Use
-                        # weak coupling: occupancy moves by a fraction
-                        # of the change in Huff share. Being easier to
-                        # reach does not mean customers change their
-                        # behaviour 1:1.
                         target_occ = _weak_coupling_occupancy(
                             prev_occ=prev_occ,
                             prev_demand=prev_demand,
@@ -991,6 +1160,18 @@ def simulate_scenario(
 
                     else:
                         target_occ = prev_occ
+
+                    # Phase D.1 — lease schedule bounds occupancy.
+                    # Huff can PROMOTE occupancy via increased demand,
+                    # but it cannot invent a tenant who has not
+                    # renewed. When the lease schedule says a tenant
+                    # left and was not replaced, that is a hard upper
+                    # bound on the occupancy target.
+                    lease_target = _compute_lease_target_occupancy(
+                        leases_df, aid, year,
+                    )
+                    if lease_target is not None and lease_target < target_occ:
+                        target_occ = lease_target
 
                 elif effective_type == "community_facility":
                     if activated is None:
@@ -1258,8 +1439,50 @@ def simulate_scenario(
                     assumptions=assumptions,
                 )
             elif effective_type == "residential":
+                # Phase D.2 — sold units become occupied. Base
+                # occupancy from 2026 is the starting point. Each
+                # year's cumulative sold units add to that base, so
+                # a terrace row that starts at 0% and sells 1 unit
+                # a year ends at 25% after 5 years.
+                sold_units = eff.get("_sold_units", 0)
+                if sold_units > 0:
+                    unit_count = int(eff.get("unit_count") or 1)
+                    base_state = state_by_year.get(base_year, {})
+                    base_occ_val = base_state.get(aid, {}).get(
+                        "occupancy_rate", 0,
+                    )
+                    try:
+                        base_occ_val = float(base_occ_val)
+                    except (TypeError, ValueError):
+                        base_occ_val = 0.0
+                    base_occupied = base_occ_val * unit_count
+                    new_occupied = min(
+                        float(unit_count), base_occupied + sold_units,
+                    )
+                    new_occ = new_occupied / max(1, unit_count)
+
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
+                metric_row["developer_held_units"] = eff.get(
+                    "developer_held_units",
+                )
+
+            # Phase E blocker fix — reachable_population_walk must
+            # include residents from delivered residential projects.
+            # See `_compute_project_reachable_population`.
+            _base_reachable = 0.0
+            if not _yr_canopy_match.empty:
+                _rv = _yr_canopy_match.iloc[0].get("reachable_population_walk")
+                if _is_valid_number(_rv):
+                    _base_reachable = float(_rv)
+            _project_reachable = _compute_project_reachable_population(
+                active_projects,
+                current_pipeline.get("asset_entries", {}).get(aid),
+                distance_matrix,
+            )
+            metric_row["reachable_population_walk"] = (
+                _base_reachable + _project_reachable
+            )
 
             metric_row["effective_demand_m2"] = huff_m2.get(aid)
             metric_row["carbon_operational_tco2e"] = carbon
@@ -1539,7 +1762,7 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
             })
 
     nodes_gdf = extract_nodes(network_gdf)
-    return G_aug, demand_nodes, supply_nodes, nodes_gdf
+    return G_aug, demand_nodes, supply_nodes, nodes_gdf, asset_entries
 
 
 def _parse_unit_mix_engine(raw):
@@ -1684,12 +1907,96 @@ def _new_project_demand_nodes(active_projects, geometry, nodes_gdf):
         except Exception:
             continue
 
+        # Phase E blocker fix — stash the resolved node id on the
+        # project dict so `_compute_project_reachable_population` can
+        # look it up when computing the asset's walking catchment.
+        # The dict is shared by reference with the caller's
+        # active_projects list.
+        proj["_node_id"] = proj_node
+
         out.append({
             "population_id": f"PRJ-POP-{proj.get('project_id', '?')}",
             "node": proj_node,
             "population": pop,
         })
     return out
+
+
+def _compute_project_reachable_population(
+    active_projects, asset_entry, distance_matrix,
+    max_distance_m=1200.0,
+):
+    """
+    Phase E blocker fix — sum the resident population of delivered
+    residential projects whose node falls within the asset's walking
+    catchment.
+
+    Why this exists
+    ---------------
+    B3 computes `reachable_population_walk` from base-year demand
+    nodes only. A new_development that delivers 320 residents inside
+    an asset's 15-minute walking radius is invisible to that metric —
+    the count does not move even though the population does. As a
+    result, `catchment_growth` catalytic interventions could never be
+    verified (the primary metric was constant), and every catalytic
+    claim was capped at `partially_verified`.
+
+    This function fills the gap by walking the delivered projects,
+    resolving each one's node via `_node_id` (stashed by
+    `_new_project_demand_nodes`), and summing the populations within
+    max_distance_m of the asset's virtual node.
+
+    max_distance_m defaults to 1200 m, matching B3's own catchment
+    computation (`aggregate_catchment_profile(max_distance_m=1200.0)`).
+    A project beyond that threshold is not inside the asset's walk
+    catchment and must not count.
+    """
+    if not active_projects or not asset_entry:
+        return 0.0
+    asset_vn = asset_entry.get("virtual_node")
+    if not asset_vn or asset_vn not in distance_matrix:
+        return 0.0
+    asset_off = float(asset_entry.get("off_distance") or 0.0)
+    row = distance_matrix[asset_vn]
+
+    from ..taxonomy import get_subtype, default_subtype_for
+
+    total = 0.0
+    for proj in active_projects:
+        proj_node = proj.get("_node_id")
+        if not proj_node:
+            continue
+        d_net = row.get(proj_node)
+        if d_net is None:
+            continue
+        if asset_off + d_net > max_distance_m:
+            continue
+
+        subtype = proj.get("subtype")
+        if not subtype:
+            subtype = default_subtype_for(proj.get("land_use"))
+        defn = get_subtype(subtype) or {}
+        if defn.get("asset_class") != "residential":
+            continue
+
+        units = proj.get("units")
+        hh = defn.get("avg_household_size") or 3.5
+        try:
+            hh = float(hh)
+        except (TypeError, ValueError):
+            hh = 3.5
+
+        if _is_valid_number(units):
+            try:
+                pop = float(units) * hh
+            except (TypeError, ValueError):
+                pop = 0.0
+        else:
+            gfa = float(proj.get("gfa_m2") or 0.0)
+            pop = gfa * (1.0 / 50.0)
+
+        total += pop
+    return total
 
 
 def _state_from_df(derived_df, assets_df):
@@ -1725,6 +2032,7 @@ def _get_prev_metrics(prev_state, asset_id):
 _COMPARISON_METRICS = [
     ("occupancy_rate", "ratio"),
     ("utilisation_rate", "ratio"),
+    ("developer_held_units", "count"),   # Phase D.2
     ("noi_rm", "RM"),
     ("maintenance_surge_rm", "RM"),
     ("noi_yield", "ratio"),

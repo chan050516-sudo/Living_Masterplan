@@ -216,6 +216,10 @@ def orchestrate_and_simulate_batch(
     # before the selection stage sees it.
     _verify_catalytic_links(valid_candidates)
 
+    # Phase E — build the structured catalytic evidence block so the
+    # selection stage can compare effect magnitude across candidates.
+    _build_catalytic_evidence(valid_candidates)
+
     # ---- Stage 2.7: final selection ----
     log.info("[%s] Stage 2.7 — final selection", run_id)
     selection = _select_candidate(
@@ -585,6 +589,129 @@ def _verify_catalytic_links(candidates):
                 )
 
 
+def _build_catalytic_evidence(candidates):
+    """
+    Phase E — extract structured evidence for every catalytic claim.
+
+    For each catalytic plan item, walks the simulation brief for the
+    beneficiary and pulls the before/after for the mechanism's
+    primary and secondary metric. Computes an `effect_score` that
+    encodes both the direction of the effect and how well the
+    simulation can verify it.
+
+    The score is used purely as a comparison key by the selection
+    stage. It is not shown to the user.
+
+    effect_score formula:
+        (primary_delta_pct * 0.6 + secondary_delta_pct * 0.4)
+        * verification_weight
+
+    verification_weight: verified = 1.0, partially_verified = 0.5,
+                         claimed = 0.1
+
+    A candidate whose catalytic claim cannot be measured (claimed)
+    receives a tenth of the weight of a verified claim with the same
+    delta. This is deliberate: un-measurable claims must not dominate
+    the selection reasoning.
+    """
+    _VERIFICATION_WEIGHT = {
+        "verified": 1.0,
+        "partially_verified": 0.5,
+        "claimed": 0.1,
+    }
+    _SPEC = {
+        "walkability_improvement": {
+            "primary":   "coverage_ratio_10min_walk",
+            "secondary": None,
+        },
+        "catchment_growth": {
+            "primary":   "reachable_population_walk",
+            "secondary": "effective_demand_m2",
+        },
+        "competition_relief": {
+            "primary":   "effective_demand_m2",
+            "secondary": None,
+        },
+    }
+
+    def _delta(metrics, key):
+        if key is None:
+            return None
+        entry = (metrics or {}).get(key)
+        if not entry:
+            return None
+        before = entry.get("before")
+        after = entry.get("after")
+        if before is None or after is None:
+            return None
+        try:
+            before = float(before)
+            after = float(after)
+        except (TypeError, ValueError):
+            return None
+        pct = ((after - before) / before * 100.0) if before > 0 else None
+        return {
+            "metric": key,
+            "before": round(before, 2),
+            "after": round(after, 2),
+            "delta_pct": round(pct, 2) if pct is not None else None,
+        }
+
+    for cand in candidates:
+        sim = cand.get("simulation") or {}
+        if sim.get("error"):
+            continue
+        brief = cand.get("simulation_brief") or {}
+        per_asset = brief.get("per_asset_metrics") or {}
+
+        evidence_list = []
+        for item in cand.get("plan", []):
+            if item.get("role") != "catalytic":
+                continue
+            link = item.get("catalytic_link") or {}
+            beneficiary = link.get("beneficiary_asset_id")
+            mechanism = link.get("mechanism")
+            if not beneficiary or mechanism not in _SPEC:
+                continue
+
+            metrics = per_asset.get(beneficiary) or {}
+            spec = _SPEC[mechanism]
+            primary = _delta(metrics, spec["primary"])
+            secondary = _delta(metrics, spec["secondary"])
+
+            primary_pct = (
+                primary["delta_pct"]
+                if primary and primary.get("delta_pct") is not None
+                else 0.0
+            )
+            secondary_pct = (
+                secondary["delta_pct"]
+                if secondary and secondary.get("delta_pct") is not None
+                else 0.0
+            )
+            weight = _VERIFICATION_WEIGHT.get(
+                link.get("verification_level", "claimed"), 0.1,
+            )
+            effect_score = round(
+                (primary_pct * 0.6 + secondary_pct * 0.4) * weight, 2,
+            )
+
+            evidence_list.append({
+                "acting_on": item.get("asset_id"),
+                "beneficiary": beneficiary,
+                "mechanism": mechanism,
+                "declared_level": link.get("verification_level"),
+                "primary": primary,
+                "secondary": secondary,
+                "effect_score": effect_score,
+            })
+
+        cand["simulation_brief"]["catalytic_evidence"] = evidence_list
+        cand["catalytic_effect_total"] = round(
+            sum(e["effect_score"] for e in evidence_list), 2,
+        )
+
+
 # ------------------------------------------------------------------
 # Stage 2.7: selection
 # ------------------------------------------------------------------
@@ -606,6 +733,7 @@ def _select_candidate(intent, candidates, llm_client):
                 {"asset_id": item.get("asset_id"), "type": item.get("type")}
                 for item in c.get("plan", [])
             ],
+            "catalytic_effect_total": c.get("catalytic_effect_total", 0.0),
             "simulation_brief": brief,
         })
 
