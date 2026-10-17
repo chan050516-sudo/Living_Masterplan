@@ -48,6 +48,8 @@ def validate_intervention(i: Intervention, max_capex_rm: float | None = None) ->
     if i.intervention_type in (T.REPURPOSE, T.RETROFIT, T.NEW_DEVELOPMENT, T.GREEN_CORRIDOR, T.PEDESTRIAN_UPGRADE) \
             and 0 <= i.capex_delta_rm < 10000:
         errors.append(f"capex_delta_rm {i.capex_delta_rm} looks like it is not in whole ringgit")
+    if i.intervention_type not in (T.DELAY_DEVELOPMENT, T.NO_OP) and i.activation_year > 2029:
+        errors.append(f"activation_year {i.activation_year} is too late for a {i.intervention_type.value}")
     if i.capex_delta_rm < 0:
         errors.append(f"capex_delta_rm must be >= 0 (got {i.capex_delta_rm})")
     if max_capex_rm is not None and i.capex_delta_rm > max_capex_rm:

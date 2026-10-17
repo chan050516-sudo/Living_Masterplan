@@ -50,6 +50,8 @@ Rules:
 - repurpose needs `to` (one of: commercial, community_facility, green_space, residential).
 - delay_development needs `until` (a year) and targets a PRJ- id.
 - Costs are rough scenario estimates in RM. Years: construction_start_year >= 2027, activation_year >= start.
+- Timing: construction_start_year must be 2027 or 2028. activation_year must be construction_start_year + 1 (or + 2 if construction_duration_months > 12), never later. Only delay_development may use a later year, in its `until` parameter.
+- green_corridor must target a green_space asset (for example G-01), never a building.
 - capex_delta_rm is a spending amount and must be >= 0. Never use a negative capex; avoided spending is not negative capex. Only opex_delta_rm may be negative (for example after a retrofit).
 - capex_delta_rm and opex_delta_rm are in whole ringgit (RM), never millions: RM1.2m must be written as 1200000. Typical scale: repurpose 1000000-3000000, retrofit 500000-1500000, pedestrian upgrade or green corridor under 500000, delay under 200000.
 - Each option must differ in strategy (e.g. reuse vs retrofit vs delay). Prefer reuse over new construction.

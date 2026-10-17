@@ -14,6 +14,8 @@ from .client import complete_json
 SCORE_BONUS = {T.REPURPOSE: 35, T.PEDESTRIAN_UPGRADE: 8, T.RETROFIT: 25, T.GREEN_CORRIDOR: 13,
                T.DELAY_DEVELOPMENT: 3, T.NEW_DEVELOPMENT: 5, T.NO_OP: 0}
 
+NOT_ASSET_PREFIXES = ("PRJ-", "E-")  # projects and network edges have no asset performance score
+
 
 def _mock() -> bool:
     return os.getenv("USE_MOCK", "false").lower() == "true"
@@ -44,28 +46,40 @@ def _current_score(asset_id: str) -> int:
         return 28
 
 
+def _scores_an_asset(option: Option) -> bool:
+    return any(not i.target_asset_id.startswith(NOT_ASSET_PREFIXES) for i in option.interventions)
+
+
 def _mock_sim(option: Option, current: int) -> dict:
     after = min(100, current + sum(SCORE_BONUS[i.intervention_type] for i in option.interventions))
     return {"source": "mock", "score_after": after, "current_score": None,
             "capex_rm": sum(i.capex_delta_rm for i in option.interventions),
             "months": max(i.construction_duration_months for i in option.interventions),
-            "utilisation": None, "npv": None, "environmental": None, "social": None, "map_diff": None}
+            "utilisation": None, "npv": None, "environmental": None, "social": None,
+            "map_diff": None, "note": None}
 
 
 def _real_sim(option: Option) -> dict:
     r = simulate_option(option)
     c = _clean(r["comparison"])
-    perf, delta = c.get("performance_score"), c.get("delta_score")
-    return {"source": "simulated",
-            "score_after": int(round(perf)),
-            "current_score": int(round(perf - delta)) if delta is not None else None,
+    base = {"source": "simulated",
             "capex_rm": c.get("capex") or 0,
             "months": int(c.get("time_to_impact_months") or 0),
+            "map_diff": _clean(r.get("map_diff"))}
+    if not _scores_an_asset(option):
+        # The engine scores the first target; a project or edge has no asset score, so do not show its 0.
+        return {**base, "score_after": None, "current_score": None, "utilisation": None,
+                "npv": None, "environmental": None, "social": None,
+                "note": "Changes project timing or a route, so no asset score is calculated."}
+    perf, delta = c.get("performance_score"), c.get("delta_score")
+    return {**base,
+            "score_after": int(round(perf)),
+            "current_score": int(round(perf - delta)) if delta is not None else None,
             "utilisation": c.get("projected_utilisation"),
             "npv": c.get("npv"),
             "environmental": c.get("environmental_score"),
             "social": c.get("social_score"),
-            "map_diff": _clean(r.get("map_diff"))}
+            "note": None}
 
 
 def _simulate(option: Option, current: int) -> dict:
@@ -111,14 +125,16 @@ class Explanation(BaseModel):
 
 
 def _explain(asset_id: str, facts: list[dict]) -> Explanation:
-    best = max(facts, key=lambda f: f["score_after"])
+    scored = [f for f in facts if f["score_after"] is not None] or facts
+    best = max(scored, key=lambda f: f["score_after"] if f["score_after"] is not None else -1)
     if _mock():
         return Explanation(
             analysis=f"{asset_id} is underperforming. {len(facts)} candidate strategies were generated and simulated.",
             recommended_option_id=best["id"],
             reason=f"Option {best['id']} gives the highest projected score ({best['score_after']}).")
     system = ("Explain the trade-offs between options. Use ONLY numbers present in FACTS. "
-              "A null value means the number is unavailable: do not mention it. "
+              "A null value means the number is unavailable: do not mention it or compare it. "
+              "A null score_after means the option changes project timing or a route and has no asset score. "
               "Never invent numbers. Pick the recommended option from FACTS.")
     return complete_json(system, f"Asset: {asset_id}\nFACTS: {json.dumps(facts)}", Explanation)
 
@@ -134,7 +150,19 @@ def run_query(text: str, selected_asset_id: str | None = None, year: int = 2026)
         return {"needs_clarification": True, "question": intent.clarification_question}
     asset = intent.target_asset_id
 
-    options = [o for o in generate_options(intent) if not validate_option(o)]
+    options = []
+    for _ in range(2):  # one retry if the model proposes invalid options
+        valid = []
+        for o in generate_options(intent):
+            errs = validate_option(o)
+            if errs:
+                print(f"[pipeline] dropped option {o.option_id}: {errs}")
+            else:
+                valid.append(o)
+        if len(valid) > len(options):
+            options = valid
+        if len(options) == 3:
+            break
     if not options:
         return {"needs_clarification": True, "question": "No valid option could be generated."}
 
@@ -144,13 +172,14 @@ def run_query(text: str, selected_asset_id: str | None = None, year: int = 2026)
 
     facts, cards = [], []
     for opt, sim in sims:
-        facts.append({"id": opt.option_id, "capex_rm": sim["capex_rm"], "score_after": sim["score_after"],
-                      "delta": sim["score_after"] - current, "months": sim["months"],
+        after = sim["score_after"]
+        facts.append({"id": opt.option_id, "capex_rm": sim["capex_rm"], "score_after": after,
+                      "delta": None if after is None else after - current, "months": sim["months"],
                       "utilisation": sim["utilisation"], "social": sim["social"], "source": sim["source"]})
         cards.append({"id": opt.option_id, "title": opt.title, "summary": opt.summary,
-                      "capex": f"RM{sim['capex_rm'] / 1e6:.1f}m", "score_after": sim["score_after"],
+                      "capex": f"RM{sim['capex_rm'] / 1e6:.1f}m", "score_after": after,
                       "changes": _changes(opt), "source": sim["source"], "map_diff": sim["map_diff"],
-                      "warnings": _check_expected(opt, sim)})
+                      "note": sim["note"], "warnings": _check_expected(opt, sim)})
     exp = _explain(asset, facts)
     by_id = {opt.option_id.lower(): sim for opt, sim in sims}
 
@@ -167,8 +196,8 @@ def run_query(text: str, selected_asset_id: str | None = None, year: int = 2026)
     for label, key in (("Environmental", "environmental"), ("Social", "social")):
         if any(s[key] not in (None, 0) for s in by_id.values()):
             rows.append(row(label, lambda s, k=key: _fmt_score(s[k])))
-    rows += [row("Performance score", lambda s: str(s["score_after"]), str(current)),
-             row("Change in score", lambda s: f"{s['score_after'] - current:+d}"),
+    rows += [row("Performance score", lambda s: "—" if s["score_after"] is None else str(s["score_after"]), str(current)),
+             row("Change in score", lambda s: "—" if s["score_after"] is None else f"{s['score_after'] - current:+d}"),
              row("Time to impact", lambda s: f"{s['months']}mo")]
 
     sources = {s["source"] for s in by_id.values()}
