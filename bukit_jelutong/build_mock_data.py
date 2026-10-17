@@ -66,6 +66,41 @@ DISPLAY_CRS = "EPSG:4326"
 BASE_YEAR = 2026
 MIN_BUILDING_FOOTPRINT_M2 = 40.0
 
+# Phase A.1 — five years of history per asset (2022-2026)
+HISTORY_YEARS = 5
+
+# Phase A.2 — per-unit residential footprint (drives unit_count)
+TYPICAL_UNIT_FOOTPRINT_M2 = {
+    "terrace": 140.0,
+    "semidetached": 220.0,
+    "detached": 400.0,
+}
+APARTMENT_GFA_PER_UNIT_M2 = 85.0
+APARTMENT_SUBTYPES = {
+    "apartment_lowrise", "apartment_highrise", "affordable_housing",
+}
+
+# Phase A.3 — trajectory classes (drive the 5-year occupancy history)
+TRAJECTORY_STABLE = "stable"
+TRAJECTORY_DECLINING = "declining"
+TRAJECTORY_RAPID_DECLINE = "rapid_decline"
+TRAJECTORY_CHRONIC_LOW = "chronic_low"
+TRAJECTORY_RECOVERING = "recovering"
+TRAJECTORY_NEVER_ALIVE = "never_alive"
+TRAJECTORY_RECENT_FAILURE = "recent_failure"
+
+# Phase A.4 — commercial unit_mix thresholds
+COMMERCIAL_MIX_LARGE_MIN_M2 = 2000
+COMMERCIAL_MIX_MID_MIN_M2 = 600
+
+# Typical area per unit when splitting a commercial mix into count
+COMMERCIAL_UNIT_TYPICAL_M2 = {
+    "supermarket": 2000, "convenience_retail": 250,   # was 200
+    "f_and_b": 250, "services": 250,                  # was 200
+    "medical_retail": 200, "showroom": 600,
+    "office": 600, "entertainment": 500,
+}
+
 
 # ----------------------------------------------------------------
 # Taxonomy access (for target_area_m2 caps)
@@ -135,6 +170,36 @@ def _clamp_vacancy_to_age(months, completion_year, base_year=BASE_YEAR):
         return m
     age_months = max(1, (base_year - cy) * 12)
     return min(m, age_months)
+
+
+def _safe_float(v, default=0.0):
+    """NaN-safe float conversion. pandas NaN is truthy; `x or d` fails."""
+    if v is None:
+        return default
+    try:
+        if pd.isna(v):
+            return default
+    except (TypeError, ValueError):
+        pass
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_int(v, default=1):
+    """NaN-safe int conversion. Same NaN-truthy problem as _safe_float."""
+    if v is None:
+        return default
+    try:
+        if pd.isna(v):
+            return default
+    except (TypeError, ValueError):
+        pass
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return default
 
 
 # ================================================================
@@ -323,6 +388,11 @@ def normalize_amenity_type(raw: str) -> str:
     return "other"
 
 
+# Phase A.5 — amenity floor areas bumped up so mid-size commercial
+# amenity assets (food_beverage / finance / retail) trigger a
+# unit_mix and thereby produce realistic internal units. A small
+# 250 m² food_beverage never becomes more than 1 unit; a 1500 m²
+# building realistically hosts 5-7 small F&B shops.
 AMENITY_TO_ASSET = {
     "school":             ("community_facility", "school",           3000.0),
     "clinic":             ("community_facility", "clinic",            400.0),
@@ -330,9 +400,9 @@ AMENITY_TO_ASSET = {
     "library":            ("community_facility", "library",          1200.0),
     "place_of_worship":   ("community_facility", "place_of_worship",  800.0),
     "community_centre":   ("community_facility", "community_hall",    600.0),
-    "food_beverage":      ("commercial",         "f_and_b",           250.0),
-    "finance":            ("commercial",         "services",          300.0),
-    "retail":             ("commercial",         "convenience_retail",200.0),
+    "food_beverage":      ("commercial",         "f_and_b",          1500.0),
+    "finance":            ("commercial",         "services",          800.0),
+    "retail":             ("commercial",         "convenience_retail", 1000.0),
 }
 
 
@@ -1012,7 +1082,7 @@ def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     for i, (cell, group) in enumerate(residential.groupby("_cell"), 1):
         total = 0.0
         for _, b in group.iterrows():
-            gfa = float(b.get("gfa_m2") or 0)
+            gfa = _safe_float(b.get("gfa_m2"), 0.0)
             total += gfa * CAPACITY_PER_M2.get(b["subtype"], 1 / 60)
         total = int(round(total))
         if total < 50:
@@ -1212,40 +1282,577 @@ def _default_subtype(atype: str) -> str:
     }.get(atype, "vacant")
 
 
-def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf, n=12):
+def _compute_unit_count(asset_row, buildings_index):
+    """
+    Compute the number of real household / dwelling units inside
+    this asset's polygon.
+
+    A terrace polygon drawn in OSM as a 21-unit row will return 21;
+    a single detached house will return 1. The polygon itself is
+    unchanged — this is metadata about what the polygon represents,
+    not a geometric split.
+    """
+    subtype = asset_row.get("subtype", "")
+    if subtype not in TYPICAL_UNIT_FOOTPRINT_M2 and subtype not in APARTMENT_SUBTYPES:
+        return 1
+
+    bid = asset_row.get("building_id")
+    b = buildings_index.get(bid) if bid else None
+    if b is None:
+        return 1
+
+    fp = _safe_float(b.get("footprint_m2"), 0.0)
+    floors = _safe_int(b.get("floors"), 1)
+    if fp <= 0:
+        return 1
+
+    if subtype in TYPICAL_UNIT_FOOTPRINT_M2:
+        return max(1, round(fp / TYPICAL_UNIT_FOOTPRINT_M2[subtype]))
+
+    gfa = fp * max(1, floors)
+    return max(1, round(gfa / APARTMENT_GFA_PER_UNIT_M2))
+
+
+def _parse_unit_mix(raw):
+    """
+    Parse a unit_mix_json string back to a dict, or return None.
+    """
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return raw
+    try:
+        obj = json.loads(raw)
+        if isinstance(obj, dict) and obj:
+            return obj
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+    return None
+
+
+def _compute_commercial_unit_mix(asset_row, lettable_area_m2, subtype):
+    """
+    Compute a subtype-level unit mix for a commercial asset.
+
+    A mall is not a single 8000 m² commercial block; it is a stack
+    of sub-types (supermarket, small retail, F&B, services, ...).
+    Each subtype has its own competition radius, so a single-block
+    Huff node distorts competition on both sides.
+
+    Returns
+    -------
+    dict | None
+        {"supermarket": {"count": 1, "area_m2": 2000},
+         "f_and_b":     {"count": 5, "area_m2": 1000},
+         ...}
+        or None if the asset is too small to justify a mix.
+    """
+    if lettable_area_m2 is None or lettable_area_m2 < COMMERCIAL_MIX_MID_MIN_M2:
+        return None
+
+    if lettable_area_m2 >= COMMERCIAL_MIX_LARGE_MIN_M2:
+        pattern = [
+            ("supermarket", 0.30),
+            ("convenience_retail", 0.25),
+            ("f_and_b", 0.22),
+            ("services", 0.12),
+            ("medical_retail", 0.06),
+            ("showroom", 0.05),
+        ]
+    else:
+        pattern = [
+            ("convenience_retail", 0.40),
+            ("f_and_b", 0.40),
+            ("services", 0.20),
+        ]
+
+    mix = {}
+    for st, share in pattern:
+        area = round(lettable_area_m2 * share, 1)
+        typical = COMMERCIAL_UNIT_TYPICAL_M2.get(st, 200)
+        count = max(1, round(area / typical))
+        mix[st] = {"count": count, "area_m2": area}
+
+    return mix
+
+
+def _assign_unsold_units(assets_df, unsold_ids):
+    """
+    Distribute `developer_held_units` across the unsold asset polygons.
+
+    A 21-unit terrace row is not "fully unsold" — it is a row where
+    the developer still holds, say, 4 units. The occupancy of the
+    polygon remains high; the developer-held inventory is reported
+    separately so downstream (B6) can see the deadstock without
+    pretending the whole row is empty.
+    """
+    for aid in unsold_ids:
+        idx_arr = assets_df.index[assets_df["asset_id"] == aid]
+        if len(idx_arr) == 0:
+            continue
+        idx = idx_arr[0]
+
+        unit_count = int(assets_df.loc[idx, "unit_count"] or 1)
+        if unit_count <= 1:
+            assets_df.loc[idx, "developer_held_units"] = 1
+            continue
+
+        band = seeded_uniform(f"{aid}-unsold-band", 0.0, 1.0)
+        if band < 0.4:
+            frac = seeded_uniform(f"{aid}-unsold-frac", 0.05, 0.15)
+        elif band < 0.8:
+            frac = seeded_uniform(f"{aid}-unsold-frac", 0.15, 0.40)
+        else:
+            frac = seeded_uniform(f"{aid}-unsold-frac", 0.40, 0.70)
+
+        held = max(1, round(unit_count * frac))
+        assets_df.loc[idx, "developer_held_units"] = held
+
+
+def _target_final_occupancy(aid, asset):
+    """
+    The 2026 occupancy target for an asset, before trajectory noise.
+
+    Benchmarks are the taxonomy occupancy_benchmark values, inlined
+    here so the mock generator does not depend on the taxonomy module
+    (build_mock_data runs standalone, outside the backend package).
+    """
+    atype = asset.get("asset_type", "")
+    subtype = asset.get("subtype", "")
+
+    if atype == "commercial":
+        benchmark = {
+            "supermarket": 0.90, "convenience_retail": 0.85, "f_and_b": 0.80,
+            "services": 0.85, "medical_retail": 0.85, "office": 0.85,
+            "showroom": 0.80, "entertainment": 0.70,
+        }.get(subtype, 0.85)
+        return max(0.50, benchmark + seeded_uniform(
+            f"{aid}-final-occ", -0.05, 0.05))
+
+    if atype == "residential":
+        benchmark = {
+            "terrace": 0.92, "semidetached": 0.90, "detached": 0.88,
+            "apartment_lowrise": 0.85, "apartment_highrise": 0.80,
+            "affordable_housing": 0.95,
+        }.get(subtype, 0.85)
+        return max(0.50, benchmark + seeded_uniform(
+            f"{aid}-final-occ", -0.05, 0.05))
+
+    if atype == "community_facility":
+        return seeded_uniform(f"{aid}-final-occ", 0.55, 0.85)
+
+    return 0.50
+
+
+def _assign_trajectory_class(aid, asset, unsold_ids, shoplot_vacant_ids,
+                              anchor_deadspace_id=None, anchor_facility_id=None):
+    """
+    Assign a trajectory class that reflects the asset's history.
+
+    The mock data must not present a snapshot world in which every
+    asset is exactly at its 2026 value. Declining assets must look
+    like they were healthy two years ago; chronic-low assets must
+    look like they have always been low; recovering assets must
+    look like they were once worse.
+    """
+    atype = asset.get("asset_type", "")
+
+    if aid == anchor_deadspace_id:
+        return TRAJECTORY_DECLINING
+    if aid == anchor_facility_id:
+        return TRAJECTORY_CHRONIC_LOW
+
+    if aid in unsold_ids:
+        band = seeded_uniform(f"{aid}-unsold-traj", 0.0, 1.0)
+        return TRAJECTORY_NEVER_ALIVE if band < 0.4 else TRAJECTORY_RECENT_FAILURE
+
+    if aid in shoplot_vacant_ids:
+        band = seeded_uniform(f"{aid}-shoplot-traj", 0.0, 1.0)
+        return TRAJECTORY_NEVER_ALIVE if band < 0.5 else TRAJECTORY_RECENT_FAILURE
+
+    band = seeded_uniform(f"{aid}-traj-class", 0.0, 1.0)
+
+    if atype == "commercial":
+        if band < 0.70: return TRAJECTORY_STABLE
+        if band < 0.82: return TRAJECTORY_DECLINING
+        if band < 0.88: return TRAJECTORY_RAPID_DECLINE
+        if band < 0.94: return TRAJECTORY_CHRONIC_LOW
+        return TRAJECTORY_RECOVERING
+
+    if atype == "residential":
+        if band < 0.85: return TRAJECTORY_STABLE
+        if band < 0.92: return TRAJECTORY_DECLINING
+        if band < 0.97: return TRAJECTORY_CHRONIC_LOW
+        return TRAJECTORY_RECOVERING
+
+    if atype == "community_facility":
+        if band < 0.75: return TRAJECTORY_STABLE
+        if band < 0.90: return TRAJECTORY_CHRONIC_LOW
+        return TRAJECTORY_RECOVERING
+
+    return TRAJECTORY_STABLE
+
+
+def _generate_occupancy_trajectory(aid, asset, tclass, history_years=HISTORY_YEARS):
+    """
+    Generate a 5-year occupancy trajectory from the trajectory class.
+
+    Returns a list of `history_years` values (oldest → newest).
+    """
+    final = _target_final_occupancy(aid, asset)
+
+    if tclass == TRAJECTORY_STABLE:
+        return [
+            max(0.05, min(0.98,
+                final + seeded_uniform(f"{aid}-traj-{y}-noise", -0.05, 0.05)))
+            for y in range(history_years)
+        ]
+
+    if tclass == TRAJECTORY_DECLINING:
+        start = min(0.95, final + 0.35)
+        return [
+            max(0.0, min(0.98,
+                start + (final - start) * (y / (history_years - 1))
+                + seeded_uniform(f"{aid}-traj-{y}-noise", -0.03, 0.03)))
+            for y in range(history_years)
+        ]
+
+    if tclass == TRAJECTORY_RAPID_DECLINE:
+        out = []
+        for y in range(history_years):
+            if y < history_years - 2:
+                out.append(seeded_uniform(f"{aid}-traj-{y}-stable", 0.72, 0.88))
+            else:
+                progress = (y - (history_years - 2) + 1) / 2.0
+                val = 0.75 - 0.60 * progress + seeded_uniform(
+                    f"{aid}-traj-{y}-noise", -0.05, 0.05)
+                out.append(max(0.0, min(0.98, val)))
+        return out
+
+    if tclass == TRAJECTORY_CHRONIC_LOW:
+        return [
+            max(0.05, min(0.55,
+                final + seeded_uniform(f"{aid}-traj-{y}-noise", -0.08, 0.08)))
+            for y in range(history_years)
+        ]
+
+    if tclass == TRAJECTORY_RECOVERING:
+        start = max(0.10, final - 0.35)
+        return [
+            max(0.0, min(0.98,
+                start + (final - start) * (y / (history_years - 1))
+                + seeded_uniform(f"{aid}-traj-{y}-noise", -0.03, 0.03)))
+            for y in range(history_years)
+        ]
+
+    if tclass == TRAJECTORY_NEVER_ALIVE:
+        return [0.0] * history_years
+
+    if tclass == TRAJECTORY_RECENT_FAILURE:
+        out = []
+        for y in range(history_years):
+            if y < history_years - 1:
+                out.append(seeded_uniform(f"{aid}-traj-{y}-stable", 0.75, 0.90))
+            else:
+                out.append(max(0.0, seeded_uniform(f"{aid}-traj-{y}-fail", 0.0, 0.20)))
+        return out
+
+    return [final] * history_years
+
+
+def _vacancy_duration_at(aid, occ, year, base, trajectory, index):
+    """
+    Compute vacancy_duration_months for the given year.
+
+    A healthy occupancy yields a short vacancy (0-3 months). A
+    declining asset sees vacancy accumulate since its last healthy
+    year. A never-occupied asset's vacancy equals its age.
+    """
+    completion = _safe_int(base.get("completion_year"), year - 5)
+
+    if occ >= 0.70:
+        return seeded_int(f"{aid}-{year}-vacdur", 0, 3)
+
+    if occ >= 0.30:
+        last_healthy = None
+        for i in range(min(index + 1, len(trajectory))):
+            if trajectory[i] >= 0.70:
+                last_healthy = i
+        if last_healthy is not None:
+            return max(6, (index - last_healthy) * 12)
+        return seeded_int(f"{aid}-{year}-vacdur", 6, 18)
+
+    if occ > 0.05:
+        return seeded_int(f"{aid}-{year}-vacdur", 12, 36)
+
+    return max(1, (year - completion) * 12)
+
+
+def _make_year_metrics(asset, year, occ, base, index, trajectory):
+    """
+    Build one row of asset_metrics for the given year and occupancy.
+    """
+    aid = asset["asset_id"]
+    atype = asset.get("asset_type")
+    subtype = asset.get("subtype")
+
+    row = {
+        "asset_id": aid,
+        "year": year,
+        "occupancy_rate": round(occ, 3),
+        "vacancy_rate": round(1.0 - occ, 3),
+        "vacancy_duration_months": _vacancy_duration_at(
+            aid, occ, year, base, trajectory, index),
+        "footfall_daily": None,
+        "utilisation_rate": None,
+        "rental_income_rm": None,
+        "energy_kwh": None,
+        "metric_source": "observed",
+        "model_version": "0.4.0",
+        "occupied_units": None,
+        "occupancy_by_subtype_json": None,
+    }
+
+    if atype == "commercial":
+        base_footfall = seeded_int(f"{aid}-base-footfall", 200, 800)
+        base_rental = seeded_int(f"{aid}-base-rental", 800_000, 2_500_000)
+        ratio = occ / 0.9
+        row["footfall_daily"] = int(round(base_footfall * ratio))
+        row["rental_income_rm"] = round(base_rental * ratio, 2)
+
+        unit_mix = _parse_unit_mix(base.get("unit_mix_json"))
+        if unit_mix is not None:
+            occ_by = {}
+            for st in unit_mix:
+                s_occ = max(0.0, min(1.0, occ + seeded_uniform(
+                    f"{aid}-{st}-{year}-occ", -0.20, 0.20)))
+                occ_by[st] = round(s_occ, 3)
+            row["occupancy_by_subtype_json"] = json.dumps(occ_by)
+        elif subtype:
+            row["occupancy_by_subtype_json"] = json.dumps(
+                {subtype: round(occ, 3)})
+
+    if atype == "residential":
+        uc = int(base.get("unit_count") or 1)
+        row["occupied_units"] = int(round(uc * occ))
+
+    if atype == "community_facility":
+        row["utilisation_rate"] = round(occ, 3)
+
+    return row
+
+
+def _build_multi_year_metrics(assets_df, unsold_ids, shoplot_vacant_ids,
+                              anchor_deadspace_id, anchor_facility_id,
+                              base_year=BASE_YEAR):
+    """
+    Generate HISTORY_YEARS rows of asset_metrics per asset.
+    """
+    all_rows = []
+    for _, asset in assets_df.iterrows():
+        aid = asset["asset_id"]
+        tclass = _assign_trajectory_class(
+            aid, asset, unsold_ids, shoplot_vacant_ids,
+            anchor_deadspace_id=anchor_deadspace_id,
+            anchor_facility_id=anchor_facility_id,
+        )
+        trajectory = _generate_occupancy_trajectory(aid, asset, tclass)
+
+        base = {
+            "completion_year": asset.get("completion_year"),
+            "lettable_area_m2": asset.get("lettable_area_m2"),
+            "unit_count": asset.get("unit_count"),
+            "developer_held_units": asset.get("developer_held_units"),
+            "unit_mix_json": asset.get("unit_mix_json"),
+        }
+
+        for i, year in enumerate(
+            range(base_year - HISTORY_YEARS + 1, base_year + 1)
+        ):
+            all_rows.append(
+                _make_year_metrics(asset, year, trajectory[i], base, i, trajectory)
+            )
+
+    return pd.DataFrame(all_rows)
+
+
+def _make_lease(asset_id, unit_idx, subtype, area_m2, asset_occ,
+                base_year, completion_year):
+    """
+    Build a single lease record.
+
+    lease_status:
+      - active       — a tenant is present
+      - expired      — the lease has run out and the unit is now vacant
+      - never_leased — the unit has never had a tenant
+    """
+    unit_id = f"{asset_id}-U{unit_idx:03d}"
+    occ = asset_occ if isinstance(asset_occ, (int, float)) else 0.8
+    never_occupied = (occ < 0.05)
+    band = seeded_uniform(f"{unit_id}-lease-band", 0.0, 1.0)
+
+    if never_occupied:
+        if band < 0.7:
+            status = "never_leased"
+            lease_start = None
+            lease_end = None
+            tenant_type = None
+        else:
+            status = "expired"
+            lease_start = max(completion_year, base_year - seeded_int(
+                f"{unit_id}-lease-dur", 2, 5))
+            lease_end = max(
+                lease_start + 1,
+                base_year - seeded_int(f"{unit_id}-since-exp", 1, 3),
+            )
+            tenant_type = "small"
+    else:
+        status = "active"
+        lease_start = max(completion_year, base_year - seeded_int(
+            f"{unit_id}-lease-dur", 1, 8))
+        if subtype == "supermarket" and band < 0.5:
+            lease_end = base_year + seeded_int(
+                f"{unit_id}-anchor-remaining", 3, 8)
+            tenant_type = "anchor"
+        else:
+            lease_end = base_year + seeded_int(
+                f"{unit_id}-lease-remaining", 1, 5)
+            tenant_type = "small"
+
+    per_m2 = {
+        "supermarket": 150, "convenience_retail": 250, "f_and_b": 300,
+        "services": 200, "medical_retail": 280, "showroom": 180,
+        "office": 200, "entertainment": 220,
+    }.get(subtype, 200)
+
+    rental = 0 if status == "never_leased" else area_m2 * per_m2
+
+    return {
+        "lease_id": unit_id,
+        "asset_id": asset_id,
+        "unit_index": unit_idx,
+        "subtype": subtype,
+        "floor_area_m2": round(area_m2, 1),
+        "lease_start_year": lease_start,
+        "lease_end_year": lease_end,
+        "rental_income_rm_annual": round(rental, 2),
+        "lease_status": status,
+        "tenant_type": tenant_type,
+    }
+
+
+def _generate_lease_records(assets_df, multi_year_df, base_year=BASE_YEAR):
+    """
+    Generate one lease per commercial unit.
+
+    A single-subtype shop generates 1 lease. A mall generates one
+    lease per counted unit (supermarket:1, f_and_b:5, ...).
+
+    Occupancy for the current year comes from multi_year_df (year ==
+    base_year), so leases reflect the same state the rest of the
+    pipeline sees.
+    """
+    current = multi_year_df[multi_year_df["year"] == base_year]
+    occ_by_asset = dict(zip(
+        current["asset_id"].astype(str),
+        current["occupancy_rate"],
+    ))
+
+    records = []
+    for _, asset in assets_df.iterrows():
+        if asset.get("asset_type") != "commercial":
+            continue
+
+        aid = asset["asset_id"]
+        occ = occ_by_asset.get(aid, 0.8)
+        unit_mix = _parse_unit_mix(asset.get("unit_mix_json"))
+        completion = _safe_int(asset.get("completion_year"), base_year - 5)
+
+        if unit_mix is None:
+            records.append(_make_lease(
+                aid, 0, asset.get("subtype"),
+                float(asset.get("lettable_area_m2") or 0),
+                occ, base_year, completion,
+            ))
+        else:
+            unit_idx = 0
+            for st, info in unit_mix.items():
+                count = info.get("count", 1)
+                area_per_unit = info.get("area_m2", 0) / count
+                for _ in range(count):
+                    records.append(_make_lease(
+                        aid, unit_idx, st, area_per_unit,
+                        occ, base_year, completion,
+                    ))
+                    unit_idx += 1
+
+    return records
+
+
+def _dedupe_green_polygons(green_blue_gdf):
+    """
+    Remove OSM green polygons that are fully contained inside a larger
+    one.
+
+    OSM frequently tags a single wood/park area with both leisure=park
+    and natural=wood, producing two nested polygons. B3's canopy
+    overlay then double-counts the area (and a 12-hectare polygon can
+    swallow a whole neighbourhood of residential buildings, driving
+    their canopy to 100% and their UHI to -4.5 °C).
+
+    Strategy: sort by area descending, drop any polygon whose area is
+    >= 90% contained by an already-kept polygon.
+    """
+    if green_blue_gdf is None or green_blue_gdf.empty:
+        return green_blue_gdf
+
+    proj = green_blue_gdf.to_crs("EPSG:32647").copy()
+    proj["_area"] = proj.geometry.area
+    proj = proj.sort_values("_area", ascending=False).reset_index(drop=True)
+
+    to_keep = []
+    for i, row in proj.iterrows():
+        geom_i = row.geometry
+        area_i = row["_area"]
+        is_dup = False
+        for j in to_keep:
+            try:
+                inter = geom_i.intersection(proj.loc[j].geometry).area
+                if inter > 0.9 * area_i:
+                    is_dup = True
+                    break
+            except Exception:
+                continue
+        if not is_dup:
+            to_keep.append(i)
+
+    result = proj.loc[to_keep].drop(columns=["_area"])
+    return result.to_crs(green_blue_gdf.crs)
+
+
+def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf,
+                                     n=12, occupied_building_ids=None):
     """
     Convert a subset of residential buildings facing a main road into
     commercial shoplot.
 
-    Planning basis (PLANMalaysia):
-      For 800 residential units the standard is 15-30 shoplot
-      (ratio 1:20 to 1:30). The existing amenity layer contributes
-      24 commercial. Converting 12 more brings the total to 36,
-      ratio 818:36 ≈ 1:23, inside the standard.
-
-    Selection priority:
-      1. Adjacent to a primary / secondary / tertiary edge.
-      2. Built-form residential only (terrace / semidetached /
-         detached), never apartment.
-      3. Larger floor area as a tiebreaker.
-
-    The candidate pool is drawn from the ASSETS table and joined to
-    the building layer by `building_id`. Filtering on the building
-    layer first and matching back to assets missed most candidates
-    because the building layer contains attachments and undersized
-    rows that never became assets.
+    Phase A additions:
+      - `occupied_building_ids`: buildings that already host an
+        amenity-derived asset. A building that is a clinic must not
+        be converted to a shoplot on top.
+      - converted assets have their unit_count reset to 1, since they
+        are no longer residential rows.
     """
     if network_gdf is None or buildings_gdf is None:
         return assets_df, set()
+
+    occupied = set(occupied_building_ids or [])
 
     main_roads = network_gdf[
         network_gdf["edge_type"].isin(["primary", "secondary", "tertiary"])
     ]
     main_union = main_roads.geometry.union_all() if not main_roads.empty else None
 
-    # Building centroids by building_id (not asset_id — asset_id on
-    # the building layer is unlinked-xxx, which never matches the
-    # assets table).
     b_geom = buildings_gdf[
         buildings_gdf["subtype"].isin(["terrace", "semidetached", "detached"])
     ].to_crs("EPSG:32647")
@@ -1258,15 +1865,14 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf, n=12)
         if row.get("building_id")
     }
 
-    # Draw candidates from assets_df.
     res_assets = assets_df[
         (assets_df["asset_type"] == "residential")
         & (assets_df["subtype"].isin(["terrace", "semidetached", "detached"]))
+        & (~assets_df["building_id"].isin(occupied))
     ].copy()
     if res_assets.empty:
         return assets_df, set()
 
-    # Attach a centroid if we can resolve the building.
     main_union_proj = None
     if main_union is not None:
         try:
@@ -1287,12 +1893,9 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf, n=12)
 
     res_assets["_dist_to_main"] = res_assets.apply(_dist_to_main, axis=1)
     res_assets = res_assets.sort_values(
-        ["_dist_to_main", "floor_area_m2"],
-        ascending=[True, False],
+        ["_dist_to_main", "floor_area_m2"], ascending=[True, False],
     )
 
-    # Pull a wider pool, then keep the first `n` that have a
-    # resolvable centroid.
     pool = res_assets.head(n * 4)
     kept = []
     for _, row in pool.iterrows():
@@ -1315,10 +1918,10 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf, n=12)
     converted_ids = set()
     for i, aid in enumerate(kept):
         subtype = subtype_pattern[i % len(subtype_pattern)]
-        idx = assets_df.index[assets_df["asset_id"] == aid]
-        if len(idx) == 0:
+        idx_arr = assets_df.index[assets_df["asset_id"] == aid]
+        if len(idx_arr) == 0:
             continue
-        idx = idx[0]
+        idx = idx_arr[0]
         row = assets_df.loc[idx]
 
         floor_area = float(row.get("floor_area_m2") or 0.0)
@@ -1344,6 +1947,8 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf, n=12)
         )
         assets_df.loc[idx, "ownership_status"] = "developer_held"
         assets_df.loc[idx, "authority"] = "full_control"
+        # Phase A — no longer a residential unit; reset unit_count
+        assets_df.loc[idx, "unit_count"] = 1
         converted_ids.add(aid)
 
     print(f"  converted {len(converted_ids)} residential → shoplot")
@@ -1560,6 +2165,8 @@ def _derive_metrics_for_shoplot(asset, aid, is_vacant):
 
 
 def derive_metrics_row(asset: dict, demo_role: str, is_unsold: bool = False) -> dict:
+    # DEPRECATED Phase A — replaced by _build_multi_year_metrics.
+    # Kept for backwards compatibility with external callers.
 
     if is_unsold:
         return _derive_metrics_for_unsold(asset, asset["asset_id"])
@@ -1696,6 +2303,8 @@ def main():
     print(f"  buildings:      {len(buildings)}")
     print(f"  parcels:        {len(parcels)}")
     print(f"  green_blue:     {len(green_blue)}")
+    green_blue = _dedupe_green_polygons(green_blue)
+    print(f"    deduped to:   {len(green_blue)}")
     print(f"  network_edges:  {len(network)}")
     print(f"  amenities:      {len(amenities)}")
 
@@ -1735,6 +2344,11 @@ def main():
     )
 
     amenities_p = process_amenities_geometry(amenities, buildings_p)
+    # Buildings whose footprint already hosts an amenity must not be
+    # converted to shoplot later — the amenity IS the asset there.
+    occupied_building_ids = set(
+        amenities_p["building_id"].dropna().astype(str)
+    )
     population_p = generate_population(buildings_p)
 
     # Phase 15 — Elmina-style mid-development township. A dozen
@@ -1804,12 +2418,26 @@ def main():
 
     assets_df = pd.DataFrame(asset_rows)
 
+    # Phase A — compute unit_count for every asset (default 1).
+    buildings_index = {}
+    for _, b in buildings_p.iterrows():
+        bid = b.get("building_id")
+        if bid:
+            buildings_index[bid] = {
+                "footprint_m2": _safe_float(b.get("footprint_m2"), 0.0),
+                "floors": _safe_int(b.get("floors"), 1),
+            }
+    assets_df["unit_count"] = assets_df.apply(
+        lambda r: _compute_unit_count(r, buildings_index), axis=1)
+    assets_df["developer_held_units"] = 0
+
     # Phase 15b — convert a row of residential buildings facing a main
     # road into shoplot. Planning basis: PLANMalaysia 1:20-1:30 ratio;
     # current commercial = 24 amenity-derived + 12 converted = 36,
     # ratio 818:36 ≈ 1:23, inside the standard.
     assets_df, shoplot_ids = _convert_residential_to_shoplot(
-        assets_df, buildings_p, network, n=12,
+        assets_df, buildings_p, network, n=50,
+        occupied_building_ids=occupied_building_ids,
     )
 
     # Phase 15b — mark a small subset of remaining residential as
@@ -1819,9 +2447,10 @@ def main():
     assets_df, unsold_ids = _mark_unsold_inventory(
         assets_df,
         n_residential=30,
-        n_commercial=4,
+        n_commercial=10,
         exclude_ids=shoplot_ids,
     )
+    _assign_unsold_units(assets_df, unsold_ids)
 
     assets_df = _mark_developer_held_facilities(assets_df, n=6)
 
@@ -1971,6 +2600,31 @@ def main():
             lambda p: pid_to_aid.get(str(p))
         )
 
+    # Phase A — compute unit_mix for every large-enough commercial.
+    unit_mix_json_col = []
+    for _, row in assets_df.iterrows():
+        if row.get("asset_type") == "commercial":
+            mix = _compute_commercial_unit_mix(
+                row, float(row.get("lettable_area_m2") or 0),
+                row.get("subtype"),
+            )
+            unit_mix_json_col.append(
+                json.dumps(mix) if mix else None)
+        else:
+            unit_mix_json_col.append(None)
+    assets_df["unit_mix_json"] = unit_mix_json_col
+
+    # Sanity check
+    _comm = assets_df[assets_df["asset_type"] == "commercial"]
+    _units = 0
+    for _, r in _comm.iterrows():
+        m = _parse_unit_mix(r.get("unit_mix_json"))
+        if m is None:
+            _units += 1
+        else:
+            _units += sum(info.get("count", 1) for info in m.values())
+    print(f"  commercial assets: {len(_comm)}  (internal units: {_units})")
+
     assets_df.to_csv(PROCESSED_BIZ_DIR / "assets.csv", index=False)
     print(f"  {len(assets_df)} assets total")
     print(f"    by type:    {dict(assets_df['asset_type'].value_counts())}")
@@ -1993,40 +2647,58 @@ def main():
         facility["asset_id"].iloc[0] if not facility.empty else None
     )
 
-    # ---- asset_metrics.csv ----
-    print("\nBuilding asset_metrics.csv...")
-    metric_rows = []
-    for _, asset in assets_df.iterrows():
-        aid = asset["asset_id"]
+    # Phase A — multi-year asset_metrics, lease records, and asset_leases.csv.
+    # The anchor roles anchor_deadspace / anchor_facility are passed
+    # into the trajectory generator so those assets get the
+    # declining / chronic-low trajectory instead of the default
+    # distribution.
+    print("\nBuilding asset_metrics.csv (multi-year)...")
+    shoplot_vacant_ids = set()
+    for aid in shoplot_ids:
+        if seeded_uniform(f"{aid}-shoplot-vac", 0.0, 1.0) < 0.5:
+            shoplot_vacant_ids.add(aid)
 
-        if aid in shoplot_ids:
-            # Deterministic: ~half the converted shoplot are vacant.
-            # This reproduces the overhang state of newly delivered
-            # shoplot in a mid-development township.
-            is_vacant = seeded_uniform(f"{aid}-shoplot-vac", 0.0, 1.0) < 0.5
-            metric_rows.append(
-                _derive_metrics_for_shoplot(asset.to_dict(), aid, is_vacant)
-            )
-            continue
+    multi_year_df = _build_multi_year_metrics(
+        assets_df=assets_df,
+        unsold_ids=unsold_ids,
+        shoplot_vacant_ids=shoplot_vacant_ids,
+        anchor_deadspace_id=anchor_deadspace,
+        anchor_facility_id=anchor_facility,
+        base_year=BASE_YEAR,
+    )
 
-        role = "healthy"
-        if aid == anchor_deadspace:
-            role = "deadspace"
-        elif aid == anchor_facility:
-            role = "underperforming"
-        is_unsold = aid in unsold_ids
-        metric_rows.append(
-            derive_metrics_row(asset.to_dict(), role, is_unsold=is_unsold)
-        )
-
-    metrics_df = pd.DataFrame(metric_rows).reindex(columns=[
-        "asset_id", "year", "occupancy_rate", "vacancy_rate",
-        "vacancy_duration_months", "footfall_daily",
-        "utilisation_rate", "rental_income_rm", "energy_kwh",
+    ordered_cols = [
+        "asset_id", "year", "subtype",
+        "occupancy_rate", "vacancy_rate", "vacancy_duration_months",
+        "footfall_daily", "utilisation_rate", "rental_income_rm",
+        "energy_kwh",
+        "occupied_units", "occupancy_by_subtype_json",
         "metric_source", "model_version",
-    ])
-    metrics_df.to_csv(PROCESSED_BIZ_DIR / "asset_metrics.csv", index=False)
-    print(f"  {len(metrics_df)} metric rows")
+    ]
+    for col in ordered_cols:
+        if col not in multi_year_df.columns:
+            multi_year_df[col] = None
+    multi_year_df = multi_year_df[ordered_cols]
+    multi_year_df.to_csv(
+        PROCESSED_BIZ_DIR / "asset_metrics.csv", index=False,
+    )
+    print(f"  {len(multi_year_df)} rows "
+          f"({len(assets_df)} assets × {HISTORY_YEARS} years)")
+
+    # Phase A — asset_leases.csv for every commercial unit.
+    print("\nBuilding asset_leases.csv...")
+    lease_records = _generate_lease_records(
+        assets_df, multi_year_df, base_year=BASE_YEAR,
+    )
+    lease_cols = [
+        "lease_id", "asset_id", "unit_index", "subtype",
+        "floor_area_m2", "lease_start_year", "lease_end_year",
+        "rental_income_rm_annual", "lease_status", "tenant_type",
+    ]
+    pd.DataFrame(lease_records, columns=lease_cols).to_csv(
+        PROCESSED_BIZ_DIR / "asset_leases.csv", index=False,
+    )
+    print(f"  {len(lease_records)} lease records")
 
     # ---- development_projects.csv ----
     print("\nBuilding development_projects.csv...")
