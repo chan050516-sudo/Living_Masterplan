@@ -3,11 +3,27 @@
 Determine whether the asset is significantly below applicable
 benchmark.
 
-Phase 11 change: adds a stranded-carbon diagnostic flag. An asset
-whose operational carbon is mostly wasted (because it is underused)
-is flagged even if it does not breach any of the occupancy /
-utilisation thresholds directly.
+Phase 11 change: adds a stranded-carbon diagnostic flag.
+
+Phase 16 (Gemini review fix):
+  - green_space branch added. Previously no branch existed, so
+    every green asset was permanently exempt from "below benchmark"
+    diagnosis, regardless of how badly its canopy or per-capita
+    supply fell short.
+  - below_benchmark_occupancy: early-warning threshold at 85% of
+    the subtype's peer benchmark, above the hard low_occupancy
+    floor. Gradual degradation (82% on a subtype benchmarked at
+    92%) now surfaces as a monitor signal instead of passing as
+    healthy.
+  - high_stranded_carbon split into two severity tiers. The
+    absolute 100 tCO2e floor remains for the severe tier but no
+    longer silently exempts a fully-dead small asset.
+  - high_uhi_exposure: surface temperature proxy now participates
+    in diagnosis instead of being a zombie field.
 """
+
+from ..taxonomy import get_subtype_or_default
+
 
 DEFAULTS = {
     "occupancy_rate_below": 0.50,
@@ -22,6 +38,18 @@ DEFAULTS = {
     # Phase 11 — stranded carbon diagnostics
     "stranded_carbon_ratio_above": 0.50,
     "stranded_carbon_floor_tco2e": 100.0,
+    # Phase 16 — green_space thresholds
+    "green_coverage_below": 0.20,
+    "canopy_coverage_below": 0.15,
+    "green_per_capita_below_m2": 2.0,
+    # Phase 16 — early-warning band: occupancy between
+    # [occupancy_rate_below, benchmark * 0.85) signals early decline.
+    "below_benchmark_factor": 0.85,
+    # Phase 16 — severe UHI exposure threshold (°C above baseline).
+    # 7.0 corresponds to effective canopy < 0.075, i.e. essentially
+    # no shade. Below that, the fallback canopy is at least nominally
+    # shading the footprint.
+    "uhi_exposure_above_c": 7.0,
 }
 
 
@@ -33,6 +61,7 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         occ = metrics.get("occupancy_rate")
         if occ is not None and occ < t["occupancy_rate_below"]:
             reasons.append("low_occupancy")
+        _check_below_benchmark(reasons, metrics, occ, t)
 
         vac = metrics.get("vacancy_duration_months")
         if vac is not None and vac > t["vacancy_duration_above_months"]:
@@ -59,6 +88,7 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
             reasons.append("low_neighborhood_diversity")
 
         _check_stranded(reasons, metrics, t)
+        _check_uhi(reasons, metrics, asset_type, t)
 
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
@@ -70,27 +100,39 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
             reasons.append("walking_accessibility_deficit")
 
         _check_stranded(reasons, metrics, t)
+        _check_uhi(reasons, metrics, asset_type, t)
 
     elif asset_type == "residential":
-        # Phase 15 — residential underperformance is judged on
-        # vacancy, not just carbon. A sold unit with low vacancy
-        # signals household demand failure; an unsold unit with
-        # 0% occupancy signals the developer has built to a market
-        # that isn't there yet.
         occ = metrics.get("occupancy_rate")
         if occ is not None and occ < t["occupancy_rate_below"]:
             reasons.append("low_occupancy")
+        _check_below_benchmark(reasons, metrics, occ, t)
 
         vac = metrics.get("vacancy_duration_months")
         if vac is not None and vac > t["vacancy_duration_above_months"]:
             reasons.append("long_vacancy")
 
         _check_stranded(reasons, metrics, t)
+        _check_uhi(reasons, metrics, asset_type, t)
 
     elif asset_type == "undeveloped_parcel":
         gap = metrics.get("demand_supply_gap")
         if gap is not None and gap < t["demand_supply_gap_below"]:
             reasons.append("negative_demand_supply_gap")
+        _check_uhi(reasons, metrics, asset_type, t)
+
+    elif asset_type == "green_space":
+        g = metrics.get("green_coverage")
+        if g is not None and float(g) < t["green_coverage_below"]:
+            reasons.append("low_green_coverage")
+
+        c = metrics.get("canopy_coverage")
+        if c is not None and float(c) < t["canopy_coverage_below"]:
+            reasons.append("low_canopy_coverage")
+
+        gpc = metrics.get("green_per_capita_m2")
+        if gpc is not None and float(gpc) < t["green_per_capita_below_m2"]:
+            reasons.append("low_green_per_capita")
 
     return {
         "triggered": len(reasons) > 0,
@@ -98,16 +140,48 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
     }
 
 
+def _check_below_benchmark(reasons: list, metrics: dict, occ, t: dict) -> None:
+    """
+    Early-warning threshold: the asset is below (benchmark * 0.85)
+    but still at or above the hard low_occupancy floor. This is the
+    "gradually declining" band that the hard floor alone cannot see.
+    """
+    if occ is None:
+        return
+    subtype = metrics.get("subtype")
+    if not subtype:
+        return
+    benchmark = (get_subtype_or_default(subtype)
+                 .get("occupancy_benchmark"))
+    if benchmark is None:
+        return
+    try:
+        benchmark = float(benchmark)
+        occ_f = float(occ)
+    except (TypeError, ValueError):
+        return
+    if benchmark <= 0:
+        return
+    factor = t.get("below_benchmark_factor", 0.85)
+    if occ_f < benchmark * factor and occ_f >= t["occupancy_rate_below"]:
+        reasons.append("below_benchmark_occupancy")
+
+
 def _check_stranded(reasons: list, metrics: dict, t: dict) -> None:
     """
     Flag an asset whose operational carbon is mostly wasted.
 
-    Requires BOTH:
-      - stranded ratio above the threshold (default 50%), AND
-      - absolute stranded carbon above the floor (default 100 tCO2e)
+    Two tiers:
 
-    The floor prevents small assets with high ratios but trivial
-    absolute emissions from dominating the urgency list.
+    high_stranded_carbon — ratio AND absolute floor both exceeded.
+        Carries the full urgency weight.
+
+    high_stranded_carbon_ratio_small_asset — ratio exceeded but
+        absolute emissions below the floor. A smaller building can
+        be equally dead (100% unused) while emitting less in
+        absolute terms. Recording it at a lower weight keeps the
+        floor's protection against trivially small assets without
+        silently exempting fully-dead small ones.
     """
     ratio = metrics.get("stranded_carbon_ratio")
     absolute = metrics.get("carbon_stranded_tco2e")
@@ -120,5 +194,37 @@ def _check_stranded(reasons: list, metrics: dict, t: dict) -> None:
     except (TypeError, ValueError):
         return
 
-    if r > t["stranded_carbon_ratio_above"] and a > t["stranded_carbon_floor_tco2e"]:
+    ratio_hit = r > t["stranded_carbon_ratio_above"]
+    absolute_hit = a > t["stranded_carbon_floor_tco2e"]
+
+    if ratio_hit and absolute_hit:
         reasons.append("high_stranded_carbon")
+    elif ratio_hit and a > 10.0:
+        reasons.append("high_stranded_carbon_ratio_small_asset")
+
+
+def _check_uhi(reasons: list, metrics: dict, asset_type: str, t: dict) -> None:
+    """
+    Flag assets whose surface temperature proxy shows severe heat
+    exposure. Buildings only; green space legitimately produces a
+    cooling benefit and is excluded.
+
+    The threshold defaults to 7.0°C, which under the current UHI
+    model corresponds to effective canopy < 0.075 — essentially no
+    shade. Using 6.0 would fire on every commercial asset whose
+    canopy falls back to the township-typical 0.10, defeating the
+    purpose of the flag.
+    """
+    if asset_type not in (
+        "commercial", "residential", "community_facility",
+    ):
+        return
+    uhi = metrics.get("surface_temp_delta_c")
+    if uhi is None:
+        return
+    try:
+        v = float(uhi)
+    except (TypeError, ValueError):
+        return
+    if v >= t["uhi_exposure_above_c"]:
+        reasons.append("high_uhi_exposure")

@@ -29,8 +29,7 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
     if subtype:
         lines.append(f"Subtype: {subtype}")
 
-    # Phase 11 — universal carbon evidence (present on every type)
-    _add_carbon_evidence(lines, metrics)
+    _add_carbon_evidence(lines, metrics, asset_type)
 
     if asset_type == "commercial":
         occ = metrics.get("occupancy_rate")
@@ -67,11 +66,6 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
             lines.append(f"Walk 5-min coverage: {round(wcov * 100, 1)}%")
 
     elif asset_type == "residential":
-        # Phase 15 — a residential asset that was built to house
-        # people but houses none is a failure of value realization.
-        # This is the Layer 2 condition the layer1 vacancy check
-        # cannot express: it is not just "below benchmark", it is
-        # "the purpose it was built for is not being served".
         occ = metrics.get("occupancy_rate")
         if occ is not None and occ <= 0.05:
             lines.append("built_value_not_realized")
@@ -91,21 +85,27 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
         _add("Demand-supply gap", "demand_supply_gap")
         _add("Infrastructure cost (RM)", "infrastructure_cost_rm")
 
-    elif asset_type == "residential":
-        occ = metrics.get("occupancy_rate")
-        if occ is not None:
-            lines.append(f"Occupancy: {round(occ * 100, 1)}%")
-
     return lines
 
 
-def _add_carbon_evidence(lines: list, metrics: dict) -> None:
+def _add_carbon_evidence(lines: list, metrics: dict,
+                         asset_type: str) -> None:
     """
-    Phase 11 — surface the productive/stranded carbon split and UHI
-    proxy in every asset's evidence list. Only emits when the fields
-    are present, so this is a no-op for asset types that do not
-    compute carbon.
+    Surface the productive/stranded carbon split, embodied carbon,
+    and UHI proxy. Phase 16 changes:
+
+    - Embodied carbon is labelled as a subtype benchmark estimate,
+      not a building-level BOM figure. The value is
+      material_intensity × floor area from taxonomy.yml, identical
+      for every building of the same subtype — it does not encode
+      actual material choices.
+    - UHI is classified via classify_uhi_meaning so a green space's
+      cooling benefit is never presented as if it were heat
+      exposure, and a building's negative delta is flagged as a
+      data anomaly.
     """
+    from ..derived.environmental import classify_uhi_meaning
+
     total = metrics.get("carbon_operational_tco2e")
     productive = metrics.get("carbon_productive_tco2e")
     stranded = metrics.get("carbon_stranded_tco2e")
@@ -133,11 +133,28 @@ def _add_carbon_evidence(lines: list, metrics: dict) -> None:
     if embodied is not None:
         ev = _fmt(embodied, 0)
         if ev is not None:
-            lines.append(f"Embodied carbon locked in structure: {ev} tCO2e")
+            lines.append(
+                f"Embodied carbon locked in structure "
+                f"(subtype benchmark estimate): {ev} tCO2e"
+            )
 
     uhi = metrics.get("surface_temp_delta_c")
     if uhi is not None:
+        classification = classify_uhi_meaning(asset_type, uhi)
         uv = _fmt(uhi, 1)
         if uv is not None:
-            sign = "+" if float(uhi) > 0 else ""
-            lines.append(f"Surface temperature delta (UHI proxy): {sign}{uv} °C")
+            if classification["kind"] == "cooling_benefit":
+                lines.append(
+                    f"Cooling benefit vs open-field baseline: {uv} °C"
+                )
+            elif classification["is_anomaly"]:
+                lines.append(
+                    f"Surface temperature delta (UHI proxy): {uv} °C "
+                    f"[data anomaly — verify canopy overlay]"
+                )
+            else:
+                sign = "+" if float(uhi) > 0 else ""
+                lines.append(
+                    f"Surface temperature delta (UHI proxy): "
+                    f"{sign}{uv} °C"
+                )

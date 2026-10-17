@@ -1246,10 +1246,10 @@ def _add_project_state(year_state, proj, year, emission_factor):
     + demolition) so the delay-vs-deliver comparison can quantify the
     avoided life-cycle carbon.
 
-    Embodied carbon is amortised over the SUBTYPE's structural
-    lifespan (from taxonomy.yml), not a global 50-year constant.
-    A 30-year convenience retail and a 60-year terrace house do not
-    amortise their locked-in carbon at the same rate.
+    Phase 16: embodied carbon is amortised over the SUBTYPE's
+    structural lifespan from taxonomy.yml, not a global 50-year
+    constant. A 30-year convenience retail and a 60-year terrace
+    house do not amortise their locked-in carbon at the same rate.
     """
     pid = proj.get("project_id")
     if not pid:
@@ -1264,7 +1264,6 @@ def _add_project_state(year_state, proj, year, emission_factor):
     energy = energy_from_subtype(subtype, gfa)
     carbon = operational_carbon(energy, emission_factor)
 
-    # Phase 11b — subtype-aware embodied carbon for new construction.
     _ec = embodied_carbon_for_subtype(
         gfa, subtype, fallback_intensity=MATERIAL_INTENSITY_NEW_BUILD,
     )
@@ -1272,7 +1271,6 @@ def _add_project_state(year_state, proj, year, emission_factor):
     demolition = gfa * DEMOLITION_CARBON_INTENSITY
     embodied_total = embodied_materials + demolition
 
-    # Amortise materials + demolition over the same subtype lifespan.
     lifespan = _ec.get("structural_lifespan_years") or 50
     try:
         lifespan = int(lifespan)

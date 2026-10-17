@@ -26,6 +26,14 @@ FLAG_WEIGHTS = {
     "weak_future_demand":                        1,
     # Phase 15 — unsold inventory: built but unused
     "built_value_not_realized":     2,
+    # Phase 16 — early-warning and anomaly flags
+    "below_benchmark_occupancy":               1,
+    "high_stranded_carbon_ratio_small_asset":  1,
+    "high_uhi_exposure":                       1,
+    "uhi_data_anomaly":                        1,
+    "low_green_coverage":                      1,
+    "low_canopy_coverage":                     1,
+    "low_green_per_capita":                    1,
 }
 
 

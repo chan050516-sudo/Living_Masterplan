@@ -460,3 +460,52 @@ def effective_canopy_for_uhi(raw_canopy, asset_type: str) -> float:
         "green_space":         0.60,
         "undeveloped_parcel":  0.05,
     }.get(asset_type, 0.10)
+
+
+# ----------------------------------------------------------------
+# Phase 16 — UHI interpretation
+# ----------------------------------------------------------------
+
+def classify_uhi_meaning(asset_type, surface_temp_delta_c):
+    """
+    Classify what a UHI proxy value means for a given asset type.
+
+    Two physical interpretations coexist:
+
+    cooling_benefit — vegetation drives the surface temperature
+        below the open-field baseline. Expected for green space.
+        A positive value for green space is suspicious (a park
+        contributing heat).
+
+    heat_exposure — hard surface sits above the open-field
+        baseline. Expected for buildings. A negative value for a
+        building is a data anomaly: the footprint cannot be more
+        vegetated than a park.
+
+    Returns
+    -------
+    dict with keys "kind", "value", "is_anomaly".
+    """
+    if surface_temp_delta_c is None:
+        return {"kind": "unknown", "value": None, "is_anomaly": False}
+    try:
+        v = float(surface_temp_delta_c)
+    except (TypeError, ValueError):
+        return {"kind": "unknown", "value": None, "is_anomaly": False}
+
+    if asset_type == "green_space":
+        return {
+            "kind": "cooling_benefit",
+            "value": v,
+            "is_anomaly": v > 0,
+        }
+    if asset_type in (
+        "commercial", "residential", "community_facility",
+        "undeveloped_parcel",
+    ):
+        return {
+            "kind": "heat_exposure",
+            "value": v,
+            "is_anomaly": v < 0,
+        }
+    return {"kind": "heat_exposure", "value": v, "is_anomaly": False}

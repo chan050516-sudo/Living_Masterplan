@@ -138,16 +138,53 @@ def classify_by_authority(asset_type: str, authority: str) -> dict:
     }
 
 
-def evaluate(asset_type: str, diagnostics: dict = None) -> dict:
+def evaluate(asset_type: str, diagnostics: dict = None,
+             layer1: dict = None, layer2: dict = None) -> dict:
     """
-    `diagnostics` is reserved for future extensions (budget caps,
-    land-use rules, constraint filters). Phase 3 reads only the static
-    action space.
+    Phase 16 — gate-aware actionability.
+
+    Previously this returned "actionable": len(legal) > 0 for every
+    asset type, which made "actionable" always True and turned the
+    "if not l3: return monitor" branch in decide_status into dead
+    code. It also misled every downstream consumer (LLM, UI) into
+    reading "has legal interventions" as "the asset needs them".
+
+    The three fields now separate:
+
+    has_legal_actions — the asset TYPE has some legal intervention.
+        A type property. Not a state.
+
+    candidate_interventions — the subset indicated by the asset's
+        diagnosis. Empty when neither layer1 nor layer2 fired.
+
+    actionable — legacy alias for has_legal_actions. Deprecated;
+        retained only for schema compatibility.
     """
-    candidates = ACTION_SPACE.get(asset_type, [])
+    legal = ACTION_SPACE.get(asset_type, [])
+
+    layer1_triggered = bool(layer1 and layer1.get("triggered"))
+    layer2_triggered = bool(layer2 and layer2.get("triggered"))
+    diagnosed = layer1_triggered or layer2_triggered
+
+    if diagnosed:
+        parts = []
+        if layer1_triggered:
+            parts.append("layer1")
+        if layer2_triggered:
+            parts.append("layer2")
+        reason = f"diagnosis triggered by {'+'.join(parts)}"
+    else:
+        reason = (
+            "no layer triggered; no intervention is indicated "
+            "regardless of legal action space"
+        )
+
     return {
-        "actionable": len(candidates) > 0,
-        "candidate_interventions": candidates,
+        "has_legal_actions": len(legal) > 0,
+        "actionable": len(legal) > 0,   # deprecated alias
+        "candidate_interventions": list(legal) if diagnosed else [],
+        "diagnosis_active": diagnosed,
+        "reason": reason,
     }
 
 
