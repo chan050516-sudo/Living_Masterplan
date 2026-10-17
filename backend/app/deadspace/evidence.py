@@ -86,8 +86,82 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
         _add("Demand-supply gap", "demand_supply_gap")
         _add("Infrastructure cost (RM)", "infrastructure_cost_rm")
 
+    # Phase B.3 — trajectory narrative appended after the type-specific
+    # evidence lines. The trajectory summary is what tells the reader
+    # whether the flag is describing a fresh fall or a long decline.
+    _add_trajectory_evidence(lines, metrics)
+
     return lines
 
+
+def _add_trajectory_evidence(lines: list, metrics: dict) -> None:
+    """
+    Phase B.3 — trajectory summary.
+
+    Reads the trajectory_class and its supporting features from the
+    enriched metrics and appends one human-readable line summarising
+    the asset's five-year path. Skipped for assets whose trajectory is
+    "unknown" (green_space, undeveloped_parcel, and any asset that B3
+    could not classify).
+    """
+    tclass = metrics.get("trajectory_class")
+    if not tclass or tclass == "unknown":
+        return
+
+    def _pct(v):
+        try:
+            return f"{round(float(v) * 100, 1)}%"
+        except (TypeError, ValueError):
+            return None
+
+    if tclass == "stable":
+        peak = _pct(metrics.get("peak_occupancy"))
+        if peak:
+            lines.append(f"Trajectory: stable (5-yr peak {peak})")
+        else:
+            lines.append("Trajectory: stable")
+
+    elif tclass in ("rapid_decline", "recent_failure"):
+        peak = _pct(metrics.get("peak_occupancy"))
+        ysp = metrics.get("years_since_peak")
+        msg = "Trajectory: rapid decline"
+        if peak:
+            msg += f" (from {peak} peak"
+            if ysp is not None:
+                try:
+                    msg += f", {int(ysp)} yr ago"
+                except (TypeError, ValueError):
+                    pass
+            msg += ")"
+        lines.append(msg)
+
+    elif tclass == "declining":
+        peak = _pct(metrics.get("peak_occupancy"))
+        ysp = metrics.get("years_since_peak")
+        msg = "Trajectory: declining"
+        if peak and ysp is not None:
+            try:
+                msg += f" (peak {peak} {int(ysp)} yrs ago)"
+            except (TypeError, ValueError):
+                pass
+        lines.append(msg)
+
+    elif tclass == "chronic_low":
+        n = metrics.get("years_below_benchmark")
+        msg = "Trajectory: chronic low"
+        if n is not None:
+            try:
+                msg += f" ({int(n)} consecutive years below benchmark)"
+            except (TypeError, ValueError):
+                pass
+        lines.append(msg)
+
+    elif tclass == "recovering":
+        lines.append("Trajectory: recovering from previous low")
+
+    elif tclass == "never_alive":
+        lines.append("Trajectory: never occupied since completion")
+        
 
 def _add_subtype_mix_evidence(lines: list, metrics: dict) -> None:
     """

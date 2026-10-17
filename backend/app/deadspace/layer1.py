@@ -138,6 +138,9 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         if gpc is not None and float(gpc) < t["green_per_capita_below_m2"]:
             reasons.append("low_green_per_capita")
 
+    # Phase B.3 — trajectory check applies to every asset type.
+    _check_trajectory(reasons, metrics, t)
+
     return {
         "triggered": len(reasons) > 0,
         "reasons": reasons,
@@ -262,7 +265,48 @@ def _check_subtype_mix(reasons: list, metrics: dict, t: dict) -> None:
         reasons.append("subtype_mix_dead")
     elif any_low:
         reasons.append("subtype_mix_low")
-        
+
+
+def _check_trajectory(reasons: list, metrics: dict, t: dict) -> None:
+    """
+    Phase B.3 — trajectory consumption.
+
+    The snapshot flags above (low_occupancy, negative_noi, ...) describe
+    the asset at 2026. They cannot distinguish:
+      - an asset that was 90% occupied two years ago and is collapsing
+      - an asset that has been 45% occupied for five years
+      - an asset that is recovering from a 2024 crash
+
+    The `trajectory_class` field (computed by B3 from the five-year
+    history) fills that gap. Three flags are emitted:
+
+      rapid_decline         — occupancy dropped >20% in the last year.
+                              Imminent failure; treat as urgent.
+      falling_from_healthy  — occupancy fell >25% from a 70%+ peak
+                              over 2+ years. Slow bleed; early
+                              warning, not yet critical.
+      chronic_stagnation    — occupancy has been below 85% of the
+                              subtype benchmark for 3+ years. Structural
+                              low, but stable. Needs repurposing, not
+                              emergency stabilisation.
+
+    "recovering" and "never_alive" do not emit flags here:
+      - recovering:  the asset is improving; urgency should fall, not rise.
+      - never_alive: already captured by snapshot low_occupancy (which
+                     fires for occupancy < 0.50 in every type).
+    """
+    tclass = metrics.get("trajectory_class")
+    if tclass is None or tclass == "unknown":
+        return
+
+    if tclass in ("rapid_decline", "recent_failure"):
+        reasons.append("rapid_decline")
+    elif tclass == "declining":
+        reasons.append("falling_from_healthy")
+    elif tclass == "chronic_low":
+        reasons.append("chronic_stagnation")
+    # stable / recovering / never_alive → no flag
+
 
 def _check_uhi(reasons: list, metrics: dict, asset_type: str, t: dict) -> None:
     """

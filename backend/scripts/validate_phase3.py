@@ -257,6 +257,63 @@ def main():
               f"{r['urgency_index']:>8.1f}  "
               f"{len(r['flags']):>5}  {top_flag}")
 
+    # ------------------------------------------------------------------
+    # 9. Trajectory distribution
+    # ------------------------------------------------------------------
+    _hdr("9. Trajectory distribution (2026)")
+
+    # Load the enriched CSV to read trajectory_class per asset
+    enriched = pd.read_csv(
+        base / "business" / "asset_metrics_enriched.csv"
+    )
+    enriched_2026 = enriched[enriched["year"] == 2026]
+    tclass_map = dict(zip(
+        enriched_2026["asset_id"].astype(str),
+        enriched_2026["trajectory_class"],
+    ))
+
+    from collections import Counter as _Counter
+    tclass_counts = _Counter()
+    for r in records:
+        t = tclass_map.get(r["asset_id"])
+        if t is None or (isinstance(t, float) and pd.isna(t)):
+            t = "unknown"
+        tclass_counts[t] += 1
+
+    print(f"  {'trajectory_class':<20} {'count':>6}  statuses")
+    print("  " + "-" * 62)
+    for tclass, n in tclass_counts.most_common():
+        # Cross-tab: which statuses do assets in this trajectory get?
+        aids_in_class = {
+            aid for aid, tc in tclass_map.items()
+            if (tc == tclass) or (
+                (tc is None or (isinstance(tc, float) and pd.isna(tc)))
+                and tclass == "unknown"
+            )
+        }
+        statuses = _Counter(
+            r["status"] for r in records
+            if r["asset_id"] in aids_in_class
+        )
+        status_str = ", ".join(
+            f"{s}:{n}" for s, n in statuses.most_common(3)
+        )
+        print(f"  {tclass:<20} {n:>6}  {status_str}")
+
+    # Show the top 3 rapid_decline assets and their urgency
+    rapid_aids = [
+        aid for aid, tc in tclass_map.items() if tc == "rapid_decline"
+    ]
+    if rapid_aids:
+        print(f"\n  rapid_decline assets (top 5 by urgency):")
+        rapid_records = [
+            r for r in records if r["asset_id"] in rapid_aids
+        ]
+        rapid_records.sort(key=lambda r: -r["urgency_index"])
+        for r in rapid_records[:5]:
+            print(f"    {r['asset_id']:<14} urgency={r['urgency_index']:>5.1f}  "
+                  f"status={r['status']}")
+
     print("\n" + "=" * 72)
     print("  Phase 3 validation complete.")
     print("=" * 72 + "\n")

@@ -99,6 +99,39 @@
     "demographic_mismatch": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "neighborhood_diversity": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
 
+    "occupancy_trend_3yr": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — linear slope of occupancy over the last 3 years. Negative = declining."
+    },
+    "noi_trend_3yr": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — linear slope of NOI over the last 3 years. Negative = worsening."
+    },
+    "years_below_benchmark": {
+      "type": ["integer", "null"],
+      "$comment": "Phase B.1 — consecutive years below (benchmark * 0.85)."
+    },
+    "peak_occupancy": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — historical peak occupancy in the 5-year window."
+    },
+    "years_since_peak": {
+      "type": ["integer", "null"],
+      "$comment": "Phase B.1 — years elapsed since the peak occupancy was recorded."
+    },
+    "vacancy_streak_months": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — latest vacancy_duration_months in the observed series."
+    },
+    "trajectory_class": {
+      "type": ["string", "null"],
+      "enum": [
+        "stable", "declining", "rapid_decline", "chronic_low",
+        "recovering", "never_alive", "recent_failure", "unknown", null
+      ],
+      "$comment": "Phase B.1 — coarse trajectory classification from the 5-year history."
+    },
+
     "energy_kwh_hvac": {
       "type": ["number", "null"],
       "$comment": "Phase 11 — HVAC sub-system energy."
