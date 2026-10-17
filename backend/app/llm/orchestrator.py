@@ -463,7 +463,56 @@ def _verify_catalytic_links(candidates):
     claim, downgrade the level and record a warning on the candidate.
 
     The function never removes an item. It only annotates.
+
+    Mechanism → metric contract
+    ---------------------------
+    Each mechanism has a PRIMARY metric that must move for the claim
+    to be fully confirmed, and optionally a SECONDARY metric that is
+    weaker evidence.
+
+      walkability_improvement
+        primary   coverage_ratio_10min_walk
+        The walk coverage ratio is a physical measurement of the
+        network, independent of the Huff allocation. A positive delta
+        confirms the mechanism.
+
+      catchment_growth
+        primary   reachable_population_walk
+        secondary effective_demand_m2
+        The primary metric is a physical resident count within the
+        walking catchment. It does not pass through Huff, so a
+        positive delta confirms the mechanism at 'verified'.
+        The secondary metric is the Huff-assigned demand; because
+        Huff carries un-calibrated assumptions, it can only support
+        'partially_verified'.
+
+      competition_relief
+        primary   effective_demand_m2
+        Entirely Huff-dependent. The declaration ceiling is already
+        'partially_verified' (set by the validator); this function
+        can only downgrade further.
+
+    Levels are strictly capped downward by simulation evidence:
+      - declared > achievable  →  set to achievable
+      - declared <= achievable →  unchanged
     """
+    _LEVEL_ORDER = {"verified": 2, "partially_verified": 1, "claimed": 0}
+
+    _MECHANISM_SPEC = {
+        "walkability_improvement": {
+            "primary":   ["coverage_ratio_10min_walk"],
+            "secondary": [],
+        },
+        "catchment_growth": {
+            "primary":   ["reachable_population_walk"],
+            "secondary": ["effective_demand_m2"],
+        },
+        "competition_relief": {
+            "primary":   ["effective_demand_m2"],
+            "secondary": [],
+        },
+    }
+
     for cand in candidates:
         sim = cand.get("simulation") or {}
         if sim.get("error"):
@@ -491,35 +540,48 @@ def _verify_catalytic_links(candidates):
                     )
                 continue
 
-            # Compare declared mechanism to the metric that should
-            # have moved.
-            metric_key = {
-                "walkability_improvement": "coverage_ratio_10min_walk",
-                "catchment_growth": "reachable_population_walk",
-                "competition_relief": "effective_demand_m2",
-            }.get(link.get("mechanism"))
-
-            if not metric_key or metric_key not in metrics:
+            spec = _MECHANISM_SPEC.get(link.get("mechanism"))
+            if not spec:
                 continue
 
-            delta = metrics[metric_key] or {}
-            before = delta.get("before")
-            after = delta.get("after")
-            if before is None or after is None:
-                continue
+            def _improved(key):
+                delta = metrics.get(key) or {}
+                before = delta.get("before")
+                after = delta.get("after")
+                if before is None or after is None:
+                    return None
+                try:
+                    return float(after) > float(before)
+                except (TypeError, ValueError):
+                    return None
 
-            # Signal: did the metric actually move in the declared
-            # direction?
-            try:
-                moved = float(after) > float(before)
-            except (TypeError, ValueError):
-                continue
+            primary = {k: _improved(k) for k in spec["primary"]}
+            secondary = {k: _improved(k) for k in spec["secondary"]}
 
-            if not moved and link.get("verification_level") == "verified":
-                link["verification_level"] = "partially_verified"
+            primary_true = any(v is True for v in primary.values())
+            primary_present = any(v is not None for v in primary.values())
+            secondary_true = any(v is True for v in secondary.values())
+            secondary_present = any(v is not None for v in secondary.values())
+
+            # Achievable level from simulation evidence alone.
+            if primary_true:
+                achievable = "verified"
+            elif secondary_true:
+                achievable = "partially_verified"
+            elif primary_present or secondary_present:
+                # Metrics exist but did not improve (flat or worse).
+                achievable = "claimed"
+            else:
+                # Metrics not exposed on this beneficiary.
+                achievable = "claimed"
+
+            declared = link.get("verification_level", "claimed")
+            if _LEVEL_ORDER.get(declared, 0) > _LEVEL_ORDER.get(achievable, 0):
+                link["verification_level"] = achievable
                 link.setdefault("_verification_notes", []).append(
-                    f"{metric_key} did not improve; downgraded from "
-                    f"'verified' to 'partially_verified'"
+                    f"simulation only supports '{achievable}' for "
+                    f"mechanism '{link.get('mechanism')}' on this "
+                    f"beneficiary; downgraded from '{declared}'"
                 )
 
 

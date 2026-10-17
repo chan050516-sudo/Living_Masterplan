@@ -114,6 +114,29 @@ def seeded_int(key: str, lo: int, hi: int) -> int:
     return lo + int(math.floor(u * (hi - lo + 1)))
 
 
+def _clamp_vacancy_to_age(months, completion_year, base_year=BASE_YEAR):
+    """
+    Cap vacancy_duration_months at the asset's total age in months.
+
+    An asset cannot have been vacant for longer than it has existed.
+    The seeded value is a mock-realism convenience, not a physical
+    fact; if it would exceed the asset age, the age is the correct
+    upper bound.
+    """
+    try:
+        m = int(months)
+    except (TypeError, ValueError):
+        return months
+    if completion_year is None:
+        return m
+    try:
+        cy = int(completion_year)
+    except (TypeError, ValueError):
+        return m
+    age_months = max(1, (base_year - cy) * 12)
+    return min(m, age_months)
+
+
 # ================================================================
 # 2. Building subtype inference
 # ================================================================
@@ -1495,6 +1518,9 @@ def _derive_metrics_for_shoplot(asset, aid, is_vacant):
     before a tenant fills it. Half are leased to small businesses.
     The 50/50 split reproduces the real distribution of delivered
     shoplot in Elmina- and Bukit Jelutong-style phases.
+
+    vacancy_duration_months is clamped to the asset's age: a unit
+    built in 2024 cannot have been vacant for 36 months in 2026.
     """
     if is_vacant:
         return {
@@ -1502,7 +1528,10 @@ def _derive_metrics_for_shoplot(asset, aid, is_vacant):
             "year": BASE_YEAR,
             "occupancy_rate": 0.0,
             "vacancy_rate": 1.0,
-            "vacancy_duration_months": seeded_int(f"{aid}-vacdur", 24, 60),
+            "vacancy_duration_months": _clamp_vacancy_to_age(
+                seeded_int(f"{aid}-vacdur", 24, 60),
+                asset.get("completion_year"),
+            ),
             "footfall_daily": 0,
             "utilisation_rate": None,
             "rental_income_rm": 0.0,
@@ -1517,7 +1546,10 @@ def _derive_metrics_for_shoplot(asset, aid, is_vacant):
         "year": BASE_YEAR,
         "occupancy_rate": round(occ, 3),
         "vacancy_rate": round(1 - occ, 3),
-        "vacancy_duration_months": seeded_int(f"{aid}-vacdur", 0, 6),
+        "vacancy_duration_months": _clamp_vacancy_to_age(
+            seeded_int(f"{aid}-vacdur", 0, 6),
+            asset.get("completion_year"),
+        ),
         "footfall_daily": seeded_int(f"{aid}-footfall", 100, 400),
         "utilisation_rate": None,
         "rental_income_rm": seeded_int(f"{aid}-rental", 200_000, 800_000),
@@ -1555,6 +1587,9 @@ def derive_metrics_row(asset: dict, demo_role: str, is_unsold: bool = False) -> 
             vac_dur = seeded_int(f"{aid}-vacdur", 0, 6)
             footfall = seeded_int(f"{aid}-footfall", 300, 900)
             rental = seeded_int(f"{aid}-rental", 1_500_000, 3_000_000)
+        vac_dur = _clamp_vacancy_to_age(
+            vac_dur, asset.get("completion_year"),
+        )
         row["occupancy_rate"] = round(occ, 3)
         row["vacancy_rate"] = round(1 - occ, 3)
         row["vacancy_duration_months"] = vac_dur
@@ -2137,12 +2172,16 @@ def main():
         })
 
     # SC-DELAY: postpone the first development project to 2033.
+    # The target is the asset id (not the project id) so the same
+    # directive works through both supply._resolve_target_projects and
+    # simulation._resolve_project_delivery_year, which resolve
+    # asset_id -> parcel_id -> project_id.
     if not undeveloped.empty:
-        first_project_id = "PRJ-01"   # matches the naming above
+        first_undeveloped_asset_id = undeveloped.iloc[0]["asset_id"]
         intervention_rows.append({
             "scenario_id": "SC-DELAY",
             "intervention_id": "INT-003",
-            "target_asset_id": first_project_id,
+            "target_asset_id": first_undeveloped_asset_id,
             "intervention_type": "delay_development",
             "parameters_json": json.dumps({"until": 2033}),
             "expected_derived_json": None,

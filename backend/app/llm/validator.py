@@ -152,12 +152,25 @@ CATALYTIC_MECHANISMS = {
 }
 
 # Which verification levels each mechanism is allowed to claim.
-# `verified` means B4 re-computes the beneficiary's metric and the
-# delta is visible in comparison.per_asset. If the mechanism cannot
-# produce that delta, the level must be capped lower.
+#
+# "verified" means the simulation's delta rests on a physically
+# measured quantity: a walk coverage ratio (walkability_improvement)
+# or a resident count within the walking catchment (catchment_growth).
+#
+# "partially_verified" is the cap for mechanisms whose delta depends
+# on the Huff gravity allocation. The Huff model carries several
+# un-calibrated assumptions — attractiveness proxied by lettable
+# area, distance exponent beta = 2.0, hardcoded competition radii,
+# and a zero-sum demand pool. A visible delta under those assumptions
+# is real *inside* the model but not guaranteed in reality, so the
+# mechanism cannot be labelled fully verified.
+#
+# "claimed" is the cap for mechanisms the simulation cannot measure
+# at all (cross-subtype consumption, footfall-to-revenue conversion).
 _MAX_VERIFICATION_LEVEL = {
     "walkability_improvement": "verified",
-    "catchment_growth":        "verified",
+    "catchment_growth":        "verified",        # ceiling; downgraded
+                                                  # if only Huff moves
     "competition_relief":      "partially_verified",
     "complementary_use":       "claimed",
     "footfall_injection":      "claimed",
@@ -452,7 +465,35 @@ class ProposalValidator:
                 )
                 return errors, warnings, None
 
-            # Mechanism ↔ intervention-type coherence (advisory only)
+            # Mechanism ↔ intervention-type coherence. When the
+            # delivering intervention cannot physically produce the
+            # claimed effect, the verification level is downgraded
+            # to a specific target level.
+            #
+            # Downgrade targets:
+            #   walkability_improvement delivered by a non-spatial
+            #     intervention → partially_verified (claim is
+            #     implausible; Huff may still move)
+            #   catchment_growth delivered by a non-development
+            #     intervention → partially_verified (no residents
+            #     are added; only Huff allocation could shift)
+            #   competition_relief delivered by a non-removing
+            #     intervention → claimed (competitor stays in the
+            #     subtype pool, so no Huff delta is physically
+            #     possible)
+            def _coherence_downgrade(target_level, reason):
+                level = catalytic_link.get("verification_level", "claimed")
+                if _VERIFICATION_ORDER.get(level, 0) > \
+                   _VERIFICATION_ORDER.get(target_level, 0):
+                    new_link = dict(catalytic_link)
+                    new_link["verification_level"] = target_level
+                    warnings.append(
+                        f"{asset_id}: {reason} — verification "
+                        f"downgraded to '{target_level}'."
+                    )
+                    return new_link
+                return catalytic_link
+
             if mechanism == "walkability_improvement" and itype not in (
                 "pedestrian_upgrade", "green_corridor",
             ):
@@ -461,12 +502,40 @@ class ProposalValidator:
                     f"but intervention type is '{itype}'. Usually this "
                     f"mechanism is delivered by a spatial intervention."
                 )
+                catalytic_link = _coherence_downgrade(
+                    "partially_verified",
+                    f"mechanism 'walkability_improvement' delivered by "
+                    f"'{itype}' cannot raise the beneficiary's walk "
+                    f"coverage",
+                )
+
             if mechanism == "catchment_growth" and itype != "new_development":
                 warnings.append(
                     f"{asset_id}: mechanism 'catchment_growth' usually "
                     f"requires a 'new_development' intervention."
                 )
+                catalytic_link = _coherence_downgrade(
+                    "partially_verified",
+                    f"mechanism 'catchment_growth' delivered by "
+                    f"'{itype}' cannot add residents to the catchment",
+                )
 
+            if mechanism == "competition_relief" and itype not in (
+                "repurpose", "delay_development",
+                "cancel_development", "new_development",
+            ):
+                warnings.append(
+                    f"{asset_id}: mechanism 'competition_relief' "
+                    f"delivered by '{itype}' does not remove a "
+                    f"competitor from the subtype pool."
+                )
+                catalytic_link = _coherence_downgrade(
+                    "claimed",
+                    f"mechanism 'competition_relief' delivered by "
+                    f"'{itype}' leaves the competitor's subtype "
+                    f"unchanged, so the Huff pool does not shift",
+                )
+                
         elif role == "primary" and catalytic_link:
             warnings.append(
                 f"{asset_id}: catalytic_link provided but role='primary'. "

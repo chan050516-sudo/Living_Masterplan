@@ -62,6 +62,7 @@ from ..derived.network_graph import (
     build_walk_graph,
     extract_nodes,
     find_entry_point,
+    find_nearest_node,
     insert_all_entries,
 )
 from ..derived.huff import huff_gravity_by_subtype
@@ -773,6 +774,7 @@ def simulate_scenario(
         active_projects = active_projects_in_year(
             projects_df, year, scenario_id,
             interventions_df=scenario_interventions,
+            assets_df=assets_df,
         )
         active_projects.extend(
             _synthesize_new_development_projects(
@@ -791,6 +793,15 @@ def simulate_scenario(
             {**d, "population": d["population"] * pop_factor}
             for d in pipeline_demand_nodes
         ]
+        # Phase 15 — new residents from delivered residential projects
+        # enter the Huff demand pool. Without this, `catchment_growth`
+        # catalytic interventions have no observable effect on the
+        # beneficiary's effective_demand_m2.
+        projected_demand_nodes.extend(
+            _new_project_demand_nodes(
+                active_projects, geometry, pipeline_nodes_gdf,
+            )
+        )
         huff_m2 = huff_gravity_by_subtype(
             distance_matrix,
             projected_demand_nodes,
@@ -1234,6 +1245,11 @@ def _add_project_state(year_state, proj, year, emission_factor):
     Phase 11: records embodied carbon for new construction (materials
     + demolition) so the delay-vs-deliver comparison can quantify the
     avoided life-cycle carbon.
+
+    Embodied carbon is amortised over the SUBTYPE's structural
+    lifespan (from taxonomy.yml), not a global 50-year constant.
+    A 30-year convenience retail and a 60-year terrace house do not
+    amortise their locked-in carbon at the same rate.
     """
     pid = proj.get("project_id")
     if not pid:
@@ -1252,9 +1268,20 @@ def _add_project_state(year_state, proj, year, emission_factor):
     _ec = embodied_carbon_for_subtype(
         gfa, subtype, fallback_intensity=MATERIAL_INTENSITY_NEW_BUILD,
     )
-    embodied_total = _ec["embodied_carbon_total_tco2e"] + (
-        gfa * DEMOLITION_CARBON_INTENSITY
-    )
+    embodied_materials = _ec["embodied_carbon_total_tco2e"]
+    demolition = gfa * DEMOLITION_CARBON_INTENSITY
+    embodied_total = embodied_materials + demolition
+
+    # Amortise materials + demolition over the same subtype lifespan.
+    lifespan = _ec.get("structural_lifespan_years") or 50
+    try:
+        lifespan = int(lifespan)
+    except (TypeError, ValueError):
+        lifespan = 50
+    if lifespan <= 0:
+        lifespan = 50
+    embodied_amortised = embodied_total / float(lifespan)
+
     maintenance_carbon = maintenance_carbon_annual(embodied_total)
 
     uhi = calculate_surface_temp_delta(
@@ -1271,7 +1298,7 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "carbon_stranded_tco2e": 0.0,
         "stranded_carbon_ratio": 0.0,
         "embodied_carbon_total_tco2e": embodied_total,
-        "embodied_carbon_amortised_tco2e": embodied_total / 50.0,
+        "embodied_carbon_amortised_tco2e": embodied_amortised,
         "maintenance_carbon_tco2e": maintenance_carbon,
         "surface_temp_delta_c": uhi,
         "energy_kwh": energy,
@@ -1362,8 +1389,21 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
 def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_supply_nodes):
     """
     Virtual supply nodes for projects delivered this year.
+
+    Only COMMERCIAL subtypes enter the Huff supply pool. A residential
+    new_development delivers residents (handled by
+    `_new_project_demand_nodes`), not a competing retail outlet. When
+    `subtype` is absent, `land_use` is used to resolve the default
+    subtype, and that subtype's asset_class decides membership.
+
+    Previously any project with gfa_m2 > 0 was added as a supply node,
+    which put residential developments into the Huff competition pool
+    under a residential subtype and absorbed demand they should have
+    been generating.
     """
     from ..derived.network_graph import find_nearest_node
+    from ..taxonomy import get_subtype, default_subtype_for
+
     new_nodes = []
 
     for proj in active_projects:
@@ -1373,6 +1413,13 @@ def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_sup
 
         pid = proj.get("parcel_id")
         if not pid:
+            continue
+
+        subtype = proj.get("subtype") or default_subtype_for(proj.get("land_use"))
+        defn = get_subtype(subtype) or {}
+        if defn.get("asset_class") != "commercial":
+            # Residential, facility, green, and undeveloped projects
+            # do not compete as commercial supply.
             continue
 
         parcels = geometry["parcels"]["analysis"]
@@ -1389,10 +1436,83 @@ def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_sup
             "asset_id": f"NEW-{proj.get('project_id', 'unknown')}",
             "node": proj_node,
             "attractiveness": gfa,
-            "subtype": proj.get("subtype") or default_subtype_for(proj.get("land_use")),
+            "subtype": subtype,
         })
 
     return new_nodes
+
+
+def _new_project_demand_nodes(active_projects, geometry, nodes_gdf):
+    """
+    Virtual demand nodes for residential projects delivered this year.
+
+    A new_development of residential units delivers residents. Before
+    this function existed, B4 recorded the project's carbon but never
+    added its residents to the Huff demand pool — so `catchment_growth`
+    catalytic interventions could not be measured.
+
+    Population estimate:
+      - if `units` is present: units * subtype avg_household_size
+      - else: gfa * (1 / 50) — township-typical residential density
+
+    Node location uses `find_nearest_node` (same convention as
+    `_new_project_supply_nodes`) so the augmented distance matrix
+    already contains the resolved node id.
+
+    Only residential land use contributes demand nodes; commercial
+    and facility projects contribute supply nodes via the sibling
+    function.
+    """
+    from ..taxonomy import get_subtype, default_subtype_for
+
+    out = []
+    for proj in active_projects:
+        subtype = proj.get("subtype")
+        if not subtype:
+            subtype = default_subtype_for(proj.get("land_use"))
+        defn = get_subtype(subtype) or {}
+        if defn.get("asset_class") != "residential":
+            continue
+
+        gfa = float(proj.get("gfa_m2") or 0.0)
+        units = proj.get("units")
+        hh = defn.get("avg_household_size") or 3.5
+        try:
+            hh = float(hh)
+        except (TypeError, ValueError):
+            hh = 3.5
+
+        if _is_valid_number(units):
+            try:
+                pop = float(units) * hh
+            except (TypeError, ValueError):
+                pop = 0.0
+        else:
+            pop = gfa * (1.0 / 50.0)
+
+        if pop <= 0:
+            continue
+
+        pid = proj.get("parcel_id")
+        if not pid:
+            continue
+
+        parcels = geometry["parcels"]["analysis"]
+        pmatch = parcels[parcels["parcel_id"] == pid]
+        if pmatch.empty:
+            continue
+
+        try:
+            proj_node = find_nearest_node(pmatch.iloc[0].geometry, nodes_gdf)
+        except Exception:
+            continue
+
+        out.append({
+            "population_id": f"PRJ-POP-{proj.get('project_id', '?')}",
+            "node": proj_node,
+            "population": pop,
+        })
+    return out
 
 
 def _state_from_df(derived_df, assets_df):
@@ -1431,9 +1551,11 @@ _COMPARISON_METRICS = [
     ("noi_rm", "RM"),
     ("maintenance_surge_rm", "RM"),
     ("noi_yield", "ratio"),
+    ("effective_demand_m2", "m2"),
     ("coverage_ratio_5min_walk", "ratio"),
     ("coverage_ratio_10min_walk", "ratio"),
     ("coverage_ratio_10min_drive", "ratio"),
+    ("reachable_population_walk", "count"),
     ("median_walk_distance_m", "m"),
     ("p90_walk_distance_m", "m"),
     ("carbon_operational_tco2e", "tCO2e"),
@@ -1703,7 +1825,17 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
 # ------------------------------------------------------------------
 
 
-def _resolve_project_delivery_year(proj, scenario_id, interventions_df):
+def _resolve_project_delivery_year(proj, scenario_id, interventions_df,
+                                   assets_df=None):
+    """
+    Return the delivery year this project takes under the given
+    scenario, honouring delay/cancel directives.
+
+    A directive may target the project either by project_id (legacy
+    mock data) or by asset_id (the LLM's natural vocabulary). When
+    assets_df is supplied, an asset-id target resolves to the
+    project(s) sitting on the same parcel.
+    """
     planned = proj.get("planned_delivery_year")
     if planned is None:
         return None
@@ -1718,12 +1850,31 @@ def _resolve_project_delivery_year(proj, scenario_id, interventions_df):
     pid = proj.get("project_id")
     if pid is None:
         return planned
+    pid_str = str(pid)
+    proj_parcel = proj.get("parcel_id")
 
     scen = interventions_df[interventions_df["scenario_id"] == scenario_id]
     for _, intv in scen.iterrows():
-        if intv.get("target_asset_id") != pid:
-            continue
         itype = intv.get("intervention_type")
+        if itype not in ("delay_development", "cancel_development"):
+            continue
+        target = intv.get("target_asset_id")
+        if target is None:
+            continue
+        target_str = str(target)
+
+        # Match target to this project — either directly by project_id,
+        # or by asset_id whose parcel hosts this project.
+        matches = (target_str == pid_str)
+        if not matches and assets_df is not None and not assets_df.empty:
+            arow = assets_df[assets_df["asset_id"] == target_str]
+            if not arow.empty:
+                aid_parcel = arow.iloc[0].get("parcel_id")
+                if aid_parcel is not None and aid_parcel == proj_parcel:
+                    matches = True
+        if not matches:
+            continue
+
         if itype == "delay_development":
             try:
                 params = json.loads(intv.get("parameters_json") or "{}")
@@ -1740,7 +1891,8 @@ def _resolve_project_delivery_year(proj, scenario_id, interventions_df):
     return planned
 
 
-def _build_project_schedule(projects_df, interventions_df, scenario_id):
+def _build_project_schedule(projects_df, interventions_df, scenario_id,
+                            assets_df=None):
     """
     Compare each project's delivery year under the baseline scenario
     (SC-CURRENT) vs the scenario being simulated. Projects whose
@@ -1757,9 +1909,11 @@ def _build_project_schedule(projects_df, interventions_df, scenario_id):
 
         baseline_year = _resolve_project_delivery_year(
             proj, BASELINE_SCENARIO_ID, interventions_df,
+            assets_df=assets_df,
         )
         scenario_year = _resolve_project_delivery_year(
             proj, scenario_id, interventions_df,
+            assets_df=assets_df,
         )
 
         if baseline_year == scenario_year:
@@ -1813,7 +1967,7 @@ def _build_map_diff(assets_df, interventions_df, projects_df, scenario_id):
             changed.append({"asset_id": aid, "change_type": "solar_farm", "color": "yellow"})
 
     project_schedule = _build_project_schedule(
-        projects_df, interventions_df, scenario_id,
+        projects_df, interventions_df, scenario_id, assets_df=assets_df,
     )
 
     return {
