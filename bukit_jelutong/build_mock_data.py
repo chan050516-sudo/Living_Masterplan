@@ -357,6 +357,11 @@ def amenity_to_asset_row(row, index: int) -> dict:
     b_id = row.get("building_id")
     p_id = row.get("parcel_id")
 
+    ownership_status = _OWNERSHIP_STATUS_BY_TYPE.get(
+        asset_type, "public_transferred",
+    )
+    authority = _AUTHORITY_BY_OWNERSHIP.get(ownership_status, "advisory")
+
     return {
         "asset_id": row["amenity_id"],
         "asset_type": asset_type,
@@ -381,11 +386,8 @@ def amenity_to_asset_row(row, index: int) -> dict:
             "osm_amenity;building_linked;derived"
             if pd.notna(b_id) else "osm_amenity;derived"
         ),
-        # Phase 14 — execution authority. Amenity-derived assets are
-        # split by asset_type: commercial amenity (food_beverage,
-        # finance, retail) stays full_control; community_facility
-        # amenities (school, clinic, etc.) are advisory.
-        "authority": _AUTHORITY_BY_ASSET_TYPE.get(asset_type, "advisory"),
+        "ownership_status": ownership_status,
+        "authority": authority,
     }
 
 
@@ -470,15 +472,39 @@ TARGET_DEMOGRAPHIC_BY_SUBTYPE = {
     "sports_centre":      "young_adults",
 }
 
-# Phase 14 — execution authority per asset type.
-_AUTHORITY_BY_ASSET_TYPE = {
-    "commercial":          "full_control",
-    "residential":         "shared",
-    "community_facility":  "advisory",
-    "green_space":         "advisory",
-    "undeveloped_parcel":  "full_control",
+# Phase 15 — ownership status and authority mapping.
+#
+# In a real township, ownership is not a single axis. A residential
+# unit can be:
+#   - developer_held      — Sime Darby owns it outright (unsold
+#                           inventory, sample units, rental stock)
+#   - sold                — individual buyer owns it (SPA signed,
+#                           vacant possession issued)
+#   - strata_jmb          — stratified parcel, managed by a JMB / MC
+#   - public_transferred  — handed over to a local authority
+#
+# Authority is derived from ownership. A developer can repurpose an
+# unsold unit but cannot repurpose an owner-occupied one.
+_OWNERSHIP_STATUS_BY_TYPE = {
+    # The mock data infers residential from OSM. Every OSM-derived
+    # residential building is treated as sold. Sime Darby's unsold
+    # inventory would in reality be a much smaller subset, marked
+    # explicitly.
+    "residential":         "sold",
+    # Commercial and undeveloped assets are the developer's holding.
+    "commercial":          "developer_held",
+    "undeveloped_parcel":  "developer_held",
+    # Community facilities and green spaces are assumed transferred.
+    "community_facility":  "public_transferred",
+    "green_space":         "public_transferred",
 }
 
+_AUTHORITY_BY_OWNERSHIP = {
+    "developer_held":      "full_control",
+    "sold":                "advisory",
+    "public_transferred":  "advisory",
+    "strata_jmb":          "shared",
+}
 
 # ================================================================
 # 5. Geometry processors
@@ -801,6 +827,9 @@ def derive_asset_row(record: dict, atype: str, index: int) -> dict:
     )
     completion_year = BASE_YEAR - seeded_int(f"{seed_base}-age", 2, 25)
 
+    ownership_status = _OWNERSHIP_STATUS_BY_TYPE.get(atype, "public_transferred")
+    authority = _AUTHORITY_BY_OWNERSHIP.get(ownership_status, "advisory")
+
     return {
         "asset_id": _asset_id_for(record, atype, index),
         "asset_type": atype,
@@ -822,10 +851,8 @@ def derive_asset_row(record: dict, atype: str, index: int) -> dict:
         "capacity": capacity,
         "data_completeness": 0.75,
         "data_sources": "osm;derived",
-        # Phase 14 — execution authority. Community facilities and
-        # green spaces are assumed to have been transferred to the
-        # local authority; the developer retains advisory rights only.
-        "authority": _AUTHORITY_BY_ASSET_TYPE.get(atype, "advisory"),
+        "ownership_status": ownership_status,
+        "authority": authority,
     }
 
 

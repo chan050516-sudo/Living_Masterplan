@@ -141,6 +141,30 @@ RETROFIT_MEASURES = {
     "water_efficiency",
 }
 
+
+# Phase 15 — catalytic intervention vocabulary
+CATALYTIC_MECHANISMS = {
+    "walkability_improvement",
+    "catchment_growth",
+    "competition_relief",
+    "complementary_use",
+    "footfall_injection",
+}
+
+# Which verification levels each mechanism is allowed to claim.
+# `verified` means B4 re-computes the beneficiary's metric and the
+# delta is visible in comparison.per_asset. If the mechanism cannot
+# produce that delta, the level must be capped lower.
+_MAX_VERIFICATION_LEVEL = {
+    "walkability_improvement": "verified",
+    "catchment_growth":        "verified",
+    "competition_relief":      "partially_verified",
+    "complementary_use":       "claimed",
+    "footfall_injection":      "claimed",
+}
+
+_VERIFICATION_ORDER = {"verified": 2, "partially_verified": 1, "claimed": 0}
+
 # Plausible ranges for per-measure detail. These are advisory — the
 # validator warns, it does not reject.
 _MEASURE_ENERGY_GAIN_RANGE = {
@@ -356,7 +380,99 @@ class ProposalValidator:
                     f"to the responsible authority."
                 )
 
-        # Retrofit: measures must be declared and legal.
+        # ---- Catalytic link validation (Phase 15) ----
+        role = item.get("role") or "primary"
+        catalytic_link = item.get("catalytic_link")
+
+        if role == "catalytic":
+            if not isinstance(catalytic_link, dict):
+                errors.append(
+                    f"{asset_id}: role='catalytic' requires a "
+                    f"catalytic_link object."
+                )
+                return errors, warnings, None
+
+            acting_on = catalytic_link.get("acting_on_asset_id")
+            if not acting_on:
+                errors.append(
+                    f"{asset_id}: catalytic_link.acting_on_asset_id is "
+                    f"required."
+                )
+                return errors, warnings, None
+            if acting_on != asset_id:
+                errors.append(
+                    f"{asset_id}: catalytic_link.acting_on_asset_id "
+                    f"({acting_on}) must match the item's asset_id."
+                )
+                return errors, warnings, None
+
+            beneficiary = catalytic_link.get("beneficiary_asset_id")
+            if not beneficiary:
+                errors.append(
+                    f"{asset_id}: catalytic_link.beneficiary_asset_id "
+                    f"is required."
+                )
+                return errors, warnings, None
+            if beneficiary == asset_id:
+                errors.append(
+                    f"{asset_id}: catalytic_link.beneficiary_asset_id "
+                    f"must differ from the acting asset."
+                )
+                return errors, warnings, None
+
+            mechanism = catalytic_link.get("mechanism")
+            if mechanism not in CATALYTIC_MECHANISMS:
+                errors.append(
+                    f"{asset_id}: mechanism '{mechanism}' is not one "
+                    f"of {sorted(CATALYTIC_MECHANISMS)}."
+                )
+                return errors, warnings, None
+
+            vlevel = catalytic_link.get("verification_level", "claimed")
+            max_level = _MAX_VERIFICATION_LEVEL.get(mechanism, "claimed")
+            if _VERIFICATION_ORDER.get(vlevel, 0) > _VERIFICATION_ORDER.get(
+                max_level, 0
+            ):
+                # Downgrade silently — the plan is still valid, but
+                # the claim is capped at what the simulation can
+                # support.
+                warnings.append(
+                    f"{asset_id}: mechanism '{mechanism}' cannot be "
+                    f"claimed as '{vlevel}'. Simulation only supports "
+                    f"'{max_level}'. Downgraded."
+                )
+                catalytic_link = dict(catalytic_link)
+                catalytic_link["verification_level"] = max_level
+
+            explanation = catalytic_link.get("explanation")
+            if not explanation or not str(explanation).strip():
+                errors.append(
+                    f"{asset_id}: catalytic_link.explanation is "
+                    f"required."
+                )
+                return errors, warnings, None
+
+            # Mechanism ↔ intervention-type coherence (advisory only)
+            if mechanism == "walkability_improvement" and itype not in (
+                "pedestrian_upgrade", "green_corridor",
+            ):
+                warnings.append(
+                    f"{asset_id}: mechanism 'walkability_improvement' "
+                    f"but intervention type is '{itype}'. Usually this "
+                    f"mechanism is delivered by a spatial intervention."
+                )
+            if mechanism == "catchment_growth" and itype != "new_development":
+                warnings.append(
+                    f"{asset_id}: mechanism 'catchment_growth' usually "
+                    f"requires a 'new_development' intervention."
+                )
+
+        elif role == "primary" and catalytic_link:
+            warnings.append(
+                f"{asset_id}: catalytic_link provided but role='primary'. "
+                f"catalytic_link is ignored."
+            )
+            catalytic_link = None
 
         # Retrofit: measures must be declared and legal.
         if itype == "retrofit":
@@ -475,6 +591,8 @@ class ProposalValidator:
         normalised_item = {
             "asset_id": asset_id,
             "intervention_type": itype,
+            "role": role,
+            "catalytic_link": catalytic_link if role == "catalytic" else None,
             "parameters": params,
             "expected_derived_json": expected_json,
             "construction_start_year": start_year,
@@ -757,14 +875,28 @@ class ProposalValidator:
 
     def _authority_for(asset_row: dict) -> str:
         """
-        Look up an asset's execution authority from its row, falling back
-        to a default inferred from the asset type.
+        Look up an asset's execution authority.
+
+        Resolution order:
+        1. `authority` column (explicit).
+        2. `ownership_status` column (mapped).
+        3. Asset type default.
+        4. "advisory" fallback.
         """
         if not isinstance(asset_row, dict):
             return "advisory"
-        raw = asset_row.get("authority")
-        if isinstance(raw, str) and raw.strip():
-            return raw.strip()
+
+        explicit = asset_row.get("authority")
+        if isinstance(explicit, str) and explicit.strip():
+            return explicit.strip()
+
+        ownership = asset_row.get("ownership_status")
+        if isinstance(ownership, str) and ownership.strip():
+            from ..deadspace.layer3 import _AUTHORITY_BY_OWNERSHIP
+            mapped = _AUTHORITY_BY_OWNERSHIP.get(ownership.strip())
+            if mapped:
+                return mapped
+
         atype = asset_row.get("asset_type")
         if isinstance(atype, str):
             return default_authority_for(atype)

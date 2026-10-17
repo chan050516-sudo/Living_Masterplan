@@ -212,6 +212,10 @@ def orchestrate_and_simulate_batch(
             cand["simulation"] = {"error": "simulation did not return"}
         cand["simulation_brief"] = _summarise_simulation(cand["simulation"])
 
+    # Phase 15 — verify every catalytic claim against the simulation
+    # before the selection stage sees it.
+    _verify_catalytic_links(valid_candidates)
+
     # ---- Stage 2.7: final selection ----
     log.info("[%s] Stage 2.7 — final selection", run_id)
     selection = _select_candidate(
@@ -449,6 +453,76 @@ def _simulate_candidates_shared(candidates, repo_root, selected_ids):
         )
 
 
+def _verify_catalytic_links(candidates):
+    """
+    Phase 15 — post-simulation catalytic verification.
+
+    For every plan item with role='catalytic', compare the actual
+    simulated delta on the beneficiary against the declared
+    verification_level. Where the delta is absent or contradicts the
+    claim, downgrade the level and record a warning on the candidate.
+
+    The function never removes an item. It only annotates.
+    """
+    for cand in candidates:
+        sim = cand.get("simulation") or {}
+        if sim.get("error"):
+            continue
+        brief = cand.get("simulation_brief") or {}
+        per_asset = brief.get("per_asset_metrics") or {}
+
+        for item in cand.get("plan", []):
+            if item.get("role") != "catalytic":
+                continue
+            link = item.get("catalytic_link") or {}
+            beneficiary = link.get("beneficiary_asset_id")
+            if not beneficiary:
+                continue
+
+            metrics = per_asset.get(beneficiary) or {}
+            if not metrics:
+                # B4 produced no row for this beneficiary. Downgrade
+                # the claim to "claimed" — nothing was measured.
+                if link.get("verification_level") != "claimed":
+                    link["verification_level"] = "claimed"
+                    link.setdefault("_verification_notes", []).append(
+                        "beneficiary not in simulation brief; "
+                        "downgraded to 'claimed'"
+                    )
+                continue
+
+            # Compare declared mechanism to the metric that should
+            # have moved.
+            metric_key = {
+                "walkability_improvement": "coverage_ratio_10min_walk",
+                "catchment_growth": "reachable_population_walk",
+                "competition_relief": "effective_demand_m2",
+            }.get(link.get("mechanism"))
+
+            if not metric_key or metric_key not in metrics:
+                continue
+
+            delta = metrics[metric_key] or {}
+            before = delta.get("before")
+            after = delta.get("after")
+            if before is None or after is None:
+                continue
+
+            # Signal: did the metric actually move in the declared
+            # direction?
+            try:
+                moved = float(after) > float(before)
+            except (TypeError, ValueError):
+                continue
+
+            if not moved and link.get("verification_level") == "verified":
+                link["verification_level"] = "partially_verified"
+                link.setdefault("_verification_notes", []).append(
+                    f"{metric_key} did not improve; downgraded from "
+                    f"'verified' to 'partially_verified'"
+                )
+
+
 # ------------------------------------------------------------------
 # Stage 2.7: selection
 # ------------------------------------------------------------------
@@ -537,13 +611,17 @@ def _write_interventions(ds, scenario_id, plan):
 
     rows = []
     for i, item in enumerate(plan, start=1):
-        # Phase 14 — stow capacity_ratio in parameters_json so the
-        # engine can read it back without a schema change. This is
-        # how the DURING phase of a construction learns how much
-        # usable capacity to assume.
+        # Phase 14 — stow capacity_ratio for the DURING phase.
+        # Phase 15 — stow role and catalytic_link for downstream
+        # analysis. All auxiliary data travels in parameters_json so
+        # the interventions.csv schema stays unchanged.
         params = dict(item.get("parameters") or {})
         if "capacity_ratio" in item and item["capacity_ratio"] is not None:
             params["_capacity_ratio"] = item["capacity_ratio"]
+        if item.get("role"):
+            params["_role"] = item["role"]
+        if item.get("role") == "catalytic" and item.get("catalytic_link"):
+            params["_catalytic"] = item["catalytic_link"]
 
         rows.append({
             "scenario_id": scenario_id,
@@ -566,7 +644,7 @@ def _write_interventions(ds, scenario_id, plan):
             "validation_status": "pending",
             "status": "simulated",
         })
-        
+
     new_df = pd.DataFrame(rows)
     if path.exists() and path.stat().st_size > 0:
         existing = pd.read_csv(path)

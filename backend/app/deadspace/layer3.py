@@ -25,11 +25,26 @@ latter; the LLM is told both.
 # `classify_by_authority` for the execution split.
 
 ACTION_SPACE = {
-    "commercial":         ["repurpose", "retrofit", "pedestrian_upgrade", "green_corridor"],
-    "community_facility": ["retrofit", "pedestrian_upgrade", "repurpose"],
-    "green_space":        ["green_corridor", "pedestrian_upgrade"],
-    "undeveloped_parcel": ["new_development", "delay_development", "interim_solar_farm"],
-    "residential":        ["retrofit", "pedestrian_upgrade"],
+    "commercial": [
+        "repurpose", "retrofit", "pedestrian_upgrade", "green_corridor",
+    ],
+    "community_facility": [
+        "retrofit", "pedestrian_upgrade", "repurpose",
+    ],
+    "green_space": [
+        "green_corridor", "pedestrian_upgrade",
+    ],
+    "undeveloped_parcel": [
+        "new_development", "delay_development", "interim_solar_farm",
+    ],
+    # Phase 15 — residential's legal action space now includes
+    # repurpose. Whether it can actually be EXECUTED depends on
+    # authority. Developer-held unsold units can be repurposed;
+    # sold / strata units cannot. The legal list is the same; the
+    # authority check filters the executable subset.
+    "residential": [
+        "repurpose", "retrofit", "pedestrian_upgrade",
+    ],
 }
 
 
@@ -65,7 +80,7 @@ HARD_ACTIONS = {
 # by supplying the column.
 _DEFAULT_AUTHORITY_BY_TYPE = {
     "commercial":          "full_control",
-    "residential":         "shared",
+    "residential":         "advisory",  # default; overridden by ownership_status
     "community_facility":  "advisory",
     "green_space":         "advisory",
     "undeveloped_parcel":  "full_control",
@@ -134,3 +149,30 @@ def evaluate(asset_type: str, diagnostics: dict = None) -> dict:
         "actionable": len(candidates) > 0,
         "candidate_interventions": candidates,
     }
+
+
+def classify_by_ownership(asset_type: str, ownership_status: str) -> dict:
+    """
+    Classify an asset's execution split from its ownership status.
+
+    This is a thin wrapper around classify_by_authority that
+    respects the ownership-to-authority mapping when the asset row
+    carries an `ownership_status` column. When the column is
+    missing, falls back to the asset-type default.
+    """
+    authority = _AUTHORITY_BY_OWNERSHIP.get(
+        ownership_status,
+        _DEFAULT_AUTHORITY_BY_TYPE.get(asset_type, "advisory"),
+    )
+    return {
+        "authority": authority,
+        "split": classify_by_authority(asset_type, authority),
+    }
+
+
+_AUTHORITY_BY_OWNERSHIP = {
+    "developer_held":      "full_control",
+    "sold":                "advisory",
+    "public_transferred":  "advisory",
+    "strata_jmb":          "shared",
+}

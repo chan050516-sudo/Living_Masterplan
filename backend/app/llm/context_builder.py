@@ -99,10 +99,12 @@ def build_context_pack(intent: dict, ds) -> dict:
         "user_query": intent.get("question_text", ""),
         "objective": intent.get("objective", "balanced"),
         "constraints": intent.get("constraints") or {},
+        "township_baseline": _build_township_baseline(ds),
         "targets": targets,
         "available_subtypes": available_subtypes,
         "available_interventions": available_interventions,
         "nearby_subtype_radii": nearby_subtype_radii,
+        "catalytic_vocabulary": _catalytic_vocabulary(),
         "model_assumptions": _relevant_assumptions(ds),
     }
 
@@ -146,8 +148,11 @@ def _build_target_block(asset_id: str, ds) -> dict:
     # Phase 14 — execution authority.
     authority_level = _resolve_authority(ds, asset_id)
     asset_type = state.get("identity", {}).get("asset_type") or ""
+    asset_row = ds._asset_row(asset_id) or {}
+    ownership = asset_row.get("ownership_status")
     authority_block = {
         "level": authority_level,
+        "ownership_status": ownership if isinstance(ownership, str) else None,
         **_authority_split(asset_type, authority_level),
     }
 
@@ -250,16 +255,27 @@ def _resolve_authority(ds, asset_id: str) -> str:
     Look up the execution authority level of an asset.
 
     Resolution order:
-      1. The `authority` column on the asset row.
-      2. A default inferred from the asset type.
-      3. "advisory" as the safest fallback.
+      1. `authority` column on the asset row (explicit).
+      2. Derived from `ownership_status` (developer_held → full_control,
+         sold / public_transferred → advisory, strata_jmb → shared).
+      3. Default inferred from asset type.
+      4. "advisory" as the safest fallback.
     """
     row = ds._asset_row(asset_id)
     if row is None:
         return "advisory"
-    raw = row.get("authority")
-    if isinstance(raw, str) and raw.strip():
-        return raw.strip()
+
+    explicit = row.get("authority")
+    if isinstance(explicit, str) and explicit.strip():
+        return explicit.strip()
+
+    ownership = row.get("ownership_status")
+    if isinstance(ownership, str) and ownership.strip():
+        from ..deadspace.layer3 import _AUTHORITY_BY_OWNERSHIP
+        mapped = _AUTHORITY_BY_OWNERSHIP.get(ownership.strip())
+        if mapped:
+            return mapped
+
     asset_type = row.get("asset_type")
     if isinstance(asset_type, str):
         return default_authority_for(asset_type)
@@ -276,8 +292,9 @@ def _authority_split(asset_type: str, authority_level: str) -> dict:
 
     if authority_level == "full_control":
         note = (
-            "The developer owns this asset outright. Every legal "
-            "intervention is executable without external approval."
+            "The developer owns this asset outright (unsold inventory "
+            "or undeveloped land). Every legal intervention is "
+            "executable without external approval."
         )
     elif authority_level == "shared":
         note = (
@@ -290,11 +307,11 @@ def _authority_split(asset_type: str, authority_level: str) -> dict:
         )
     else:
         note = (
-            "This asset has been transferred to a public authority. "
-            "The developer has no execution power. Every proposal is "
-            "a recommendation, not a commitment. Use role phrasing "
-            "such as 'recommend the responsible authority to...' in "
-            "the rationale."
+            "This asset has been sold to a private owner or "
+            "transferred to a public authority. The developer has no "
+            "execution power. Every proposal is a recommendation, "
+            "not a commitment. Use role phrasing such as 'recommend "
+            "the responsible authority to...' in the rationale."
         )
 
     return {
@@ -302,4 +319,83 @@ def _authority_split(asset_type: str, authority_level: str) -> dict:
         "requires_approval": split["requires_approval"],
         "recommendation_only": split["recommendation_only"],
         "note": note,
+    }
+
+
+def _build_township_baseline(ds) -> dict:
+    """
+    Township-level reference values the LLM needs for township-first
+    reasoning. These come from the current (pre-intervention) asset
+    metrics file, aggregated across every asset in the township.
+    """
+    metrics = ds.metrics
+    if metrics is None or metrics.empty:
+        return {"note": "metrics file unavailable"}
+
+    # Restrict to the current year and one row per asset.
+    year = ds.year
+    if "year" in metrics.columns:
+        current = metrics[metrics["year"] == year]
+    else:
+        current = metrics
+    if current.empty:
+        return {"note": f"no metrics for year {year}"}
+
+    def _avg(col):
+        if col not in current.columns:
+            return None
+        vals = current[col].dropna()
+        if vals.empty:
+            return None
+        return round(float(vals.mean()), 4)
+
+    def _sum(col):
+        if col not in current.columns:
+            return None
+        vals = current[col].dropna()
+        if vals.empty:
+            return None
+        return round(float(vals.sum()), 2)
+
+    # Baselines the LLM must reason against. These are the numbers
+    # any township-first candidate must not degrade without a stated
+    # trade-off.
+    return {
+        "asset_count": int(len(current)),
+        "year": year,
+        "avg_walk_15min_coverage": _avg("coverage_ratio_15min_walk"),
+        "avg_walk_10min_coverage": _avg("coverage_ratio_10min_walk"),
+        "total_operational_carbon_tco2e": _sum("carbon_operational_tco2e"),
+        "total_stranded_carbon_tco2e": _sum("carbon_stranded_tco2e"),
+        "total_embodied_carbon_tco2e": _sum("embodied_carbon_total_tco2e"),
+    }
+
+
+def _catalytic_vocabulary() -> dict:
+    """
+    The catalytic mechanism vocabulary, its description, and the
+    maximum verification level B4 can support for each. Exposed in
+    the context pack so the LLM knows what it can honestly claim.
+    """
+    return {
+        "walkability_improvement": {
+            "description": "spatial intervention raises the beneficiary's walking coverage",
+            "max_verification": "verified",
+        },
+        "catchment_growth": {
+            "description": "new residents in the beneficiary's catchment raise demand",
+            "max_verification": "verified",
+        },
+        "competition_relief": {
+            "description": "reduces direct competitive pressure on the beneficiary",
+            "max_verification": "partially_verified",
+        },
+        "complementary_use": {
+            "description": "a nearby use attracts customers who also consume at the beneficiary",
+            "max_verification": "claimed",
+        },
+        "footfall_injection": {
+            "description": "an anchor use draws visitors to the area",
+            "max_verification": "claimed",
+        },
     }
