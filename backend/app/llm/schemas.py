@@ -56,4 +56,5 @@ class Intervention(BaseModel):
 class Option(BaseModel):
     option_id: str            # "A", "B", "C"
     title: str
+    summary: str = ""
     interventions: list[Intervention]
