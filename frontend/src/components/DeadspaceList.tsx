@@ -22,6 +22,7 @@ export function DeadspaceList({ assets, year, onPick }: {
         return (
           <button
             key={a.id}
+            className="ds-card fade"
             onClick={() => onPick(a)}
             style={{
               display: 'block', width: '100%', textAlign: 'left', marginBottom: 10, padding: 14,

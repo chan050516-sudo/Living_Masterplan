@@ -241,3 +241,15 @@ export default function App() {
     </div>
   )
 }
+
+/*
+performance
+asset asking allow them to ask multiple choice less than 8 assets 
+how we can avoid sth to be a dead space
+for first shoplot the plan is what second is what and third is what
+current carbon emmision is how many percent and so on
+add 
+time slider cluster 1 2 3 to 5 
+
+try more realistic geojson
+*/
