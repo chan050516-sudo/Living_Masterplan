@@ -21,11 +21,12 @@ Phase 11 changes (2026-10-15):
 """
 
 import logging
-import math
 from typing import Optional
 
 import geopandas as gpd
 import networkx as nx
+import numpy as np
+from scipy.spatial import cKDTree
 from shapely.geometry import Point
 from shapely.ops import nearest_points
 
@@ -213,33 +214,38 @@ def bridge_components(G: nx.Graph, network_gdf: gpd.GeoDataFrame) -> tuple:
         if len(components) <= 1:
             break
 
-        # Sort by size descending so components[0] is the main body.
         components.sort(key=len, reverse=True)
 
-        # Only nodes we have coordinates for can participate.
         main_nodes = [n for n in components[0] if n in coords]
         if not main_nodes:
             break
+
+        # Build a KD-tree over the main body once per iteration.
+        # The prior double-for loop did |main| × |minor| hypot
+        # computations per iteration (millions on a 5,000-node
+        # graph). cKDTree does it in |minor| × log(|main|) — three
+        # orders of magnitude faster.
+        main_pts = np.array([coords[n] for n in main_nodes])
+        main_tree = cKDTree(main_pts)
 
         best_pair = None
         best_dist = float("inf")
 
         for comp in components[1:]:
             comp_nodes = [n for n in comp if n in coords]
-            for n1 in main_nodes:
-                x1, y1 = coords[n1]
-                for n2 in comp_nodes:
-                    x2, y2 = coords[n2]
-                    d = math.hypot(x1 - x2, y1 - y2)
-                    if d < best_dist:
-                        best_dist = d
-                        best_pair = (n1, n2)
+            if not comp_nodes:
+                continue
+            comp_pts = np.array([coords[n] for n in comp_nodes])
+            distances, indices = main_tree.query(comp_pts)
+            i = int(np.argmin(distances))
+            d = float(distances[i])
+            if d < best_dist:
+                best_dist = d
+                best_pair = (main_nodes[int(indices[i])], comp_nodes[i])
 
         if best_pair is None:
             break
         if best_dist > MAX_BRIDGE_DISTANCE_M:
-            # Remaining gap is too large to be a walkability issue;
-            # treat it as a real physical separation and stop.
             break
 
         n1, n2 = best_pair

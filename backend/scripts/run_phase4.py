@@ -11,6 +11,7 @@ SC-CURRENT baseline.
 """
 
 import math
+import argparse
 import sys
 from pathlib import Path
 import logging
@@ -49,15 +50,31 @@ SCENARIOS = ["SC-CURRENT", "SC-REPURPOSE", "SC-DELAY"]
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--quick", action="store_true")
+    args = parser.parse_args()
     repo_root = Path(__file__).resolve().parents[2]
 
-    print("\nRunning Phase 4 (B4) — Simulation")
-    results = {}
+    if args.quick:
+        scenarios = ["SC-CURRENT"]
+        years = [2026, 2033]
+        print("\nRunning Phase 4 (B4) — QUICK MODE")
+    else:
+        scenarios = ["SC-CURRENT", "SC-REPURPOSE", "SC-DELAY"]
+        years = None
+        print("\nRunning Phase 4 (B4) — Simulation")
 
-    for scenario_id in SCENARIOS:
+    results = {}
+    shared_cache = {}
+
+    for scenario_id in scenarios:
         print(f"\n  Simulating {scenario_id} ...")
         try:
-            result = simulate_scenario(scenario_id, repo_root=repo_root)
+            result = simulate_scenario(
+                scenario_id, repo_root=repo_root,
+                years=years,
+                _shared_cache=shared_cache,
+            )
             results[scenario_id] = result
             out = write_scenario_result(result, repo_root=repo_root)
             print(f"    → wrote {out.name}")
@@ -152,7 +169,10 @@ def main():
             print("    (no changes)")
 
     print("\n" + "=" * 72)
-    print(f"  Scenario results in: {repo_root / 'mock' / 'business' / 'scenarios'}/")
+    from app.config import load_paths
+    _paths = load_paths()
+    _base = repo_root / _paths["base"] / "business" / "scenarios"
+    print(f"  Scenario results in: {_base}/")
     print("=" * 72 + "\n")
 
 

@@ -34,6 +34,11 @@ FLAG_WEIGHTS = {
     "low_green_coverage":                      1,
     "low_canopy_coverage":                     1,
     "low_green_per_capita":                    1,
+    # Phase B.2 — partial death inside a mixed-use commercial asset.
+    # A dead subtype in an otherwise healthy mall is significant:
+    # the aggregate occupancy hides a whole floor of unused capital.
+    "subtype_mix_dead":    3,
+    "subtype_mix_low":     1,
 }
 
 

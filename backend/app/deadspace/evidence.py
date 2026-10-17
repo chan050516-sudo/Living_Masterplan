@@ -51,6 +51,7 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
         if dcov is not None:
             lines.append(f"Drive 10-min coverage: {round(dcov * 100, 1)}%")
         _add("Median walk distance (m)", "median_walk_distance_m")
+        _add_subtype_mix_evidence(lines, metrics)
 
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
@@ -86,6 +87,42 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
         _add("Infrastructure cost (RM)", "infrastructure_cost_rm")
 
     return lines
+
+
+def _add_subtype_mix_evidence(lines: list, metrics: dict) -> None:
+    """
+    Surface per-subtype occupancy for mixed-use commercial assets.
+
+    Sorted ascending so the worst-off subtype is listed first —
+    that is the one the reader cares about.
+    """
+    import json as _json
+    raw = metrics.get("occupancy_by_subtype_calc_json")
+    if raw is None:
+        return
+    try:
+        occ_by = _json.loads(raw) if isinstance(raw, str) else raw
+    except (_json.JSONDecodeError, TypeError):
+        return
+    if not isinstance(occ_by, dict) or len(occ_by) <= 1:
+        return
+
+    lines.append("Subtype occupancy:")
+    for st, v in sorted(occ_by.items(), key=lambda kv: kv[1]):
+        try:
+            pct = round(float(v) * 100, 1)
+        except (TypeError, ValueError):
+            continue
+        marker = ""
+        try:
+            fv = float(v)
+            if fv < 0.10:
+                marker = " [dead]"
+            elif fv < 0.40:
+                marker = " [low]"
+        except (TypeError, ValueError):
+            pass
+        lines.append(f"  {st}: {pct}%{marker}")
 
 
 def _add_carbon_evidence(lines: list, metrics: dict,

@@ -77,6 +77,11 @@ def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
     if "new_capacity" in params:
         asset["capacity"] = params["new_capacity"]
 
+    # Phase B.2b — repurpose changes what the asset IS. The old
+    # unit_mix no longer describes it. Clear the mix so B4 does
+    # not apply the old subtype structure to the new subtype.
+    asset["unit_mix_json"] = None
+
     delta = intervention.get("opex_delta_rm") or 0
     if _is_number(asset.get("opex_annual_rm")):
         asset["opex_annual_rm"] = float(asset["opex_annual_rm"]) + float(delta)

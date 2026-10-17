@@ -408,7 +408,22 @@ def _build_huff_demand_nodes(walking_pipeline) -> list:
 
 
 def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
-    """Supply nodes now carry subtype so Huff can split pools."""
+    """
+    Supply nodes expand per-subtype for mixed-use commercial assets.
+
+    A mall with a unit_mix {"supermarket": ..., "f_and_b": ...}
+    enters each subtype's Huff pool with that subtype's own area as
+    attractiveness. A single-subtype shop enters one pool with its
+    whole lettable area.
+
+    Phase B.2 fix — previously every commercial asset entered
+    exactly one pool keyed by its primary subtype. A mall's F&B
+    floor competed as if it were medical_retail; its supermarket as
+    if it were the primary subtype. The per-subtype DSR and per-
+    subtype demand that B.2 emits could therefore only ever show
+    one subtype. Fixing the supply-node builder makes the whole
+    per-subtype pipeline coherent.
+    """
     nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
@@ -417,14 +432,52 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
         entry = walking_pipeline["asset_entries"].get(aid)
         if entry is None:
             continue
-        subtype = asset.get("subtype") or default_subtype_for(asset.get("asset_type"))
-        nodes.append({
-            "asset_id": aid,
-            "node": entry["virtual_node"],
-            "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
-            "subtype": subtype,
-        })
+
+        mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
+        if mix:
+            for st, info in mix.items():
+                area = float(info.get("area_m2") or 0)
+                if area <= 0:
+                    continue
+                nodes.append({
+                    "asset_id": aid,
+                    "node": entry["virtual_node"],
+                    "attractiveness": area,
+                    "subtype": st,
+                })
+        else:
+            subtype = asset.get("subtype") or default_subtype_for(
+                asset.get("asset_type"),
+            )
+            nodes.append({
+                "asset_id": aid,
+                "node": entry["virtual_node"],
+                "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+                "subtype": subtype,
+            })
     return nodes
+
+
+def _parse_unit_mix_engine(raw):
+    """Parse unit_mix_json; NaN-safe. Mirrors the helper in
+    commercial.py but lives here so the engine does not depend on
+    the deriver module."""
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return raw or None
+    try:
+        if pd.isna(raw):
+            return None
+    except (TypeError, ValueError):
+        pass
+    try:
+        obj = json.loads(raw)
+        if isinstance(obj, dict) and obj:
+            return obj
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+    return None
 
 
 def _flatten_profiles(base_row, walking, driving):

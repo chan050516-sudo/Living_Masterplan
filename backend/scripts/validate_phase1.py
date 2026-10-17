@@ -97,6 +97,40 @@ def main():
     print("  All checks passed. Phase B.1 complete.")
     print("=" * 72 + "\n")
 
+    # --- Phase B.2 checks ---
+    print("\n" + "=" * 72)
+    print("  7. Per-subtype breakdown")
+    print("=" * 72)
+
+    assets = pd.read_csv("bukit_jelutong/processed/business/assets.csv")
+    comm_ids = set(assets[assets["asset_type"] == "commercial"]["asset_id"])
+    comm_current = df[
+        (df["asset_id"].isin(comm_ids)) & (df["year"] == 2026)
+    ]
+
+    # Count how many have per-subtype data
+    has_dsr = comm_current["dsr_by_subtype_json"].notna().sum()
+    has_carbon = comm_current["carbon_by_subtype_json"].notna().sum()
+    print(f"  commercial assets with dsr_by_subtype_json: "
+        f"{has_dsr}/{len(comm_current)}")
+    print(f"  commercial assets with carbon_by_subtype_json: "
+        f"{has_carbon}/{len(comm_current)}")
+
+    if has_dsr == 0:
+        print("[FAIL] no per-subtype DSR emitted — B.2 did not run")
+        raise SystemExit(1)
+
+    # Show 3 samples
+    sample = comm_current[comm_current["dsr_by_subtype_json"].notna()].head(3)
+    for _, r in sample.iterrows():
+        print(f"\n  {r['asset_id']}:")
+        print(f"    total dsr:     {r['dsr']:.3f}")
+        print(f"    by subtype:    {r['dsr_by_subtype_json']}")
+        print(f"    occupancy:     {r['occupancy_by_subtype_calc_json']}")
+        print(f"    carbon:        {r['carbon_by_subtype_json']}")
+
+    print("[ OK ] Phase B.2 fields present")
+
 
 if __name__ == "__main__":
     main()

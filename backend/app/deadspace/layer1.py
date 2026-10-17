@@ -50,6 +50,9 @@ DEFAULTS = {
     # no shade. Below that, the fallback canopy is at least nominally
     # shading the footprint.
     "uhi_exposure_above_c": 7.0,
+    # Phase B.2 — per-subtype death thresholds
+    "subtype_dead_occupancy_below": 0.10,
+    "subtype_low_occupancy_below": 0.40,
 }
 
 
@@ -88,6 +91,7 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
             reasons.append("low_neighborhood_diversity")
 
         _check_stranded(reasons, metrics, t)
+        _check_subtype_mix(reasons, metrics, t)
         _check_uhi(reasons, metrics, asset_type, t)
 
     elif asset_type == "community_facility":
@@ -202,6 +206,63 @@ def _check_stranded(reasons: list, metrics: dict, t: dict) -> None:
     elif ratio_hit and a > 10.0:
         reasons.append("high_stranded_carbon_ratio_small_asset")
 
+
+def _check_subtype_mix(reasons: list, metrics: dict, t: dict) -> None:
+    """
+    Flag a commercial asset whose subtype mix contains a dead or
+    low-occupancy subtype.
+
+    A mall with 8 subtypes can carry an aggregate occupancy of 0.75
+    (well above low_occupancy's 0.50 threshold) while its entire
+    F&B floor sits empty. That partial death is real deadspace —
+    the capital invested in those specific units produced nothing —
+    but the aggregate occupancy hides it. This check reads the
+    per-subtype breakdown emitted by B3 and surfaces the partial
+    death as its own flag.
+
+    Two severity levels:
+
+      subtype_mix_dead — at least one subtype below 10%.
+      subtype_mix_low  — at least one subtype below 40% but none
+                         below 10%.
+
+    The `subtype_mix_dead` branch fires first; the two are not
+    stacked. A healthy supermarket plus a dead F&B floor produces
+    one flag, not two.
+    """
+    from json import loads, JSONDecodeError
+
+    raw = metrics.get("occupancy_by_subtype_calc_json")
+    if raw is None:
+        return
+    try:
+        occ_by = loads(raw) if isinstance(raw, str) else raw
+    except (JSONDecodeError, TypeError):
+        return
+    if not isinstance(occ_by, dict) or len(occ_by) <= 1:
+        return
+
+    dead_threshold = t.get("subtype_dead_occupancy_below", 0.10)
+    low_threshold = t.get("subtype_low_occupancy_below", 0.40)
+
+    any_dead = False
+    any_low = False
+    for v in occ_by.values():
+        try:
+            fv = float(v)
+        except (TypeError, ValueError):
+            continue
+        if fv < dead_threshold:
+            any_dead = True
+            break
+        elif fv < low_threshold:
+            any_low = True
+
+    if any_dead:
+        reasons.append("subtype_mix_dead")
+    elif any_low:
+        reasons.append("subtype_mix_low")
+        
 
 def _check_uhi(reasons: list, metrics: dict, asset_type: str, t: dict) -> None:
     """

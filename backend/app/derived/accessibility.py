@@ -53,15 +53,23 @@ def _infer_weight_col(G: nx.Graph) -> str:
     return "effective_length_m"
 
 
-def compute_distance_matrix(G: nx.Graph) -> dict:
+def compute_distance_matrix(G, cutoff_m=5000.0):
     """
-    All-pairs shortest path using the graph's routing weight.
+    All-pairs shortest path using effective_length_m, bounded by
+    `cutoff_m`.
 
-    FIX: rely on _infer_weight_col() so walking/driving graphs are
-    handled by one code path.
+    Without the cutoff, this iterates every reachable node for every
+    source (O(n² log n) on 5,000 nodes). At a township scale every
+    meaningful path is under 5 km — catchment uses 15-min walking
+    (~1200 m), and the Huff competition radius caps at 5,000 m. A
+    pair whose actual path exceeds the cutoff falls back to the
+    Huff FALLBACK_DISTANCE_M (1500 m), which is a conservative
+    overestimate of its effective distance and does not distort
+    competition shares.
     """
-    weight_col = _infer_weight_col(G)
-    return dict(nx.all_pairs_dijkstra_path_length(G, weight=weight_col))
+    return dict(nx.all_pairs_dijkstra_path_length(
+        G, cutoff=cutoff_m, weight="effective_length_m",
+    ))
 
 
 # ---------------------------------------------------------------

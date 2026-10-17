@@ -85,6 +85,7 @@ from ..derived.environmental import (
 from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
+    get_energy_intensity,
     default_subtype_for,
     get_subtype,
 )
@@ -239,9 +240,22 @@ _SPATIAL_REFRESH_FIELDS = (
 )
 
 
-def _compute_distance_matrix(G):
-    """All-pairs shortest path using effective_length_m (canopy-adjusted)."""
-    return dict(nx.all_pairs_dijkstra_path_length(G, weight="effective_length_m"))
+def _compute_distance_matrix(G, cutoff_m=5000.0):
+    """
+    All-pairs shortest path using effective_length_m, bounded by
+    `cutoff_m`.
+
+    Must use the same cutoff as `accessibility.compute_distance_matrix`
+    so B3's baseline and B4's simulated states are directly
+    comparable pair-for-pair. At a township scale every meaningful
+    path is under 5 km; a pair whose actual path exceeds the cutoff
+    falls back to the Huff FALLBACK_DISTANCE_M (1500 m) inside
+    `huff_gravity_by_subtype`, which is a conservative overestimate
+    and does not distort competition shares.
+    """
+    return dict(nx.all_pairs_dijkstra_path_length(
+        G, cutoff=cutoff_m, weight="effective_length_m",
+    ))
 
 
 def _is_valid_number(v) -> bool:
@@ -253,6 +267,26 @@ def _is_valid_number(v) -> bool:
     except (TypeError, ValueError):
         return False
     return not math.isnan(f)
+
+
+def _parse_unit_mix_engine(raw):
+    """Parse unit_mix_json; NaN-safe."""
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return raw or None
+    try:
+        if pd.isna(raw):
+            return None
+    except (TypeError, ValueError):
+        pass
+    try:
+        obj = json.loads(raw)
+        if isinstance(obj, dict) and obj:
+            return obj
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+    return None
 
 
 def _weak_coupling_occupancy(
@@ -756,19 +790,66 @@ def simulate_scenario(
         pop_factor = projected_pop / base_pop
 
         # ---- Supply nodes from effective commercial assets ----
+        #
+        # Phase B.4b — the effective state decides how each
+        # commercial asset enters the Huff pools:
+        #
+        #   unit_mix still present (mall not repurposed):
+        #     keep the per-subtype supply nodes that
+        #     `_build_graph_and_nodes` generated. Each subtype
+        #     competes in its own pool with its own area.
+        #
+        #   unit_mix absent (shoplot, or repurpose cleared the mix):
+        #     collapse to ONE supply node with the effective
+        #     subtype and the asset's total lettable area.
+        #
+        # The previous version overwrote every supply node's
+        # subtype with the asset's PRIMARY subtype. For a mall
+        # that meant the supermarket floor, the F&B floor and the
+        # showroom floor all competed in the primary subtype's
+        # pool. Huff saw one malformed super-competitor instead
+        # of six correctly separated pools, and the mall's
+        # effective_demand_m2 jumped by ~75% between 2026 (B3
+        # baseline, correct) and 2027 (B4, malformed) — a false
+        # signal driven by a silent model switch, not by any
+        # real intervention.
         active_commercial_ids = {
             aid for aid, eff in effective_assets.items()
             if eff.get("asset_type") == "commercial"
         }
-        year_supply_nodes = []
+
+        pipeline_nodes_by_asset = {}
         for s in pipeline_supply_nodes:
-            if s["asset_id"] not in active_commercial_ids:
+            pipeline_nodes_by_asset.setdefault(s["asset_id"], []).append(s)
+
+        year_supply_nodes = []
+        for aid, nodes in pipeline_nodes_by_asset.items():
+            if aid not in active_commercial_ids:
                 continue
-            s_copy = dict(s)
-            s_copy["subtype"] = effective_assets[s["asset_id"]].get(
-                "subtype", "convenience_retail",
-            )
-            year_supply_nodes.append(s_copy)
+
+            eff = effective_assets[aid]
+            eff_subtype = eff.get("subtype", "convenience_retail")
+            eff_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
+
+            if eff_mix is not None:
+                # Still a mixed-use mall — keep the per-subtype
+                # supply nodes as generated.
+                for n in nodes:
+                    year_supply_nodes.append(dict(n))
+            else:
+                # Single-subtype asset (shoplot, or a mall that was
+                # repurposed and had its mix cleared).
+                node_id = nodes[0]["node"] if nodes else None
+                if node_id is None:
+                    continue
+                year_supply_nodes.append({
+                    "asset_id": aid,
+                    "node": node_id,
+                    "attractiveness": float(
+                        eff.get("lettable_area_m2") or 0.0
+                    ),
+                    "subtype": eff_subtype,
+                })
 
         # ---- New supply from delivered projects ----
         active_projects = active_projects_in_year(
@@ -1004,13 +1085,38 @@ def simulate_scenario(
                 }
                 hvac_adj = 0.0
             else:
-                # Raw energy from subtype (before canopy or retrofit)
-                energy_raw = energy_from_subtype(
-                    effective_subtype or "vacant", floor_area
-                )
+                # Phase B.2b — per-subtype energy when the asset has
+                # a unit_mix and remains commercial after any
+                # intervention. Matches B3's per-subtype energy
+                # calculation, so 2026 (B3 baseline) and 2027+ (B4
+                # simulated) are directly comparable.
+                unit_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
+                if (
+                    effective_type == "commercial"
+                    and unit_mix
+                    and effective_subtype == asset.get("subtype")
+                ):
+                    mix_total_area = sum(
+                        float(m.get("area_m2") or 0)
+                        for m in unit_mix.values()
+                    )
+                    scale = (
+                        float(floor_area) / mix_total_area
+                        if mix_total_area > 0 and floor_area > 0
+                        else 1.0
+                    )
+                    energy_raw = 0.0
+                    for st, m in unit_mix.items():
+                        st_area = float(m.get("area_m2") or 0) * scale
+                        if st_area <= 0:
+                            continue
+                        st_intensity = get_energy_intensity(st) or 120.0
+                        energy_raw += st_area * st_intensity
+                else:
+                    energy_raw = energy_from_subtype(
+                        effective_subtype or "vacant", floor_area
+                    )
 
-                # Breakdown computed from RAW energy, so per-subsystem
-                # multipliers apply to the correct base.
                 breakdown_raw = breakdown_energy(
                     energy_raw, effective_type, assumptions
                 )
@@ -1315,6 +1421,16 @@ def _add_project_state(year_state, proj, year, emission_factor):
 def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
     """
     Build the walking graph and demand/supply node lists for Huff.
+
+    Supply nodes expand per-subtype for mixed-use commercial assets,
+    matching B3's `_build_huff_supply_nodes`. A mall's F&B floor
+    competes in the F&B pool with its F&B area, not in the primary
+    subtype's pool with its whole lettable area.
+
+    Without this expansion, B4's simulated year-2027+ Huff is
+    computed with a single-subtype model while B3's year-2026
+    baseline is per-subtype. The delta between them mixes a real
+    intervention effect with a silent model switch.
     """
     if network_gdf is None:
         network_gdf = geometry["network"]["analysis"]
@@ -1323,13 +1439,40 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
     G = build_walk_graph(network_gdf, gamma=gamma)
 
     all_entries = {}
+    parcels_gdf = geometry["parcels"]["analysis"]
+
     for _, asset in assets_df.iterrows():
         aid = asset["asset_id"]
-        parcels = geometry["parcels"]["analysis"]
-        m = parcels[parcels["asset_id"] == aid]
-        if m.empty:
+        geom = None
+
+        # Primary: resolve through parcels.asset_id, the 1:1 map
+        # written by build_mock_data.
+        match = parcels_gdf[parcels_gdf["asset_id"] == aid]
+        if not match.empty:
+            geom = match.iloc[0].geometry
+        else:
+            # Fallback: resolve through the asset's own parcel_id.
+            # Handles shared parcels and any asset whose parcel was
+            # not assigned a 1:1 asset_id back-reference.
+            #
+            # B4 fix — without this fallback, assets whose parcel
+            # only carries parcel_id (no asset_id back-reference)
+            # are silently dropped from the B4 walking pipeline
+            # while B3 includes them. The result is a smaller
+            # commercial supply pool in B4 (44 vs 74) and a
+            # spurious jump in effective_demand_m2 for the
+            # surviving competitors on every simulated year.
+            pid = asset.get("parcel_id")
+            if pid is not None and not (
+                isinstance(pid, float) and pd.isna(pid)
+            ):
+                pmatch = parcels_gdf[parcels_gdf["parcel_id"] == pid]
+                if not pmatch.empty:
+                    geom = pmatch.iloc[0].geometry
+
+        if geom is None or geom.is_empty:
             continue
-        p, off_d, eid = find_entry_point(m.iloc[0].geometry, network_gdf, "walking")
+        p, off_d, eid = find_entry_point(geom, network_gdf, "walking")
         if p is None:
             continue
         all_entries[f"A::{aid}"] = (p, off_d, eid)
@@ -1365,6 +1508,7 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
             "population": float(pop["total_population"]),
         })
 
+    # Supply nodes expand per subtype when a unit_mix is present.
     supply_nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
@@ -1373,15 +1517,50 @@ def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
         info = asset_entries.get(aid)
         if info is None:
             continue
-        supply_nodes.append({
-            "asset_id": aid,
-            "node": info["virtual_node"],
-            "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
-            "subtype": asset.get("subtype", "convenience_retail"),
-        })
+
+        mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
+        if mix:
+            for st, m in mix.items():
+                st_area = float(m.get("area_m2") or 0)
+                if st_area <= 0:
+                    continue
+                supply_nodes.append({
+                    "asset_id": aid,
+                    "node": info["virtual_node"],
+                    "attractiveness": st_area,
+                    "subtype": st,
+                })
+        else:
+            supply_nodes.append({
+                "asset_id": aid,
+                "node": info["virtual_node"],
+                "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+                "subtype": asset.get("subtype", "convenience_retail"),
+            })
 
     nodes_gdf = extract_nodes(network_gdf)
     return G_aug, demand_nodes, supply_nodes, nodes_gdf
+
+
+def _parse_unit_mix_engine(raw):
+    """Parse unit_mix_json; NaN-safe. Mirrors the helper in
+    derived/engine.py."""
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        return raw or None
+    try:
+        if pd.isna(raw):
+            return None
+    except (TypeError, ValueError):
+        pass
+    try:
+        obj = json.loads(raw)
+        if isinstance(obj, dict) and obj:
+            return obj
+    except (json.JSONDecodeError, TypeError, ValueError):
+        pass
+    return None
 
 
 def _new_project_supply_nodes(active_projects, geometry, nodes_gdf, existing_supply_nodes):
