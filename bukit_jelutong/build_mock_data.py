@@ -1599,6 +1599,7 @@ def _make_year_metrics(asset, year, occ, base, index, trajectory):
     row = {
         "asset_id": aid,
         "year": year,
+        "subtype": subtype,                           # NEW
         "occupancy_rate": round(occ, 3),
         "vacancy_rate": round(1.0 - occ, 3),
         "vacancy_duration_months": _vacancy_duration_at(
@@ -1607,8 +1608,8 @@ def _make_year_metrics(asset, year, occ, base, index, trajectory):
         "utilisation_rate": None,
         "rental_income_rm": None,
         "energy_kwh": None,
-        "metric_source": "observed",
-        "model_version": "0.4.0",
+        "metric_source": "observed",                   # NEW position
+        "model_version": "0.4.0",                      # NEW position
         "occupied_units": None,
         "occupancy_by_subtype_json": None,
     }

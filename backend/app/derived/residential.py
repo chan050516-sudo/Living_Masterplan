@@ -121,6 +121,9 @@ def derive_residential(ctx: DerivationContext) -> dict:
         "year": year,
         "subtype": subtype,
         "occupancy_rate": occupancy,
+        "unit_count": _safe_num(asset.get("unit_count")),
+        "developer_held_units": _safe_num(asset.get("developer_held_units")),
+        "occupied_units": _safe_num(_get_metric_row(ctx, asset["asset_id"], year).get("occupied_units")),
         "energy_kwh": energy_kwh_adjusted,
         "energy_kwh_hvac": hvac_adj,
         "energy_kwh_lighting_equipment": breakdown["lighting_equipment_kwh"],
@@ -141,6 +144,28 @@ def derive_residential(ctx: DerivationContext) -> dict:
         "metric_source": "derived",
         "model_version": __version__,
     }
+
+
+def _get_metric_row(ctx: DerivationContext, asset_id: str, year: int):
+    metrics = ctx.business["asset_metrics"]
+    row = metrics[
+        (metrics["asset_id"] == asset_id) & (metrics["year"] == year)
+    ]
+    if row.empty:
+        return {}
+    return row.iloc[0]
+
+
+def _safe_num(v):
+    if v is None:
+        return None
+    try:
+        f = float(v)
+        if math.isnan(f):
+            return None
+        return f
+    except (TypeError, ValueError):
+        return None
 
 
 def _num(v):

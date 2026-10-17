@@ -7,6 +7,7 @@ Phase 11 additions:
   - UHI surface temperature proxy.
 """
 
+import json
 import math
 from .. import __version__
 from .context import DerivationContext
@@ -80,14 +81,31 @@ def derive_commercial(ctx: DerivationContext) -> dict:
     if noi is not None and capex is not None and float(capex) > 0:
         noi_yield = noi / float(capex)
 
-    # --- DSR ---
-    demand_m2 = ctx.huff_effective_demand_m2
+    # --- Demand and DSR ---
+    # Phase B.1 — demand is now carried per subtype. The aggregate
+    # `demand_m2` remains the sum across subtypes, so the existing
+    # DSR formula and every downstream metric is unchanged. The
+    # per-subtype breakdown is emitted as a JSON string for B6 and
+    # B7 to consume.
+    huff_by_subtype = ctx.huff_by_subtype or {}
+    demand_m2 = (
+        sum(huff_by_subtype.values())
+        if huff_by_subtype
+        else ctx.huff_effective_demand_m2
+    )
+
     effective_supply = asset.get("lettable_area_m2")
     dsr = None
     if (demand_m2 is not None
             and effective_supply is not None
             and float(effective_supply) > 0):
         dsr = demand_m2 / float(effective_supply)
+
+    demand_by_subtype_json = None
+    if huff_by_subtype:
+        demand_by_subtype_json = json.dumps(
+            {k: round(v, 4) for k, v in huff_by_subtype.items()}
+        )
 
     # --- Rental income per visit (proxy) ---
     footfall = _get("footfall_daily")
@@ -161,6 +179,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         "maintenance_surge_rm": maintenance_surge,
         "effective_demand": ctx.huff_effective_demand,
         "effective_demand_m2": demand_m2,
+        "effective_demand_by_subtype_json": demand_by_subtype_json,
         "effective_supply": effective_supply,
         "dsr": dsr,
         "shade_proxy_score": shade,

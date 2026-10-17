@@ -140,6 +140,102 @@ def huff_gravity_by_subtype(
     return result
 
 
+def huff_by_subtype_per_asset(
+    distance_matrix: Dict[str, Dict[str, float]],
+    demand_nodes: List[Dict],
+    supply_nodes: List[Dict],
+    subtypes_config: Dict[str, dict],
+    alpha: float = 1.0,
+    beta: float = 2.0,
+) -> Dict[str, Dict[str, float]]:
+    """
+    Huff gravity returning per-subtype demand for each asset.
+
+    Unlike `huff_gravity_by_subtype`, which collapses the result to a
+    single float per asset, this returns a nested dict:
+
+        {asset_id: {subtype: demand_m2, ...}, ...}
+
+    A mall with a unit_mix of {"supermarket": ..., "f_and_b": ...}
+    carries one entry per subtype in the inner dict. A single-subtype
+    shop carries one entry keyed by its own subtype.
+
+    The demand pool for each subtype is independent, matching
+    `huff_gravity_by_subtype`. Only the shape of the return value
+    differs.
+    """
+    supply_by_subtype = defaultdict(list)
+    for s in supply_nodes:
+        st = s.get("subtype")
+        if st is None:
+            continue
+        supply_by_subtype[st].append(s)
+
+    result: Dict[str, Dict[str, float]] = {}
+
+    for subtype, supplies in supply_by_subtype.items():
+        cfg = subtypes_config.get(subtype, {})
+        coefficient = cfg.get("demand_coefficient_m2_per_person", 0.05)
+        radius = cfg.get("competition_radius_m")
+
+        for d in demand_nodes:
+            d_node = d["node"]
+            d_pop = d.get("population", 0.0)
+            if d_pop <= 0:
+                continue
+
+            d_row = distance_matrix.get(d_node)
+            if d_row is None:
+                continue
+
+            subtype_demand_m2 = d_pop * coefficient
+
+            utilities = []
+            for s in supplies:
+                s_node = s["node"]
+                if s_node is None or s_node == "":
+                    continue
+
+                raw_a = s.get("attractiveness", 0.0)
+                try:
+                    attractiveness = (
+                        float(raw_a) if raw_a is not None else 0.0
+                    )
+                except (TypeError, ValueError):
+                    attractiveness = 0.0
+                if math.isnan(attractiveness):
+                    attractiveness = 0.0
+                if attractiveness <= 0:
+                    continue
+
+                d_eff = d_row.get(s_node)
+                if d_eff is None:
+                    d_eff = FALLBACK_DISTANCE_M
+
+                if radius is not None and d_eff > radius:
+                    continue
+
+                if d_eff <= 0:
+                    d_eff = 1.0
+
+                u = (attractiveness ** alpha) / (d_eff ** beta)
+                utilities.append((s["asset_id"], u))
+
+            total_u = sum(u for _, u in utilities)
+            if total_u <= 0:
+                continue
+
+            for asset_id, u in utilities:
+                share = u / total_u
+                result.setdefault(asset_id, {})
+                result[asset_id][subtype] = (
+                    result[asset_id].get(subtype, 0.0)
+                    + share * subtype_demand_m2
+                )
+
+    return result
+
+
 def huff_gravity(
     distance_matrix: Dict[str, Dict[str, float]],
     demand_nodes: List[Dict],

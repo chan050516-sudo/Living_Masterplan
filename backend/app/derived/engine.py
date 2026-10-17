@@ -7,11 +7,13 @@ Phase 2 changes:
   - Neighborhood diversity via Shannon entropy.
 """
 
+import json
 import logging
 from pathlib import Path
 
 import geopandas as gpd
 import networkx as nx
+import numpy as np
 import pandas as pd
 
 from ..config import load_paths, load_assumptions
@@ -29,7 +31,7 @@ from .accessibility import (
     catchment_profile,
     derive_score_from_profile,
 )
-from .huff import huff_gravity_by_subtype
+from .huff import huff_gravity_by_subtype, huff_by_subtype_per_asset
 from .demand_mismatch import aggregate_catchment_profile
 from .diversity import neighborhood_diversity
 from .commercial import derive_commercial
@@ -58,24 +60,33 @@ DIVERSITY_RADIUS_M = 800.0
 def compute_derived_metrics(
     repo_root: Path = None,
     year: int = 2026,
+    years: list = None,
     network_override=None,
 ) -> pd.DataFrame:
     """
-    Compute derived metrics for every asset at the given year.
+    Compute derived metrics for every asset at every requested year.
 
     Parameters
     ----------
+    year : int
+        Base year (used when `years` is None).
+    years : list[int] | None
+        Years to compute. When provided, the returned DataFrame has
+        one row per (asset, year). When None, defaults to `[year]`.
     network_override : gpd.GeoDataFrame, optional
-        A modified network layer. When provided, it is used for the
-        walking pipeline (canopy-adjusted cost). The driving pipeline
-        always uses the original network because canopy has no physical
-        effect on vehicle routing.
+        Modified network layer. When provided, it is used for the
+        walking pipeline. The driving pipeline always uses the
+        original network.
 
-        B4 uses this parameter to simulate a scenario's post-
-        intervention network state without duplicating B3's spatial
-        pipeline.
+    The Huff gravity is computed ONCE for the whole history, because
+    supply (lettable area) and demand (population) do not vary by
+    year in this model. Only the per-year environmental split and the
+    trajectory features are year-varying.
     """
     repo_root = repo_root or Path(__file__).resolve().parents[3]
+    if years is None:
+        years = [year]
+
     paths = load_paths()
     assumptions = load_assumptions()
     taxonomy = get_taxonomy()
@@ -132,10 +143,13 @@ def compute_derived_metrics(
         cfg=driving_cfg,
     )
 
-    # --- Huff per subtype ---
+    # --- Huff per subtype (computed once, reused across all years) ---
+    supply_nodes_huff = _build_huff_supply_nodes(
+        business["assets"], walking_pipeline,
+    )
     demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
-    supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
-    huff_m2 = huff_gravity_by_subtype(
+
+    huff_by_asset_subtype = huff_by_subtype_per_asset(
         walking_pipeline["distance_matrix"],
         demand_nodes_huff,
         supply_nodes_huff,
@@ -144,7 +158,7 @@ def compute_derived_metrics(
         beta=assumptions.get("huff", {}).get("beta", 2.0),
     )
 
-    # --- Derive metrics per asset ---
+    # --- Derive metrics per asset per year ---
     rows = []
     for _, asset in business["assets"].iterrows():
         atype = asset["asset_type"]
@@ -169,17 +183,17 @@ def compute_derived_metrics(
             mode="driving",
         )
 
-        accessibility_score = derive_score_from_profile(walking_profile, primary_threshold=10)
+        accessibility_score = derive_score_from_profile(
+            walking_profile, primary_threshold=10,
+        )
 
-        # Catchment population profile (age structure)
         pop_profile = aggregate_catchment_profile(
             demand_entries=walking_pipeline["demand_entries_with_age"],
             distance_matrix=walking_pipeline["distance_matrix"],
             asset_entry=walking_pipeline["asset_entries"].get(aid),
-            max_distance_m=1200.0,  # 15-min walk
+            max_distance_m=1200.0,
         )
 
-        # Neighborhood diversity (fixed 800m radius on walking graph)
         asset_vn = walking_pipeline["asset_entries"].get(aid, {}).get("virtual_node")
         diversity_val = neighborhood_diversity(
             asset_id=aid,
@@ -191,41 +205,62 @@ def compute_derived_metrics(
 
         subtype = asset.get("subtype") or default_subtype_for(atype)
 
-        # Convert m² demand back to a persons-equivalent for the
-        # deprecated bridge field. Uses the subtype coefficient so that
-        # the magnitude stays comparable to pre-Phase-2 numbers.
         subtype_cfg = subtypes_config.get(subtype, {})
         coeff = subtype_cfg.get("demand_coefficient_m2_per_person", 0.05) or 0.05
-        effective_demand_m2 = huff_m2.get(aid)
+
+        # Per-subtype Huff demand for this asset.
+        huff_by_subtype = huff_by_asset_subtype.get(aid, {})
+        total_demand_m2 = (
+            sum(huff_by_subtype.values()) if huff_by_subtype else None
+        )
         effective_demand_persons = (
-            effective_demand_m2 / coeff
-            if effective_demand_m2 is not None and coeff > 0
+            total_demand_m2 / coeff
+            if total_demand_m2 is not None and coeff > 0
             else None
         )
 
-        ctx = DerivationContext(
-            asset=asset,
-            business=business,
-            geometry=geometry,
-            assumptions=assumptions,
-            accessibility_score=accessibility_score,
-            huff_effective_demand=effective_demand_persons,
-            huff_effective_demand_m2=effective_demand_m2,
-            graph=walking_pipeline["graph"],
-            year=year,
-            canopy_coverage=asset_canopy.get(aid),
-            distance_matrix=walking_pipeline["distance_matrix"],
-            walking_profile=walking_profile,
-            driving_profile=driving_profile,
-            catchment_population_profile=pop_profile,
-            neighborhood_diversity=diversity_val,
-        )
+        for y in years:
+            # Pull this year's observed metrics for this asset.
+            year_metrics_row = business["asset_metrics"]
+            year_metrics_row = year_metrics_row[
+                (year_metrics_row["asset_id"] == aid)
+                & (year_metrics_row["year"] == y)
+            ]
+            if year_metrics_row.empty:
+                continue
 
-        base_row = deriver(ctx)
-        base_row = _flatten_profiles(base_row, walking_profile, driving_profile)
-        rows.append(base_row)
+            ctx = DerivationContext(
+                asset=asset,
+                business=business,
+                geometry=geometry,
+                assumptions=assumptions,
+                accessibility_score=accessibility_score,
+                huff_effective_demand=effective_demand_persons,
+                huff_effective_demand_m2=total_demand_m2,
+                huff_by_subtype=huff_by_subtype,
+                graph=walking_pipeline["graph"],
+                year=y,
+                canopy_coverage=asset_canopy.get(aid),
+                distance_matrix=walking_pipeline["distance_matrix"],
+                walking_profile=walking_profile,
+                driving_profile=driving_profile,
+                catchment_population_profile=pop_profile,
+                neighborhood_diversity=diversity_val,
+            )
 
-    return pd.DataFrame(rows)
+            base_row = deriver(ctx)
+            base_row = _flatten_profiles(
+                base_row, walking_profile, driving_profile,
+            )
+            rows.append(base_row)
+
+    df = pd.DataFrame(rows)
+
+    # Phase B.1 — trajectory features, computed once from the full
+    # 5-year history. B6 will consume these on the 2026 row.
+    df = _add_trajectory_features(df, years)
+
+    return df
 
 
 # ---------------------------------------------------------------
@@ -423,17 +458,23 @@ def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2)
     """
     Compute canopy coverage for one asset.
 
-    Previous implementation summed `canopy_m2` for rows whose
-    asset_id matched exactly. That collapsed to 0 or 1 because OSM
-    rarely tags canopy as a standalone polygon and the raw pipeline
-    does not populate canopy_m2 for most rows.
+    Overlays the asset's geometry onto the green/blue layer and sums
+    the CLIPPED intersection area, weighted by green_type.
 
-    New implementation overlays the asset's geometry onto the
-    green/blue layer and sums the CLIPPED intersection area, weighted
-    by green_type. This yields a continuous 0-1 signal proportional
-    to how much vegetation actually overlaps the parcel. It does not
-    depend on asset_id matching, so it survives the "unlinked-G-xxxx"
-    id mismatch problem the previous version suffered from.
+    Phase B.1 — landscape-scale exclusion
+    --------------------------------------
+    A natural=wood or natural=forest polygon in OSM is often 10+ ha.
+    A residential parcel sitting inside it is technically covered,
+    but the wood is a landscape feature, not shade on that parcel.
+    Including these overlays sets canopy_coverage = 1.0 for every
+    building inside the wood, which collapses UHI to a false -4.5 °C
+    and makes every downstream UHI-driven flag fire on the wrong
+    assets.
+
+    The exclusion rule: skip any green polygon whose own area exceeds
+    10× the asset's area. A 500 m² parcel is unaffected by a 12 ha
+    wood polygon; a 500 m² parcel IS affected by a 2,000 m² park
+    next to it.
     """
     if green_blue_gdf is None or green_blue_gdf.empty:
         return None
@@ -466,10 +507,16 @@ def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2)
         if candidates.empty:
             return 0.0
 
+        # Landscape-scale filter.
+        asset_area = asset_geom.area
+        max_overlay_area = 10.0 * asset_area
+
         total_weighted = 0.0
         for _, row in candidates.iterrows():
             geom = row.geometry
             if geom is None or geom.is_empty:
+                continue
+            if geom.area > max_overlay_area:
                 continue
             try:
                 overlap_area = geom.intersection(asset_geom).area
@@ -484,47 +531,237 @@ def _compute_canopy_coverage(asset_id, asset_geom, green_blue_gdf, land_area_m2)
         return None
 
 
-def merge_into_asset_metrics(derived_df, existing_df, year):
+# ------------------------------------------------------------------
+# Phase B.1 — trajectory features
+# ------------------------------------------------------------------
+
+def _add_trajectory_features(df: pd.DataFrame, years: list) -> pd.DataFrame:
+    """
+    Attach trajectory features to every row.
+
+    For each (asset_id, year) row, the trajectory features describe
+    the asset's history up to that year. For the 2026 row (the year
+    B6 inspects), the window is the full 5-year history.
+    """
+    if df.empty or len(years) < 2:
+        # Single-year mode: no trajectory is defined.
+        for col in (
+            "occupancy_trend_3yr", "noi_trend_3yr",
+            "years_below_benchmark", "peak_occupancy",
+            "years_since_peak", "vacancy_streak_months",
+            "trajectory_class",
+        ):
+            df[col] = None
+        return df
+
+    df = df.sort_values(["asset_id", "year"]).reset_index(drop=True)
+
+    feature_rows = []
+    for aid, group in df.groupby("asset_id", sort=False):
+        group = group.sort_values("year").reset_index(drop=True)
+        subtype = group["subtype"].iloc[0] if "subtype" in group else None
+
+        for i, row in group.iterrows():
+            year = row["year"]
+            past = group[group["year"] <= year]
+            feat = _trajectory_features_for_window(past, subtype)
+            feature_rows.append((aid, year, feat))
+
+    feat_df = pd.DataFrame([
+        {"asset_id": aid, "year": year, **feat}
+        for aid, year, feat in feature_rows
+    ])
+
+    merged = df.merge(feat_df, on=["asset_id", "year"], how="left")
+    return merged
+
+
+def _trajectory_features_for_window(past_df: pd.DataFrame,
+                                     subtype) -> dict:
+    """
+    Compute trajectory features from a window of past rows.
+    """
+    from ..taxonomy import get_subtype_or_default
+
+    empty = {
+        "occupancy_trend_3yr": None,
+        "noi_trend_3yr": None,
+        "years_below_benchmark": 0,
+        "peak_occupancy": None,
+        "years_since_peak": 0,
+        "vacancy_streak_months": None,
+        "trajectory_class": "unknown",
+    }
+
+    if past_df.empty:
+        return empty
+
+    occ = past_df["occupancy_rate"].dropna().values
+    if len(occ) == 0:
+        return empty
+
+    current_occ = float(occ[-1])
+
+    benchmark = None
+    if subtype:
+        defn = get_subtype_or_default(subtype)
+        benchmark = defn.get("occupancy_benchmark") or defn.get("utilisation_benchmark")
+    if benchmark is None:
+        benchmark = 0.85
+    try:
+        benchmark = float(benchmark)
+    except (TypeError, ValueError):
+        benchmark = 0.85
+
+    peak = float(occ.max())
+    peak_idx = int(occ.argmax())
+    years_since_peak = len(occ) - 1 - peak_idx
+
+    below_count = 0
+    for o in reversed(occ):
+        if float(o) < benchmark * 0.85:
+            below_count += 1
+        else:
+            break
+
+    occ_trend = None
+    if len(occ) >= 2:
+        n = min(3, len(occ))
+        y = np.array(occ[-n:], dtype=float)
+        x = np.arange(n)
+        try:
+            occ_trend = float(np.polyfit(x, y, 1)[0])
+        except Exception:
+            occ_trend = None
+
+    noi = None
+    if "noi_rm" in past_df.columns:
+        noi_series = past_df["noi_rm"].dropna().values
+        if len(noi_series) >= 2:
+            n = min(3, len(noi_series))
+            y = np.array(noi_series[-n:], dtype=float)
+            x = np.arange(n)
+            try:
+                noi = float(np.polyfit(x, y, 1)[0])
+            except Exception:
+                noi = None
+
+    vacancy_streak = None
+    if "vacancy_duration_months" in past_df.columns:
+        vd = past_df["vacancy_duration_months"].dropna()
+        if not vd.empty:
+            vacancy_streak = float(vd.iloc[-1])
+
+    tclass = _classify_trajectory(
+        occ, peak, years_since_peak, below_count, benchmark,
+    )
+
+    return {
+        "occupancy_trend_3yr": occ_trend,
+        "noi_trend_3yr": noi,
+        "years_below_benchmark": below_count,
+        "peak_occupancy": peak,
+        "years_since_peak": years_since_peak,
+        "vacancy_streak_months": vacancy_streak,
+        "trajectory_class": tclass,
+    }
+
+
+def _classify_trajectory(occ, peak, years_since_peak, below_count,
+                         benchmark) -> str:
+    """
+    Classify an asset's trajectory from its history.
+    """
+    if len(occ) == 0:
+        return "unknown"
+
+    current = float(occ[-1])
+
+    if all(float(o) < 0.05 for o in occ):
+        return "never_alive"
+
+    if len(occ) >= 2:
+        prev = float(occ[-2])
+        if current < prev - 0.20:
+            return "rapid_decline"
+
+    if peak > 0.70 and years_since_peak >= 2 and current < peak - 0.25:
+        return "declining"
+
+    if below_count >= 3:
+        return "chronic_low"
+
+    if len(occ) >= 3 and current > float(occ[0]) + 0.15:
+        return "recovering"
+
+    if (
+        current < 0.05
+        and len(occ) >= 2
+        and float(occ[-2]) > 0.50
+    ):
+        return "recent_failure"
+
+    return "stable"
+
+
+def merge_into_asset_metrics(derived_df, existing_df, years=None):
     """
     Merge B3-derived columns into the existing asset_metrics frame.
 
-    The existing frame was authored with a fixed set of columns. B3
-    produces additional columns (catchment population, coverage ratios,
-    demographic mismatch, neighborhood diversity, demand_supply_gap,
-    developable_area_m2, ...) that do not appear in the authored set.
-    Without expanding the schema first, the `if col in existing.columns`
-    filter silently drops every one of them, which breaks B6 (its new
-    flags never fire) and every downstream consumer that reads the
-    enriched CSV.
+    Phase B.1 — supports multi-year data. `derived_df` has one row per
+    (asset_id, year); the existing frame is replaced row-by-row on the
+    same key. Rows in `existing_df` that do not appear in `derived_df`
+    are preserved unchanged.
 
-    This function grows the frame's schema to include every derived
-    column before writing, so no metric is lost at the boundary.
+    `years` is accepted for backwards compatibility but is not used —
+    the merge is keyed on (asset_id, year) regardless of which years
+    were passed.
+
+    dtype reconciliation
+    --------------------
+    When a derived column is object-typed (contains strings such as
+    'school' or 'stable'), the corresponding existing column must
+    also be object-typed. A column read from CSV that is entirely
+    empty is inferred as float64, which cannot hold a string — pandas
+    raises LossySetitemError on the first write. Every derived object
+    column therefore promotes its existing counterpart to object
+    before the merge loop starts.
     """
-    derived_cols = [c for c in derived_df.columns if c not in ("asset_id", "year")]
+    derived_cols = [
+        c for c in derived_df.columns
+        if c not in ("asset_id", "year")
+    ]
 
     if "year" not in existing_df.columns:
         raise ValueError("existing asset_metrics has no 'year' column")
 
     existing = existing_df.copy()
 
-    # Grow the schema to include every derived column.
+    # Add any derived column that is missing from the existing frame.
     for col in derived_cols:
         if col not in existing.columns:
             existing[col] = None
 
+    # Promote existing column dtypes to match the derived frame.
+    # Object-typed derived columns (strings) require object-typed
+    # existing columns; numeric derived columns leave existing dtypes
+    # untouched.
+    for col in derived_cols:
+        if derived_df[col].dtype == object:
+            if existing[col].dtype != object:
+                existing[col] = existing[col].astype(object)
+
     existing = existing.set_index(["asset_id", "year"])
 
     for _, row in derived_df.iterrows():
-        key = (row["asset_id"], year)
+        key = (row["asset_id"], int(row["year"]))
         if key in existing.index:
             for col in derived_cols:
                 existing.at[key, col] = row[col]
         else:
-            new_row = {c: None for c in existing.columns}
-            new_row["asset_id"] = row["asset_id"]
-            new_row["year"] = year
+            new_vals = {c: None for c in existing.columns}
             for col in derived_cols:
-                new_row[col] = row[col]
-            existing.loc[key, list(new_row.keys())] = list(new_row.values())
+                new_vals[col] = row[col]
+            existing.loc[key] = new_vals
 
     return existing.reset_index()
