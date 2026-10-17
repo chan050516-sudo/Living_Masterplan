@@ -24,6 +24,8 @@ FLAG_WEIGHTS = {
     "insufficient_coverage":                     1,
     "maintenance_surge_high":                    1,
     "weak_future_demand":                        1,
+    # Phase 15 — unsold inventory: built but unused
+    "built_value_not_realized":     2,
 }
 
 

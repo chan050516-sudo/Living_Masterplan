@@ -486,15 +486,9 @@ TARGET_DEMOGRAPHIC_BY_SUBTYPE = {
 # Authority is derived from ownership. A developer can repurpose an
 # unsold unit but cannot repurpose an owner-occupied one.
 _OWNERSHIP_STATUS_BY_TYPE = {
-    # The mock data infers residential from OSM. Every OSM-derived
-    # residential building is treated as sold. Sime Darby's unsold
-    # inventory would in reality be a much smaller subset, marked
-    # explicitly.
     "residential":         "sold",
-    # Commercial and undeveloped assets are the developer's holding.
     "commercial":          "developer_held",
     "undeveloped_parcel":  "developer_held",
-    # Community facilities and green spaces are assumed transferred.
     "community_facility":  "public_transferred",
     "green_space":         "public_transferred",
 }
@@ -611,25 +605,336 @@ def resolve_unassigned_parcels(
     return buildings, parcels_extended
 
 
-def mock_undeveloped_parcels(
+def _evict_buildings_from_parcels(
+    buildings: gpd.GeoDataFrame,
     parcels: gpd.GeoDataFrame,
-    n: int = 3,
-) -> gpd.GeoDataFrame:
-    """Synthesise a handful of vacant parcels."""
-    if parcels.empty or n <= 0:
-        return parcels.iloc[0:0].copy()
+    n=3,
+    min_area_m2=4500.0,
+    prefer_edge=True,
+) -> tuple:
+    """
+    Phase 15d — clear the buildings off a small number of parcels
+    and relabel them as undeveloped.
 
-    ranked = parcels.sort_values("area_m2", ascending=False).head(n * 4)
-    step = max(1, len(ranked) // n)
-    picked = ranked.iloc[::step].head(n).copy()
+    Why this exists
+    ---------------
+    The pure grid-scanning approach produced parcels whose shapes
+    were the residual of "cell minus buildings" — hourglass- and
+    L-shaped polygons with wildly varying areas. They read as
+    algorithmic artefacts on the 3D map.
 
-    picked["parcel_id"] = [f"P-VAC-{i + 1:02d}" for i in range(len(picked))]
-    picked["asset_id"] = picked["parcel_id"]
-    picked["land_use"] = "undeveloped"
-    picked["geometry_source"] = "Derived"
-    picked["geometry_confidence"] = "low"
+    Existing parcels, by contrast, are real, planning-verified
+    shapes with a road frontage. Evicting the buildings from the
+    largest and most peripheral ones yields exactly the kind of
+    plot a developer would call "undeveloped land".
 
-    return picked
+    Selection priority (highest to lowest):
+      1. Peripheral (distance from township centroid) — real
+         undeveloped land is at the edge, not in the core.
+      2. Large parcel area.
+      3. Fewer buildings (cheaper to evict, fewer households to
+         rebase).
+
+    Returns
+    -------
+    (buildings_after, parcels_after, n_evicted)
+        parcels_after has the evicted parcels renamed to
+        P-VAC-01 ... P-VAC-N so the caller can start the
+        synthesised parcels at N+1.
+    """
+    if buildings.empty or parcels.empty or n <= 0:
+        return buildings, parcels, 0
+
+    parcels_proj = parcels.to_crs("EPSG:32647")
+    b_parcel_counts = buildings["parcel_id"].value_counts().to_dict()
+    centroid = parcels_proj.geometry.union_all().centroid
+
+    candidates = []
+    for pid, count in b_parcel_counts.items():
+        if pid in (None, "P-UNASSIGNED"):
+            continue
+        pr_match = parcels[parcels["parcel_id"] == pid]
+        if pr_match.empty:
+            continue
+        area = float(pr_match.iloc[0].get("area_m2") or 0)
+        if area < min_area_m2:
+            continue
+
+        pr_proj_match = parcels_proj[parcels_proj["parcel_id"] == pid]
+        if pr_proj_match.empty:
+            continue
+        dist = pr_proj_match.iloc[0].geometry.centroid.distance(centroid)
+
+        candidates.append({
+            "parcel_id": pid,
+            "area_m2": area,
+            "building_count": int(count),
+            "distance_m": float(dist),
+        })
+
+    if not candidates:
+        return buildings, parcels, 0
+
+    if prefer_edge:
+        candidates.sort(
+            key=lambda c: (-c["distance_m"], -c["area_m2"], c["building_count"])
+        )
+    else:
+        candidates.sort(key=lambda c: -c["area_m2"])
+
+    evicted_pids = []
+    evicted_bids = set()
+    for cand in candidates:
+        if len(evicted_pids) >= n:
+            break
+        pid = cand["parcel_id"]
+        bids = set(
+            buildings[buildings["parcel_id"] == pid]["building_id"].tolist()
+        )
+        if not bids:
+            continue
+        evicted_pids.append(pid)
+        evicted_bids |= bids
+
+    if not evicted_pids:
+        return buildings, parcels, 0
+
+    buildings_after = buildings[
+        ~buildings["building_id"].isin(evicted_bids)
+    ].copy()
+
+    parcels_after = parcels.copy()
+    for i, pid in enumerate(evicted_pids):
+        new_pid = f"P-VAC-{i + 1:02d}"
+        mask = parcels_after["parcel_id"] == pid
+        parcels_after.loc[mask, "parcel_id"] = new_pid
+        parcels_after.loc[mask, "asset_id"] = new_pid
+        parcels_after.loc[mask, "land_use"] = "undeveloped"
+
+    print(
+        f"  evicted {len(evicted_bids)} buildings from "
+        f"{len(evicted_pids)} parcels → P-VAC-01..{len(evicted_pids):02d}"
+    )
+    for cand, pid in zip(candidates[:len(evicted_pids)], evicted_pids):
+        print(
+            f"    {pid} → P-VAC: {cand['area_m2']:.0f} m², "
+            f"{cand['building_count']} buildings, "
+            f"{cand['distance_m']:.0f} m from centre"
+        )
+
+    return buildings_after, parcels_after, len(evicted_pids)
+
+
+def _synthesize_vacant_parcels(
+    buildings_gdf,
+    green_blue_gdf,
+    n=9,
+    cell_size_m=150.0,
+    min_area_m2=1000.0,
+    max_area_m2=10000.0,
+    min_spacing_m=250.0,
+    edge_buffer_m=2.0,
+    start_index=0,
+):
+    """
+    Synthesise truly vacant parcels by carving the gaps between
+    buildings.
+
+    Parameters
+    ----------
+    n : int
+        Target count.
+    cell_size_m : float
+        Grid cell width for the primary scan. 150 m matches a
+        typical shoplot block. If the primary scan yields too few
+        candidates, smaller sizes (100, 80, 60) are tried in turn.
+    min_area_m2 / max_area_m2 : float
+        Residual polygon must fall in this range.
+    min_spacing_m : float
+        Minimum centroid distance between picked parcels. If the
+        target cannot be reached at this spacing, the check is
+        progressively relaxed to 70%, 50%, 35%, 25% of the value,
+        floor 60 m.
+    start_index : int
+        Numbering offset. When the caller has already evicted N
+        parcels as P-VAC-01..N, pass N here so synthesised parcels
+        begin at P-VAC-(N+1).
+    """
+    from shapely.geometry import box
+
+    empty = gpd.GeoDataFrame(
+        columns=[
+            "parcel_id", "asset_id", "land_use", "area_m2",
+            "geometry_source", "geometry_confidence", "geometry",
+        ],
+        crs=buildings_gdf.crs,
+    )
+    if buildings_gdf is None or buildings_gdf.empty or n <= 0:
+        return empty
+
+    proj_crs = "EPSG:32647"
+    b_proj = buildings_gdf.to_crs(proj_crs)
+    b_union = b_proj.geometry.union_all()
+
+    gb_union = None
+    if green_blue_gdf is not None and not green_blue_gdf.empty:
+        gb_union = green_blue_gdf.to_crs(proj_crs).geometry.union_all()
+
+    minx, miny, maxx, maxy = b_proj.total_bounds
+    minx += cell_size_m / 2.0
+    miny += cell_size_m / 2.0
+    maxx -= cell_size_m / 2.0
+    maxy -= cell_size_m / 2.0
+
+    def _scan(cell_sz):
+        cands = []
+        nxx = int((maxx - minx) / cell_sz) + 1
+        nyy = int((maxy - miny) / cell_sz) + 1
+        for ix in range(nxx):
+            for iy in range(nyy):
+                x0 = minx + ix * cell_sz
+                y0 = miny + iy * cell_sz
+                cell = box(x0, y0, x0 + cell_sz, y0 + cell_sz)
+
+                neighbourhood = box(
+                    x0 - cell_sz, y0 - cell_sz,
+                    x0 + 2 * cell_sz, y0 + 2 * cell_sz,
+                )
+                if not b_union.intersects(neighbourhood):
+                    continue
+
+                residual = cell.difference(b_union)
+                if gb_union is not None:
+                    residual = residual.difference(gb_union)
+                if residual.is_empty:
+                    continue
+                if residual.geom_type == "MultiPolygon":
+                    residual = max(residual.geoms, key=lambda g: g.area)
+                if residual.geom_type != "Polygon":
+                    continue
+                area = residual.area
+                if not (min_area_m2 <= area <= max_area_m2):
+                    continue
+                cands.append({"geometry": residual, "area": area})
+        return cands
+
+    candidates = _scan(cell_size_m)
+    if not candidates:
+        for smaller in (100.0, 80.0, 60.0):
+            if smaller >= cell_size_m:
+                continue
+            candidates = _scan(smaller)
+            if candidates:
+                print(f"  [P-VAC] primary cell {cell_size_m:.0f}m empty, "
+                      f"retried at {smaller:.0f}m")
+                break
+
+    if not candidates:
+        return empty
+
+    import random
+    random.Random(42).shuffle(candidates)
+
+    def _thin(cands, n_target, min_dist):
+        picked_local = []
+        for cand in cands:
+            if len(picked_local) >= n_target:
+                break
+            c = cand["geometry"].centroid
+            # Centroid distance check
+            if not all(
+                c.distance(p["geometry"].centroid) >= min_dist
+                for p in picked_local
+            ):
+                continue
+            # Geometric non-overlap check. Centroid distance alone
+            # allows two large parcels 250 m apart to share a strip
+            # of area at their boundaries, which shows up as a
+            # double-drawn outline on the 3D map.
+            area = cand["geometry"].area
+            overlaps_existing = False
+            for p in picked_local:
+                try:
+                    inter_area = cand["geometry"].intersection(
+                        p["geometry"]
+                    ).area
+                except Exception:
+                    continue
+                if inter_area > area * 0.05:
+                    overlaps_existing = True
+                    break
+            if overlaps_existing:
+                continue
+            picked_local.append(cand)
+        return picked_local
+
+    picked = _thin(candidates, n, min_spacing_m)
+    if len(picked) < n:
+        for factor in (0.7, 0.5, 0.35, 0.25):
+            tighter = max(60.0, min_spacing_m * factor)
+            picked = _thin(candidates, n, tighter)
+            if len(picked) >= n:
+                print(f"  [P-VAC] relaxed spacing to {tighter:.0f} m")
+                break
+
+    if not picked:
+        return empty
+
+    rows = []
+    for i, cand in enumerate(picked):
+        geom = cand["geometry"]
+        # Morphological opening: erode then dilate by the same
+        # amount. Removes thin connective tissue without eroding
+        # the whole polygon (the previous buffer(-2.0) dropped
+        # L-shaped residuals entirely).
+        try:
+            opened = geom.buffer(-edge_buffer_m).buffer(edge_buffer_m)
+        except Exception:
+            opened = geom
+        if opened.is_empty:
+            opened = geom
+        if opened.geom_type == "MultiPolygon":
+            opened = max(opened.geoms, key=lambda g: g.area)
+        if opened.geom_type != "Polygon":
+            opened = geom
+        opened = opened.buffer(0)
+        if opened.is_empty:
+            continue
+        if opened.geom_type == "MultiPolygon":
+            opened = max(opened.geoms, key=lambda g: g.area)
+        if opened.geom_type != "Polygon":
+            continue
+
+        # Phase 15e — buffer(0) can expand the geometry back over
+        # neighbouring parcels and buildings. Re-subtract and light-
+        # open one final time so the written geometry is guaranteed
+        # not to overlap anything.
+        opened = opened.difference(b_union)
+        if gb_union is not None:
+            opened = opened.difference(gb_union)
+        if opened.is_empty:
+            continue
+        if opened.geom_type == "MultiPolygon":
+            opened = max(opened.geoms, key=lambda g: g.area)
+        if opened.geom_type != "Polygon":
+            continue
+
+        idx = start_index + i + 1
+        rows.append({
+            "parcel_id": f"P-VAC-{idx:02d}",
+            "asset_id": f"P-VAC-{idx:02d}",
+            "land_use": "undeveloped",
+            "area_m2": float(opened.area),
+            "geometry_source": "Derived",
+            "geometry_confidence": "medium",
+            "geometry": opened,
+        })
+
+    if not rows:
+        return empty
+
+    result = gpd.GeoDataFrame(rows, geometry="geometry", crs=proj_crs)
+    return result.to_crs(buildings_gdf.crs)
 
 
 def process_amenities_geometry(
@@ -825,7 +1130,17 @@ def derive_asset_row(record: dict, atype: str, index: int) -> dict:
         or record.get("parcel_id")
         or f"{atype}-{index}"
     )
-    completion_year = BASE_YEAR - seeded_int(f"{seed_base}-age", 2, 25)
+    # Phase 15 — Elmina-style completion year distribution:
+    # 60% of the portfolio is recent (last 8 years), 30% is mid-life
+    # (9-16 years), 10% is older. A uniform 2-25 year distribution
+    # would misrepresent a mid-development township.
+    _age_band = seeded_uniform(f"{seed_base}-ageband", 0.0, 1.0)
+    if _age_band < 0.60:
+        completion_year = BASE_YEAR - seeded_int(f"{seed_base}-age", 1, 8)
+    elif _age_band < 0.90:
+        completion_year = BASE_YEAR - seeded_int(f"{seed_base}-age", 9, 16)
+    else:
+        completion_year = BASE_YEAR - seeded_int(f"{seed_base}-age", 17, 25)
 
     ownership_status = _OWNERSHIP_STATUS_BY_TYPE.get(atype, "public_transferred")
     authority = _AUTHORITY_BY_OWNERSHIP.get(ownership_status, "advisory")
@@ -874,7 +1189,349 @@ def _default_subtype(atype: str) -> str:
     }.get(atype, "vacant")
 
 
-def derive_metrics_row(asset: dict, demo_role: str) -> dict:
+def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf, n=12):
+    """
+    Convert a subset of residential buildings facing a main road into
+    commercial shoplot.
+
+    Planning basis (PLANMalaysia):
+      For 800 residential units the standard is 15-30 shoplot
+      (ratio 1:20 to 1:30). The existing amenity layer contributes
+      24 commercial. Converting 12 more brings the total to 36,
+      ratio 818:36 ≈ 1:23, inside the standard.
+
+    Selection priority:
+      1. Adjacent to a primary / secondary / tertiary edge.
+      2. Built-form residential only (terrace / semidetached /
+         detached), never apartment.
+      3. Larger floor area as a tiebreaker.
+
+    The candidate pool is drawn from the ASSETS table and joined to
+    the building layer by `building_id`. Filtering on the building
+    layer first and matching back to assets missed most candidates
+    because the building layer contains attachments and undersized
+    rows that never became assets.
+    """
+    if network_gdf is None or buildings_gdf is None:
+        return assets_df, set()
+
+    main_roads = network_gdf[
+        network_gdf["edge_type"].isin(["primary", "secondary", "tertiary"])
+    ]
+    main_union = main_roads.geometry.union_all() if not main_roads.empty else None
+
+    # Building centroids by building_id (not asset_id — asset_id on
+    # the building layer is unlinked-xxx, which never matches the
+    # assets table).
+    b_geom = buildings_gdf[
+        buildings_gdf["subtype"].isin(["terrace", "semidetached", "detached"])
+    ].to_crs("EPSG:32647")
+    if b_geom.empty:
+        return assets_df, set()
+
+    centroids = {
+        row["building_id"]: row.geometry.centroid
+        for _, row in b_geom.iterrows()
+        if row.get("building_id")
+    }
+
+    # Draw candidates from assets_df.
+    res_assets = assets_df[
+        (assets_df["asset_type"] == "residential")
+        & (assets_df["subtype"].isin(["terrace", "semidetached", "detached"]))
+    ].copy()
+    if res_assets.empty:
+        return assets_df, set()
+
+    # Attach a centroid if we can resolve the building.
+    main_union_proj = None
+    if main_union is not None:
+        try:
+            main_union_proj = gpd.GeoSeries(
+                [main_union], crs=network_gdf.crs
+            ).to_crs("EPSG:32647").iloc[0]
+        except Exception:
+            main_union_proj = None
+
+    def _dist_to_main(row):
+        bid = row.get("building_id")
+        if not isinstance(bid, str):
+            return 1e9
+        c = centroids.get(bid)
+        if c is None or main_union_proj is None:
+            return 1e9
+        return c.distance(main_union_proj)
+
+    res_assets["_dist_to_main"] = res_assets.apply(_dist_to_main, axis=1)
+    res_assets = res_assets.sort_values(
+        ["_dist_to_main", "floor_area_m2"],
+        ascending=[True, False],
+    )
+
+    # Pull a wider pool, then keep the first `n` that have a
+    # resolvable centroid.
+    pool = res_assets.head(n * 4)
+    kept = []
+    for _, row in pool.iterrows():
+        bid = row.get("building_id")
+        if isinstance(bid, str) and bid in centroids:
+            kept.append(row["asset_id"])
+        if len(kept) >= n:
+            break
+
+    if not kept:
+        return assets_df, set()
+
+    subtype_pattern = (
+        ["convenience_retail"] * 3
+        + ["f_and_b"] * 4
+        + ["services"] * 3
+        + ["medical_retail"] * 2
+    )
+
+    converted_ids = set()
+    for i, aid in enumerate(kept):
+        subtype = subtype_pattern[i % len(subtype_pattern)]
+        idx = assets_df.index[assets_df["asset_id"] == aid]
+        if len(idx) == 0:
+            continue
+        idx = idx[0]
+        row = assets_df.loc[idx]
+
+        floor_area = float(row.get("floor_area_m2") or 0.0)
+        lettable = floor_area * LETTABLE_FRACTION["commercial"]
+        capex = floor_area * CAPEX_PER_M2["commercial"]
+        opex = capex * OPEX_FRACTION["commercial"]
+        maintenance = capex * MAINTENANCE_FRACTION["commercial"]
+        capacity = int(round(floor_area * CAPACITY_PER_M2.get(subtype, 1 / 60)))
+
+        assets_df.loc[idx, "asset_type"] = "commercial"
+        assets_df.loc[idx, "subtype"] = subtype
+        assets_df.loc[idx, "land_use"] = "commercial"
+        assets_df.loc[idx, "asset_name"] = (
+            f"{subtype.replace('_', ' ').title()} {aid}"
+        )
+        assets_df.loc[idx, "lettable_area_m2"] = round(lettable, 2)
+        assets_df.loc[idx, "capex_initial_rm"] = round(capex, 2)
+        assets_df.loc[idx, "opex_annual_rm"] = round(opex, 2)
+        assets_df.loc[idx, "maintenance_annual_rm"] = round(maintenance, 2)
+        assets_df.loc[idx, "capacity"] = capacity
+        assets_df.loc[idx, "target_demographic"] = (
+            TARGET_DEMOGRAPHIC_BY_SUBTYPE.get(subtype, "all")
+        )
+        assets_df.loc[idx, "ownership_status"] = "developer_held"
+        assets_df.loc[idx, "authority"] = "full_control"
+        converted_ids.add(aid)
+
+    print(f"  converted {len(converted_ids)} residential → shoplot")
+    return assets_df, converted_ids
+
+
+def _mark_unsold_inventory(
+    assets_df,
+    n_residential=120,
+    n_commercial=10,
+    exclude_ids=None,
+):
+    """
+    Mark a realistic fraction of the portfolio as unsold or unleased
+    developer-held inventory.
+
+    Calibration: Elmina is a mid-development Sime Darby township.
+    At any year roughly 15% of residential units are built but
+    unsold, and roughly 40% of the shops delivered in the last
+    3 years are not yet leased. This function reproduces that mix
+    deterministically so the down-stream pipeline sees a realistic
+    deadspace population instead of a mature fully-sold township.
+
+    Selection strategy for residential (in priority order):
+      - 40% from the newest 3 years (2023-2025)
+      - 40% from the 5-8 year band (2018-2022)
+      - 20% from the 10+ year band (2015 or older)
+    This mirrors the way a developer accumulates slow-moving
+    inventory across multiple delivery cycles — it is not just the
+    latest phase that is sitting unsold.
+    """
+    unsold_ids = set()
+
+    exclude = set(exclude_ids or [])
+
+    res_pool = assets_df[
+        (assets_df["asset_type"] == "residential")
+        & (assets_df["ownership_status"] == "sold")
+        & (~assets_df["asset_id"].isin(exclude))
+    ].copy()
+    if not res_pool.empty:
+        res_pool = res_pool.sort_values(
+            ["completion_year", "asset_id"],
+            ascending=[False, True],
+            na_position="last",
+        )
+        n_new = int(n_residential * 0.40)
+        n_mid = int(n_residential * 0.40)
+        n_old = n_residential - n_new - n_mid
+
+        def _band(df, lo, hi):
+            return df[
+                (df["completion_year"] >= lo) & (df["completion_year"] <= hi)
+            ]
+
+        picked = []
+        picked.extend(_band(res_pool, 2023, 2030).head(n_new)["asset_id"])
+        picked.extend(_band(res_pool, 2018, 2022).head(n_mid)["asset_id"])
+        older = res_pool[res_pool["completion_year"] < 2018]
+        picked.extend(older.head(n_old)["asset_id"])
+
+        # If any band was short, top up from the newest available.
+        if len(picked) < n_residential:
+            remaining = res_pool[
+                ~res_pool["asset_id"].isin(picked)
+            ].head(n_residential - len(picked))
+            picked.extend(remaining["asset_id"])
+
+        unsold_ids |= set(picked)
+        assets_df.loc[
+            assets_df["asset_id"].isin(unsold_ids),
+            "ownership_status",
+        ] = "developer_held"
+        assets_df.loc[
+            assets_df["asset_id"].isin(unsold_ids),
+            "authority",
+        ] = "full_control"
+
+    com_pool = assets_df[
+        (assets_df["asset_type"] == "commercial")
+        & (assets_df["ownership_status"] == "developer_held")
+        & (~assets_df["asset_id"].isin(exclude))
+    ].sort_values(
+        ["completion_year", "asset_id"],
+        ascending=[False, True],
+        na_position="last",
+    )
+    com_picked = list(com_pool.head(n_commercial)["asset_id"])
+    unsold_ids |= set(com_picked)
+
+    print(
+        f"  marked unsold inventory: "
+        f"{len([x for x in unsold_ids if x.startswith('BLD-')])} residential + "
+        f"{len(com_picked)} commercial"
+    )
+    return assets_df, unsold_ids
+
+
+def _mark_developer_held_facilities(assets_df, n=6):
+    """
+    In a mid-development township, some community facilities are
+    still operated by the developer and not yet handed over to the
+    local authority. These are not eligible for public_provision
+    classification — they are the developer's own assets.
+    """
+    fac = assets_df[
+        (assets_df["asset_type"] == "community_facility")
+        & (assets_df["ownership_status"] == "public_transferred")
+    ].sort_values(
+        ["completion_year", "asset_id"],
+        ascending=[False, True],
+        na_position="last",
+    )
+    picked = set(fac.head(n)["asset_id"])
+    if not picked:
+        return assets_df
+    assets_df.loc[
+        assets_df["asset_id"].isin(picked),
+        "ownership_status",
+    ] = "developer_held"
+    assets_df.loc[
+        assets_df["asset_id"].isin(picked),
+        "authority",
+    ] = "full_control"
+    print(f"  marked developer-held facilities: {len(picked)}")
+    return assets_df
+
+
+def _derive_metrics_for_unsold(asset, aid):
+    """
+    Metrics for unsold developer-held residential inventory.
+
+    The defining property of an unsold unit is that nobody is living
+    in it — not that the physical shell is different. So occupancy
+    is 0, vacancy is the full duration since completion, and NOI is
+    whatever the holding cost produces.
+    """
+    atype = asset["asset_type"]
+    row = {
+        "asset_id": aid,
+        "year": BASE_YEAR,
+        "occupancy_rate": 0.0,
+        "vacancy_rate": 1.0,
+        "vacancy_duration_months": None,
+        "footfall_daily": 0,
+        "utilisation_rate": None,
+        "rental_income_rm": 0.0,
+        "energy_kwh": None,
+        "metric_source": "observed",
+        "model_version": "0.4.0",
+    }
+
+    completion = asset.get("completion_year")
+    if completion:
+        try:
+            years_vacant = max(1, BASE_YEAR - int(completion))
+        except (TypeError, ValueError):
+            years_vacant = 1
+    else:
+        years_vacant = 1
+
+    row["vacancy_duration_months"] = years_vacant * 12
+    return row
+
+
+def _derive_metrics_for_shoplot(asset, aid, is_vacant):
+    """
+    Metrics for a converted shoplot.
+
+    Half are vacant — the shoplot overhang state that PLANMalaysia
+    reports for new townships, where shoplot sits idle 2-5 years
+    before a tenant fills it. Half are leased to small businesses.
+    The 50/50 split reproduces the real distribution of delivered
+    shoplot in Elmina- and Bukit Jelutong-style phases.
+    """
+    if is_vacant:
+        return {
+            "asset_id": aid,
+            "year": BASE_YEAR,
+            "occupancy_rate": 0.0,
+            "vacancy_rate": 1.0,
+            "vacancy_duration_months": seeded_int(f"{aid}-vacdur", 24, 60),
+            "footfall_daily": 0,
+            "utilisation_rate": None,
+            "rental_income_rm": 0.0,
+            "energy_kwh": None,
+            "metric_source": "observed",
+            "model_version": "0.4.0",
+        }
+
+    occ = seeded_uniform(f"{aid}-occ", 0.55, 0.85)
+    return {
+        "asset_id": aid,
+        "year": BASE_YEAR,
+        "occupancy_rate": round(occ, 3),
+        "vacancy_rate": round(1 - occ, 3),
+        "vacancy_duration_months": seeded_int(f"{aid}-vacdur", 0, 6),
+        "footfall_daily": seeded_int(f"{aid}-footfall", 100, 400),
+        "utilisation_rate": None,
+        "rental_income_rm": seeded_int(f"{aid}-rental", 200_000, 800_000),
+        "energy_kwh": None,
+        "metric_source": "observed",
+        "model_version": "0.4.0",
+    }
+
+
+def derive_metrics_row(asset: dict, demo_role: str, is_unsold: bool = False) -> dict:
+
+    if is_unsold:
+        return _derive_metrics_for_unsold(asset, asset["asset_id"])
+
     aid = asset["asset_id"]
     atype = asset["asset_type"]
 
@@ -927,22 +1584,56 @@ def write_layer(gdf: gpd.GeoDataFrame, name: str, id_col: str = None):
     """
     Write a GeoDataFrame to processed/geometry as GeoJSON.
 
-    The id column (edge_id / parcel_id / building_id / ...) is kept as
-    a normal property column. We do NOT call set_index, because
-    GeoPandas would then write it as a feature-level `id` that
-    read_file() does not restore as a column. Downstream B3 code reads
-    these ids as ordinary columns.
+    Windows often holds a transient lock on the output file (QGIS
+    preview, Explorer thumbnail, antivirus scan). The write is
+    retried up to 5 times with a short sleep, then falls back to
+    writing to a temp file and renaming.
     """
+    import time as _time
+    import os as _os
+
     path = PROCESSED_GEOM_DIR / f"{name}{SUFFIX}.geojson"
     out = gdf.to_crs(DISPLAY_CRS).copy()
 
     drop = [c for c in out.columns if c.startswith("_")]
     if drop:
         out = out.drop(columns=drop)
-
     out = out.reset_index(drop=True)
-    out.to_file(path, driver="GeoJSON")
-    print(f"  wrote {path.name}  ({len(out)} features)")
+
+    last_err = None
+    for attempt in range(5):
+        try:
+            out.to_file(path, driver="GeoJSON")
+            print(f"  wrote {path.name}  ({len(out)} features)")
+            return
+        except PermissionError as e:
+            last_err = e
+            if attempt < 4:
+                print(f"  [retry {attempt + 1}/4] {path.name} locked, "
+                      f"retrying in 2s...")
+                _time.sleep(2.0)
+            continue
+
+    try:
+        tmp_path = path.with_suffix(".tmp.geojson")
+        out.to_file(tmp_path, driver="GeoJSON")
+        if path.exists():
+            try:
+                _os.remove(path)
+            except PermissionError:
+                pass
+        _os.replace(tmp_path, path)
+        print(f"  wrote {path.name} via temp rename  "
+              f"({len(out)} features)")
+        return
+    except Exception:
+        pass
+
+    raise PermissionError(
+        f"Cannot write {path}: file is locked by another process. "
+        f"Close any QGIS / Explorer windows that show this file, "
+        f"then retry. Last error: {last_err}"
+    )
 
 
 # ================================================================
@@ -1000,14 +1691,36 @@ def main():
     buildings_p = process_buildings_geometry(buildings)
     buildings_p, parcels = resolve_unassigned_parcels(buildings_p, parcels)
 
+    # Phase 15d — evict buildings from 3 parcels to produce
+    # naturally-shaped undeveloped plots. Runs BEFORE population
+    # generation so the population layer excludes the evicted
+    # households.
+    buildings_p, parcels, n_evicted = _evict_buildings_from_parcels(
+        buildings_p, parcels, n=3, min_area_m2=4500.0,
+    )
+
     amenities_p = process_amenities_geometry(amenities, buildings_p)
     population_p = generate_population(buildings_p)
 
-    undeveloped_mocks = mock_undeveloped_parcels(parcels, n=3)
-    parcels = gpd.GeoDataFrame(
-        pd.concat([parcels, undeveloped_mocks], ignore_index=True),
-        crs=parcels.crs,
+    # Phase 15 — Elmina-style mid-development township. A dozen
+    # undeveloped parcels under various stages of planning.
+    # Phase 15 — Elmina-style mid-development township. A dozen
+    # undeveloped parcels under various stages of planning.
+    #
+    # These are synthesised from *building gaps* rather than copied
+    # from existing parcels. Copying produced overlapping geometries
+    # on the 3D map and put "undeveloped" outlines under real
+    # buildings.
+    undeveloped_mocks = _synthesize_vacant_parcels(
+        buildings_p, green_blue,
+        n=9,
+        start_index=n_evicted,
     )
+    if not undeveloped_mocks.empty:
+        parcels = gpd.GeoDataFrame(
+            pd.concat([parcels, undeveloped_mocks], ignore_index=True),
+            crs=parcels.crs,
+        )
     print(f"  synthesised undeveloped parcels: {len(undeveloped_mocks)}")
 
     print("\nSelecting assets...")
@@ -1055,6 +1768,27 @@ def main():
         )
 
     assets_df = pd.DataFrame(asset_rows)
+
+    # Phase 15b — convert a row of residential buildings facing a main
+    # road into shoplot. Planning basis: PLANMalaysia 1:20-1:30 ratio;
+    # current commercial = 24 amenity-derived + 12 converted = 36,
+    # ratio 818:36 ≈ 1:23, inside the standard.
+    assets_df, shoplot_ids = _convert_residential_to_shoplot(
+        assets_df, buildings_p, network, n=12,
+    )
+
+    # Phase 15b — mark a small subset of remaining residential as
+    # unsold inventory. Down from 120 to 30 to avoid dominating the
+    # deadspace list. The shoplot conversion now provides the primary
+    # commercial deadspace narrative.
+    assets_df, unsold_ids = _mark_unsold_inventory(
+        assets_df,
+        n_residential=30,
+        n_commercial=4,
+        exclude_ids=shoplot_ids,
+    )
+
+    assets_df = _mark_developer_held_facilities(assets_df, n=6)
 
     # ------------------------------------------------------------------
     # FIX (2026-10-15c) — amenity independent parcels
@@ -1228,12 +1962,27 @@ def main():
     print("\nBuilding asset_metrics.csv...")
     metric_rows = []
     for _, asset in assets_df.iterrows():
+        aid = asset["asset_id"]
+
+        if aid in shoplot_ids:
+            # Deterministic: ~half the converted shoplot are vacant.
+            # This reproduces the overhang state of newly delivered
+            # shoplot in a mid-development township.
+            is_vacant = seeded_uniform(f"{aid}-shoplot-vac", 0.0, 1.0) < 0.5
+            metric_rows.append(
+                _derive_metrics_for_shoplot(asset.to_dict(), aid, is_vacant)
+            )
+            continue
+
         role = "healthy"
-        if asset["asset_id"] == anchor_deadspace:
+        if aid == anchor_deadspace:
             role = "deadspace"
-        elif asset["asset_id"] == anchor_facility:
+        elif aid == anchor_facility:
             role = "underperforming"
-        metric_rows.append(derive_metrics_row(asset.to_dict(), role))
+        is_unsold = aid in unsold_ids
+        metric_rows.append(
+            derive_metrics_row(asset.to_dict(), role, is_unsold=is_unsold)
+        )
 
     metrics_df = pd.DataFrame(metric_rows).reindex(columns=[
         "asset_id", "year", "occupancy_rate", "vacancy_rate",
@@ -1247,18 +1996,31 @@ def main():
     # ---- development_projects.csv ----
     print("\nBuilding development_projects.csv...")
     undeveloped = assets_df[assets_df["asset_type"] == "undeveloped_parcel"]
+    # Phase 15 — Elmina-style phased delivery. Undeveloped parcels
+    # are assigned to delivery phases spread across 2026-2035.
     project_rows = []
+    _phase_schedule = [
+        (2027, 2029), (2027, 2030), (2028, 2030),
+        (2028, 2031), (2029, 2032), (2030, 2033),
+        (2031, 2034), (2032, 2035),
+    ]
     for i, (_, asset) in enumerate(undeveloped.iterrows()):
+        if i >= len(_phase_schedule):
+            break
+        start_y, delivery_y = _phase_schedule[i]
         project_rows.append({
             "project_id": f"PRJ-{i + 1:02d}",
             "parcel_id": asset["parcel_id"],
             "asset_id": None,
-            "project_name": f"Proposed development on {asset['asset_id']}",
+            "project_name": f"Phase {i + 3} on {asset['asset_id']}",
             "project_status": "proposed",
-            "planned_start_year": 2027,
-            "planned_delivery_year": 2030,
-            "gfa_m2": 12000, "units": 80, "land_use": "commercial",
-            "capex_rm": 2_700_000, "scenario_dependency": "current_plan",
+            "planned_start_year": start_y,
+            "planned_delivery_year": delivery_y,
+            "gfa_m2": 8000 + i * 500,
+            "units": 60 + i * 5,
+            "land_use": "residential",
+            "capex_rm": 2_500_000 + i * 200_000,
+            "scenario_dependency": "current_plan",
         })
     pd.DataFrame(project_rows).to_csv(
         PROCESSED_BIZ_DIR / "development_projects.csv", index=False,

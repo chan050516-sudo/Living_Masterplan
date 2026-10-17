@@ -72,6 +72,19 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         _check_stranded(reasons, metrics, t)
 
     elif asset_type == "residential":
+        # Phase 15 — residential underperformance is judged on
+        # vacancy, not just carbon. A sold unit with low vacancy
+        # signals household demand failure; an unsold unit with
+        # 0% occupancy signals the developer has built to a market
+        # that isn't there yet.
+        occ = metrics.get("occupancy_rate")
+        if occ is not None and occ < t["occupancy_rate_below"]:
+            reasons.append("low_occupancy")
+
+        vac = metrics.get("vacancy_duration_months")
+        if vac is not None and vac > t["vacancy_duration_above_months"]:
+            reasons.append("long_vacancy")
+
         _check_stranded(reasons, metrics, t)
 
     elif asset_type == "undeveloped_parcel":

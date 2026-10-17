@@ -66,6 +66,16 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
         if wcov is not None:
             lines.append(f"Walk 5-min coverage: {round(wcov * 100, 1)}%")
 
+    elif asset_type == "residential":
+        # Phase 15 — a residential asset that was built to house
+        # people but houses none is a failure of value realization.
+        # This is the Layer 2 condition the layer1 vacancy check
+        # cannot express: it is not just "below benchmark", it is
+        # "the purpose it was built for is not being served".
+        occ = metrics.get("occupancy_rate")
+        if occ is not None and occ <= 0.05:
+            lines.append("built_value_not_realized")
+
     elif asset_type == "green_space":
         g = metrics.get("green_coverage")
         if g is not None:

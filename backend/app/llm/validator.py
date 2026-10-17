@@ -873,7 +873,7 @@ class ProposalValidator:
                 results.append({"asset_id": row["asset_id"], "distance_m": round(d, 1)})
         return results
 
-    def _authority_for(asset_row: dict) -> str:
+    def _authority_for(self, asset_row: dict) -> str:
         """
         Look up an asset's execution authority.
 

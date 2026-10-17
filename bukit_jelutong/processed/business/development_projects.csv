@@ -1,4 +1,9 @@
 project_id,parcel_id,asset_id,project_name,project_status,planned_start_year,planned_delivery_year,gfa_m2,units,land_use,capex_rm,scenario_dependency
-PRJ-01,P-VAC-01,,Proposed development on P-VAC-01,proposed,2027,2030,12000,80,commercial,2700000,current_plan
-PRJ-02,P-VAC-02,,Proposed development on P-VAC-02,proposed,2027,2030,12000,80,commercial,2700000,current_plan
-PRJ-03,P-VAC-03,,Proposed development on P-VAC-03,proposed,2027,2030,12000,80,commercial,2700000,current_plan
+PRJ-01,P-VAC-04,,Phase 3 on P-VAC-04,proposed,2027,2029,8000,60,residential,2500000,current_plan
+PRJ-02,P-VAC-05,,Phase 4 on P-VAC-05,proposed,2027,2030,8500,65,residential,2700000,current_plan
+PRJ-03,P-VAC-06,,Phase 5 on P-VAC-06,proposed,2028,2030,9000,70,residential,2900000,current_plan
+PRJ-04,P-VAC-07,,Phase 6 on P-VAC-07,proposed,2028,2031,9500,75,residential,3100000,current_plan
+PRJ-05,P-VAC-08,,Phase 7 on P-VAC-08,proposed,2029,2032,10000,80,residential,3300000,current_plan
+PRJ-06,P-VAC-09,,Phase 8 on P-VAC-09,proposed,2030,2033,10500,85,residential,3500000,current_plan
+PRJ-07,P-VAC-10,,Phase 9 on P-VAC-10,proposed,2031,2034,11000,90,residential,3700000,current_plan
+PRJ-08,P-VAC-11,,Phase 10 on P-VAC-11,proposed,2032,2035,11500,95,residential,3900000,current_plan

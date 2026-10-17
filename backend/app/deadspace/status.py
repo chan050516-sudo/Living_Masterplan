@@ -1,7 +1,7 @@
 """Map (asset_type, layer triggers) to a final deadspace status enum."""
 
 
-def decide_status(asset_type: str, layer1: dict, layer2: dict, layer3: dict) -> str:
+def decide_status(asset_type, layer1, layer2, layer3, authority=None):
     """
     Decide the final status for a single asset.
 
@@ -10,30 +10,26 @@ def decide_status(asset_type: str, layer1: dict, layer2: dict, layer3: dict) -> 
       2. No actionable intervention -> monitor
       3. Type-specific classification
 
-    Important semantic rules:
-      - green_space is NEVER a "deadspace" (it has ecological value by nature).
-      - residential is NEVER a "deadspace" (it is not a revenue asset in our scope).
+    Phase 15 — authority-aware classification:
+      - residential + sold / advisory    -> monitor (owner-occupied)
+      - residential + developer_held     -> deadspace_candidate if both
+                                            layers trigger (built but
+                                            unsold)
+      - green_space is NEVER deadspace (intrinsic ecological value)
     """
     l1 = layer1["triggered"]
     l2 = layer2["triggered"]
     l3 = layer3["actionable"]
 
-    # 1. Nothing triggered
     if not (l1 or l2):
         return "healthy"
 
-    # 2. Something triggered but no actionable path
     if not l3:
         return "monitor"
 
-    # 3. Type-specific classification
     if asset_type == "commercial":
-        # A commercial asset with both underperformance AND low value realization
-        # is our strict definition of a deadspace candidate.
         if l1 and l2:
             return "deadspace_candidate"
-        # A commercial asset with only one layer triggered is monitored,
-        # not marked as a full deadspace.
         return "monitor"
 
     if asset_type == "community_facility":
@@ -47,17 +43,20 @@ def decide_status(asset_type: str, layer1: dict, layer2: dict, layer3: dict) -> 
         return "monitor"
 
     if asset_type == "green_space":
-        # Any trigger on a green space is an "improvement opportunity",
-        # never a "deadspace" — green space has intrinsic value.
         if l1 or l2:
             return "improvement_opportunity"
         return "monitor"
 
     if asset_type == "residential":
-        # Residential reached this point means l1 or l2 triggered.
-        # We do not classify residential as deadspace in this iteration;
-        # it is flagged for attention but not actioned by the demo engine.
+        # Phase 15 — developer-held unsold residential can be a
+        # deadspace candidate: the developer built units the market
+        # is not absorbing. Sold residential is flagged for
+        # attention but not classified as deadspace, because the
+        # developer has no execution power over it.
+        if authority == "full_control":
+            if l1 and l2:
+                return "deadspace_candidate"
+            return "monitor"
         return "monitor"
 
-    # Unknown asset type with a trigger: default to monitor (conservative).
     return "monitor"

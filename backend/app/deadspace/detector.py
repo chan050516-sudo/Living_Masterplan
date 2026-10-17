@@ -35,7 +35,11 @@ def detect_deadspace_for_asset(
     layer2 = layer2_eval(atype, asset.to_dict(), metrics.to_dict(), thresholds=l2_t)
     layer3 = layer3_eval(atype)
 
-    status = decide_status(atype, layer1, layer2, layer3)
+    # Phase 15 — pass authority into the classification. Developer-
+    # held unsold residential can be a deadspace candidate; sold
+    # residential cannot.
+    authority = asset.get("authority") if hasattr(asset, "get") else None
+    status = decide_status(atype, layer1, layer2, layer3, authority=authority)
 
     # Collect all flags into one list for urgency computation
     all_flags = (
