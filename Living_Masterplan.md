@@ -1,11 +1,20 @@
-# Living Masterplan — Complete Technical Design Document
+# Living Masterplan — Complete Technical Design Document v1.1
 
-> **Version**: v1.0
+> **Version**: v1.1
 > **Purpose**: Internal team alignment + development reference
 > **Track**: Planet
 > **One-line definition**: A time-aware township asset performance decision engine that helps developers identify underperforming assets, simulate alternative strategies, and evaluate future business and environmental value.
 > **Core principle**: Tools calculate the world. LLM reasons about the world.
 > **Planet anchor**: Circular Economy (reuse, don't rebuild) + Climate Resilience (adaptive planning)
+
+**Changes from v1.0**:
+- Added Tool Registry (Part 7.4)
+- Added Development Candidate Generation (Part 6.1.1)
+- Extended `interventions.csv` with `expected_derived_json`, `activation_year`, `construction_*` fields
+- Added Time Series comparison mode (Part 8.6.1)
+- Clarified any-asset queryability (Part 8.1, Part 7.2, Part 3.5)
+- Added Model Schema section (Part 3.5) consolidating all table definitions
+- Added Time Anchors for Intervention Simulation (Part 6.2.1)
 
 
 # Part 1: Project Positioning
@@ -205,6 +214,236 @@ accessibility_score | 2    | Walk network   | 0-100   | Static
 carbon_operational  | 2    | Emission factor| tCO2e   | Annual
 population_2030     | 3    | Growth scenario| people  | Scenario
 demand_2030         | 3    | Demand model   | units   | Scenario
+```
+
+## 3.5 Model Schema (v1.1 Consolidated)
+
+### 3.5.1 Design Principles
+
+```
+1. Asset is the atomic unit (not Parcel, not Building)
+2. Geometry (GeoJSON) and business data (CSV/JSON) are fully separated
+3. Time dimension is stored independently in asset_metrics
+4. Spatial identity does NOT change during simulation (B-03 stays B-03)
+5. Demo requires 5 core tables + 1 network table
+```
+
+### 3.5.2 Spatial Layer (GeoJSON)
+
+**parcels.geojson**
+```json
+{
+  "properties": {
+    "parcel_id": "P-B03",
+    "asset_id": "B-03",
+    "land_use": "commercial",
+    "area_m2": 2400,
+    "development_phase": 2,
+    "geometry_source": "OpenStreetMap",
+    "geometry_confidence": "high"
+  }
+}
+```
+
+**buildings.geojson**
+```json
+{
+  "properties": {
+    "building_id": "BLD-B03",
+    "parcel_id": "P-B03",
+    "asset_id": "B-03",
+    "building_type": "commercial",
+    "floors": 2,
+    "gfa_m2": 1800,
+    "completion_year": 2027,
+    "geometry_source": "Microsoft Building Footprints"
+  }
+}
+```
+
+**network.geojson**
+```json
+{
+  "properties": {
+    "edge_id": "E-R17",
+    "edge_type": "pedestrian",
+    "from_node": "N-12",
+    "to_node": "N-15",
+    "length_m": 320,
+    "walk_speed_kmh": 4.5,
+    "access_type": "public"
+  }
+}
+```
+
+**green_blue.geojson**
+```json
+{
+  "properties": {
+    "green_id": "G-01",
+    "asset_id": "G-01",
+    "green_type": "park",
+    "area_m2": 5200,
+    "canopy_m2": 416,
+    "geometry_source": "OpenStreetMap"
+  }
+}
+```
+
+**amenities.geojson**
+```json
+{
+  "properties": {
+    "amenity_id": "A-T01",
+    "amenity_type": "transit_station",
+    "capacity": 500
+  }
+}
+```
+
+### 3.5.3 Business Layer (CSV)
+
+**assets.csv** — Core table
+
+```csv
+asset_id, asset_type, parcel_id, building_id, asset_name,
+land_use, development_phase, status, completion_year,
+target_demographic,
+floor_area_m2, lettable_area_m2, land_area_m2,
+capex_initial_rm, opex_annual_rm, maintenance_annual_rm,
+capacity,
+data_completeness, data_sources
+```
+
+**All assets are queryable by default. No field restriction on query targets.**
+
+**asset_metrics.csv** — Time series
+
+```csv
+asset_id, year,
+occupancy_rate, vacancy_rate, vacancy_duration_months,
+footfall_daily, utilisation_rate,
+rental_income_rm, noi_rm, noi_yield,
+accessibility_score, service_coverage,
+effective_demand, effective_supply, dsr,
+carbon_operational_tco2e, energy_kwh,
+green_coverage, canopy_coverage, thermal_exposure,
+financial_score, environmental_score, social_score,
+performance_score, delta_score,
+metric_source, model_version
+```
+
+**development_projects.csv**
+
+```csv
+project_id, parcel_id, asset_id, project_name,
+project_status, planned_start_year, planned_delivery_year,
+gfa_m2, units, land_use, capex_rm,
+scenario_dependency
+```
+
+**development_candidates.csv** (NEW in v1.1)
+
+```csv
+candidate_id, parcel_id, development_type,
+target_gfa_m2, target_units, target_demographic,
+expected_capex_rm, expected_completion_year,
+expected_demand_coverage, expected_utilisation,
+expected_carbon_tco2e, expected_accessibility_delta,
+feasibility_status, constraint_notes
+```
+
+Example:
+```csv
+candidate_id: CAND-P05-01
+parcel_id: P-05
+development_type: childcare_centre
+target_gfa_m2: 1200
+target_units: 1
+target_demographic: young_families
+expected_capex_rm: 1800000
+expected_completion_year: 2029
+expected_demand_coverage: 0.72
+expected_utilisation: 0.78
+expected_carbon_tco2e: 145
+expected_accessibility_delta: 0.08
+feasibility_status: feasible
+constraint_notes: "Complies with land use plan"
+```
+
+**interventions.csv** (EXTENDED in v1.1)
+
+```csv
+scenario_id, intervention_id, target_asset_id, intervention_type,
+parameters_json,
+expected_derived_json, expected_source,
+construction_start_year, construction_duration_months, activation_year,
+during_construction_status,
+capex_delta_rm, opex_delta_rm,
+validation_status, status
+```
+
+Example:
+```csv
+scenario_id: SC-REPURPOSE
+intervention_id: INT-001
+target_asset_id: B-03
+intervention_type: repurpose
+parameters_json: {"from": "commercial_shoplot", "to": "community_facility", "new_capacity": 200}
+expected_derived_json: {"service_coverage": 0.72, "utilisation": 0.78, "carbon_operational_tco2e": 145, "accessibility_delta": 0.08}
+expected_source: "llm_estimate"
+construction_start_year: 2027
+construction_duration_months: 18
+activation_year: 2028
+during_construction_status: "unavailable"
+capex_delta_rm: 1200000
+opex_delta_rm: 60000
+validation_status: pending
+status: simulated
+```
+
+### 3.5.4 Table Relationships
+
+```
+parcels.geojson ──┐
+buildings.geojson ┤
+network.geojson   ├──► assets.csv ──┬──► asset_metrics.csv
+green_blue.geojson┤                 ├──► interventions.csv
+amenities.geojson ┘                 └──► development_projects.csv
+                                            development_candidates.csv
+```
+
+### 3.5.5 ID Naming Convention
+
+```
+P-     → Parcel          (P-B03)
+BLD-   → Building        (BLD-B03)
+E-     → Edge (network)  (E-R17)
+N-     → Node            (N-12)
+G-     → Green/Blue      (G-01)
+A-     → Amenity         (A-T01)
+R-     → Residential     (R-01)
+F-     → Facility        (F-02)
+SC-    → Scenario        (SC-REPURPOSE)
+INT-   → Intervention    (INT-001)
+PRJ-   → Development     (PRJ-P3)
+CAND-  → Development Candidate (CAND-P05-01)
+```
+
+### 3.5.6 Unit Conventions
+
+```
+Display:  EPSG:4326 (WGS84)
+Compute:  EPSG:32647 (UTM Zone 47N) or EPSG:3375/3376 (GDM2000)
+
+Area:     m2
+Distance: m
+Currency: RM
+Carbon:   tCO2e
+Energy:   kWh
+Time:     year / months
+Ratio:    0-1 decimal (0.21 = 21%)
+Score:    0-100 integer
 ```
 
 
@@ -512,6 +751,68 @@ Population → Households → Demand → Occupancy → Performance Score
 | **New Development** | Floor area, supply volume, development cost, delivery time | Demand-supply, financial performance, environmental metrics |
 | **Delay Development** | Project delivery time, cost timing | Future supply, cash flow, opportunity cost |
 
+## 6.1.1 Development Candidate Generation (NEW in v1.1)
+
+For undeveloped parcels, the system generates **specific development types**, not just "new development".
+
+### development_candidates.csv
+
+| Field | Description |
+|-------|-------------|
+| candidate_id | Unique ID |
+| parcel_id | Target parcel |
+| development_type | childcare_centre / community_hub / mixed_use_commercial / affordable_housing / etc. |
+| target_gfa_m2 | Gross floor area |
+| target_units | Number of units |
+| target_demographic | Intended user group |
+| expected_capex_rm | Estimated CAPEX |
+| expected_completion_year | Expected completion |
+| expected_demand_coverage | 0-1 |
+| expected_utilisation | 0-1 |
+| expected_carbon_tco2e | Estimated operational carbon |
+| expected_accessibility_delta | Change in accessibility score |
+| feasibility_status | feasible / infeasible / constraint_flagged |
+| constraint_notes | Planning constraints |
+
+### Example
+
+```csv
+candidate_id: CAND-P05-01
+parcel_id: P-05
+development_type: childcare_centre
+target_gfa_m2: 1200
+target_units: 1
+target_demographic: young_families
+expected_capex_rm: 1800000
+expected_completion_year: 2029
+expected_demand_coverage: 0.72
+expected_utilisation: 0.78
+expected_carbon_tco2e: 145
+expected_accessibility_delta: 0.08
+feasibility_status: feasible
+constraint_notes: "Complies with land use plan"
+```
+
+```csv
+candidate_id: CAND-P05-02
+parcel_id: P-05
+development_type: mixed_use_commercial
+expected_capex_rm: 3800000
+expected_completion_year: 2031
+expected_demand_coverage: 0.31
+expected_utilisation: 0.42
+feasibility_status: feasible
+constraint_notes: "Surrounding commercial supply already saturated"
+```
+
+### How LLM uses this
+
+When user asks "What should we build on P-05?", the LLM:
+1. Calls `get_development_candidates("P-05")` → returns list
+2. Filters by feasibility_status = "feasible"
+3. Generates options from candidates
+4. User selects → triggers simulation
+
 ## 6.2 Simulation Execution Flow
 
 User proposes: "Repurpose B-03 into a community hub and improve pedestrian access."
@@ -528,20 +829,96 @@ System executes:
 7. Update operating cost
 8. Update relevant environmental metrics
 9. Recalculate Performance Score for each future year
+10. Compare LLM expected values with simulated actual values
+    - If close → validation_status: "validated"
+    - If large deviation → validation_status: "corrected"
+    - UI displays: LLM estimate vs Model calculation
 ```
 
-## 6.3 LLM Output Format
+## 6.2.1 Time Anchors for Intervention Simulation (NEW in v1.1)
+
+Each intervention has:
+
+```
+construction_start_year      → When construction begins
+construction_duration_months → How long construction takes
+activation_year              → When new state becomes operational
+during_construction_status   → "unavailable" / "partial" / "operational"
+```
+
+### Simulation logic
+
+```python
+def simulate_intervention(asset_id, intervention, horizon):
+    # 1. Get current state
+    current_state = get_asset_state(asset_id, current_year)
+    
+    # 2. Determine time anchors
+    start = intervention.construction_start_year
+    activation = intervention.activation_year
+    
+    # 3. During construction: asset unavailable
+    for year in range(start, activation):
+        state[year] = apply_construction_state(current_state)
+    
+    # 4. After activation: new state
+    for year in range(activation, horizon):
+        state[year] = apply_post_intervention_state(current_state, intervention)
+    
+    # 5. Calculate performance for each year
+    for year in state:
+        state[year].performance_score = calculate_score(state[year])
+    
+    return state
+```
+
+### Example
+
+```
+B-03 diagnosed as deadspace in 2026
+User selects "Repurpose" option
+Construction: 2027-01 → 2028-06 (18 months)
+Activation: 2028-06
+
+Simulation output:
+  Metric              | 2026 | 2027 | 2028 | 2030 | 2033
+  --------------------|------|------|------|------|------
+  Performance Score   | 28   | —    | 45   | 74   | 72
+                              ↑      ↑
+                          construction  activation
+                          (unavailable) (ramp-up)
+```
+
+## 6.3 LLM Output Format (EXTENDED in v1.1)
 
 ```json
 {
   "interventions": [
-    {"type": "repurpose", "target": "B-03"},
-    {"type": "pedestrian_upgrade", "target": "route-R17"},
-    {"type": "green_corridor", "target": "corridor-C2"},
-    {"type": "delay_development", "target": "phase-3", "until": 2031}
+    {
+      "type": "repurpose",
+      "target": "B-03",
+      "expected_derived": {
+        "service_coverage": 0.72,
+        "utilisation": 0.78,
+        "carbon_operational_tco2e": 145,
+        "accessibility_delta": 0.08
+      },
+      "expected_source": "llm_estimate"
+    },
+    {
+      "type": "pedestrian_upgrade",
+      "target": "E-R17"
+    },
+    {
+      "type": "delay_development",
+      "target": "PRJ-P3",
+      "until": 2033
+    }
   ]
 }
 ```
+
+**Note**: `expected_derived` is Tier 3 (Scenario Projection). It will be validated against simulation output.
 
 ## 6.4 Scenario Comparison Output
 
@@ -549,12 +926,12 @@ System executes:
 |--------|-------------|----------|----------|----------|
 | CAPEX | — | RM1.2m | RM0.8m | RM0.1m |
 | Projected Utilisation | 35% | 78% | 60% | 35% |
-| Financial (NPV) | — | — | — | — |
-| Environmental Score | — | — | — | — |
-| Social Score | — | — | — | — |
-| **Performance Score** | — | — | — | — |
-| **Δ Performance Score** | — | — | — | — |
-| Time to Impact | — | — | — | — |
+| Financial (NPV) | — | RM2.1m | RM1.8m | RM0.3m |
+| Environmental Score | 45 | 72 | 68 | 50 |
+| Social Score | 62 | 81 | 70 | 62 |
+| **Performance Score** | 28 | 74 | 66 | 31 |
+| **Δ Performance Score** | — | +46 | +38 | +3 |
+| Time to Impact | — | 8mo | 6mo | 0mo |
 
 
 # Part 7: LLM vs Deterministic Algorithm Division
@@ -576,10 +953,17 @@ System executes:
    {target: "B-03", action: "optimize", 
     constraints: {capex: 2000000, demolition: false}}
 
+   Note: Target can be ANY asset_id in the township, not just deadspace candidates.
+   Examples:
+     - Well-performing asset: "How can this be further optimised?"
+     - Undeveloped parcel: "What should we build here?"
+     - Planned project: "What if we delay this?"
+
 ② Option Generator
    Based on diagnosis + township state
    Generate 3-4 candidate interventions
-   (Combined from predefined Intervention Library, does NOT invent new types)
+   (Combined from predefined Intervention Library + Development Candidates, 
+    does NOT invent new types)
 
 ③ Explanation Generator
    Translate simulation results into natural language
@@ -611,13 +995,57 @@ change_objective_weights() # Change weights
 compare()                  # Re-compare
 ```
 
+## 7.4 Tool Registry (NEW in v1.1)
+
+The LLM does NOT know answers directly. It calls deterministic tools to retrieve data.
+
+### Read Tools
+
+```python
+get_asset_state(asset_id, year) → AssetState
+get_asset_metrics(asset_id, year) → Metrics
+get_derived_metrics(asset_id, year) → DerivedMetrics
+get_population_projection(year) → PopulationState
+get_development_projects(parcel_id) → List[Project]
+get_development_candidates(parcel_id) → List[Candidate]
+```
+
+### Diagnosis Tools
+
+```python
+diagnose_asset(asset_id) → DiagnosisResult
+detect_deadspace(zone_id) → List[DeadspaceCandidate]
+```
+
+### Simulation Tools
+
+```python
+simulate_intervention(asset_id, intervention) → ScenarioState
+simulate_new_development(parcel_id, development_type, params) → ScenarioState
+calculate_performance_score(state, asset_type) → Score
+```
+
+### Comparison Tools
+
+```python
+compare_scenarios(scenarios, weights) → ComparisonTable
+```
+
 
 # Part 8: UI Design (Five Screens)
 
 ## 8.1 Core Interaction Principles
 
 ```
-Principle 1: Any asset on the map is clickable (not just those in Deadspace List)
+Principle 1: Any asset on the map is clickable AND queryable
+  - Deadspace List is a shortcut entry, NOT the only entry
+  - Users can query ANY asset:
+    * Underperforming assets → "Why is this underperforming?"
+    * Well-performing assets → "How can this be further optimised?"
+    * Undeveloped parcels → "What should we build here?"
+    * Planned projects → "What if we delay this?"
+  - LLM Intent Parser does NOT restrict target to deadspace candidates
+
 Principle 2: Clicking an asset → show diagnosis first, NOT recommendations
 Principle 3: LLM only intervenes after user actively initiates a query
 Principle 4: Clicking a scenario card → map visualizes corresponding changes (color-coded)
@@ -655,14 +1083,14 @@ Principle 4: Clicking a scenario card → map visualizes corresponding changes (
 
 **Key design**:
 
-- **Any asset on the map is clickable** (A-02, B-03, C-04... all clickable)
+- **Any asset on the map is clickable and queryable** (A-02, B-03, C-04... all clickable)
 - Deadspace List is a **shortcut entry point**, not the only entry point
 - Deadspace List "View" can switch to "All Assets" to see everything
 - Color coding: 🟢 Good / 🟡 Attention / 🔴 Low / ⚪ Insufficient Data
 
 ## 8.3 Screen 2: Asset Diagnosis Card (After Clicking an Asset)
 
-**This is the key correction: Show diagnosis only, NOT recommendations.**
+**Show diagnosis only, NOT recommendations.**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -778,7 +1206,7 @@ After user submits a query, LLM intervenes:
 
 ## 8.5 Screen 4: Map Preview (After Clicking "Preview on Map")
 
-**This is the key correction: Clicking an option card → map visualizes corresponding changes (color-coded).**
+**Clicking an option card → map visualizes corresponding changes (color-coded).**
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -867,6 +1295,31 @@ After user clicks "Simulate This Option":
 - [View Map Diff] → Side-by-side comparison of Current vs Selected Scenario
 - [Apply to Plan] → Masterplan updates
 
+## 8.6.1 Two Comparison Modes (NEW in v1.1)
+
+```
+[Single Year]  → Horizontal comparison at current slider year
+[Time Series]  → Vertical comparison across years
+```
+
+### Time Series Example
+
+```
+Metric              | 2026 | 2028 | 2030 | 2033
+--------------------|------|------|------|------
+Current Plan Score  | 28   | 24   | 22   | 20
+Option A Score      | 28   | 45   | 74   | 72
+Option B Score      | 28   | 62   | 66   | 64
+Option C Score      | 28   | 28   | 30   | 35
+
+Note: 2028 is activation year for Option A; score ramps up after opening.
+```
+
+**UI toggle**:
+```
+Comparison Mode:  [Single Year]  [Time Series]
+```
+
 ## 8.7 Complete Interaction Flow
 
 ```
@@ -900,6 +1353,7 @@ After user clicks "Simulate This Option":
 │                                 ▼                           │
 │  [5] Scenario Comparison                                    │
 │       • Multi-scenario comparison table                     │
+│       • Toggle [Single Year] / [Time Series]                │
 │       • Click any option → map visualizes                   │
 │       • [Apply to Plan] → Masterplan updates                │
 │                                                             │
@@ -934,11 +1388,12 @@ Example:
 
 | Original Design | Corrected Design |
 |-----------------|------------------|
-| Only Deadspace List clickable | **Any asset on map is clickable** |
+| Only Deadspace List clickable | **Any asset on map is clickable and queryable** |
 | Clicking shows diagnosis + recommendations | **Clicking shows diagnosis only, NO recommendations** |
 | LLM auto-generates options | **LLM only intervenes after user initiates query** |
 | Scenario Comparison is table only | **Clicking Option card → map color visualization** |
 | Layer switching unclear | **Map + Deadspace List side-by-side, no layer switching needed** |
+| Only single-year comparison | **Toggle between Single Year and Time Series** |
 
 **Core principle**:
 
@@ -952,12 +1407,14 @@ Example:
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Zone:        Elmina West (fictional but based on real layout)
-Assets:      3
+Assets:      5
   - B-03 Commercial Lot (deep demo)
   - F-02 Community Facility
   - P-05 Undeveloped Parcel
+  - G-01 Green Space
+  - R-01 Residential Catchment
 Deep-dive:   B-03 only (complete loop)
-Horizons:    Current / +3 years
+Horizons:    Current (2026) / +3 years (2030) / +5 years (2033)
 Scenarios:   Current Plan / Repurpose / Delay
 Score:       Financial + Environmental + Social
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -967,32 +1424,34 @@ Score:       Financial + Environmental + Social
 
 ```
 [0:00] Map shows Elmina West, B-03 highlighted in red
-[0:15] Click B-03 → "Investigate"
-[0:30] Decision Context displays:
+[0:15] Click B-03 → "View Details"
+[0:30] Diagnosis Card displays:
         - 5min/10min/15min population
         - Demand vs Effective Supply
         - Occupancy 21%, Vacancy 14 months
         - Performance Score: 28
           (Financial 28, Env 45, Social 62)
-[0:50] User types: "Should we proceed with Phase 3?"
+[0:50] User types: "What should we do with this asset?"
 [1:00] LLM reasoning:
         "Current demand doesn't justify expansion..."
 [1:20] LLM generates 3 options:
-        A. Build as planned
-        B. Repurpose B-03 + reduce Phase 3
-        C. Delay until demand threshold
-[1:40] User selects B → triggers tool calling
-        → simulate_repurpose()
-        → calculate_carbon()
-        → calculate_accessibility()
-[2:10] Scenario comparison:
-        Build / Repurpose / Delay
+        A. Repurpose to community facility
+        B. Retrofit + green corridor
+        C. Delay Phase 3 expansion
+[1:40] User selects A → clicks [Preview]
+        → Map: B-03 turns blue, Phase 3 turns blue
+        → Change list: "B-03 Commercial → Community Facility"
+[1:55] User clicks [Simulate]
+        → Tool calling: simulate_repurpose(), calculate_carbon()
+[2:10] Scenario comparison appears:
+        Current / Repurpose / Retrofit / Delay
         Financial × Environmental × Social
+        Time Series: 2026 | 2028 | 2030 | 2033
 [2:30] User asks: "What if I prioritise environmental return?"
         → Weights change → Repurpose becomes top recommendation
 [2:50] Click "Apply" → Map updates
         "Phase 3 expansion ↓ Cancelled"
-        "B-03 → Community + low-carbon mixed use"
+        "B-03 → Community Facility (2028 activation)"
         "Avoided construction: RM2.7m CAPEX"
 [3:00] End
 ```
@@ -1018,23 +1477,23 @@ Score:       Financial + Environmental + Social
 
 | Layer | Tool | Purpose |
 |-------|------|---------|
-| **GIS/Spatial** | QGIS + BlocksNet | Data processing + accessibility calculation |
-| **Spatial Database** | PostGIS | Spatial queries |
+| **GIS/Spatial** | osmnx + geopandas | Data download + geometry processing |
+| **Spatial Database** | PostGIS (optional) | Spatial queries |
 | **Decision Analysis** | pymcdm | Multi-criteria decision making |
 | **LLM Agent** | air-agent / openai-agents-python | Tool calling |
-| **Frontend Map** | MapStore | WebGIS dashboard |
+| **Frontend Map** | MapLibre GL JS | WebGIS rendering |
 | **Visualization** | Custom React components | Scenario Comparison |
 
 ## 10.2 Integration Path
 
 ```
-QGIS/BlocksNet (Data layer)
+osmnx/geopandas (Data layer)
     ↓
 air-agent (LLM orchestration layer)
     ↓
 pymcdm (Decision kernel)
     ↓
-MapStore (Interactive presentation)
+MapLibre GL JS (Interactive presentation)
 ```
 
 
@@ -1072,15 +1531,16 @@ MapStore (Interactive presentation)
 
 **Week 1-2: Foundation**
 - [ ] Lock demo scope
-- [ ] Build mock township dataset (3 assets)
-- [ ] Define scoring formulas for 3 asset types
+- [ ] Build mock township dataset (5 assets)
+- [ ] Define scoring formulas for 4 asset types
 - [ ] Establish data dictionary (Tier labels)
+- [ ] Set up Model Schema tables
 
 **Week 3-4: Core Implementation**
 - [ ] Derived Data Engine (Python)
-- [ ] Future Simulation (4 models)
-- [ ] Intervention Library
-- [ ] LLM Agent (Intent + Option + Explanation)
+- [ ] Future Simulation (4 models + time anchors)
+- [ ] Intervention Library + Development Candidates
+- [ ] LLM Agent (Intent + Option + Explanation + Tool Registry)
 - [ ] Frontend 5 screens
 
 **Week 5: Integration + Testing**
@@ -1132,4 +1592,26 @@ This is the source of system credibility.
 ```
 
 
-**This is Complete Technical Design Document v1.0 (English).**
+# Appendix A: v1.1 Change Log
+
+| Section | Change | Reason |
+|---------|--------|--------|
+| Header | Version 1.0 → 1.1 | Track changes |
+| Part 3.5 | Added Model Schema (consolidated) | Schema was scattered |
+| Part 3.5.3 | Added `development_candidates.csv` | Ability 3 |
+| Part 3.5.3 | Extended `interventions.csv` fields | Abilities 4, 5 |
+| Part 6.1.1 | Added Development Candidate Generation | Ability 3 |
+| Part 6.2 | Added step 10: LLM expected vs simulated | Ability 4 |
+| Part 6.2.1 | Added Time Anchors for Intervention | Ability 5 |
+| Part 6.3 | Extended LLM Output JSON | Ability 4 |
+| Part 7.2 | Clarified Intent Parser target scope | Ability 1 |
+| Part 7.4 | Added Tool Registry | Ability 2 |
+| Part 8.1 | Clarified any-asset queryability | Ability 1 |
+| Part 8.6.1 | Added Two Comparison Modes | Ability 6 |
+| Part 9.1 | Assets: 3 → 5 | Align with schema |
+| Part 9.2 | Updated demo script | Include Preview + Time Series |
+| Part 10.1 | QGIS → osmnx; MapStore → MapLibre | Lighter stack |
+| Part 12.2 | Added schema setup to Week 1-2 | Align with v1.1 |
+
+
+**This is Complete Technical Design Document v1.1.**
