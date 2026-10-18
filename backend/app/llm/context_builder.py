@@ -19,6 +19,7 @@ Design principles:
 import logging
 import math
 import json
+import pandas as pd
 
 from ..deadspace.layer3 import (
     classify_by_authority,
@@ -116,37 +117,19 @@ def build_context_pack(intent: dict, ds) -> dict:
 
 
 def _build_target_block(asset_id: str, ds) -> dict:
-    """
-    Assemble one asset's full decision context.
-
-    Returns None if the asset is not in the township.
-    """
     state = get_asset_state(ds, asset_id)
     if "error" in state:
         return None
 
     deadspace = get_deadspace_status(ds, asset_id)
     evidence = get_asset_evidence(ds, asset_id)
-
     walk = get_catchment_profile(ds, asset_id, "walk")
     drive = get_catchment_profile(ds, asset_id, "drive")
     population = get_population_profile(ds, asset_id)
 
-    # Nearby assets: filter residential out — the LLM never needs to
-    # reason about 40 single-family houses within 800 m. Keep the
-    # non-residential neighbours only, capped at 25 entries.
-    nearby = get_nearby_assets(ds, asset_id, radius_m=800.0)
-    nearby_filtered = [
-        n for n in nearby
-        if n.get("asset_type") != "residential"
-    ][:25]
-
     parcel_id = _get_parcel_id(ds, asset_id)
-    candidates = (
-        get_development_candidates(ds, parcel_id) if parcel_id else []
-    )
+    candidates = get_development_candidates(ds, parcel_id) if parcel_id else []
 
-    # Phase 14 — execution authority.
     authority_level = _resolve_authority(ds, asset_id)
     asset_type = state.get("identity", {}).get("asset_type") or ""
     asset_row = ds._asset_row(asset_id) or {}
@@ -157,13 +140,39 @@ def _build_target_block(asset_id: str, ds) -> dict:
         **_authority_split(asset_type, authority_level),
     }
 
+    derived = _drop_none(state.get("derived_metrics", {}))
+    observed = _drop_none(state.get("observed_metrics", {}))
+    
+    # Highlight key metrics for non-commercial assets so they aren't ignored
+    key_metrics = {}
+    if asset_type == "green_space":
+        key_metrics = {
+            "green_coverage": derived.get("green_coverage"),
+            "canopy_coverage": derived.get("canopy_coverage"),
+            "green_per_capita_m2": derived.get("green_per_capita_m2"),
+            "surface_temp_delta_c": derived.get("carbon_operational_tco2e"),
+        }
+    elif asset_type == "community_facility":
+        key_metrics = {
+            "utilisation_rate": observed.get("utilisation_rate"),
+            "service_coverage": derived.get("service_coverage"),
+            "cost_per_user_rm": derived.get("cost_per_user_rm"),
+        }
+    elif asset_type == "commercial":
+        key_metrics = {
+            "occupancy_rate": observed.get("occupancy_rate"),
+            "noi_rm": derived.get("noi_rm"),
+            "effective_demand_m2": derived.get("effective_demand_m2"),
+        }
+
     return {
         "asset_id": asset_id,
         "identity": state.get("identity", {}),
         "physical": state.get("physical", {}),
         "financial_static": state.get("financial_static", {}),
-        "observed": _drop_none(state.get("observed_metrics", {})),
-        "derived": _drop_none(state.get("derived_metrics", {})),
+        "key_metrics": key_metrics,
+        "observed": observed,
+        "derived": derived,
         "deadspace": {
             "status": deadspace.get("status"),
             "flags": deadspace.get("flags", []),
@@ -176,9 +185,9 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "drive": _drop_none(drive),
         },
         "population": _drop_none(population),
-        "nearby_800m": nearby_filtered,
+        "spatial_rings": _build_spatial_rings(ds, asset_id),
+        "detailed_neighbors": _build_detailed_neighbors(ds, asset_id), # NEW
         "development_candidates": candidates,
-        # Phase E — structured decision inputs
         "trajectory": _build_trajectory_block(ds, asset_id),
         "lease_schedule": _build_lease_schedule(ds, asset_id),
         "subtype_mix": _build_subtype_mix(ds, asset_id),
@@ -186,27 +195,70 @@ def _build_target_block(asset_id: str, ds) -> dict:
     }
 
 
-# ------------------------------------------------------------------
-# Helpers
-# ------------------------------------------------------------------
-
-
 def _subtypes_for_class(asset_class: str, ds) -> list:
-    """Return a compact list of subtypes for an asset class."""
     from .tool_service import get_available_subtypes
     raw = get_available_subtypes(ds, asset_class)
-    # Keep only the fields the LLM reasons about.
     return [
         {
             "subtype": s.get("subtype"),
             "display_name": s.get("display_name"),
-            "target_demographics": s.get("target_demographics", []),
             "is_core_amenity": s.get("is_core_amenity", False),
             "target_area_m2": s.get("target_area_m2"),
             "competition_radius_m": s.get("competition_radius_m"),
         }
         for s in raw
     ]
+
+
+def _build_detailed_neighbors(ds, asset_id, radius_m=1200.0, max_items=25) -> list:
+    """Detailed list of non-residential neighbors for catalytic analysis."""
+    nearby = get_nearby_assets(ds, asset_id, radius_m=radius_m)
+    detailed = []
+
+    for n in nearby:
+        if n.get("asset_type") == "residential":
+            continue
+        if len(detailed) >= max_items:
+            break
+
+        _m = ds._metric_row(n["asset_id"], ds.year) or {}
+        _ds = ds.deadspace.get(n["asset_id"]) or {}
+        _a = ds._asset_row(n["asset_id"]) or {}
+
+        occ = _m.get("occupancy_rate") or _m.get("utilisation_rate")
+        try:
+            occ_f = float(occ) if occ is not None else 0.0
+        except (TypeError, ValueError):
+            occ_f = 0.0
+
+        # Look for lease expiry to help LLM reason about joint timing
+        lease_info = None
+        if not ds.leases.empty:
+            _l = ds.leases[ds.leases["asset_id"] == n["asset_id"]]
+            if not _l.empty and "lease_end_year" in _l.columns:
+                lease_info = _l["lease_end_year"].dropna().min()
+                try:
+                    lease_info = int(lease_info)
+                except (TypeError, ValueError):
+                    lease_info = None
+
+        detailed.append({
+            "asset_id": n["asset_id"],
+            "subtype": n.get("subtype"),
+            "distance_m": round(n["distance_m"]),
+            "occupancy": round(occ_f, 2),
+            "status": _ds.get("status", "healthy"),
+            "floor_area_m2": _a.get("floor_area_m2"),
+            "lease_expiry_year": lease_info,
+            "authority": _a.get("authority"),
+        })
+
+    return detailed
+
+
+# ------------------------------------------------------------------
+# Helpers
+# ------------------------------------------------------------------
 
 
 def _interventions_for_class(asset_class: str, ds) -> list:
@@ -327,53 +379,147 @@ def _authority_split(asset_type: str, authority_level: str) -> dict:
     }
 
 
+# ------------------------------------------------------------------
+# Township Baseline (Macro)
+# ------------------------------------------------------------------
+
 def _build_township_baseline(ds) -> dict:
-    """
-    Township-level reference values the LLM needs for township-first
-    reasoning. These come from the current (pre-intervention) asset
-    metrics file, aggregated across every asset in the township.
-    """
     metrics = ds.metrics
     if metrics is None or metrics.empty:
         return {"note": "metrics file unavailable"}
 
-    # Restrict to the current year and one row per asset.
     year = ds.year
-    if "year" in metrics.columns:
-        current = metrics[metrics["year"] == year]
-    else:
-        current = metrics
+    current = metrics[metrics["year"] == year] if "year" in metrics.columns else metrics
     if current.empty:
         return {"note": f"no metrics for year {year}"}
 
+    if not ds.assets.empty:
+        merge_cols = ["asset_id"]
+        for col in ["asset_type", "capacity", "subtype", "lettable_area_m2"]:
+            if col in ds.assets.columns and col not in current.columns:
+                merge_cols.append(col)
+        if len(merge_cols) > 1:
+            current = current.merge(ds.assets[merge_cols], on="asset_id", how="left")
+
     def _avg(col):
-        if col not in current.columns:
-            return None
+        if col not in current.columns: return None
         vals = current[col].dropna()
-        if vals.empty:
-            return None
-        return round(float(vals.mean()), 4)
+        return round(float(vals.mean()), 4) if not vals.empty else None
 
     def _sum(col):
-        if col not in current.columns:
-            return None
+        if col not in current.columns: return None
         vals = current[col].dropna()
-        if vals.empty:
-            return None
-        return round(float(vals.sum()), 2)
+        return round(float(vals.sum()), 2) if not vals.empty else None
 
-    # Baselines the LLM must reason against. These are the numbers
-    # any township-first candidate must not degrade without a stated
-    # trade-off.
+    comm_mask = current["asset_type"] == "commercial"
+    res_mask = current["asset_type"] == "residential"
+    green_mask = current["asset_type"] == "green_space"
+    fac_mask = current["asset_type"] == "community_facility"
+
+    subtype_stats = []
+    if comm_mask.any() and "subtype" in current.columns:
+        for st in current.loc[comm_mask, "subtype"].dropna().unique():
+            _df = current[(current["asset_type"] == "commercial") & (current["subtype"] == st)]
+            _occ = _df["occupancy_rate"].mean()
+            if _occ is not None and not pd.isna(_occ):
+                subtype_stats.append({"subtype": st, "avg_occ": round(float(_occ), 3)})
+    
+    subtype_stats.sort(key=lambda x: x["avg_occ"])
+    oversupplied = [s for s in subtype_stats[:3] if s["avg_occ"] < 0.50]
+
+    total_pop = 0
+    if res_mask.any() and "capacity" in current.columns:
+        total_pop = int(current.loc[res_mask, "capacity"].fillna(0).sum())
+
+    green_avg_canopy = _avg("canopy_coverage") if green_mask.any() else None
+    fac_avg_util = _avg("utilisation_rate") if fac_mask.any() else None
+
     return {
         "asset_count": int(len(current)),
         "year": year,
+        "township_total_population_est": total_pop,
+        "commercial_supply_m2": _sum("lettable_area_m2") if "lettable_area_m2" in current.columns else None,
+        "commercial_avg_occupancy": round(float(current.loc[comm_mask, "occupancy_rate"].mean()), 3) if comm_mask.any() else None,
+        "oversupplied_subtypes_globally": oversupplied,
+        "green_space_avg_canopy": green_avg_canopy,
+        "community_facility_avg_util": fac_avg_util,
+        "deadspace_candidates_total": len([r for r in ds.deadspace.values() if r.get("status") == "deadspace_candidate"]),
         "avg_walk_15min_coverage": _avg("coverage_ratio_15min_walk"),
-        "avg_walk_10min_coverage": _avg("coverage_ratio_10min_walk"),
         "total_operational_carbon_tco2e": _sum("carbon_operational_tco2e"),
-        "total_stranded_carbon_tco2e": _sum("carbon_stranded_tco2e"),
-        "total_embodied_carbon_tco2e": _sum("embodied_carbon_total_tco2e"),
     }
+
+
+# ------------------------------------------------------------------
+# Spatial Rings (Meso)
+# ------------------------------------------------------------------
+
+def _build_spatial_rings(ds, asset_id, radius_m=1200.0) -> dict:
+    """
+    Group nearby commercial assets into three walking-distance rings:
+    0-400m, 400-800m, and 800-1200m.
+    
+    For each ring, summarize the count, average occupancy, dead
+    competitors (occupancy < 10%), and healthy anchors (occupancy > 80%).
+    This gives the LLM a spatial topology without overwhelming the context.
+    """
+    nearby = get_nearby_assets(ds, asset_id, radius_m=radius_m)
+    
+    rings = {
+        "0_400m": {"count": 0, "occupancies": [], "dead": [], "healthy": []},
+        "400_800m": {"count": 0, "occupancies": [], "dead": [], "healthy": []},
+        "800_1200m": {"count": 0, "occupancies": [], "dead": [], "healthy": []},
+    }
+
+    for n in nearby:
+        if n.get("asset_type") == "residential":
+            continue
+        
+        d = n["distance_m"]
+        ring_key = "0_400m" if d <= 400 else ("400_800m" if d <= 800 else "800_1200m")
+        
+        _m = ds._metric_row(n["asset_id"], ds.year) or {}
+        _ds = ds.deadspace.get(n["asset_id"]) or {}
+        
+        occ = _m.get("occupancy_rate") or _m.get("utilisation_rate") or 0.0
+        status = _ds.get("status", "healthy")
+        
+        try:
+            occ_f = float(occ)
+        except (TypeError, ValueError):
+            occ_f = 0.0
+
+        rings[ring_key]["count"] += 1
+        rings[ring_key]["occupancies"].append(occ_f)
+        
+        item = {
+            "subtype": n.get("subtype"), 
+            "dist_m": round(d), 
+            "occ": round(occ_f, 2)
+        }
+        
+        # Categorize as dead competitor or healthy anchor
+        if status == "deadspace_candidate" or occ_f < 0.10:
+            rings[ring_key]["dead"].append(item)
+        elif occ_f > 0.80:
+            rings[ring_key]["healthy"].append(item)
+
+    # Compile output, keeping only top closest competitors per ring
+    out = {}
+    for k, v in rings.items():
+        if v["count"] == 0:
+            continue
+            
+        avg_occ = round(sum(v["occupancies"]) / v["count"], 3) if v["count"] > 0 else 0
+        r_out = {"count": v["count"], "avg_occ": avg_occ}
+        
+        if v["dead"]:
+            r_out["dead_competitors"] = sorted(v["dead"], key=lambda x: x["dist_m"])[:2]
+        if v["healthy"]:
+            r_out["healthy_anchors"] = sorted(v["healthy"], key=lambda x: x["dist_m"])[:3]
+            
+        out[k] = r_out
+
+    return out
 
 
 def _catalytic_vocabulary() -> dict:
@@ -648,7 +794,6 @@ def _classify_subtype_failures(actual, targets):
             "gap": round(gap, 4),
         }
     return out
-
 
 def _nan_to_none(v):
     """Local NaN-safe conversion for context_builder."""

@@ -705,6 +705,32 @@ class ProposalValidator:
         timing = DEFAULT_TIMING.get(itype, {
             "start_offset": 0, "duration_months": 0, "during": "operational",
         })
+        
+        # --- NEW: Partial repurpose (subtype_changes) should NOT halt the whole asset ---
+        # If the conversion area is small relative to the whole asset,
+        # treat it like a light renovation: 6 months, partial capacity.
+        if itype == "repurpose" and params.get("subtype_changes"):
+            mix = _parse_unit_mix_from_asset(asset_row)
+            total_area = sum(float(i.get("area_m2") or 0) for i in mix.values())
+            
+            converted_area = 0.0
+            for ch in params["subtype_changes"]:
+                if "area_m2" in ch:
+                    converted_area += float(ch["area_m2"])
+                else:
+                    # If area omitted, assume the whole from_subtype is converted
+                    from_st = ch.get("from_subtype")
+                    converted_area += float(mix.get(from_st, {}).get("area_m2", 0.0))
+                    
+            # If less than 50% of the asset is being touched, don't close the whole thing
+            if total_area > 0 and (converted_area / total_area) < 0.50:
+                timing = {
+                    "start_offset": 0, 
+                    "duration_months": 6, 
+                    "during": "partial", 
+                    "capacity_ratio": 0.80,  # 80% of the mall keeps operating
+                }
+        
         start_year = self.base_year + timing["start_offset"]
         duration = timing["duration_months"]
         activation_year = start_year + (duration + 11) // 12  # ceil months -> years

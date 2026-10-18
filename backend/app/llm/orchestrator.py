@@ -35,8 +35,7 @@ from .context_builder import build_context_pack
 from .schemas import (
     INTENT_SCHEMA,
     CANDIDATES_SCHEMA,
-    SELECTION_SCHEMA,
-    JUSTIFICATION_SCHEMA,
+    FINAL_DECISION_SCHEMA, # 替换原本的两个
 )
 from .tool_service import TownshipDataSource
 from .validator import ProposalValidator
@@ -221,15 +220,15 @@ def orchestrate_and_simulate_batch(
     # selection stage can compare effect magnitude across candidates.
     _build_catalytic_evidence(valid_candidates)
 
-    # ---- Stage 2.7: final selection ----
-    log.info("[%s] Stage 2.7 — final selection", run_id)
-    selection = _select_candidate(
+    # ---- Stage 2.7: Final Selection & Justification ---- #
+    log.info("[%s] Stage 2.7 — final selection and justification", run_id)
+    final_decision = _select_and_justify(
         intent=intent,
         candidates=valid_candidates,
         llm_client=llm_client,
     )
 
-    selected_name = selection.get("selected_candidate_name")
+    selected_name = final_decision.get("selected_candidate_name")
     selected = next(
         (c for c in valid_candidates if c["name"] == selected_name),
         valid_candidates[0],
@@ -240,13 +239,12 @@ def orchestrate_and_simulate_batch(
             run_id, selected_name, selected["name"],
         )
 
-    # ---- Stage 3 / 3b: already done ----
+    # ---- Extract Results ---- #
     validation = selected["validation"]
     simulation_result = selected["simulation"]
     sim_brief = selected["simulation_brief"]
     scenario_id = selected["scenario_id"]
 
-    # Derive alternatives from the non-selected candidates
     alternatives_considered = [
         {
             "asset_id": c["plan"][0].get("asset_id") if c["plan"] else None,
@@ -258,17 +256,14 @@ def orchestrate_and_simulate_batch(
         if c["name"] != selected["name"]
     ]
 
-    # ---- Stage 4: justification ----
-    log.info("[%s] Stage 4 — justification", run_id)
-    justification = _write_justification(
-        intent=intent,
-        selected=selected,
-        selection=selection,
-        validation=validation,
-        simulation=simulation_result,
-        sim_brief=sim_brief,
-        llm_client=llm_client,
-    )
+    # Format the final justification text
+    justification = {
+        "summary": final_decision.get("executive_summary", ""),
+        "why_this_plan": final_decision.get("why_this_plan", ""),
+        "what_simulation_shows": final_decision.get("what_simulation_shows", ""),
+        "beyond_the_model": final_decision.get("beyond_the_model"),
+        "recommendation": final_decision.get("recommendation", ""),
+    }
 
     result = {
         "run_id": run_id,
@@ -285,7 +280,11 @@ def orchestrate_and_simulate_batch(
             }
             for c in valid_candidates
         ],
-        "selection": selection,
+        "selection": {
+            "selected_candidate_name": selected["name"],
+            "selection_reasoning": final_decision.get("selection_reasoning", ""),
+            "key_trade_offs": final_decision.get("key_trade_offs", []),
+        },
         "proposal": {
             "reasoning_trace": selected.get("reasoning_trace", ""),
             "strategy_summary": selected.get("strategy_summary", ""),
@@ -733,12 +732,10 @@ def _build_catalytic_evidence(candidates):
 # ------------------------------------------------------------------
 
 
-def _select_candidate(intent, candidates, llm_client):
+def _select_and_justify(intent, candidates, llm_client):
     import time
+    prompt = _load_prompt("final_decision_writer.md")
 
-    prompt = _load_prompt("selection_writer.md")
-
-    # Build a compact view of every candidate's simulation for the LLM.
     candidate_summaries = []
     for c in candidates:
         brief = _summarise_simulation(c.get("simulation", {}))
@@ -765,27 +762,22 @@ def _select_candidate(intent, candidates, llm_client):
         result = llm_client.chat_json(
             messages=[
                 {"role": "system", "content": prompt},
-                {"role": "user", "content": json.dumps(
-                    user_content, default=str, indent=2,
-                )},
+                {"role": "user", "content": json.dumps(user_content, default=str, indent=2)},
             ],
-            schema_hint=SELECTION_SCHEMA,
+            schema_hint=FINAL_DECISION_SCHEMA,
         )
-        log.info(
-            "Stage 2.7: selection returned in %.2fs", time.time() - t0,
-        )
+        log.info("Stage 2.7: final decision returned in %.2fs", time.time() - t0)
     except Exception as e:
-        log.warning("Selection failed: %s", e)
+        log.warning("Final decision failed: %s", e)
         result = {}
 
     if not isinstance(result, dict):
         result = {}
     if not result.get("selected_candidate_name") and candidates:
         result["selected_candidate_name"] = candidates[0]["name"]
-        result.setdefault(
-            "selection_reasoning",
-            "(auto-selected first valid candidate)",
-        )
+        result.setdefault("selection_reasoning", "(auto-selected first candidate)")
+        result.setdefault("executive_summary", "(justification unavailable)")
+    
     return result
 
 
@@ -874,52 +866,6 @@ def _run_simulation(scenario_id, repo_root, selected_ids=None,
     except Exception as e:
         log.exception("Simulation failed for %s", scenario_id)
         return {"error": f"{type(e).__name__}: {e}"}
-
-
-# ------------------------------------------------------------------
-# Stage 4: justification
-# ------------------------------------------------------------------
-
-
-def _write_justification(
-    intent, selected, selection, validation,
-    simulation, sim_brief, llm_client,
-):
-    prompt = _load_prompt("justification_writer.md")
-
-    user_content = {
-        "user_query": intent["question_text"],
-        "objective": intent["objective"],
-        "plan": validation.normalised_plan,
-        "selected_candidate_name": selected["name"],
-        "selection_reasoning": selection.get("selection_reasoning", ""),
-        "key_trade_offs": selection.get("key_trade_offs", []),
-        "candidate_reasoning": selected.get("reasoning_trace", ""),
-        "investment_cases": _extract_investment_cases(selected.get("plan", [])),
-        "llm_expected_effects": _extract_expected_effects(
-            validation.normalised_plan,
-        ),
-        "validator_warnings": validation.warnings,
-        "simulation_brief": sim_brief,
-    }
-
-    try:
-        result = llm_client.chat_json(
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": json.dumps(
-                    user_content, default=str, indent=2,
-                )},
-            ],
-            schema_hint=JUSTIFICATION_SCHEMA,
-        )
-    except Exception as e:
-        log.warning("Justification failed: %s", e)
-        result = {"summary": "(justification unavailable)", "error": str(e)}
-
-    if not isinstance(result, dict):
-        result = {"summary": "(justification unavailable)"}
-    return result
 
 
 # ------------------------------------------------------------------

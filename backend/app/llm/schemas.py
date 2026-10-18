@@ -461,3 +461,53 @@ _PLAN_ITEM_SCHEMA = {
     },
     "required": ["asset_id", "type", "role", "parameters", "rationale"],
 }
+
+
+# ------------------------------------------------------------------
+# Stage 2.7 — Final Selection & Justification (Merged)
+# ------------------------------------------------------------------
+FINAL_DECISION_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "selected_candidate_name": {
+            "type": "STRING",
+            "description": "The exact `name` of the winning candidate."
+        },
+        "selection_reasoning": {
+            "type": "STRING",
+            "description": (
+                "Internal logic. Up to 150 words. Explain why this candidate "
+                "won and why the runner-up lost. Cite concrete numbers."
+            ),
+        },
+        "key_trade_offs": {
+            "type": "ARRAY",
+            "description": "Two to four one-sentence trade-offs the winner makes.",
+            "items": {"type": "STRING"},
+        },
+        "executive_summary": {
+            "type": "STRING",
+            "description": "One paragraph a board member can absorb. What is proposed and the net effect across capitals."
+        },
+        "why_this_plan": {
+            "type": "STRING",
+            "description": "Up to 110 words. Strategic rationale, referencing rejected alternatives."
+        },
+        "what_simulation_shows": {
+            "type": "STRING",
+            "description": "Up to 120 words. Reference concrete metrics (NOI, carbon, coverage, occupancy). Include trade-offs."
+        },
+        "beyond_the_model": {
+            "type": "STRING",
+            "description": "Optional. Up to 60 words. Domain insight beyond the metrics."
+        },
+        "recommendation": {
+            "type": "STRING",
+            "description": "One sentence. Under what conditions should the user proceed?"
+        },
+    },
+    "required": [
+        "selected_candidate_name", "selection_reasoning", "key_trade_offs",
+        "executive_summary", "why_this_plan", "what_simulation_shows", "recommendation"
+    ],
+}
