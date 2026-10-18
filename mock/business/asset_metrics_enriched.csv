@@ -1,6 +1,0 @@
-asset_id,year,occupancy_rate,vacancy_rate,vacancy_duration_months,footfall_daily,rental_income_per_visit_proxy,utilisation_rate,rental_income_rm,noi_rm,noi_yield,accessibility_score,service_coverage,effective_demand,effective_demand_m2,effective_supply,dsr,carbon_operational_tco2e,energy_kwh,green_coverage,canopy_coverage,shade_proxy_score,financial_score,environmental_score,social_score,performance_score,delta_score,metric_source,model_version
-B-03,2026,0.21,0.79,14.0,320.0,8.219178082191782,,960000.0,-50962.0,-0.0011324888888888888,100.0,,2220.0,111.0,5200.0,0.021346153846153845,985.9999999999999,1700000.0,,,0.0,,,,,,derived,0.4.0
-F-02,2026,,,,,,0.22,,,,100.0,1.0,,,,,69.6,120000.0,,,,,,,,,derived,0.4.0
-P-05,2026,,,,,,,,,,100.0,,,,,,,,,,,,,,,,derived,0.4.0
-G-01,2026,,,,,,,,,,100.0,,,,,,,,1.0,0.08,8.0,,,,,,derived,0.4.0
-R-01,2026,0.92,,,,,,,,,100.0,,,,,,1461.6,2520000.0,,,,,,,,,derived,0.4.0

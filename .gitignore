@@ -240,3 +240,5 @@ cache/
 # --- Environment ---
 .env
 .env.local
+
+legacy/
