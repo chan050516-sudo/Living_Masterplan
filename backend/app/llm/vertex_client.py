@@ -65,7 +65,7 @@ class VertexGeminiClient:
     # Public API
     # ------------------------------------------------------------------
 
-    def chat_json(self, messages: list, schema_hint: dict) -> dict:
+    def chat_json(self, messages: list, schema_hint: dict, attachments: list = None) -> dict:
         """
         Free-form JSON mode. The schema is injected into the prompt as
         text. Used for intent parsing and justification writing, where
@@ -75,6 +75,13 @@ class VertexGeminiClient:
         conflict with: the model can reason freely, then emit JSON.
         """
         contents = self._to_contents(messages)
+        
+        # Add attachments (PDFs, images)
+        if attachments:
+            for file_bytes, mime_type in attachments:
+                contents.append(
+                    types.Part.from_bytes(data=file_bytes, mime_type=mime_type)
+                )
         if contents:
             hint_text = (
                 "\n\nReturn ONLY a JSON object matching this structure:\n"

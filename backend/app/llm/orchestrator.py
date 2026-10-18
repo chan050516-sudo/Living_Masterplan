@@ -53,7 +53,6 @@ MAX_PARALLEL_SIMULATIONS = 3
 # Public entry points
 # ------------------------------------------------------------------
 
-
 def orchestrate(
     user_query: str,
     selected_asset_ids: list,
@@ -265,46 +264,41 @@ def orchestrate_and_simulate_batch(
         "recommendation": final_decision.get("recommendation", ""),
     }
 
-    result = {
+    # Build frontend-ready payload
+    frontend_payload = _build_frontend_payload(
+        simulation=simulation_result,
+        comparison=simulation_result.get("comparison", {}),
+        intent=intent,
+        final_decision={
+            **final_decision,
+            "run_id": run_id,
+        }
+    )
+    
+    # Construct the heavy debug payload for local storage only
+    debug_payload = {
         "run_id": run_id,
-        "scenario_id": scenario_id,
+        "frontend": frontend_payload,
         "intent": intent,
-        "context": _summarise_context(context_pack),
-        "candidates": [
-            {
-                "name": c["name"],
-                "strategy_summary": c.get("strategy_summary", ""),
-                "plan": c["plan"],
-                "scenario_id": c["scenario_id"],
-                "simulation_brief": c["simulation_brief"],
-            }
-            for c in valid_candidates
-        ],
-        "selection": {
-            "selected_candidate_name": selected["name"],
-            "selection_reasoning": final_decision.get("selection_reasoning", ""),
-            "key_trade_offs": final_decision.get("key_trade_offs", []),
-        },
-        "proposal": {
-            "reasoning_trace": selected.get("reasoning_trace", ""),
-            "strategy_summary": selected.get("strategy_summary", ""),
-            "plan": selected["plan"],
-            "alternatives_considered": alternatives_considered,
-        },
+        "candidates_raw": valid_candidates,
         "validation": validation.to_dict(),
-        "simulation": simulation_result,
-        "simulation_brief": sim_brief,
-        "justification": justification,
-        "meta": {
-            "attempts": attempt,
-            "candidate_count": len(valid_candidates),
-            "asset_count": len(intent["target_asset_ids"]),
-            "model": getattr(llm_client, "model", None),
-        },
     }
 
-    _write_orchestration_result(result, repo_root)
-    return result
+    # Write the heavy data to disk
+    _write_orchestration_result(debug_payload, repo_root)
+
+    # Attach a lightweight candidate summary to the API response
+    # so run_llm_real2.py can print it without fetching the heavy file.
+    frontend_payload["candidates_summary"] = [
+        {
+            "name": c["name"],
+            "strategy_summary": c.get("strategy_summary", ""),
+            "plan": c["plan"],
+        }
+        for c in valid_candidates
+    ]
+    
+    return frontend_payload
 
 
 # ------------------------------------------------------------------
@@ -312,7 +306,7 @@ def orchestrate_and_simulate_batch(
 # ------------------------------------------------------------------
 
 
-def _parse_intent(user_query, selected_asset_ids, llm_client, base_year):
+def _parse_intent(user_query, selected_asset_ids, llm_client, base_year, attachments=None):
     system = _load_prompt("intent_parser.md")
     user = (
         f"User query: {user_query}\n\n"
@@ -327,6 +321,7 @@ def _parse_intent(user_query, selected_asset_ids, llm_client, base_year):
                 {"role": "user", "content": user},
             ],
             schema_hint=INTENT_SCHEMA,
+            attachments=attachments,
         )
     except Exception as e:
         log.warning("Intent parsing failed: %s", e)
@@ -413,36 +408,26 @@ def _generate_candidates(
 
 def _simulate_candidates_shared(candidates, repo_root, selected_ids):
     """
-    Run B4 for every candidate, sharing the heavy setup across them.
-
-    Design note
-    -----------
-    This used to run candidates in a ThreadPoolExecutor. That was
-    removed for two reasons:
-
-      1. Python's GIL prevents real parallelism in numpy / networkx /
-         geopandas heavy sections, so parallel execution delivered
-         only ~1.3x speedup on a 3-candidate run.
-
-      2. A shared cache lets later candidates skip the two dominant
-         costs entirely — B3 derived metrics (~35s) and the walking
-         pipeline build + all-pairs Dijkstra (~45s). Those costs are
-         identical across candidates for the same base network and
-         year.
-
-    Serial execution with a shared cache is measurably faster than
-    parallel execution without one:
-       - 3 candidates, parallel, no cache:  ~270s
-       - 3 candidates, serial, shared cache: ~130s
-
-    The cache is a plain dict owned by this function. It is passed
-    to simulate_scenario via _shared_cache and reused across all
-    candidates. See simulation.engine.simulate_scenario for details.
+    Run B4 for the baseline and every candidate, sharing the heavy setup.
+    
+    Multi-asset support: B4 natively simulates all assets in the township,
+    but the comparison block will filter down to the `selected_ids`.
+    We first run the baseline (SC-CURRENT) so we have a valid comparison
+    for the frontend dashboard.
     """
     if not candidates:
         return
 
     shared_cache: dict = {}
+    
+    # Run baseline (SC-CURRENT) first to provide comparison data
+    log.info("[shared] simulating BASELINE (SC-CURRENT)")
+    baseline_sim = _run_simulation(
+        "SC-CURRENT", repo_root, selected_ids=selected_ids, _shared_cache=shared_cache
+    )
+    baseline_years = baseline_sim.get("years", {})
+
+    # Run all candidates
     for idx, cand in enumerate(candidates, start=1):
         log.info(
             "[shared] simulating candidate %d/%d: %s (%s)",
@@ -450,22 +435,17 @@ def _simulate_candidates_shared(candidates, repo_root, selected_ids):
         )
         t0 = time.time()
         cand["simulation"] = _run_simulation(
-            cand["scenario_id"], repo_root,
-            selected_ids=selected_ids,
-            _shared_cache=shared_cache,
+            cand["scenario_id"], repo_root, selected_ids=selected_ids, _shared_cache=shared_cache
         )
-        # NEW: persist the scenario result so the frontend can
-        # load per-year map layers from disk
+        
+        # Inject baseline data into the simulation result
         if not cand["simulation"].get("error"):
+            cand["simulation"]["_baseline_years"] = baseline_years
             try:
-                write_scenario_result(
-                    cand["simulation"], repo_root=repo_root,
-                )
+                write_scenario_result(cand["simulation"], repo_root=repo_root)
             except Exception as e:
-                log.warning(
-                    "Failed to write scenario %s: %s",
-                    cand["scenario_id"], e,
-                )
+                log.warning(f"Failed to write scenario {cand['scenario_id']}: {e}")
+                
         log.info(
             "[shared] candidate %d/%d finished in %.1fs",
             idx, len(candidates), time.time() - t0,
@@ -726,6 +706,209 @@ def _build_catalytic_evidence(candidates):
             sum(e["effect_score"] for e in evidence_list), 2,
         )
 
+def _build_frontend_payload(simulation, comparison, intent, final_decision):
+    """
+    Transforms the raw simulation output into a multi-asset, frontend-ready JSON.
+    Includes main metrics for cards, counterfactual comparisons (A vs A+B),
+    and per-subunit allocation ledgers.
+    """
+    if not simulation or simulation.get("error"):
+        return {"error": simulation.get("error", "Simulation failed")}
+
+    scenario_id = simulation.get("scenario_id")
+    baseline_years = simulation.get("_baseline_years", {})
+    intervention_years = simulation.get("years", {})
+    years_list = list(intervention_years.keys())
+    final_year = years_list[-1] if years_list else "2033"
+
+    # Collect all target assets and catalytic beneficiaries
+    targets = set(comparison.get("per_asset", {}).keys())
+    for intv in simulation.get("interventions", []):
+        try:
+            params = json.loads(intv.get("parameters_json", "{}"))
+            if "_catalytic" in params:
+                b_id = params["_catalytic"].get("beneficiary_asset_id")
+                if b_id:
+                    targets.add(b_id)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+    assets_payload = []
+
+    for aid in targets:
+        final_state = intervention_years.get(final_year, {}).get("assets", {}).get(aid, {})
+        base_final_state = baseline_years.get(final_year, {}).get("assets", {}).get(aid, {})
+
+        # Bug Fix: If this asset is a new_development, its metrics 
+        # are stored under a virtual project ID (e.g., PRJ::INT-LLM-002).
+        # We need to fetch those metrics and apply them to the asset card.
+        if not final_state or final_state.get("carbon_operational_tco2e", 0) == 0:
+            for key, state in intervention_years.get(final_year, {}).get("assets", {}).items():
+                if key.startswith("PRJ::") and state.get("_project_target_asset_id") == aid:
+                    final_state = state
+                    break
+
+        if not final_state and not base_final_state:
+            continue
+
+        def _get(state, key, default=0.0):
+            val = state.get(key)
+            return float(val) if val is not None and not pd.isna(val) else default
+
+        def _get_util(state):
+            return _get(state, "occupancy_rate") or _get(state, "utilisation_rate")
+
+        # --- 1. Counterfactual Calculation ---
+        asset_intv = next((i for i in simulation.get("interventions", []) if i.get("target_asset_id") == aid), None)
+        avoided_embodied = comparison.get("per_asset", {}).get(aid, {}).get("avoided_embodied_carbon_tco2e", {}).get("after", 0.0)
+        
+        floor_area = _get(final_state, "floor_area_m2", 0.0)
+        capex_invested = float(asset_intv.get("capex_delta_rm") or 0) if asset_intv else 0.0
+        
+        # Estimate: New Build Embodied = Repurpose Embodied + Avoided Embodied
+        carbon_repurpose = floor_area * 0.08 if floor_area > 0 else 0
+        carbon_new_build = carbon_repurpose + avoided_embodied if avoided_embodied > 0 else 0
+        
+        # Estimate: New Build CAPEX = Area * Industry Cost Rate
+        new_build_rate = 3500 if final_state.get("_effective_asset_type") == "commercial" else 2500
+        capex_new_build = floor_area * new_build_rate if floor_area > 0 else 0
+
+        # --- 2. Subunit Breakdown ---
+        subunits = []
+        raw_mix = final_state.get("unit_mix_json")
+        if raw_mix and isinstance(raw_mix, str):
+            try:
+                mix = json.loads(raw_mix)
+                total_mix_area = sum(float(v.get("area_m2", 0)) for v in mix.values())
+                if total_mix_area <= 0:
+                    total_mix_area = 1.0
+                
+                occ_by_subtype = json.loads(final_state.get("occupancy_by_subtype_calc_json", "{}"))
+                base_occ_by_subtype = json.loads(base_final_state.get("occupancy_by_subtype_calc_json", "{}"))
+
+                for st, v in mix.items():
+                    area = float(v.get("area_m2", 0))
+                    ratio = area / total_mix_area if total_mix_area > 0 else 0
+                    
+                    subunits.append({
+                        "subtype": st,
+                        "area_m2": area,
+                        "occupancy_baseline": base_occ_by_subtype.get(st, _get_util(base_final_state)),
+                        "occupancy_intervention": occ_by_subtype.get(st, _get_util(final_state)),
+                        "allocated_carbon_tco2e": round(_get(final_state, "carbon_operational_tco2e") * ratio, 1),
+                        "allocated_noi_rm": round(_get(final_state, "noi_rm") * ratio, 0)
+                    })
+            except Exception:
+                pass
+
+        # --- 3. Assemble Summary Card ---
+        card = {
+            "financial": {
+                "main_metric": {
+                    "label": "Annual NOI",
+                    "baseline": _get(base_final_state, "noi_rm"),
+                    "intervention": _get(final_state, "noi_rm"),
+                    "unit": "RM"
+                },
+                "counterfactual": {
+                    "capex_if_new_build_rm": round(capex_new_build),
+                    "capex_if_repurpose_rm": round(capex_invested),
+                    "capex_saved_rm": round(max(0, capex_new_build - capex_invested))
+                }
+            },
+            "social": {
+                "main_metric": {
+                    "label": "Space Utilization",
+                    "baseline": _get_util(base_final_state),
+                    "intervention": _get_util(final_state),
+                    "unit": "ratio"
+                },
+                "metrics": {
+                    "coverage_ratio_15min_walk": {
+                        "baseline": _get(base_final_state, "coverage_ratio_15min_walk"),
+                        "intervention": _get(final_state, "coverage_ratio_15min_walk")
+                    },
+                    "effective_demand_m2": {
+                        "baseline": _get(base_final_state, "effective_demand_m2"),
+                        "intervention": _get(final_state, "effective_demand_m2")
+                    }
+                }
+            },
+            "environmental": {
+                "main_metrics": [
+                    {
+                        "label": "Operational Carbon",
+                        "baseline": _get(base_final_state, "carbon_operational_tco2e"),
+                        "intervention": _get(final_state, "carbon_operational_tco2e"),
+                        "unit": "tCO2e/yr"
+                    },
+                    {
+                        "label": "Stranded Carbon",
+                        "baseline": _get(base_final_state, "carbon_stranded_tco2e"),
+                        "intervention": _get(final_state, "carbon_stranded_tco2e"),
+                        "unit": "tCO2e/yr"
+                    }
+                ],
+                "counterfactual": {
+                    "embodied_if_new_build_tco2e": round(carbon_new_build, 1),
+                    "embodied_if_repurpose_tco2e": round(carbon_repurpose, 1),
+                    "net_carbon_averted_tco2e": round(avoided_embodied, 1)
+                }
+            },
+            "subunits": subunits if subunits else None
+        }
+
+        # --- 4. Timeline Data ---
+        timeline_metrics = {
+            "noi_rm": {"baseline": [], "intervention": []},
+            "carbon_operational_tco2e": {"baseline": [], "intervention": []},
+            "carbon_stranded_tco2e": {"baseline": [], "intervention": []},
+            "space_utilization": {"baseline": [], "intervention": []}
+        }
+
+        for y in years_list:
+            b_asset = baseline_years.get(y, {}).get("assets", {}).get(aid, {})
+            i_asset = intervention_years.get(y, {}).get("assets", {}).get(aid, {})
+
+            timeline_metrics["noi_rm"]["baseline"].append(_get(b_asset, "noi_rm"))
+            timeline_metrics["noi_rm"]["intervention"].append(_get(i_asset, "noi_rm"))
+            
+            timeline_metrics["carbon_operational_tco2e"]["baseline"].append(_get(b_asset, "carbon_operational_tco2e"))
+            timeline_metrics["carbon_operational_tco2e"]["intervention"].append(_get(i_asset, "carbon_operational_tco2e"))
+            
+            timeline_metrics["carbon_stranded_tco2e"]["baseline"].append(_get(b_asset, "carbon_stranded_tco2e"))
+            timeline_metrics["carbon_stranded_tco2e"]["intervention"].append(_get(i_asset, "carbon_stranded_tco2e"))
+            
+            timeline_metrics["space_utilization"]["baseline"].append(_get_util(b_asset))
+            timeline_metrics["space_utilization"]["intervention"].append(_get_util(i_asset))
+
+        assets_payload.append({
+            "asset_id": aid,
+            "summary_card": card,
+            "timeline": {
+                "years": years_list,
+                "metrics": timeline_metrics
+            }
+        })
+
+    return {
+        "run_id": final_decision.get("run_id"),
+        "scenario_id": scenario_id,
+        "decision": {
+            "selected_candidate": final_decision.get("selected_candidate_name"),
+            "reasoning": final_decision.get("selection_reasoning", ""),
+            "key_trade_offs": final_decision.get("key_trade_offs", []),
+            "justification": {
+                "summary": final_decision.get("executive_summary", ""),
+                "why_this_plan": final_decision.get("why_this_plan", ""),
+                "what_simulation_shows": final_decision.get("what_simulation_shows", ""),
+                "beyond_the_model": final_decision.get("beyond_the_model"),
+                "recommendation": final_decision.get("recommendation", "")
+            }
+        },
+        "assets_analysis": assets_payload,
+        "township_metrics": comparison.get("township_metrics", {})
+    }
 
 # ------------------------------------------------------------------
 # Stage 2.7: selection
@@ -949,7 +1132,7 @@ def _load_prompt(name):
 
 
 def _write_orchestration_result(result: dict, repo_root: Path) -> Path:
-    """Persist the full orchestration result for the API."""
+    """Persist the full orchestration result for debugging."""
     import json as _json
     import math as _math
     from ..config import load_paths
@@ -959,7 +1142,12 @@ def _write_orchestration_result(result: dict, repo_root: Path) -> Path:
     out_dir = base / "business" / "llm_runs"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    run_id = result.get("run_id", "unknown")
+    # Safely resolve run_id even if nested
+    run_id = (
+        result.get("run_id") 
+        or result.get("frontend", {}).get("run_id") 
+        or "unknown"
+    )
     out = out_dir / f"{run_id}.json"
 
     def _sanitize(obj):

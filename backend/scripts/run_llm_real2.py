@@ -39,37 +39,54 @@ def _print_header(title):
 def _print_results(result):
     print(f"PIPELINE COMPLETE.\n")
     
-    print("--- 1. LLM Strategic Reasoning (Macro to Micro) ---")
-    print(result.get("proposal", {}).get("reasoning_trace", "(none)"))
+    decision = result.get("decision", {})
     
-    print("\n--- 2. Candidates & Validation ---")
-    for c in result.get("candidates", []):
+    print("--- 1. LLM Strategic Reasoning (Internal) ---")
+    print(decision.get("reasoning", "(none)"))
+    
+    print("\n--- 2. Candidates Summary ---")
+    for c in result.get("candidates_summary", []):
         plan_summary = ", ".join([f"{i.get('asset_id')}({i.get('type')})" for i in c.get("plan", [])])
-        print(f"  [{c['name']}] -> {plan_summary}")
+        is_winner = c["name"] == decision.get("selected_candidate")
+        tag = " 👑 [WINNER]" if is_winner else ""
+        print(f"  [{c['name']}]{tag} -> {plan_summary}")
     
-    print("\n--- 3. Selected Plan Details ---")
-    for item in (result.get("proposal") or {}).get("plan", []):
-        print(f"  Asset: {item.get('asset_id')} | Type: {item.get('type')} | Role: {item.get('role')}")
+    print("\n--- 3. Asset Summary Cards ---")
+    for asset in result.get("assets_analysis", []):
+        aid = asset["asset_id"]
+        card = asset["summary_card"]
         
-        params = item.get("parameters", {})
-        if "subtype_changes" in params:
-            print(f"    [!! SUBUNIT REPURPOSE !!] Changing: {json.dumps(params['subtype_changes'])}")
-        if "measures" in params:
-            print(f"    Retrofit measures: {params.get('measures')}")
+        print(f"  Asset: {aid}")
         
-        cl = item.get("catalytic_link")
-        if cl:
-            print(f"    [!! CATALYTIC LINK !!] Beneficiary: {cl.get('beneficiary_asset_id')}")
-            print(f"    Mechanism: {cl.get('mechanism')} | Verification: {cl.get('verification_level')}")
-            print(f"    Explanation: {cl.get('explanation')}")
+        # Financial
+        fin = card["financial"]
+        print(f"    NOI (Annual): RM {fin['main_metric']['baseline']} -> RM {fin['main_metric']['intervention']}")
+        print(f"    Counterfactual CAPEX Saved: RM {fin['counterfactual']['capex_saved_rm']}")
+        
+        # Social
+        soc = card["social"]
+        util = soc["main_metric"]
+        print(f"    Space Utilization: {util['baseline']*100:.1f}% -> {util['intervention']*100:.1f}%")
+        
+        # Environmental
+        env = card["environmental"]
+        op_carbon = env["main_metrics"][0]
+        print(f"    Operational Carbon: {op_carbon['baseline']} -> {op_carbon['intervention']} tCO2e/yr")
+        print(f"    Carbon Averted: {env['counterfactual']['net_carbon_averted_tco2e']} tCO2e")
+        
+        # Subunits
+        if card.get("subunits"):
+            print(f"    [!! SUBUNITS !!] {len(card['subunits'])} specific retail zones detailed.")
+            for sub in card['subunits']:
+                print(f"      - {sub['subtype']} ({sub['area_m2']}m2): Occ {sub['occupancy_baseline']*100:.0f}% -> {sub['occupancy_intervention']*100:.0f}%")
 
     print("\n--- 4. Executive Justification ---")
-    j = result.get("justification") or {}
+    j = decision.get("justification") or {}
     for k in ("summary", "why_this_plan", "what_simulation_shows", "beyond_the_model", "recommendation"):
         if j.get(k):
             print(f"\n  [{k}]")
             print(f"  {j[k]}")
-
+            
 
 def main():
     parser = argparse.ArgumentParser(description="Golden Demo Scenarios")
