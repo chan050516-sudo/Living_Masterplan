@@ -203,8 +203,13 @@ export default function App() {
     const center = selectedId ? centers.get(selectedId) : undefined
     if (!map || !selected || !center) return
 
+    // MapLibre positions the marker element with a CSS transform, so the
+    // pop-in animation (which also animates transform) goes on an inner box.
     const el = document.createElement('div')
-    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;pointer-events:none;animation:popIn .3s cubic-bezier(.22,.8,.3,1) both'
+    el.style.pointerEvents = 'none'
+    const box = document.createElement('div')
+    box.style.cssText = 'display:flex;flex-direction:column;align-items:center;animation:popIn .3s cubic-bezier(.22,.8,.3,1) both'
+    el.append(box)
     const label = document.createElement('div')
     label.textContent = selected.identity.asset_name
     label.style.cssText = `
@@ -213,8 +218,8 @@ export default function App() {
       letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
       box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
       backdrop-filter:blur(4px)`
-    el.append(label)
-    el.insertAdjacentHTML('beforeend', `
+    box.append(label)
+    box.insertAdjacentHTML('beforeend', `
       <div style="width:0;height:30px;border-left:1px dashed rgba(255,255,255,.55)"></div>
       <div style="width:9px;height:9px;border-radius:50%;background:#fff;
         box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>`)
