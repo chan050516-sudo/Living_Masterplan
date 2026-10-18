@@ -64,6 +64,48 @@ subtypes:
     is_core_amenity: false
     source: "Retail benchmark placeholder"
 
+  restaurant:
+    asset_class: commercial
+    display_name: "Restaurant (sit-down dining)"
+    target_area_m2: [150, 800]
+    occupancy_benchmark: 0.75
+    energy_intensity_kwh_m2_year: 400
+    material_intensity_tco2e_m2: 0.32
+    structural_lifespan_years: 25
+    target_demographics: [all, workers, families]
+    competition_radius_m: 1500
+    demand_coefficient_m2_per_person: 0.10
+    is_core_amenity: false
+    source: "Malaysia F&B market — sit-down restaurant"
+
+  kopitiam:
+    asset_class: commercial
+    display_name: "Kopitiam / coffee shop (hawker-style)"
+    target_area_m2: [50, 300]
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 180
+    material_intensity_tco2e_m2: 0.28
+    structural_lifespan_years: 25
+    target_demographics: [all, workers]
+    competition_radius_m: 400
+    demand_coefficient_m2_per_person: 0.08
+    is_core_amenity: false
+    source: "Malaysia F&B market — neighbourhood kopitiam"
+
+  cafe:
+    asset_class: commercial
+    display_name: "Cafe / coffee shop (specialty)"
+    target_area_m2: [50, 200]
+    occupancy_benchmark: 0.70
+    energy_intensity_kwh_m2_year: 250
+    material_intensity_tco2e_m2: 0.30
+    structural_lifespan_years: 20
+    target_demographics: [young_adults, workers]
+    competition_radius_m: 800
+    demand_coefficient_m2_per_person: 0.06
+    is_core_amenity: false
+    source: "Malaysia F&B market — specialty cafe"
+
   medical_retail:
     asset_class: commercial
     display_name: "Medical retail (pharmacy, clinic-as-business)"

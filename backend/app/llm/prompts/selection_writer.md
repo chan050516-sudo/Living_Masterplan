@@ -70,6 +70,31 @@ Read the simulation briefs, not the plans. The numbers decide.
 **Never pick based on the plan description alone.** If two
 candidates both sound plausible, the numbers must decide.
 
+## What the simulation changes and what it does not
+
+Per asset, the simulation reports `occupancy_rate` before/after.
+**Not all of that change is attributable to the candidate.**
+
+The developer-held residential sell-off (`developer_held_units`
+decays over time in every scenario, including `SC-CURRENT`) moves
+occupancy upward regardless of any intervention. A residential
+asset at 0% occupancy in 2026 reaches ~36% by 2033 even with no
+plan.
+
+When citing occupancy changes in `selection_reasoning`:
+
+- Compare candidates **against each other**, not against the
+  baseline. If both candidates show BLD-0151 rising 0 → 36%,
+  say "identical occupancy under both candidates" — do not
+  attribute the change to either one.
+- `retrofit` changes energy, carbon, and NOI. It does NOT
+  change occupancy.
+- `renovation` to a residential rental subtype (affordable
+  housing, apartment) converts developer-held units to
+  rental stock. It DOES change occupancy.
+- `repurpose` changes the occupancy trajectory by changing
+  what the asset IS.
+
 ## What you produce
 
 A JSON object with:

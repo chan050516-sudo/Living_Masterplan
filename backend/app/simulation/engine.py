@@ -921,6 +921,25 @@ def simulate_scenario(
                     itype = intv.get("intervention_type")
                     if itype == "repurpose":
                         activated = intv
+                    elif itype == "renovation":
+                        # A renovation to a residential rental
+                        # subtype (affordable_housing,
+                        # apartment_lowrise, apartment_highrise)
+                        # activates the asset: developer-held
+                        # unsold units become rentable stock. The
+                        # occupancy trajectory changes, not just
+                        # the energy profile.
+                        try:
+                            _p = json.loads(
+                                intv.get("parameters_json") or "{}"
+                            )
+                            _to = _p.get("to_subtype")
+                        except (json.JSONDecodeError, TypeError):
+                            _to = None
+                        if _to:
+                            _defn = get_subtype(_to) or {}
+                            if _defn.get("asset_class") == "residential":
+                                activated = intv
                 elif p == Phase.DURING:
                     status = intv.get("during_construction_status", "unavailable")
                     # Phase 14 — read the capacity_ratio the validator
@@ -942,9 +961,16 @@ def simulate_scenario(
             # built in 2024 with 5 units unsold in 2026 has 3 unsold
             # in 2028, 1 in 2030, 0 in 2032, at a per-asset seeded
             # 10-20% annual rate. The sold units become occupied.
+            #
+            # Skip this when the asset has an activated renovation
+            # to a residential rental subtype: the held units are
+            # no longer unsold inventory — they are rental stock,
+            # and their occupancy is driven by the subtype
+            # benchmark, not by the sell-off rate.
             if (
                 year > base_year
                 and eff.get("asset_type") == "residential"
+                and activated is None
             ):
                 remaining, sold = _compute_developer_held_decay(
                     eff, year, base_year,
@@ -1010,20 +1036,17 @@ def simulate_scenario(
             eff_subtype = eff.get("subtype", "convenience_retail")
             eff_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
 
+            # Both branches below need the asset's virtual node.
+            # A missing node means the asset could not be projected
+            # onto the walking network, so it cannot participate in
+            # any Huff pool.
+            node_id = nodes[0]["node"] if nodes else None
+            if node_id is None:
+                continue
+
             if eff_mix is not None:
                 # Phase B.2c — rebuild supply nodes from the
                 # EFFECTIVE mix, not the pipeline's original mix.
-                # A partial repurpose (subtype_changes) rewrites
-                # unit_mix_json on the effective asset; the
-                # pipeline's cached supply nodes still describe
-                # the pre-intervention mix. Rebuilding here means
-                # the Huff pool sees the post-intervention
-                # subtypes on the activation year and every
-                # later year.
-                #
-                # When no intervention has touched the mix,
-                # eff_mix equals the pipeline mix and the output
-                # is identical to the previous behaviour.
                 for st, m in eff_mix.items():
                     area = float(m.get("area_m2") or 0)
                     if area <= 0:
@@ -1036,10 +1059,7 @@ def simulate_scenario(
                     })
             else:
                 # Single-subtype asset (shoplot, or a mall that was
-                # repurposed and had its mix cleared).
-                node_id = nodes[0]["node"] if nodes else None
-                if node_id is None:
-                    continue
+                # fully repurposed and had its mix cleared).
                 year_supply_nodes.append({
                     "asset_id": aid,
                     "node": node_id,
@@ -1291,11 +1311,7 @@ def simulate_scenario(
                 # calculation, so 2026 (B3 baseline) and 2027+ (B4
                 # simulated) are directly comparable.
                 unit_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
-                if (
-                    effective_type == "commercial"
-                    and unit_mix
-                    and effective_subtype == asset.get("subtype")
-                ):
+                if effective_type == "commercial" and unit_mix:
                     mix_total_area = sum(
                         float(m.get("area_m2") or 0)
                         for m in unit_mix.values()
@@ -1458,27 +1474,54 @@ def simulate_scenario(
                     assumptions=assumptions,
                 )
             elif effective_type == "residential":
-                # Phase D.2 — sold units become occupied. Base
-                # occupancy from 2026 is the starting point. Each
-                # year's cumulative sold units add to that base, so
-                # a terrace row that starts at 0% and sells 1 unit
-                # a year ends at 25% after 5 years.
-                sold_units = eff.get("_sold_units", 0)
-                if sold_units > 0:
-                    unit_count = int(eff.get("unit_count") or 1)
-                    base_state = state_by_year.get(base_year, {})
-                    base_occ_val = base_state.get(aid, {}).get(
-                        "occupancy_rate", 0,
+                if activated is not None:
+                    # Renovation activated: the developer-held
+                    # units are now rental stock. Occupancy
+                    # converges to the subtype benchmark, not
+                    # the sell-off curve.
+                    #
+                    # Use a hard convergence — a renovation to
+                    # rental housing means the units are ready
+                    # to lease, and their occupancy is
+                    # determined by market demand for the
+                    # subtype benchmark, not by a damped
+                    # transition. The first year post-activation
+                    # already shows the benchmark.
+                    _bench = get_occupancy_benchmark(
+                        effective_subtype,
                     )
-                    try:
-                        base_occ_val = float(base_occ_val)
-                    except (TypeError, ValueError):
-                        base_occ_val = 0.0
-                    base_occupied = base_occ_val * unit_count
-                    new_occupied = min(
-                        float(unit_count), base_occupied + sold_units,
+                    if _bench is None:
+                        _bench = 0.85
+                    new_occ = float(_bench)
+                    occupancy_prev[aid] = new_occ
+                    eff["developer_held_units"] = 0
+                    eff["_sold_units"] = 0
+                    _uc = int(eff.get("unit_count") or 1)
+                    metric_row["occupied_units"] = int(
+                        round(_uc * new_occ)
                     )
-                    new_occ = new_occupied / max(1, unit_count)
+                else:
+                    # Phase D.2 — sold units become occupied.
+                    # Base occupancy from 2026 is the starting
+                    # point. Each year's cumulative sold units
+                    # add to that base.
+                    sold_units = eff.get("_sold_units", 0)
+                    if sold_units > 0:
+                        unit_count = int(eff.get("unit_count") or 1)
+                        base_state = state_by_year.get(base_year, {})
+                        base_occ_val = base_state.get(aid, {}).get(
+                            "occupancy_rate", 0,
+                        )
+                        try:
+                            base_occ_val = float(base_occ_val)
+                        except (TypeError, ValueError):
+                            base_occ_val = 0.0
+                        base_occupied = base_occ_val * unit_count
+                        new_occupied = min(
+                            float(unit_count),
+                            base_occupied + sold_units,
+                        )
+                        new_occ = new_occupied / max(1, unit_count)
 
                 metric_row["occupancy_rate"] = new_occ
                 metric_row["vacancy_rate"] = 1.0 - new_occ
@@ -2118,19 +2161,36 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
 
     per_asset = {aid: _compare_one(aid) for aid in ids}
 
-    # Phase 11 — avoided embodied carbon from choosing repurpose over
-    # new build. Uses the material intensity difference times the
-    # asset's floor area.
+    # Avoided embodied carbon from choosing an in-place conversion
+    # (repurpose or renovation) over a full rebuild.
+    #
+    # A renovation keeps the structural shell and changes only the
+    # internal finishes, so its embodied carbon is even lower than
+    # a repurpose. We use the same REPURPOSE intensity (0.08) as a
+    # conservative estimate for both.
+    #
+    # Without this, a renovation to affordable housing that avoids
+    # 800+ tCO2e of new-build embodied carbon shows zero avoided
+    # carbon on the comparison block, and the plan looks
+    # indistinguishable from a retrofit that does nothing to the
+    # asset's structure.
     avoided_embodied_total = 0.0
     if interventions_df is not None:
         for aid in ids:
             intvs = interventions_for_asset(aid, interventions_df)
-            repurpose = next(
-                (i for i in intvs if i.get("intervention_type") == "repurpose"),
+
+            subtype_change = next(
+                (
+                    i for i in intvs
+                    if i.get("intervention_type") in (
+                        "repurpose", "renovation",
+                    )
+                ),
                 None,
             )
-            if repurpose is None:
+            if subtype_change is None:
                 continue
+
             a_row = assets_df[assets_df["asset_id"] == aid]
             if a_row.empty:
                 continue
@@ -2139,29 +2199,79 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             if gfa <= 0:
                 continue
 
-            # NEW: read target subtype from parameters
             try:
-                params = json.loads(repurpose.get("parameters_json") or "{}")
+                params = json.loads(
+                    subtype_change.get("parameters_json") or "{}"
+                )
             except (json.JSONDecodeError, TypeError):
                 params = {}
-            target_subtype = params.get("to_subtype")
 
-            # NEW: use target subtype's material intensity
-            if target_subtype:
-                from ..taxonomy import get_subtype
-                defn = get_subtype(target_subtype) or {}
-                intensity_new = defn.get(
-                    "material_intensity_tco2e_m2", MATERIAL_INTENSITY_NEW_BUILD,
-                )
+            # subtype_changes path: sum converted area only.
+            changes = params.get("subtype_changes")
+            if changes:
+                mix = _parse_unit_mix_engine(
+                    asset.get("unit_mix_json"),
+                ) or {}
+                converted_area = 0.0
+                weighted_intensity = 0.0
+                for ch in changes:
+                    if not isinstance(ch, dict):
+                        continue
+                    from_st = ch.get("from_subtype")
+                    to_st = ch.get("to_subtype")
+                    if not from_st or not to_st:
+                        continue
+                    from_area = float(
+                        (mix.get(from_st) or {}).get("area_m2") or 0.0
+                    )
+                    requested = ch.get("area_m2")
+                    if requested is not None:
+                        try:
+                            req = float(requested)
+                            conv = (
+                                min(req, from_area)
+                                if from_area > 0 else req
+                            )
+                        except (TypeError, ValueError):
+                            conv = from_area
+                    else:
+                        conv = from_area
+                    if conv <= 0:
+                        continue
+                    defn = get_subtype(to_st) or {}
+                    intensity = defn.get(
+                        "material_intensity_tco2e_m2",
+                        MATERIAL_INTENSITY_NEW_BUILD,
+                    )
+                    try:
+                        intensity = float(intensity)
+                    except (TypeError, ValueError):
+                        intensity = MATERIAL_INTENSITY_NEW_BUILD
+                    converted_area += conv
+                    weighted_intensity += conv * intensity
+                if converted_area <= 0:
+                    continue
+                intensity_new = weighted_intensity / converted_area
+                repurposable_area = converted_area
             else:
-                intensity_new = MATERIAL_INTENSITY_NEW_BUILD
-            try:
-                intensity_new = float(intensity_new)
-            except (TypeError, ValueError):
-                intensity_new = MATERIAL_INTENSITY_NEW_BUILD
+                # Full conversion (repurpose or renovation).
+                target_subtype = params.get("to_subtype")
+                if target_subtype:
+                    defn = get_subtype(target_subtype) or {}
+                    intensity_new = defn.get(
+                        "material_intensity_tco2e_m2",
+                        MATERIAL_INTENSITY_NEW_BUILD,
+                    )
+                    try:
+                        intensity_new = float(intensity_new)
+                    except (TypeError, ValueError):
+                        intensity_new = MATERIAL_INTENSITY_NEW_BUILD
+                else:
+                    intensity_new = MATERIAL_INTENSITY_NEW_BUILD
+                repurposable_area = gfa
 
-            # NEW: if the asset has mixed ownership, only the
-            # developer-held portion is actually repurposable.
+            # Mixed-ownership: only the developer-held portion
+            # is actually convertible.
             uc_raw = asset.get("unit_count")
             held_raw = asset.get("developer_held_units")
             repurposable_ratio = 1.0
@@ -2173,7 +2283,7 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             except (TypeError, ValueError):
                 pass
 
-            saved = gfa * repurposable_ratio * (
+            saved = repurposable_area * repurposable_ratio * (
                 intensity_new
                 + DEMOLITION_CARBON_INTENSITY
                 - MATERIAL_INTENSITY_REPURPOSE
@@ -2185,8 +2295,6 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
                     "after": saved,
                     "unit": "tCO2e",
                 }
-                # NEW: expose the ratio so the frontend can show
-                # "13/22 units repurposed"
                 per_asset[aid]["_repurposable_ratio"] = {
                     "before": None,
                     "after": repurposable_ratio,

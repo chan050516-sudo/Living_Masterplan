@@ -295,7 +295,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -319,30 +320,33 @@
       }
     ],
     "evidence": [
-      "Subtype: medical_retail",
-      "Operational carbon: 1,647 tCO2e/yr",
-      "Stranded carbon (unused capacity): 271.8 tCO2e/yr (16.5%)",
-      "Productive carbon (serving users): 1,376 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 2,529 tCO2e",
+      "Subtype: services",
+      "Operational carbon: 1,660 tCO2e/yr",
+      "Stranded carbon (unused capacity): 358.7 tCO2e/yr (21.6%)",
+      "Productive carbon (serving users): 1,302 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 2,130 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 83.5%",
+      "Occupancy: 78.4%",
       "Vacancy: 3 months",
-      "NOI (RM, annual): -2,210,669",
-      "NOI yield (annual): -0.0949",
-      "DSR: 0.06",
+      "NOI (RM, annual): -2,259,437",
+      "NOI yield (annual): -0.097",
+      "DSR: 0.55",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.87",
+      "Neighborhood diversity: 0.98",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,234",
       "Subtype occupancy:",
-      "  services: 66.0%",
-      "  medical_retail: 68.0%",
-      "  convenience_retail: 84.0%",
-      "  showroom: 92.4%",
-      "  f_and_b: 94.8%",
-      "  supermarket: 97.6%",
-      "Trajectory: stable (5-yr peak 96.6%)"
+      "  kopitiam: 55.0%",
+      "  convenience_retail: 55.0%",
+      "  cafe: 66.1%",
+      "  entertainment: 70.1%",
+      "  restaurant: 75.9%",
+      "  services: 83.9%",
+      "  office: 87.0%",
+      "  medical_retail: 88.2%",
+      "  supermarket: 90.5%",
+      "Trajectory: stable (5-yr peak 86.8%)"
     ],
     "model_version": "0.4.0"
   },
@@ -507,7 +511,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -702,7 +707,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -726,30 +732,31 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 1,474 tCO2e/yr",
-      "Stranded carbon (unused capacity): 361.1 tCO2e/yr (24.5%)",
-      "Productive carbon (serving users): 1,113 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 1,786 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 1,064 tCO2e/yr",
+      "Stranded carbon (unused capacity): 257.5 tCO2e/yr (24.2%)",
+      "Productive carbon (serving users): 806.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 1,667 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 75.5%",
+      "Occupancy: 75.8%",
       "Vacancy: 3 months",
-      "NOI (RM, annual): -1,058,269",
-      "NOI yield (annual): -0.0508",
-      "DSR: 0.05",
+      "NOI (RM, annual): -1,051,393",
+      "NOI yield (annual): -0.0505",
+      "DSR: 0.08",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.87",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,266",
       "Subtype occupancy:",
-      "  medical_retail: 63.2%",
-      "  services: 66.1%",
-      "  showroom: 76.3%",
-      "  f_and_b: 77.1%",
-      "  convenience_retail: 78.2%",
-      "  supermarket: 83.9%",
-      "Trajectory: stable (5-yr peak 83.0%)"
+      "  convenience_retail: 55.0%",
+      "  medical_retail: 55.0%",
+      "  cafe: 70.8%",
+      "  restaurant: 72.5%",
+      "  services: 82.2%",
+      "  office: 85.1%",
+      "  kopitiam: 90.3%",
+      "Trajectory: stable (5-yr peak 79.9%)"
     ],
     "model_version": "0.4.0"
   },
@@ -781,7 +788,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -870,7 +878,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -991,7 +1000,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -1114,7 +1124,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -1205,7 +1216,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -1229,30 +1241,31 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 1,407 tCO2e/yr",
-      "Stranded carbon (unused capacity): 246.3 tCO2e/yr (17.5%)",
-      "Productive carbon (serving users): 1,161 tCO2e/yr",
+      "Subtype: cafe",
+      "Operational carbon: 1,020 tCO2e/yr",
+      "Stranded carbon (unused capacity): 245.8 tCO2e/yr (24.1%)",
+      "Productive carbon (serving users): 774.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,705 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.5%",
+      "Occupancy: 75.9%",
       "Vacancy: 1 months",
-      "NOI (RM, annual): -649,271",
-      "NOI yield (annual): -0.0326",
-      "DSR: 0.25",
-      "Demographic mismatch: 0.0",
+      "NOI (RM, annual): -776,065",
+      "NOI yield (annual): -0.039",
+      "DSR: 0.33",
+      "Demographic mismatch: 0.2",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 12.8%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,444",
       "Subtype occupancy:",
-      "  medical_retail: 78.8%",
-      "  f_and_b: 80.0%",
-      "  convenience_retail: 81.3%",
-      "  supermarket: 87.4%",
-      "  showroom: 93.3%",
-      "  services: 96.5%",
-      "Trajectory: stable (5-yr peak 85.8%)"
+      "  services: 55.0%",
+      "  medical_retail: 55.0%",
+      "  restaurant: 71.1%",
+      "  kopitiam: 76.4%",
+      "  cafe: 76.9%",
+      "  office: 85.6%",
+      "  convenience_retail: 90.7%",
+      "Trajectory: stable (5-yr peak 79.3%)"
     ],
     "model_version": "0.4.0"
   },
@@ -1612,7 +1625,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -1664,7 +1678,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -1848,7 +1863,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -2463,7 +2479,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -2880,7 +2897,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -3725,7 +3743,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -3986,7 +4005,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -4042,7 +4062,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -4460,7 +4481,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -5045,7 +5067,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -5132,7 +5155,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -5365,7 +5389,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -5402,8 +5427,8 @@
     ],
     "evidence": [
       "Subtype: medical_retail",
-      "Operational carbon: 897.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 897.8 tCO2e/yr (100.0%)",
+      "Operational carbon: 676.8 tCO2e/yr",
+      "Stranded carbon (unused capacity): 676.8 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,378 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
@@ -5411,19 +5436,20 @@
       "Vacancy: 60 months",
       "NOI (RM, annual): -1,383,363",
       "NOI yield (annual): -0.109",
-      "DSR: 0.06",
+      "DSR: 0.09",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,284",
       "Subtype occupancy:",
-      "  f_and_b: 0.0% [dead]",
+      "  restaurant: 0.0% [dead]",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
+      "  convenience_retail: 0.0% [dead]",
       "  services: 0.0% [dead]",
       "  medical_retail: 0.0% [dead]",
-      "  supermarket: 15.6% [low]",
-      "  showroom: 19.3% [low]",
-      "  convenience_retail: 19.6% [low]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -5457,7 +5483,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -5549,7 +5576,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -5872,7 +5900,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -5965,7 +5994,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -6453,7 +6483,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -6509,7 +6540,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -7353,7 +7385,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -7571,7 +7604,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -7587,30 +7621,31 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 740.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 130.4 tCO2e/yr (17.6%)",
-      "Productive carbon (serving users): 610.4 tCO2e/yr",
+      "Subtype: cafe",
+      "Operational carbon: 536.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 81.5 tCO2e/yr (15.2%)",
+      "Productive carbon (serving users): 454.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 898.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.4%",
+      "Occupancy: 84.8%",
       "Vacancy: 1 months",
-      "NOI (RM, annual): 318,742",
-      "NOI yield (annual): 0.0304",
-      "DSR: 0.21",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.87",
+      "NOI (RM, annual): 361,917",
+      "NOI yield (annual): 0.0346",
+      "DSR: 0.32",
+      "Demographic mismatch: 0.16",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,184",
       "Subtype occupancy:",
-      "  services: 65.6%",
-      "  showroom: 70.9%",
-      "  medical_retail: 71.4%",
-      "  convenience_retail: 75.1%",
-      "  supermarket: 77.9%",
-      "  f_and_b: 87.3%",
-      "Trajectory: stable (5-yr peak 86.8%)"
+      "  restaurant: 76.8%",
+      "  cafe: 78.3%",
+      "  kopitiam: 80.2%",
+      "  services: 83.2%",
+      "  medical_retail: 84.2%",
+      "  office: 90.6%",
+      "  convenience_retail: 93.2%",
+      "Trajectory: stable (5-yr peak 85.6%)"
     ],
     "model_version": "0.4.0"
   },
@@ -8006,7 +8041,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -8061,7 +8097,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -8538,7 +8575,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -8625,7 +8663,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -8681,7 +8720,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -8995,7 +9035,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -9505,7 +9546,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -9557,7 +9599,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -10036,7 +10079,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -10117,7 +10161,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -10233,7 +10278,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -10678,7 +10724,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -10694,27 +10741,29 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 289.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 55.7 tCO2e/yr (19.2%)",
-      "Productive carbon (serving users): 234.2 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 440.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 212.6 tCO2e/yr",
+      "Stranded carbon (unused capacity): 36.4 tCO2e/yr (17.1%)",
+      "Productive carbon (serving users): 176.2 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 352.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 80.8%",
+      "Occupancy: 82.9%",
       "Vacancy: 3 months",
-      "NOI (RM, annual): 1,757,729",
-      "NOI yield (annual): 0.3997",
-      "DSR: 0.06",
+      "NOI (RM, annual): 1,817,287",
+      "NOI yield (annual): 0.4132",
+      "DSR: 0.16",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  f_and_b: 82.8%",
-      "  convenience_retail: 92.6%",
-      "  services: 93.9%",
-      "Trajectory: stable (5-yr peak 86.0%)"
+      "  cafe: 68.8%",
+      "  kopitiam: 80.5%",
+      "  services: 85.4%",
+      "  convenience_retail: 87.9%",
+      "  office: 92.1%",
+      "Trajectory: stable (5-yr peak 82.9%)"
     ],
     "model_version": "0.4.0"
   },
@@ -10909,7 +10958,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -10963,7 +11013,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -11116,7 +11167,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -11527,7 +11579,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -11596,12 +11649,12 @@
       "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon",
-      "subtype_mix_low",
+      "subtype_mix_dead",
       "rapid_decline",
       "negative_noi",
       "maintenance_surge_high"
     ],
-    "urgency_index": 9.0,
+    "urgency_index": 11.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -11610,7 +11663,7 @@
         "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon",
-        "subtype_mix_low",
+        "subtype_mix_dead",
         "rapid_decline"
       ]
     },
@@ -11628,74 +11681,76 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
+        "factor": "subtype_mix_dead",
+        "contribution": 0.1765
+      },
+      {
         "factor": "negative_noi",
-        "contribution": 0.2
+        "contribution": 0.1765
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1333
+        "contribution": 0.1176
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1333
+        "contribution": 0.1176
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1333
+        "contribution": 0.1176
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.1333
+        "contribution": 0.1176
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0667
+        "contribution": 0.0588
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0667
-      },
-      {
-        "factor": "subtype_mix_low",
-        "contribution": 0.0667
+        "contribution": 0.0588
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.0667
+        "contribution": 0.0588
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 893.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 726.7 tCO2e/yr (81.3%)",
-      "Productive carbon (serving users): 167.1 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 1,155 tCO2e",
+      "Subtype: cafe",
+      "Operational carbon: 673.8 tCO2e/yr",
+      "Stranded carbon (unused capacity): 601.0 tCO2e/yr (89.2%)",
+      "Productive carbon (serving users): 72.8 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 1,083 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 18.7%",
+      "Occupancy: 10.8%",
       "Vacancy: 35 months",
-      "NOI (RM, annual): -1,335,954",
-      "NOI yield (annual): -0.1057",
-      "DSR: 0.08",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.83",
+      "NOI (RM, annual): -1,413,034",
+      "NOI yield (annual): -0.1118",
+      "DSR: 0.11",
+      "Demographic mismatch: 0.1",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,567",
       "Subtype occupancy:",
-      "  supermarket: 12.6% [low]",
-      "  showroom: 21.5% [low]",
-      "  services: 24.5% [low]",
-      "  f_and_b: 25.5% [low]",
-      "  medical_retail: 29.3% [low]",
-      "  convenience_retail: 30.3% [low]",
-      "Trajectory: rapid decline (from 84.4% peak, 1 yr ago)"
+      "  office: 2.6% [dead]",
+      "  restaurant: 4.6% [dead]",
+      "  kopitiam: 10.3% [low]",
+      "  convenience_retail: 14.6% [low]",
+      "  services: 16.5% [low]",
+      "  medical_retail: 17.9% [low]",
+      "  cafe: 18.9% [low]",
+      "Trajectory: rapid decline (from 83.7% peak, 2 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -11794,7 +11849,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -12050,7 +12106,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -12066,27 +12123,29 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 271.4 tCO2e/yr",
-      "Stranded carbon (unused capacity): 55.6 tCO2e/yr (20.5%)",
-      "Productive carbon (serving users): 215.8 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 353.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 199.0 tCO2e/yr",
+      "Stranded carbon (unused capacity): 62.1 tCO2e/yr (31.2%)",
+      "Productive carbon (serving users): 136.9 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 376.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 79.5%",
-      "Vacancy: 2 months",
-      "NOI (RM, annual): 1,536,511",
-      "NOI yield (annual): 0.3732",
-      "DSR: 0.06",
+      "Occupancy: 68.8%",
+      "Vacancy: 6 months",
+      "NOI (RM, annual): 1,263,208",
+      "NOI yield (annual): 0.3068",
+      "DSR: 0.16",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  convenience_retail: 59.5%",
-      "  services: 67.2%",
-      "  f_and_b: 70.9%",
-      "Trajectory: stable (5-yr peak 88.9%)"
+      "  cafe: 55.0%",
+      "  services: 55.0%",
+      "  office: 55.0%",
+      "  kopitiam: 88.2%",
+      "  convenience_retail: 90.6%",
+      "Trajectory: stable (5-yr peak 69.6%)"
     ],
     "model_version": "0.4.0"
   },
@@ -12383,7 +12442,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -12473,7 +12533,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -12754,7 +12815,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -12970,7 +13032,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -13095,7 +13158,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -13154,7 +13218,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -13586,7 +13651,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -13622,26 +13688,28 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 248.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 248.9 tCO2e/yr (100.0%)",
+      "Subtype: convenience_retail",
+      "Operational carbon: 182.6 tCO2e/yr",
+      "Stranded carbon (unused capacity): 182.6 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 345.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 378.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 72 months",
       "NOI (RM, annual): -414,880",
       "NOI yield (annual): -0.1099",
-      "DSR: 0.02",
+      "DSR: 0.06",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.85",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,375",
       "Subtype occupancy:",
-      "  f_and_b: 0.0% [dead]",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
+      "  convenience_retail: 0.0% [dead]",
       "  services: 0.0% [dead]",
-      "  convenience_retail: 2.2% [dead]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -13884,9 +13952,10 @@
     "flags": [
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "negative_noi",
       "maintenance_surge_high"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 4.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -13897,6 +13966,7 @@
     "layer2": {
       "triggered": true,
       "reasons": [
+        "negative_noi",
         "maintenance_surge_high"
       ]
     },
@@ -13907,50 +13977,56 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
+        "factor": "negative_noi",
+        "contribution": 0.5
+      },
+      {
         "factor": "dsr_below_threshold",
-        "contribution": 0.3333
+        "contribution": 0.1667
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.3333
+        "contribution": 0.1667
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.3333
+        "contribution": 0.1667
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 785.4 tCO2e/yr",
-      "Stranded carbon (unused capacity): 110.0 tCO2e/yr (14.0%)",
-      "Productive carbon (serving users): 675.5 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 1,110 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 568.7 tCO2e/yr",
+      "Stranded carbon (unused capacity): 123.4 tCO2e/yr (21.7%)",
+      "Productive carbon (serving users): 445.3 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 888.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 86.0%",
+      "Occupancy: 78.3%",
       "Vacancy: 0 months",
-      "NOI (RM, annual): 4,166",
-      "NOI yield (annual): 0.0004",
-      "DSR: 0.12",
+      "NOI (RM, annual): -124,493",
+      "NOI yield (annual): -0.0112",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.83",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,299",
       "Subtype occupancy:",
-      "  convenience_retail: 71.5%",
-      "  f_and_b: 82.1%",
-      "  services: 82.2%",
-      "  medical_retail: 88.4%",
-      "  supermarket: 93.1%",
-      "  showroom: 95.3%",
-      "Trajectory: stable (5-yr peak 86.0%)"
+      "  services: 55.0%",
+      "  cafe: 71.5%",
+      "  restaurant: 71.9%",
+      "  convenience_retail: 77.0%",
+      "  medical_retail: 85.6%",
+      "  office: 88.5%",
+      "  kopitiam: 93.6%",
+      "Trajectory: stable (5-yr peak 78.5%)"
     ],
     "model_version": "0.4.0"
   },
@@ -13980,7 +14056,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -14045,6 +14122,7 @@
     "status": "deadspace_candidate",
     "flags": [
       "low_occupancy",
+      "long_vacancy",
       "walking_accessibility_deficit",
       "driving_accessibility_deficit",
       "low_neighborhood_diversity",
@@ -14058,6 +14136,7 @@
       "triggered": true,
       "reasons": [
         "low_occupancy",
+        "long_vacancy",
         "walking_accessibility_deficit",
         "driving_accessibility_deficit",
         "low_neighborhood_diversity",
@@ -14079,7 +14158,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -14087,48 +14167,52 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.2
+        "contribution": 0.1765
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.2
+        "contribution": 0.1765
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1333
+        "contribution": 0.1176
+      },
+      {
+        "factor": "long_vacancy",
+        "contribution": 0.1176
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1333
+        "contribution": 0.1176
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.1333
+        "contribution": 0.1176
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0667
+        "contribution": 0.0588
       },
       {
         "factor": "driving_accessibility_deficit",
-        "contribution": 0.0667
+        "contribution": 0.0588
       },
       {
         "factor": "low_neighborhood_diversity",
-        "contribution": 0.0667
+        "contribution": 0.0588
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 782.4 tCO2e/yr",
-      "Stranded carbon (unused capacity): 781.6 tCO2e/yr (99.9%)",
-      "Productive carbon (serving users): 0.8 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 1,011 tCO2e",
+      "Subtype: convenience_retail",
+      "Operational carbon: 566.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 489.5 tCO2e/yr (86.4%)",
+      "Productive carbon (serving users): 77.0 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 1,106 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 0.1%",
-      "Vacancy: 12 months",
-      "NOI (RM, annual): -1,166,480",
-      "NOI yield (annual): -0.1054",
+      "Occupancy: 13.6%",
+      "Vacancy: 33 months",
+      "NOI (RM, annual): -838,515",
+      "NOI yield (annual): -0.0758",
       "DSR: nan",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -14136,13 +14220,14 @@
       "Drive 10-min coverage: 0.0%",
       "Median walk distance (m): nan",
       "Subtype occupancy:",
-      "  medical_retail: 0.0% [dead]",
-      "  services: 3.7% [dead]",
-      "  showroom: 4.1% [dead]",
-      "  supermarket: 4.6% [dead]",
-      "  convenience_retail: 12.5% [low]",
-      "  f_and_b: 12.5% [low]",
-      "Trajectory: rapid decline (from 84.5% peak, 3 yr ago)"
+      "  medical_retail: 6.7% [dead]",
+      "  kopitiam: 9.6% [dead]",
+      "  cafe: 12.7% [low]",
+      "  convenience_retail: 13.8% [low]",
+      "  restaurant: 15.4% [low]",
+      "  services: 15.5% [low]",
+      "  office: 17.3% [low]",
+      "Trajectory: rapid decline (from 84.2% peak, 3 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -14373,7 +14458,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -14431,7 +14517,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -14447,27 +14534,29 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 238.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 33.9 tCO2e/yr (14.2%)",
-      "Productive carbon (serving users): 204.9 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 362.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 175.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 24.7 tCO2e/yr (14.1%)",
+      "Productive carbon (serving users): 150.4 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 290.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 85.8%",
+      "Occupancy: 85.9%",
       "Vacancy: 2 months",
-      "NOI (RM, annual): 1,845,052",
-      "NOI yield (annual): 0.5093",
-      "DSR: 0.06",
+      "NOI (RM, annual): 1,846,792",
+      "NOI yield (annual): 0.5098",
+      "DSR: 0.16",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  convenience_retail: 66.6%",
-      "  services: 71.2%",
-      "  f_and_b: 73.7%",
-      "Trajectory: stable (5-yr peak 96.7%)"
+      "  cafe: 73.9%",
+      "  kopitiam: 85.3%",
+      "  office: 86.8%",
+      "  services: 91.6%",
+      "  convenience_retail: 92.0%",
+      "Trajectory: stable (5-yr peak 93.7%)"
     ],
     "model_version": "0.4.0"
   },
@@ -14501,7 +14590,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -14521,30 +14611,31 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 765.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 143.2 tCO2e/yr (18.7%)",
-      "Productive carbon (serving users): 622.7 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 928.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 554.6 tCO2e/yr",
+      "Stranded carbon (unused capacity): 108.1 tCO2e/yr (19.5%)",
+      "Productive carbon (serving users): 446.4 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 990.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 81.3%",
+      "Occupancy: 80.5%",
       "Vacancy: 3 months",
-      "NOI (RM, annual): -104,226",
-      "NOI yield (annual): -0.0096",
-      "DSR: 0.16",
+      "NOI (RM, annual): -115,243",
+      "NOI yield (annual): -0.0106",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.83",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  medical_retail: 65.4%",
-      "  supermarket: 70.1%",
-      "  f_and_b: 78.1%",
-      "  services: 87.3%",
-      "  showroom: 95.9%",
-      "  convenience_retail: 100.0%",
-      "Trajectory: stable (5-yr peak 86.6%)"
+      "  cafe: 64.6%",
+      "  office: 79.3%",
+      "  restaurant: 80.6%",
+      "  kopitiam: 84.1%",
+      "  services: 84.3%",
+      "  medical_retail: 87.0%",
+      "  convenience_retail: 87.5%",
+      "Trajectory: stable (5-yr peak 85.4%)"
     ],
     "model_version": "0.4.0"
   },
@@ -14687,7 +14778,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -14727,27 +14819,29 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 235.3 tCO2e/yr",
-      "Stranded carbon (unused capacity): 203.7 tCO2e/yr (86.6%)",
-      "Productive carbon (serving users): 31.5 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 326.0 tCO2e",
+      "Subtype: convenience_retail",
+      "Operational carbon: 172.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 151.3 tCO2e/yr (87.7%)",
+      "Productive carbon (serving users): 21.2 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 357.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 13.4%",
+      "Occupancy: 12.3%",
       "Vacancy: 18 months",
-      "NOI (RM, annual): -125,909",
-      "NOI yield (annual): -0.0353",
-      "DSR: 0.02",
+      "NOI (RM, annual): -148,634",
+      "NOI yield (annual): -0.0416",
+      "DSR: 0.07",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.84",
+      "Neighborhood diversity: 0.9",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,174",
       "Subtype occupancy:",
-      "  f_and_b: 0.0% [dead]",
-      "  services: 18.6% [low]",
-      "  convenience_retail: 19.4% [low]",
-      "Trajectory: rapid decline (from 87.4% peak, 1 yr ago)"
+      "  convenience_retail: 2.1% [dead]",
+      "  services: 12.3% [low]",
+      "  kopitiam: 14.1% [low]",
+      "  cafe: 14.9% [low]",
+      "  office: 17.8% [low]",
+      "Trajectory: rapid decline (from 83.0% peak, 2 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -15206,7 +15300,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -15402,16 +15497,20 @@
     "year": 2026,
     "status": "deadspace_candidate",
     "flags": [
+      "below_benchmark_occupancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "chronic_stagnation",
       "maintenance_surge_high"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 3.0,
     "layer1": {
       "triggered": true,
       "reasons": [
+        "below_benchmark_occupancy",
         "dsr_below_threshold",
-        "walking_accessibility_deficit"
+        "walking_accessibility_deficit",
+        "chronic_stagnation"
       ]
     },
     "layer2": {
@@ -15427,47 +15526,60 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
+        "factor": "below_benchmark_occupancy",
+        "contribution": 0.2
+      },
+      {
         "factor": "dsr_below_threshold",
-        "contribution": 0.3333
+        "contribution": 0.2
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.3333
+        "contribution": 0.2
+      },
+      {
+        "factor": "chronic_stagnation",
+        "contribution": 0.2
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.3333
+        "contribution": 0.2
       }
     ],
     "evidence": [
       "Subtype: medical_retail",
-      "Operational carbon: 437.0 tCO2e/yr",
-      "Stranded carbon (unused capacity): 71.2 tCO2e/yr (16.3%)",
-      "Productive carbon (serving users): 365.8 tCO2e/yr",
+      "Operational carbon: 351.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 111.0 tCO2e/yr (31.6%)",
+      "Productive carbon (serving users): 240.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 720.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 83.7%",
-      "Vacancy: 2 months",
-      "NOI (RM, annual): 783,946",
-      "NOI yield (annual): 0.1182",
-      "DSR: 0.13",
+      "Occupancy: 68.4%",
+      "Vacancy: 6 months",
+      "NOI (RM, annual): 488,671",
+      "NOI yield (annual): 0.0737",
+      "DSR: 0.34",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.91",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,184",
       "Subtype occupancy:",
-      "  convenience_retail: 71.6%",
-      "  services: 81.4%",
-      "  f_and_b: 90.6%",
-      "Trajectory: stable (5-yr peak 83.7%)"
+      "  services: 55.0%",
+      "  office: 55.0%",
+      "  cafe: 64.4%",
+      "  restaurant: 75.6%",
+      "  kopitiam: 79.1%",
+      "  medical_retail: 81.6%",
+      "  convenience_retail: 81.7%",
+      "Trajectory: chronic low (4 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
   },
@@ -15500,7 +15612,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -15923,7 +16036,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -16013,7 +16127,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -16198,7 +16313,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -16214,26 +16330,22 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 204.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 34.8 tCO2e/yr (17.0%)",
-      "Productive carbon (serving users): 170.1 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 311.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 122.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 20.9 tCO2e/yr (17.0%)",
+      "Productive carbon (serving users): 102.0 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 249.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 83.0%",
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,592,213",
       "NOI yield (annual): 0.5122",
-      "DSR: 0.06",
+      "DSR: 0.05",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
-      "Subtype occupancy:",
-      "  f_and_b: 72.5%",
-      "  services: 75.9%",
-      "  convenience_retail: 95.1%",
       "Trajectory: stable (5-yr peak 87.8%)"
     ],
     "model_version": "0.4.0"
@@ -16342,7 +16454,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -16378,29 +16491,30 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 658.2 tCO2e/yr",
-      "Stranded carbon (unused capacity): 658.2 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 490.7 tCO2e/yr",
+      "Stranded carbon (unused capacity): 490.7 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 798.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 851.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 96 months",
       "NOI (RM, annual): -1,039,207",
       "NOI yield (annual): -0.1117",
-      "DSR: 0.16",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.83",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
+      "  restaurant: 0.0% [dead]",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
+      "  convenience_retail: 0.0% [dead]",
       "  services: 0.0% [dead]",
       "  medical_retail: 0.0% [dead]",
-      "  showroom: 0.0% [dead]",
-      "  convenience_retail: 1.9% [dead]",
-      "  supermarket: 6.6% [dead]",
-      "  f_and_b: 10.3% [low]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -16467,7 +16581,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -16594,7 +16709,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -16614,26 +16730,22 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 200.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 24.9 tCO2e/yr (12.4%)",
-      "Productive carbon (serving users): 175.8 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 304.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 120.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 14.9 tCO2e/yr (12.4%)",
+      "Productive carbon (serving users): 105.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 244.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 87.6%",
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,794,571",
       "NOI yield (annual): 0.5895",
-      "DSR: 0.06",
+      "DSR: 0.05",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
-      "Subtype occupancy:",
-      "  f_and_b: 77.0%",
-      "  services: 83.5%",
-      "  convenience_retail: 94.9%",
       "Trajectory: stable (5-yr peak 93.2%)"
     ],
     "model_version": "0.4.0"
@@ -17028,7 +17140,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -17044,26 +17157,22 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 197.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 39.6 tCO2e/yr (20.1%)",
-      "Productive carbon (serving users): 157.5 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 299.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 118.2 tCO2e/yr",
+      "Stranded carbon (unused capacity): 23.8 tCO2e/yr (20.1%)",
+      "Productive carbon (serving users): 94.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 239.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 79.9%",
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,831,954",
       "NOI yield (annual): 0.6127",
-      "DSR: 0.2",
+      "DSR: 0.32",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.77",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 5.8%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,479",
-      "Subtype occupancy:",
-      "  f_and_b: 76.3%",
-      "  convenience_retail: 98.2%",
-      "  services: 98.5%",
       "Trajectory: stable (5-yr peak 82.5%)"
     ],
     "model_version": "0.4.0"
@@ -17172,7 +17281,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -17208,26 +17318,30 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 392.5 tCO2e/yr",
-      "Stranded carbon (unused capacity): 392.5 tCO2e/yr (100.0%)",
+      "Subtype: cafe",
+      "Operational carbon: 321.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 321.5 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 544.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 510.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 96 months",
       "NOI (RM, annual): -664,921",
       "NOI yield (annual): -0.1117",
-      "DSR: 0.2",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.77",
+      "DSR: 0.5",
+      "Demographic mismatch: 0.2",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 5.8%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,469",
       "Subtype occupancy:",
-      "  f_and_b: 0.0% [dead]",
-      "  services: 0.1% [dead]",
-      "  convenience_retail: 18.7% [low]",
+      "  restaurant: 0.0% [dead]",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
+      "  convenience_retail: 0.0% [dead]",
+      "  services: 0.0% [dead]",
+      "  medical_retail: 0.0% [dead]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -17242,10 +17356,9 @@
       "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon",
-      "subtype_mix_dead",
       "negative_noi"
     ],
-    "urgency_index": 9.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -17253,8 +17366,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
-        "high_stranded_carbon",
-        "subtype_mix_dead"
+        "high_stranded_carbon"
       ]
     },
     "layer2": {
@@ -17270,62 +17382,55 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
-        "factor": "subtype_mix_dead",
-        "contribution": 0.2143
-      },
-      {
         "factor": "negative_noi",
-        "contribution": 0.2143
+        "contribution": 0.2727
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1429
+        "contribution": 0.1818
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1429
+        "contribution": 0.1818
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1429
+        "contribution": 0.1818
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0714
+        "contribution": 0.0909
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0714
+        "contribution": 0.0909
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 195.5 tCO2e/yr",
-      "Stranded carbon (unused capacity): 195.5 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 117.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 117.3 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 297.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 237.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 24 months",
       "NOI (RM, annual): -315,872",
       "NOI yield (annual): -0.1065",
-      "DSR: 0.06",
+      "DSR: 0.05",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
-      "Subtype occupancy:",
-      "  convenience_retail: 0.0% [dead]",
-      "  services: 0.0% [dead]",
-      "  f_and_b: 20.0% [low]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -17455,7 +17560,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -17540,7 +17646,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -17923,7 +18030,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -17939,26 +18047,22 @@
       }
     ],
     "evidence": [
-      "Subtype: medical_retail",
-      "Operational carbon: 190.2 tCO2e/yr",
-      "Stranded carbon (unused capacity): 31.4 tCO2e/yr (16.5%)",
-      "Productive carbon (serving users): 158.8 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 313.0 tCO2e",
+      "Subtype: services",
+      "Operational carbon: 114.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 18.8 tCO2e/yr (16.5%)",
+      "Productive carbon (serving users): 95.3 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 264.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 83.5%",
       "Vacancy: 1 months",
       "NOI (RM, annual): 1,609,974",
       "NOI yield (annual): 0.5581",
-      "DSR: 0.06",
+      "DSR: 0.09",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
-      "Subtype occupancy:",
-      "  convenience_retail: 93.9%",
-      "  services: 97.4%",
-      "  f_and_b: 99.0%",
       "Trajectory: stable (5-yr peak 83.5%)"
     ],
     "model_version": "0.4.0"
@@ -18695,7 +18799,6 @@
     "status": "deadspace_candidate",
     "flags": [
       "low_occupancy",
-      "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon",
@@ -18708,7 +18811,6 @@
       "triggered": true,
       "reasons": [
         "low_occupancy",
-        "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon",
@@ -18729,7 +18831,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -18737,59 +18840,59 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.1875
+        "contribution": 0.2143
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.1875
+        "contribution": 0.2143
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.125
-      },
-      {
-        "factor": "long_vacancy",
-        "contribution": 0.125
+        "contribution": 0.1429
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.125
+        "contribution": 0.1429
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.125
+        "contribution": 0.1429
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0625
+        "contribution": 0.0714
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0625
+        "contribution": 0.0714
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 358.6 tCO2e/yr",
-      "Stranded carbon (unused capacity): 343.9 tCO2e/yr (95.9%)",
-      "Productive carbon (serving users): 14.7 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 497.0 tCO2e",
+      "Subtype: convenience_retail",
+      "Operational carbon: 293.7 tCO2e/yr",
+      "Stranded carbon (unused capacity): 264.7 tCO2e/yr (90.1%)",
+      "Productive carbon (serving users): 29.1 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 544.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 4.1%",
-      "Vacancy: 96 months",
-      "NOI (RM, annual): -513,952",
-      "NOI yield (annual): -0.0945",
-      "DSR: 0.06",
+      "Occupancy: 9.9%",
+      "Vacancy: 12 months",
+      "NOI (RM, annual): -382,936",
+      "NOI yield (annual): -0.0704",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  f_and_b: 0.0% [dead]",
-      "  services: 0.0% [dead]",
-      "  convenience_retail: 15.6% [low]",
-      "Trajectory: rapid decline (from 84.6% peak, 1 yr ago)"
+      "  services: 1.4% [dead]",
+      "  office: 5.9% [dead]",
+      "  restaurant: 6.7% [dead]",
+      "  kopitiam: 10.4% [low]",
+      "  cafe: 13.9% [low]",
+      "  convenience_retail: 14.1% [low]",
+      "  medical_retail: 16.7% [low]",
+      "Trajectory: rapid decline (from 83.3% peak, 2 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -18803,10 +18906,9 @@
       "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon",
-      "subtype_mix_dead",
       "negative_noi"
     ],
-    "urgency_index": 9.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -18814,8 +18916,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
-        "high_stranded_carbon",
-        "subtype_mix_dead"
+        "high_stranded_carbon"
       ]
     },
     "layer2": {
@@ -18831,62 +18932,55 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
-        "factor": "subtype_mix_dead",
-        "contribution": 0.2143
-      },
-      {
         "factor": "negative_noi",
-        "contribution": 0.2143
+        "contribution": 0.2727
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1429
+        "contribution": 0.1818
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1429
+        "contribution": 0.1818
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1429
+        "contribution": 0.1818
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0714
+        "contribution": 0.0909
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0714
+        "contribution": 0.0909
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 178.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 178.8 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 107.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 107.3 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 232.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 217.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 132 months",
       "NOI (RM, annual): -310,828",
       "NOI yield (annual): -0.1146",
-      "DSR: 0.02",
+      "DSR: 0.03",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.83",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 1.9%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,214",
-      "Subtype occupancy:",
-      "  convenience_retail: 0.0% [dead]",
-      "  f_and_b: 0.0% [dead]",
-      "  services: 19.4% [low]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -19193,7 +19287,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -19229,26 +19324,30 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 516.5 tCO2e/yr",
-      "Stranded carbon (unused capacity): 516.5 tCO2e/yr (100.0%)",
+      "Subtype: convenience_retail",
+      "Operational carbon: 411.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 411.5 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 716.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 784.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 132 months",
       "NOI (RM, annual): -898,020",
       "NOI yield (annual): -0.1146",
-      "DSR: 0.06",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
+      "  restaurant: 0.0% [dead]",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
       "  convenience_retail: 0.0% [dead]",
-      "  services: 1.5% [dead]",
-      "  f_and_b: 14.0% [low]",
+      "  services: 0.0% [dead]",
+      "  medical_retail: 0.0% [dead]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -19295,7 +19394,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -19339,27 +19439,31 @@
       }
     ],
     "evidence": [
-      "Subtype: medical_retail",
-      "Operational carbon: 511.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 452.9 tCO2e/yr (88.5%)",
-      "Productive carbon (serving users): 58.9 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 843.0 tCO2e",
+      "Subtype: services",
+      "Operational carbon: 413.2 tCO2e/yr",
+      "Stranded carbon (unused capacity): 367.7 tCO2e/yr (89.0%)",
+      "Productive carbon (serving users): 45.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 710.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 11.5%",
+      "Occupancy: 11.0%",
       "Vacancy: 33 months",
-      "NOI (RM, annual): -760,879",
-      "NOI yield (annual): -0.098",
-      "DSR: 0.06",
+      "NOI (RM, annual): -768,501",
+      "NOI yield (annual): -0.099",
+      "DSR: 0.15",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  convenience_retail: 0.0% [dead]",
-      "  f_and_b: 0.0% [dead]",
-      "  services: 22.8% [low]",
-      "Trajectory: rapid decline (from 86.6% peak, 2 yr ago)"
+      "  kopitiam: 0.2% [dead]",
+      "  office: 7.8% [dead]",
+      "  restaurant: 12.4% [low]",
+      "  services: 12.4% [low]",
+      "  cafe: 14.9% [low]",
+      "  medical_retail: 16.1% [low]",
+      "  convenience_retail: 17.6% [low]",
+      "Trajectory: rapid decline (from 84.6% peak, 1 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -19564,7 +19668,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -19596,26 +19701,29 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 337.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 337.9 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 281.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 281.5 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 513.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 410.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 12 months",
       "NOI (RM, annual): -542,041",
       "NOI yield (annual): -0.1057",
-      "DSR: 0.06",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
+      "  restaurant: 0.0% [dead]",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
       "  convenience_retail: 0.0% [dead]",
-      "  services: 12.5% [low]",
-      "  f_and_b: 18.1% [low]",
+      "  services: 0.0% [dead]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -19647,7 +19755,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -19663,27 +19772,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 168.6 tCO2e/yr",
-      "Stranded carbon (unused capacity): 26.8 tCO2e/yr (15.9%)",
-      "Productive carbon (serving users): 141.8 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 219.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 224.8 tCO2e/yr",
+      "Stranded carbon (unused capacity): 47.0 tCO2e/yr (20.9%)",
+      "Productive carbon (serving users): 177.8 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 234.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 84.1%",
+      "Occupancy: 79.1%",
       "Vacancy: 3 months",
-      "NOI (RM, annual): 868,237",
-      "NOI yield (annual): 0.3394",
-      "DSR: 0.06",
+      "NOI (RM, annual): 800,545",
+      "NOI yield (annual): 0.313",
+      "DSR: 0.26",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
-      "Subtype occupancy:",
-      "  convenience_retail: 80.3%",
-      "  f_and_b: 84.6%",
-      "  services: 98.9%",
-      "Trajectory: stable (5-yr peak 86.3%)"
+      "Trajectory: stable (5-yr peak 81.3%)"
     ],
     "model_version": "0.4.0"
   },
@@ -19892,7 +19997,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -19932,27 +20038,31 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 489.3 tCO2e/yr",
-      "Stranded carbon (unused capacity): 424.7 tCO2e/yr (86.8%)",
-      "Productive carbon (serving users): 64.6 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 679.0 tCO2e",
+      "Subtype: convenience_retail",
+      "Operational carbon: 395.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 348.9 tCO2e/yr (88.3%)",
+      "Productive carbon (serving users): 46.2 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 742.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 13.2%",
+      "Occupancy: 11.7%",
       "Vacancy: 34 months",
-      "NOI (RM, annual): -698,282",
-      "NOI yield (annual): -0.0941",
-      "DSR: 0.02",
+      "NOI (RM, annual): -712,805",
+      "NOI yield (annual): -0.096",
+      "DSR: 0.06",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.83",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 1.9%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,217",
       "Subtype occupancy:",
-      "  services: 0.0% [dead]",
-      "  f_and_b: 4.2% [dead]",
-      "  convenience_retail: 4.4% [dead]",
-      "Trajectory: rapid decline (from 86.2% peak, 3 yr ago)"
+      "  convenience_retail: 0.8% [dead]",
+      "  services: 5.7% [dead]",
+      "  restaurant: 8.7% [dead]",
+      "  kopitiam: 15.3% [low]",
+      "  cafe: 19.4% [low]",
+      "  office: 19.4% [low]",
+      "  medical_retail: 19.8% [low]",
+      "Trajectory: rapid decline (from 85.9% peak, 3 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -20182,7 +20292,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -20239,7 +20350,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -20255,19 +20367,19 @@
       }
     ],
     "evidence": [
-      "Subtype: medical_retail",
-      "Operational carbon: 116.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 17.7 tCO2e/yr (15.2%)",
-      "Productive carbon (serving users): 99.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 262.0 tCO2e",
+      "Subtype: services",
+      "Operational carbon: 95.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 14.5 tCO2e/yr (15.2%)",
+      "Productive carbon (serving users): 81.0 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 221.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 84.8%",
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,643,911",
       "NOI yield (annual): 0.6806",
-      "DSR: 0.24",
+      "DSR: 0.09",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.85",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
@@ -20447,7 +20559,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -20487,27 +20600,31 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 472.5 tCO2e/yr",
-      "Stranded carbon (unused capacity): 465.0 tCO2e/yr (98.4%)",
-      "Productive carbon (serving users): 7.6 tCO2e/yr",
+      "Subtype: cafe",
+      "Operational carbon: 381.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 332.7 tCO2e/yr (87.2%)",
+      "Productive carbon (serving users): 48.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 614.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 1.6%",
-      "Vacancy: 48 months",
-      "NOI (RM, annual): -760,546",
-      "NOI yield (annual): -0.1061",
-      "DSR: 0.06",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Occupancy: 12.8%",
+      "Vacancy: 35 months",
+      "NOI (RM, annual): -659,259",
+      "NOI yield (annual): -0.092",
+      "DSR: 0.15",
+      "Demographic mismatch: 0.12",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  convenience_retail: 0.0% [dead]",
-      "  services: 7.2% [dead]",
-      "  f_and_b: 20.7% [low]",
-      "Trajectory: rapid decline (from 87.3% peak, 3 yr ago)"
+      "  medical_retail: 2.0% [dead]",
+      "  services: 6.8% [dead]",
+      "  office: 11.0% [low]",
+      "  convenience_retail: 11.8% [low]",
+      "  cafe: 13.8% [low]",
+      "  kopitiam: 18.9% [low]",
+      "  restaurant: 19.8% [low]",
+      "Trajectory: rapid decline (from 83.8% peak, 4 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -20801,7 +20918,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -20853,7 +20971,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -20983,7 +21102,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -21019,19 +21139,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 192.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 192.7 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 202.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 202.9 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 198.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 211.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 168 months",
       "NOI (RM, annual): -271,938",
       "NOI yield (annual): -0.1178",
-      "DSR: 0.02",
+      "DSR: 0.1",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.82",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 1.9%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,217",
@@ -21494,7 +21614,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -21682,7 +21803,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -21702,27 +21824,31 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 418.4 tCO2e/yr",
-      "Stranded carbon (unused capacity): 71.6 tCO2e/yr (17.1%)",
-      "Productive carbon (serving users): 346.9 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 580.0 tCO2e",
+      "Subtype: convenience_retail",
+      "Operational carbon: 336.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 66.0 tCO2e/yr (19.6%)",
+      "Productive carbon (serving users): 270.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 635.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.9%",
+      "Occupancy: 80.4%",
       "Vacancy: 0 months",
-      "NOI (RM, annual): 1,409,006",
-      "NOI yield (annual): 0.2219",
-      "DSR: 0.06",
+      "NOI (RM, annual): 1,342,499",
+      "NOI yield (annual): 0.2115",
+      "DSR: 0.21",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,326",
       "Subtype occupancy:",
-      "  services: 72.7%",
-      "  convenience_retail: 74.9%",
-      "  f_and_b: 90.0%",
-      "Trajectory: stable (5-yr peak 90.5%)"
+      "  kopitiam: 55.0%",
+      "  cafe: 72.6%",
+      "  restaurant: 80.5%",
+      "  convenience_retail: 84.8%",
+      "  services: 85.7%",
+      "  office: 87.9%",
+      "  medical_retail: 88.6%",
+      "Trajectory: stable (5-yr peak 80.4%)"
     ],
     "model_version": "0.4.0"
   },
@@ -21884,7 +22010,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -22542,14 +22669,12 @@
     "year": 2026,
     "status": "monitor",
     "flags": [
-      "dsr_below_threshold",
       "walking_accessibility_deficit"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
       "triggered": true,
       "reasons": [
-        "dsr_below_threshold",
         "walking_accessibility_deficit"
       ]
     },
@@ -22564,42 +22689,35 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
     },
     "contributing_factors": [
       {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.5
-      },
-      {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
+        "contribution": 1.0
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 204.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 44.6 tCO2e/yr (21.8%)",
-      "Productive carbon (serving users): 160.1 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 311.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 122.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 26.8 tCO2e/yr (21.8%)",
+      "Productive carbon (serving users): 96.1 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 249.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 78.2%",
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,820,881",
       "NOI yield (annual): 0.5861",
-      "DSR: 0.08",
+      "DSR: nan",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.77",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,361",
-      "Subtype occupancy:",
-      "  f_and_b: 67.5%",
-      "  convenience_retail: 70.6%",
-      "  services: 87.1%",
       "Trajectory: stable (5-yr peak 86.9%)"
     ],
     "model_version": "0.4.0"
@@ -22871,7 +22989,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -22903,26 +23022,28 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 284.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 284.9 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 208.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 208.9 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 370.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 346.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 12 months",
       "NOI (RM, annual): -457,104",
       "NOI yield (annual): -0.1057",
-      "DSR: 0.12",
+      "DSR: 0.4",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.77",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,358",
       "Subtype occupancy:",
+      "  kopitiam: 0.0% [dead]",
+      "  cafe: 0.0% [dead]",
       "  convenience_retail: 0.0% [dead]",
-      "  f_and_b: 7.0% [dead]",
-      "  services: 13.5% [low]",
+      "  services: 0.0% [dead]",
+      "  office: 0.0% [dead]",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -22953,7 +23074,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -23566,7 +23688,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -24377,7 +24500,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -25188,7 +25312,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -25471,7 +25596,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -26089,7 +26215,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -26113,19 +26240,19 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 75.0 tCO2e/yr",
-      "Stranded carbon (unused capacity): 33.8 tCO2e/yr (45.0%)",
-      "Productive carbon (serving users): 41.3 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 173.0 tCO2e",
+      "Subtype: cafe",
+      "Operational carbon: 104.2 tCO2e/yr",
+      "Stranded carbon (unused capacity): 46.9 tCO2e/yr (45.0%)",
+      "Productive carbon (serving users): 57.3 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 163.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 55.0%",
       "Vacancy: 9 months",
       "NOI (RM, annual): 1,007,293",
       "NOI yield (annual): 0.5311",
       "DSR: 0.04",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.82",
+      "Demographic mismatch: 0.13",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 1.9%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,214",
@@ -26395,7 +26522,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -26491,7 +26619,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -26627,18 +26756,16 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon_ratio_small_asset",
       "rapid_decline"
     ],
-    "urgency_index": 6.0,
+    "urgency_index": 5.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon_ratio_small_asset",
         "rapid_decline"
@@ -26655,7 +26782,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -26663,43 +26791,39 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.2222
+        "contribution": 0.25
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2222
+        "contribution": 0.25
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.2222
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.1111
+        "contribution": 0.25
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1111
+        "contribution": 0.125
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1111
+        "contribution": 0.125
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 100.2 tCO2e/yr",
-      "Stranded carbon (unused capacity): 90.1 tCO2e/yr (90.0%)",
-      "Productive carbon (serving users): 10.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 163.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 64.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 57.9 tCO2e/yr (90.0%)",
+      "Productive carbon (serving users): 6.4 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 130.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 10.0%",
       "Vacancy: 22 months",
       "NOI (RM, annual): 63,747",
       "NOI yield (annual): 0.0392",
-      "DSR: 0.0",
+      "DSR: nan",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.85",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,299",
@@ -26901,7 +27025,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -27258,7 +27383,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -27348,7 +27474,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -27631,7 +27758,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -27912,7 +28040,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -27997,7 +28126,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -28017,23 +28147,23 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 44.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 7.2 tCO2e/yr (16.1%)",
-      "Productive carbon (serving users): 37.5 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 110.0 tCO2e",
+      "Subtype: cafe",
+      "Operational carbon: 62.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 19.3 tCO2e/yr (31.1%)",
+      "Productive carbon (serving users): 42.8 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 103.0 tCO2e",
       "Surface temperature delta (UHI proxy): -4.5 \u00b0C [data anomaly \u2014 verify canopy overlay]",
-      "Occupancy: 83.9%",
-      "Vacancy: 0 months",
-      "NOI (RM, annual): 1,777,806",
-      "NOI yield (annual): 1.477",
+      "Occupancy: 68.9%",
+      "Vacancy: 8 months",
+      "NOI (RM, annual): 1,437,045",
+      "NOI yield (annual): 1.1939",
       "DSR: 0.06",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Demographic mismatch: 0.14",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,136",
-      "Trajectory: stable (5-yr peak 84.6%)"
+      "Trajectory: stable (5-yr peak 69.6%)"
     ],
     "model_version": "0.4.0"
   },
@@ -28061,7 +28191,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28239,7 +28370,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28285,7 +28417,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28331,7 +28464,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28575,7 +28709,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28635,7 +28770,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -28671,19 +28807,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 89.0 tCO2e/yr",
-      "Stranded carbon (unused capacity): 84.6 tCO2e/yr (95.0%)",
-      "Productive carbon (serving users): 4.5 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 91.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 93.7 tCO2e/yr",
+      "Stranded carbon (unused capacity): 89.0 tCO2e/yr (95.0%)",
+      "Productive carbon (serving users): 4.7 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 98.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 5.0%",
       "Vacancy: 24 months",
       "NOI (RM, annual): -34,108",
       "NOI yield (annual): -0.032",
-      "DSR: 0.04",
+      "DSR: 0.1",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.86",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 12.7%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,446",
@@ -28715,7 +28851,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28761,7 +28898,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -28823,7 +28961,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -28863,11 +29002,11 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 61.3 tCO2e/yr",
-      "Stranded carbon (unused capacity): 61.3 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 39.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 39.4 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 106.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 85.0 tCO2e",
       "Surface temperature delta (UHI proxy): -4.5 \u00b0C [data anomaly \u2014 verify canopy overlay]",
       "Occupancy: 0.0%",
       "Vacancy: 192 months",
@@ -29016,7 +29155,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -29134,7 +29274,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -29170,19 +29311,19 @@
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 62.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 57.8 tCO2e/yr (92.1%)",
-      "Productive carbon (serving users): 5.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 102.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 40.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 37.1 tCO2e/yr (92.1%)",
+      "Productive carbon (serving users): 3.2 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 82.0 tCO2e",
       "Surface temperature delta (UHI proxy): +7.5 \u00b0C",
       "Occupancy: 7.9%",
       "Vacancy: 17 months",
       "NOI (RM, annual): 58,624",
       "NOI yield (annual): 0.0574",
-      "DSR: 0.04",
+      "DSR: 0.07",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.98",
+      "Neighborhood diversity: 1.0",
       "Walk 5-min coverage: 6.9%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,095",
@@ -29214,7 +29355,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -29392,7 +29534,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -29445,7 +29588,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -29510,7 +29654,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -29530,23 +29675,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 74.4 tCO2e/yr",
-      "Stranded carbon (unused capacity): 22.2 tCO2e/yr (29.8%)",
-      "Productive carbon (serving users): 52.2 tCO2e/yr",
+      "Subtype: cafe",
+      "Operational carbon: 48.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 19.5 tCO2e/yr (39.8%)",
+      "Productive carbon (serving users): 29.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 81.0 tCO2e",
       "Surface temperature delta (UHI proxy): -4.5 \u00b0C [data anomaly \u2014 verify canopy overlay]",
-      "Occupancy: 70.2%",
-      "Vacancy: 2 months",
-      "NOI (RM, annual): 1,399,898",
-      "NOI yield (annual): 1.4771",
-      "DSR: 0.04",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.91",
+      "Occupancy: 60.2%",
+      "Vacancy: 12 months",
+      "NOI (RM, annual): 1,186,063",
+      "NOI yield (annual): 1.2514",
+      "DSR: 0.05",
+      "Demographic mismatch: 0.15",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,241",
-      "Trajectory: stable (5-yr peak 79.2%)"
+      "Trajectory: stable (5-yr peak 69.2%)"
     ],
     "model_version": "0.4.0"
   },
@@ -29574,7 +29719,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -29601,13 +29747,15 @@
     "year": 2026,
     "status": "deadspace_candidate",
     "flags": [
+      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "uhi_data_anomaly"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 3.0,
     "layer1": {
       "triggered": true,
       "reasons": [
+        "dsr_below_threshold",
         "walking_accessibility_deficit"
       ]
     },
@@ -29624,35 +29772,40 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
+        "factor": "dsr_below_threshold",
+        "contribution": 0.3333
+      },
+      {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
+        "contribution": 0.3333
       },
       {
         "factor": "uhi_data_anomaly",
-        "contribution": 0.5
+        "contribution": 0.3333
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 54.2 tCO2e/yr",
-      "Stranded carbon (unused capacity): 9.9 tCO2e/yr (18.3%)",
-      "Productive carbon (serving users): 44.3 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 94.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 34.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 6.4 tCO2e/yr (18.3%)",
+      "Productive carbon (serving users): 28.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 75.0 tCO2e",
       "Surface temperature delta (UHI proxy): -4.5 \u00b0C [data anomaly \u2014 verify canopy overlay]",
       "Occupancy: 81.7%",
       "Vacancy: 1 months",
       "NOI (RM, annual): 1,861,418",
       "NOI yield (annual): 1.9852",
-      "DSR: 0.91",
+      "DSR: 0.48",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.95",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 12.8%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,252",
@@ -29684,7 +29837,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -29746,7 +29900,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -29786,11 +29941,11 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 72.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 72.7 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 76.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 76.5 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 79.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 85.0 tCO2e",
       "Surface temperature delta (UHI proxy): -4.5 \u00b0C [data anomaly \u2014 verify canopy overlay]",
       "Occupancy: 0.0%",
       "Vacancy: 72 months",
@@ -29830,7 +29985,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -29859,7 +30015,6 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon_ratio_small_asset",
       "negative_noi"
@@ -29870,7 +30025,6 @@
       "reasons": [
         "low_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon_ratio_small_asset"
       ]
@@ -29888,7 +30042,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -29896,43 +30051,39 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.3
+        "contribution": 0.3333
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.1
+        "contribution": 0.2222
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1
+        "contribution": 0.1111
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1
+        "contribution": 0.1111
       }
     ],
     "evidence": [
-      "Subtype: convenience_retail",
-      "Operational carbon: 54.5 tCO2e/yr",
-      "Stranded carbon (unused capacity): 54.5 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 35.0 tCO2e/yr",
+      "Stranded carbon (unused capacity): 35.0 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 89.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 71.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 24 months",
       "NOI (RM, annual): -94,311",
       "NOI yield (annual): -0.1065",
-      "DSR: 0.44",
+      "DSR: 0.88",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.82",
+      "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 8.9%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,014",
@@ -29969,7 +30120,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -29989,16 +30141,16 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 71.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 12.0 tCO2e/yr (16.8%)",
-      "Productive carbon (serving users): 59.2 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 73.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 74.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 16.3 tCO2e/yr (21.8%)",
+      "Productive carbon (serving users): 58.6 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 78.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 83.2%",
+      "Occupancy: 78.2%",
       "Vacancy: 2 months",
-      "NOI (RM, annual): 1,020,431",
-      "NOI yield (annual): 1.1975",
+      "NOI (RM, annual): 953,620",
+      "NOI yield (annual): 1.1191",
       "DSR: nan",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -30236,7 +30388,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -30256,11 +30409,11 @@
       }
     ],
     "evidence": [
-      "Subtype: services",
-      "Operational carbon: 33.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 6.7 tCO2e/yr (19.9%)",
-      "Productive carbon (serving users): 27.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 78.0 tCO2e",
+      "Subtype: convenience_retail",
+      "Operational carbon: 52.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 10.4 tCO2e/yr (19.9%)",
+      "Productive carbon (serving users): 42.0 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 85.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 80.1%",
       "Vacancy: 0 months",
@@ -30498,7 +30651,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -30544,7 +30698,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -30602,7 +30757,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -30644,9 +30800,9 @@
       "Vacancy: 36 months",
       "NOI (RM, annual): -85,602",
       "NOI yield (annual): -0.1073",
-      "DSR: 0.45",
+      "DSR: 0.27",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.74",
+      "Neighborhood diversity: 0.93",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,319",
@@ -30692,7 +30848,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -30728,19 +30885,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 61.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 61.8 tCO2e/yr (100.0%)",
+      "Subtype: kopitiam",
+      "Operational carbon: 29.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 29.3 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 68.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 63.0 tCO2e",
       "Surface temperature delta (UHI proxy): -4.5 \u00b0C [data anomaly \u2014 verify canopy overlay]",
       "Occupancy: 0.0%",
       "Vacancy: 108 months",
       "NOI (RM, annual): -88,727",
       "NOI yield (annual): -0.1126",
-      "DSR: 0.04",
+      "DSR: 0.0",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.91",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,240",
@@ -30772,7 +30929,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -30818,7 +30976,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -30869,7 +31028,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -30928,7 +31088,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -30982,7 +31143,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -31028,7 +31190,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -31074,7 +31237,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -31120,7 +31284,8 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade"
+        "pedestrian_upgrade",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer2"
@@ -31181,19 +31346,17 @@
     "status": "deadspace_candidate",
     "flags": [
       "below_benchmark_occupancy",
-      "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
       "chronic_stagnation",
       "negative_noi",
       "maintenance_surge_high"
     ],
-    "urgency_index": 6.0,
+    "urgency_index": 5.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
-        "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
         "chronic_stagnation"
@@ -31213,7 +31376,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31221,57 +31385,54 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.3
-      },
-      {
-        "factor": "long_vacancy",
-        "contribution": 0.2
+        "contribution": 0.375
       },
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.1
+        "contribution": 0.125
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1
+        "contribution": 0.125
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1
+        "contribution": 0.125
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1
+        "contribution": 0.125
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.1
+        "contribution": 0.125
       }
     ],
     "evidence": [
       "Subtype: supermarket",
-      "Operational carbon: 1,190 tCO2e/yr",
-      "Stranded carbon (unused capacity): 535.7 tCO2e/yr (45.0%)",
-      "Productive carbon (serving users): 654.8 tCO2e/yr",
+      "Operational carbon: 865.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 270.9 tCO2e/yr (31.3%)",
+      "Productive carbon (serving users): 594.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,020 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 55.0%",
-      "Vacancy: 14 months",
-      "NOI (RM, annual): -1,331,381",
-      "NOI yield (annual): -0.0791",
-      "DSR: 0.29",
+      "Occupancy: 68.7%",
+      "Vacancy: 6 months",
+      "NOI (RM, annual): -1,121,157",
+      "NOI yield (annual): -0.0666",
+      "DSR: 0.5",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 10.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,313",
       "Subtype occupancy:",
-      "  supermarket: 50.4%",
-      "  services: 56.3%",
-      "  convenience_retail: 57.5%",
-      "  showroom: 57.6%",
-      "  f_and_b: 61.7%",
-      "  medical_retail: 69.2%",
+      "  kopitiam: 55.0%",
+      "  services: 55.0%",
+      "  medical_retail: 55.0%",
+      "  cafe: 69.3%",
+      "  restaurant: 71.8%",
+      "  office: 83.5%",
+      "  convenience_retail: 87.4%",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -31303,7 +31464,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31359,7 +31521,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31415,7 +31578,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31471,7 +31635,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31527,7 +31692,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31583,7 +31749,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31639,7 +31806,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31695,7 +31863,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31751,7 +31920,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31807,7 +31977,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31863,7 +32034,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31919,7 +32091,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -31975,7 +32148,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32033,7 +32207,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32095,7 +32270,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32155,7 +32331,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32211,7 +32388,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32267,7 +32445,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32323,7 +32502,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32379,7 +32559,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32435,7 +32616,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32491,7 +32673,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32547,7 +32730,8 @@
       "candidate_interventions": [
         "retrofit",
         "pedestrian_upgrade",
-        "repurpose"
+        "repurpose",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32616,7 +32800,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32656,27 +32841,31 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 230.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 208.1 tCO2e/yr (90.2%)",
-      "Productive carbon (serving users): 22.6 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 300.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 302.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 282.1 tCO2e/yr (93.3%)",
+      "Productive carbon (serving users): 20.3 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 512.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 9.8%",
+      "Occupancy: 6.7%",
       "Vacancy: 33 months",
-      "NOI (RM, annual): -158,767",
-      "NOI yield (annual): -0.0454",
-      "DSR: 0.02",
+      "NOI (RM, annual): -458,861",
+      "NOI yield (annual): -0.0819",
+      "DSR: 0.08",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,007",
       "Subtype occupancy:",
-      "  convenience_retail: 0.0% [dead]",
-      "  services: 8.5% [dead]",
-      "  f_and_b: 17.3% [low]",
-      "Trajectory: rapid decline (from 88.6% peak, 3 yr ago)"
+      "  kopitiam: 2.3% [dead]",
+      "  cafe: 3.7% [dead]",
+      "  office: 4.0% [dead]",
+      "  medical_retail: 4.1% [dead]",
+      "  services: 4.6% [dead]",
+      "  convenience_retail: 10.9% [low]",
+      "  restaurant: 17.4% [low]",
+      "Trajectory: rapid decline (from 83.0% peak, 2 yr ago)"
     ],
     "model_version": "0.4.0"
   },
@@ -32710,7 +32899,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32730,27 +32920,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 230.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 33.5 tCO2e/yr (14.5%)",
-      "Productive carbon (serving users): 197.2 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 300.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 83.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 7.9 tCO2e/yr (9.5%)",
+      "Productive carbon (serving users): 75.2 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 168.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 85.5%",
+      "Occupancy: 90.5%",
       "Vacancy: 0 months",
-      "NOI (RM, annual): 1,466,504",
-      "NOI yield (annual): 0.419",
-      "DSR: 0.02",
+      "NOI (RM, annual): 1,753,114",
+      "NOI yield (annual): 0.8348",
+      "DSR: 0.0",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,015",
-      "Subtype occupancy:",
-      "  services: 65.8%",
-      "  convenience_retail: 86.4%",
-      "  f_and_b: 89.8%",
-      "Trajectory: stable (5-yr peak 85.8%)"
+      "Trajectory: stable (5-yr peak 90.8%)"
     ],
     "model_version": "0.4.0"
   },
@@ -32792,7 +32978,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32828,19 +33015,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 146.1 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 246.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 246.1 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 256.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 180 months",
-      "NOI (RM, annual): -208,161",
+      "NOI (RM, annual): -333,058",
       "NOI yield (annual): -0.1189",
-      "DSR: 0.02",
+      "DSR: 0.11",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,126",
@@ -32853,29 +33040,25 @@
     "year": 2026,
     "status": "deadspace_candidate",
     "flags": [
-      "below_benchmark_occupancy",
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
-      "subtype_mix_low",
-      "chronic_stagnation",
+      "negative_noi",
       "maintenance_surge_high"
     ],
-    "urgency_index": 5.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
-        "below_benchmark_occupancy",
         "long_vacancy",
         "dsr_below_threshold",
-        "walking_accessibility_deficit",
-        "subtype_mix_low",
-        "chronic_stagnation"
+        "walking_accessibility_deficit"
       ]
     },
     "layer2": {
       "triggered": true,
       "reasons": [
+        "negative_noi",
         "maintenance_surge_high"
       ]
     },
@@ -32886,19 +33069,20 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
-        "factor": "long_vacancy",
-        "contribution": 0.25
+        "factor": "negative_noi",
+        "contribution": 0.375
       },
       {
-        "factor": "below_benchmark_occupancy",
-        "contribution": 0.125
+        "factor": "long_vacancy",
+        "contribution": 0.25
       },
       {
         "factor": "dsr_below_threshold",
@@ -32909,40 +33093,36 @@
         "contribution": 0.125
       },
       {
-        "factor": "subtype_mix_low",
-        "contribution": 0.125
-      },
-      {
-        "factor": "chronic_stagnation",
-        "contribution": 0.125
-      },
-      {
         "factor": "maintenance_surge_high",
         "contribution": 0.125
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 230.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 103.8 tCO2e/yr (45.0%)",
-      "Productive carbon (serving users): 126.9 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 300.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 302.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 104.6 tCO2e/yr (34.6%)",
+      "Productive carbon (serving users): 197.7 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 512.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 55.0%",
+      "Occupancy: 65.4%",
       "Vacancy: 15 months",
-      "NOI (RM, annual): 93,995",
-      "NOI yield (annual): 0.0269",
-      "DSR: 0.01",
+      "NOI (RM, annual): -64,581",
+      "NOI yield (annual): -0.0115",
+      "DSR: 0.07",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.89",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,076",
       "Subtype occupancy:",
-      "  services: 36.9% [low]",
-      "  f_and_b: 58.4%",
-      "  convenience_retail: 70.8%",
-      "Trajectory: chronic low (5 consecutive years below benchmark)"
+      "  restaurant: 55.0%",
+      "  kopitiam: 55.0%",
+      "  services: 55.0%",
+      "  medical_retail: 55.0%",
+      "  cafe: 70.0%",
+      "  office: 78.6%",
+      "  convenience_retail: 89.1%",
+      "Trajectory: stable (5-yr peak 71.5%)"
     ],
     "model_version": "0.4.0"
   },
@@ -32976,7 +33156,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -32996,19 +33177,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 32.1 tCO2e/yr (22.0%)",
-      "Productive carbon (serving users): 114.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 246.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 66.4 tCO2e/yr (27.0%)",
+      "Productive carbon (serving users): 179.6 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 256.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 78.0%",
+      "Occupancy: 73.0%",
       "Vacancy: 3 months",
-      "NOI (RM, annual): 599,878",
-      "NOI yield (annual): 0.3428",
-      "DSR: 0.02",
+      "NOI (RM, annual): 423,181",
+      "NOI yield (annual): 0.1511",
+      "DSR: 0.11",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,143",
@@ -33046,7 +33227,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33066,23 +33248,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 25.4 tCO2e/yr (17.4%)",
-      "Productive carbon (serving users): 120.7 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 246.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 55.1 tCO2e/yr (22.4%)",
+      "Productive carbon (serving users): 191.0 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 256.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.6%",
+      "Occupancy: 77.6%",
       "Vacancy: 0 months",
-      "NOI (RM, annual): 1,662,053",
-      "NOI yield (annual): 0.9497",
-      "DSR: 0.02",
+      "NOI (RM, annual): 1,411,914",
+      "NOI yield (annual): 0.5043",
+      "DSR: 0.11",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,149",
-      "Trajectory: stable (5-yr peak 87.1%)"
+      "Trajectory: stable (5-yr peak 82.1%)"
     ],
     "model_version": "0.4.0"
   },
@@ -33122,7 +33304,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33154,19 +33337,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 146.1 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 246.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 246.1 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 256.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 24 months",
-      "NOI (RM, annual): -186,414",
+      "NOI (RM, annual): -298,263",
       "NOI yield (annual): -0.1065",
-      "DSR: 0.01",
+      "DSR: 0.1",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,094",
@@ -33183,12 +33366,11 @@
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
-      "high_stranded_carbon",
-      "subtype_mix_dead",
+      "high_stranded_carbon_ratio_small_asset",
       "rapid_decline",
       "negative_noi"
     ],
-    "urgency_index": 11.0,
+    "urgency_index": 8.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -33196,8 +33378,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
-        "high_stranded_carbon",
-        "subtype_mix_dead",
+        "high_stranded_carbon_ratio_small_asset",
         "rapid_decline"
       ]
     },
@@ -33214,66 +33395,59 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
-        "factor": "subtype_mix_dead",
-        "contribution": 0.1875
-      },
-      {
         "factor": "negative_noi",
-        "contribution": 0.1875
+        "contribution": 0.25
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.125
+        "contribution": 0.1667
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.125
-      },
-      {
-        "factor": "high_stranded_carbon",
-        "contribution": 0.125
+        "contribution": 0.1667
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.125
+        "contribution": 0.1667
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0625
+        "contribution": 0.0833
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0625
+        "contribution": 0.0833
+      },
+      {
+        "factor": "high_stranded_carbon_ratio_small_asset",
+        "contribution": 0.0833
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 230.7 tCO2e/yr",
-      "Stranded carbon (unused capacity): 211.6 tCO2e/yr (91.7%)",
-      "Productive carbon (serving users): 19.1 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 300.0 tCO2e",
+      "Subtype: cafe",
+      "Operational carbon: 76.9 tCO2e/yr",
+      "Stranded carbon (unused capacity): 70.5 tCO2e/yr (91.7%)",
+      "Productive carbon (serving users): 6.4 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 120.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 8.3%",
       "Vacancy: 30 months",
-      "NOI (RM, annual): -297,206",
-      "NOI yield (annual): -0.0849",
-      "DSR: 0.01",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.89",
+      "NOI (RM, annual): -66,518",
+      "NOI yield (annual): -0.0475",
+      "DSR: 0.02",
+      "Demographic mismatch: 0.14",
+      "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,130",
-      "Subtype occupancy:",
-      "  f_and_b: 0.0% [dead]",
-      "  services: 13.8% [low]",
-      "  convenience_retail: 19.1% [low]",
       "Trajectory: rapid decline (from 89.6% peak, 3 yr ago)"
     ],
     "model_version": "0.4.0"
@@ -33308,7 +33482,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33328,23 +33503,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 22.5 tCO2e/yr (15.4%)",
-      "Productive carbon (serving users): 123.6 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 246.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 50.2 tCO2e/yr (20.4%)",
+      "Productive carbon (serving users): 195.9 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 256.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 84.6%",
+      "Occupancy: 79.6%",
       "Vacancy: 0 months",
-      "NOI (RM, annual): 1,204,785",
-      "NOI yield (annual): 0.6884",
-      "DSR: 0.02",
+      "NOI (RM, annual): 980,909",
+      "NOI yield (annual): 0.3503",
+      "DSR: 0.12",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,015",
-      "Trajectory: stable (5-yr peak 88.0%)"
+      "Trajectory: stable (5-yr peak 83.0%)"
     ],
     "model_version": "0.4.0"
   },
@@ -33378,7 +33553,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33398,19 +33574,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 25.0 tCO2e/yr (17.1%)",
-      "Productive carbon (serving users): 121.1 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 41.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 5.0 tCO2e/yr (12.1%)",
+      "Productive carbon (serving users): 36.5 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 84.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.9%",
+      "Occupancy: 87.9%",
       "Vacancy: 1 months",
-      "NOI (RM, annual): 871,472",
-      "NOI yield (annual): 0.498",
-      "DSR: 0.02",
+      "NOI (RM, annual): 1,024,862",
+      "NOI yield (annual): 0.9761",
+      "DSR: 0.0",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,001",
@@ -33448,7 +33624,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33478,9 +33655,9 @@
       "Vacancy: 2 months",
       "NOI (RM, annual): 1,969,512",
       "NOI yield (annual): 0.9379",
-      "DSR: 0.03",
+      "DSR: 0.04",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.88",
+      "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 6.6%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,085",
@@ -33518,7 +33695,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33538,23 +33716,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 32.4 tCO2e/yr (22.2%)",
-      "Productive carbon (serving users): 113.7 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Subtype: cafe",
+      "Operational carbon: 38.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 12.4 tCO2e/yr (32.2%)",
+      "Productive carbon (serving users): 26.1 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 60.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 77.8%",
-      "Vacancy: 2 months",
-      "NOI (RM, annual): 604,763",
-      "NOI yield (annual): 0.3456",
+      "Occupancy: 67.8%",
+      "Vacancy: 12 months",
+      "NOI (RM, annual): 634,984",
+      "NOI yield (annual): 0.9071",
       "DSR: nan",
-      "Demographic mismatch: 0.0",
+      "Demographic mismatch: 0.2",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,802",
-      "Trajectory: stable (5-yr peak 86.0%)"
+      "Trajectory: stable (5-yr peak 76.0%)"
     ],
     "model_version": "0.4.0"
   },
@@ -33588,7 +33766,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33608,23 +33787,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 146.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 26.2 tCO2e/yr (17.9%)",
-      "Productive carbon (serving users): 120.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
+      "Subtype: cafe",
+      "Operational carbon: 38.5 tCO2e/yr",
+      "Stranded carbon (unused capacity): 10.7 tCO2e/yr (27.9%)",
+      "Productive carbon (serving users): 27.7 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 60.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.1%",
+      "Occupancy: 72.1%",
       "Vacancy: 1 months",
-      "NOI (RM, annual): 1,850,505",
-      "NOI yield (annual): 1.0574",
-      "DSR: 0.11",
-      "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "NOI (RM, annual): 1,732,199",
+      "NOI yield (annual): 2.4746",
+      "DSR: 0.38",
+      "Demographic mismatch: 0.15",
+      "Neighborhood diversity: 0.94",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,337",
-      "Trajectory: stable (5-yr peak 84.9%)"
+      "Trajectory: stable (5-yr peak 74.9%)"
     ],
     "model_version": "0.4.0"
   },
@@ -33664,7 +33843,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33696,19 +33876,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 81.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 81.1 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 85.4 tCO2e/yr",
+      "Stranded carbon (unused capacity): 85.4 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 83.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 89.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 48 months",
       "NOI (RM, annual): -105,028",
       "NOI yield (annual): -0.1081",
-      "DSR: 0.1",
+      "DSR: 0.3",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,452",
@@ -33746,7 +33926,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33766,23 +33947,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 165.2 tCO2e/yr",
-      "Stranded carbon (unused capacity): 33.2 tCO2e/yr (20.1%)",
-      "Productive carbon (serving users): 132.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 170.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 78.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 11.8 tCO2e/yr (15.1%)",
+      "Productive carbon (serving users): 66.4 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 158.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 79.9%",
+      "Occupancy: 84.9%",
       "Vacancy: 2 months",
-      "NOI (RM, annual): 1,314,344",
-      "NOI yield (annual): 0.6642",
+      "NOI (RM, annual): 1,412,046",
+      "NOI yield (annual): 0.7136",
       "DSR: nan",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): nan",
-      "Trajectory: stable (5-yr peak 82.4%)"
+      "Trajectory: stable (5-yr peak 87.4%)"
     ],
     "model_version": "0.4.0"
   },
@@ -33791,7 +33972,6 @@
     "year": 2026,
     "status": "deadspace_candidate",
     "flags": [
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "maintenance_surge_high"
     ],
@@ -33799,7 +33979,6 @@
     "layer1": {
       "triggered": true,
       "reasons": [
-        "dsr_below_threshold",
         "walking_accessibility_deficit"
       ]
     },
@@ -33816,47 +33995,40 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
     },
     "contributing_factors": [
       {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.3333
-      },
-      {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.3333
+        "contribution": 0.5
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.3333
+        "contribution": 0.5
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 181.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 31.7 tCO2e/yr (17.4%)",
-      "Productive carbon (serving users): 150.3 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 237.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 83.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 10.3 tCO2e/yr (12.4%)",
+      "Productive carbon (serving users): 72.8 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 168.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 82.6%",
+      "Occupancy: 87.6%",
       "Vacancy: 0 months",
-      "NOI (RM, annual): 1,873,629",
-      "NOI yield (annual): 0.6789",
-      "DSR: 0.1",
+      "NOI (RM, annual): 2,087,290",
+      "NOI yield (annual): 0.9939",
+      "DSR: nan",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.77",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,349",
-      "Subtype occupancy:",
-      "  f_and_b: 77.9%",
-      "  convenience_retail: 86.4%",
-      "  services: 93.0%",
-      "Trajectory: stable (5-yr peak 82.6%)"
+      "Trajectory: stable (5-yr peak 87.6%)"
     ],
     "model_version": "0.4.0"
   },
@@ -33898,7 +34070,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -33934,19 +34107,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 152.5 tCO2e/yr",
-      "Stranded carbon (unused capacity): 152.5 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 160.6 tCO2e/yr",
+      "Stranded carbon (unused capacity): 160.6 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 157.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 167.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 168 months",
       "NOI (RM, annual): -215,244",
       "NOI yield (annual): -0.1178",
-      "DSR: 0.06",
+      "DSR: 0.23",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 0.0%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,385",
@@ -33990,7 +34163,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -34022,19 +34196,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 32.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 32.1 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 33.8 tCO2e/yr",
+      "Stranded carbon (unused capacity): 33.8 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 33.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 35.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 36 months",
       "NOI (RM, annual): -41,230",
       "NOI yield (annual): -0.1073",
-      "DSR: 0.11",
+      "DSR: 0.31",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,296",
@@ -34078,7 +34252,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -34110,19 +34285,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 75.1 tCO2e/yr",
-      "Stranded carbon (unused capacity): 75.1 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 79.1 tCO2e/yr",
+      "Stranded carbon (unused capacity): 79.1 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 77.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 82.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 48 months",
       "NOI (RM, annual): -97,279",
       "NOI yield (annual): -0.1081",
-      "DSR: 0.09",
+      "DSR: 0.31",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,418",
@@ -34160,7 +34335,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -34180,19 +34356,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 144.3 tCO2e/yr",
-      "Stranded carbon (unused capacity): 33.8 tCO2e/yr (23.4%)",
-      "Productive carbon (serving users): 110.5 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 148.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 68.3 tCO2e/yr",
+      "Stranded carbon (unused capacity): 12.6 tCO2e/yr (18.4%)",
+      "Productive carbon (serving users): 55.8 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 138.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 76.6%",
+      "Occupancy: 81.6%",
       "Vacancy: 2 months",
-      "NOI (RM, annual): 1,555,295",
-      "NOI yield (annual): 0.9001",
+      "NOI (RM, annual): 1,670,994",
+      "NOI yield (annual): 0.9671",
       "DSR: 0.11",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,385",
@@ -34236,7 +34412,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -34268,19 +34445,19 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 79.6 tCO2e/yr",
-      "Stranded carbon (unused capacity): 79.6 tCO2e/yr (100.0%)",
+      "Subtype: restaurant",
+      "Operational carbon: 83.8 tCO2e/yr",
+      "Stranded carbon (unused capacity): 83.8 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 82.0 tCO2e",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 87.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 0.0%",
       "Vacancy: 144 months",
       "NOI (RM, annual): -110,218",
       "NOI yield (annual): -0.1156",
-      "DSR: 0.1",
+      "DSR: 0.31",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,457",
@@ -34318,7 +34495,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1+layer2"
@@ -34338,23 +34516,23 @@
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 92.8 tCO2e/yr",
-      "Stranded carbon (unused capacity): 23.4 tCO2e/yr (25.2%)",
-      "Productive carbon (serving users): 69.4 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 95.0 tCO2e",
+      "Subtype: restaurant",
+      "Operational carbon: 97.7 tCO2e/yr",
+      "Stranded carbon (unused capacity): 29.5 tCO2e/yr (30.2%)",
+      "Productive carbon (serving users): 68.2 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 102.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
-      "Occupancy: 74.8%",
-      "Vacancy: 1 months",
-      "NOI (RM, annual): 1,877,627",
-      "NOI yield (annual): 1.6885",
-      "DSR: 0.09",
+      "Occupancy: 69.8%",
+      "Vacancy: 12 months",
+      "NOI (RM, annual): 1,742,848",
+      "NOI yield (annual): 1.5673",
+      "DSR: 0.31",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,410",
-      "Trajectory: stable (5-yr peak 81.6%)"
+      "Trajectory: stable (5-yr peak 76.6%)"
     ],
     "model_version": "0.4.0"
   },
@@ -34367,7 +34545,7 @@
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
-      "high_stranded_carbon",
+      "high_stranded_carbon_ratio_small_asset",
       "rapid_decline"
     ],
     "urgency_index": 6.0,
@@ -34378,7 +34556,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
-        "high_stranded_carbon",
+        "high_stranded_carbon_ratio_small_asset",
         "rapid_decline"
       ]
     },
@@ -34393,7 +34571,8 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor"
+        "green_corridor",
+        "renovation"
       ],
       "diagnosis_active": true,
       "reason": "diagnosis triggered by layer1"
@@ -34401,43 +34580,43 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2
-      },
-      {
-        "factor": "high_stranded_carbon",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1
+        "contribution": 0.1111
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1
+        "contribution": 0.1111
+      },
+      {
+        "factor": "high_stranded_carbon_ratio_small_asset",
+        "contribution": 0.1111
       }
     ],
     "evidence": [
-      "Subtype: f_and_b",
-      "Operational carbon: 144.9 tCO2e/yr",
-      "Stranded carbon (unused capacity): 122.3 tCO2e/yr (84.4%)",
-      "Productive carbon (serving users): 22.6 tCO2e/yr",
-      "Embodied carbon locked in structure (subtype benchmark estimate): 149.0 tCO2e",
+      "Subtype: kopitiam",
+      "Operational carbon: 68.6 tCO2e/yr",
+      "Stranded carbon (unused capacity): 57.9 tCO2e/yr (84.4%)",
+      "Productive carbon (serving users): 10.7 tCO2e/yr",
+      "Embodied carbon locked in structure (subtype benchmark estimate): 139.0 tCO2e",
       "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 15.6%",
       "Vacancy: 17 months",
       "NOI (RM, annual): 15,534",
       "NOI yield (annual): 0.009",
-      "DSR: 0.11",
+      "DSR: 0.08",
       "Demographic mismatch: 0.0",
-      "Neighborhood diversity: 0.79",
+      "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 4.4%",
       "Drive 10-min coverage: 95.1%",
       "Median walk distance (m): 1,319",
@@ -37124,7 +37303,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 8,716",
       "Potential GFA (m2): 13,075",
-      "Demand-supply gap: -80,364",
+      "Demand-supply gap: -80,969",
       "Infrastructure cost (RM): 1,743,298"
     ],
     "model_version": "0.4.0"
@@ -37180,7 +37359,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 3,142",
       "Potential GFA (m2): 4,712",
-      "Demand-supply gap: -80,364",
+      "Demand-supply gap: -80,969",
       "Infrastructure cost (RM): 628,320"
     ],
     "model_version": "0.4.0"
@@ -37236,7 +37415,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 4,525",
       "Potential GFA (m2): 6,788",
-      "Demand-supply gap: -65,593",
+      "Demand-supply gap: -59,868",
       "Infrastructure cost (RM): 905,046"
     ],
     "model_version": "0.4.0"
@@ -37292,7 +37471,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 5,180",
       "Potential GFA (m2): 7,770",
-      "Demand-supply gap: -80,364",
+      "Demand-supply gap: -80,969",
       "Infrastructure cost (RM): 1,035,994"
     ],
     "model_version": "0.4.0"
@@ -37348,7 +37527,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 8,978",
       "Potential GFA (m2): 13,467",
-      "Demand-supply gap: -65,593",
+      "Demand-supply gap: -59,868",
       "Infrastructure cost (RM): 1,795,596"
     ],
     "model_version": "0.4.0"
@@ -37404,7 +37583,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 5,644",
       "Potential GFA (m2): 8,465",
-      "Demand-supply gap: -80,364",
+      "Demand-supply gap: -80,969",
       "Infrastructure cost (RM): 1,128,732"
     ],
     "model_version": "0.4.0"
@@ -37460,7 +37639,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 2,530",
       "Potential GFA (m2): 3,795",
-      "Demand-supply gap: -65,593",
+      "Demand-supply gap: -59,868",
       "Infrastructure cost (RM): 505,970"
     ],
     "model_version": "0.4.0"
@@ -37516,7 +37695,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 9,642",
       "Potential GFA (m2): 14,463",
-      "Demand-supply gap: -65,593",
+      "Demand-supply gap: -59,868",
       "Infrastructure cost (RM): 1,928,448"
     ],
     "model_version": "0.4.0"
@@ -37572,7 +37751,7 @@
       "Surface temperature delta (UHI proxy): nan \u00b0C",
       "Developable area (m2): 3,678",
       "Potential GFA (m2): 5,516",
-      "Demand-supply gap: -65,593",
+      "Demand-supply gap: -59,868",
       "Infrastructure cost (RM): 735,524"
     ],
     "model_version": "0.4.0"

@@ -96,7 +96,9 @@ COMMERCIAL_MIX_MID_MIN_M2 = 600
 # Typical area per unit when splitting a commercial mix into count
 COMMERCIAL_UNIT_TYPICAL_M2 = {
     "supermarket": 2000, "convenience_retail": 250,   # was 200
-    "f_and_b": 250, "services": 250,                  # was 200
+    "f_and_b": 250, "restaurant": 400,
+    "kopitiam": 180, "cafe": 150, 
+    "services": 250,                  # was 200
     "medical_retail": 200, "showroom": 600,
     "office": 600, "entertainment": 500,
 }
@@ -217,6 +219,9 @@ FLOOR_RANGE_BY_SUBTYPE = {
     # Commercial
     "convenience_retail": (1, 2),
     "f_and_b":            (1, 2),
+    "restaurant":         (1, 2),
+    "kopitiam":           (1, 2),
+    "cafe":               (1, 2),
     "supermarket":        (1, 2),
     "medical_retail":     (1, 2),
     "services":           (1, 2),
@@ -276,8 +281,14 @@ def infer_subtype(raw, footprint_m2, building_type):
         return "supermarket"
     if bt in {"convenience", "kiosk"}:
         return "convenience_retail"
-    if bt in {"restaurant", "cafe", "fast_food", "food_court"}:
-        return "f_and_b"
+    if bt in {"restaurant", "fine_dining", "steakhouse"}:
+        return "restaurant"
+    if bt in {"fast_food", "food_court", "hawker", "food_stall"}:
+        return "kopitiam"
+    if bt in {"cafe", "coffee_shop", "ice_cream", "juice_bar"}:
+        return "cafe"
+    if bt in {"bar", "pub", "biergarten"}:
+        return "restaurant"   # alcohol-serving, sit-down
     if bt == "office":
         return "office"
     if bt == "showroom":
@@ -314,7 +325,13 @@ def infer_subtype(raw, footprint_m2, building_type):
         if fp < 300:
             return "convenience_retail"
         if fp < 1000:
-            return "f_and_b"
+            _seed = f"{bt}-{fp:.0f}-{building_type}"
+            _b = seeded_uniform(_seed, 0.0, 1.0)
+            if _b < 0.50:
+                return "kopitiam"
+            if _b < 0.80:
+                return "restaurant"
+            return "cafe"
         return "supermarket"
 
     if building_type == "community_facility":
@@ -414,6 +431,36 @@ def amenity_to_asset_row(row, index: int) -> dict:
 
     asset_type, subtype, default_fp = atype_map
 
+    # Phase B.4 — F&B subtype refinement from raw OSM tag.
+    # The taxonomy now distinguishes restaurant / kopitiam / cafe,
+    # but the amenity layer normalised every F&B tag to the single
+    # "food_beverage" bucket. Recover the original category from
+    # amenity_type_raw so each amenity-derived F&B asset lands on
+    # the correct subtype.
+    if subtype == "f_and_b":
+        _raw = str(row.get("amenity_type_raw") or "").lower().strip()
+        if _raw in {"restaurant", "fine_dining", "steakhouse"}:
+            subtype = "restaurant"
+        elif _raw in {"fast_food", "food_court", "hawker", "food_stall"}:
+            subtype = "kopitiam"
+        elif _raw in {"cafe", "coffee_shop", "ice_cream", "juice_bar"}:
+            subtype = "cafe"
+        elif _raw in {"bar", "pub", "biergarten"}:
+            subtype = "restaurant"
+        else:
+            # Generic or unmatched raw tag. Distribute
+            # deterministically so no cluster of generic
+            # f_and_b remains. Malaysian shoplot mix is
+            # roughly 1 sit-down : 2 kopitiam : 1 cafe.
+            _aid = str(row.get("amenity_id") or "")
+            _bucket = seeded_uniform(f"{_aid}-fnb-subtype", 0.0, 1.0)
+            if _bucket < 0.50:
+                subtype = "kopitiam"
+            elif _bucket < 0.80:
+                subtype = "restaurant"
+            else:
+                subtype = "cafe"
+
     matched_fp = row.get("_matched_footprint_m2")
     if pd.notna(matched_fp) and float(matched_fp) >= MIN_BUILDING_FOOTPRINT_M2:
         fp = float(matched_fp)
@@ -497,6 +544,9 @@ CAPACITY_PER_M2 = {
     "affordable_housing": 1 / 35,
     "convenience_retail": 1 / 60,
     "f_and_b":            1 / 20,
+    "restaurant":         1 / 15,   # sit-down, tables take more space
+    "kopitiam":           1 / 12,   # shared tables, tight
+    "cafe":               1 / 18,
     "supermarket":        1 / 15,
     "office":             1 / 15,
     "services":           1 / 60,
@@ -551,6 +601,9 @@ TARGET_DEMOGRAPHIC_BY_SUBTYPE = {
     "apartment_highrise": "young_adults",
     "convenience_retail": "all",
     "f_and_b":            "workers",
+    "restaurant":         "all",
+    "kopitiam":           "all",
+    "cafe":               "young_adults",
     "supermarket":        "all",
     "office":             "workers",
     "services":           "all",
@@ -606,6 +659,9 @@ SUBTYPE_TO_BUILDING_TYPE = {
     "affordable_housing": "residential",
     "convenience_retail": "commercial",
     "f_and_b": "commercial",
+    "restaurant": "commercial",
+    "kopitiam": "commercial",
+    "cafe": "commercial",
     "supermarket": "commercial",
     "medical_retail": "commercial",
     "services": "commercial",
@@ -1330,50 +1386,188 @@ def _parse_unit_mix(raw):
     return None
 
 
-def _compute_commercial_unit_mix(asset_row, lettable_area_m2, subtype):
+def _designate_community_centre(assets_df):
     """
-    Compute a subtype-level unit mix for a commercial asset.
+    Return the asset_id of the SINGLE community_centre asset.
 
-    A mall is not a single 8000 m² commercial block; it is a stack
-    of sub-types (supermarket, small retail, F&B, services, ...).
-    Each subtype has its own competition radius, so a single-block
-    Huff node distorts competition on both sides.
+    A 3 km² township the size of Bukit Jelutong has at most one
+    Space U8-scale community retail centre. Larger townships can
+    have two, but our mock scope is one.
 
-    Returns
-    -------
-    dict | None
-        {"supermarket": {"count": 1, "area_m2": 2000},
-         "f_and_b":     {"count": 5, "area_m2": 1000},
-         ...}
-        or None if the asset is too small to justify a mix.
+    Selection: the largest commercial asset by lettable area,
+    provided it meets a minimum scale. Everything else is
+    shop-office row / cluster shop / single-storey shop.
     """
-    if lettable_area_m2 is None or lettable_area_m2 < COMMERCIAL_MIX_MID_MIN_M2:
+    comm = assets_df[assets_df["asset_type"] == "commercial"].copy()
+    if comm.empty:
+        return None
+    comm["_lettable"] = comm["lettable_area_m2"].fillna(0)
+    comm = comm[comm["_lettable"] >= 3000]
+    if comm.empty:
+        return None
+    idx = comm["_lettable"].idxmax()
+    return str(comm.loc[idx, "asset_id"])
+
+
+def _classify_commercial_form(asset_row, designated_mall_id=None):
+    """
+    Classify a commercial asset by PHYSICAL FORM.
+
+    Uses `lettable_area_m2` because `footprint_m2` and `floors`
+    live on the buildings layer, not on the asset row.
+    """
+    aid = str(asset_row.get("asset_id") or "")
+    if designated_mall_id and aid == designated_mall_id:
+        return "community_centre"
+
+    lettable = _safe_float(asset_row.get("lettable_area_m2"), 0.0)
+
+    if lettable < 400:
+        return "cluster_shop"
+    if lettable < 800:
+        return "single_storey_shop"
+    return "shop_office_row"
+
+
+def _shop_office_row_mix(lettable_area_m2):
+    """
+    Subtype mix for a Bukit Jelutong shop-office row.
+
+    Based on observed tenant composition in D'Vida Business Park,
+    Trivo Suria Jelutong, and Plaza Jelutong: F&B dominates the
+    ground floor; office dominates the upper floor; convenience
+    retail, services, and medical retail fill the remainder.
+
+    F&B is split across restaurant / kopitiam / cafe using the
+    typical Malaysian shoplot row ratio
+    (1 sit-down : 2 coffee-shop : 1 specialty).
+
+    The physical unit count is derived from lettable area at
+    ~200 m² per unit (a D'Vida shop-office unit averages
+    2,500-4,000 sqft across 2 floors).
+    """
+    if lettable_area_m2 is None or lettable_area_m2 < 400:
         return None
 
-    if lettable_area_m2 >= COMMERCIAL_MIX_LARGE_MIN_M2:
-        pattern = [
-            ("supermarket", 0.30),
-            ("convenience_retail", 0.25),
-            ("f_and_b", 0.22),
-            ("services", 0.12),
-            ("medical_retail", 0.06),
-            ("showroom", 0.05),
-        ]
-    else:
-        pattern = [
-            ("convenience_retail", 0.40),
-            ("f_and_b", 0.40),
-            ("services", 0.20),
-        ]
+    total_units = max(2, int(round(lettable_area_m2 / 200.0)))
+
+    # Base unit allocation
+    # F&B 42% of units, convenience 17%, services 13%, medical 8%,
+    # office 20% (upper floor). Leftover rolls into office.
+    n_fnb = max(1, int(round(total_units * 0.42)))
+    n_retail = max(1, int(round(total_units * 0.17)))
+    n_services = max(0, int(round(total_units * 0.13)))
+    n_medical = max(0, int(round(total_units * 0.08)))
+
+    # Split F&B into restaurant / kopitiam / cafe
+    if n_fnb >= 4:
+        n_restaurant = max(1, int(round(n_fnb * 0.25)))
+        n_kopitiam = max(1, int(round(n_fnb * 0.50)))
+        n_cafe = max(0, n_fnb - n_restaurant - n_kopitiam)
+    elif n_fnb == 3:
+        n_restaurant = 1
+        n_kopitiam = 1
+        n_cafe = 1
+    elif n_fnb == 2:
+        n_restaurant = 0
+        n_kopitiam = 1
+        n_cafe = 1
+    else:  # n_fnb == 1
+        n_restaurant = 0
+        n_kopitiam = 1
+        n_cafe = 0
+
+    allocated = (
+        n_restaurant + n_kopitiam + n_cafe
+        + n_retail + n_services + n_medical
+    )
+    n_office = max(1, total_units - allocated)
+
+    unit_counts = []
+    if n_restaurant > 0: unit_counts.append(("restaurant", n_restaurant))
+    if n_kopitiam > 0:   unit_counts.append(("kopitiam", n_kopitiam))
+    if n_cafe > 0:       unit_counts.append(("cafe", n_cafe))
+    if n_retail > 0:     unit_counts.append(("convenience_retail", n_retail))
+    if n_services > 0:   unit_counts.append(("services", n_services))
+    if n_medical > 0:    unit_counts.append(("medical_retail", n_medical))
+    unit_counts.append(("office", n_office))
+
+    total_alloc = sum(c for _, c in unit_counts)
+    if total_alloc <= 0:
+        return None
 
     mix = {}
-    for st, share in pattern:
-        area = round(lettable_area_m2 * share, 1)
-        typical = COMMERCIAL_UNIT_TYPICAL_M2.get(st, 200)
-        count = max(1, round(area / typical))
+    for st, count in unit_counts:
+        area = round(lettable_area_m2 * count / total_alloc, 1)
+        mix[st] = {"count": count, "area_m2": area}
+
+    return mix if len(mix) >= 2 else None
+
+
+def _community_centre_mix(lettable_area_m2):
+    """
+    Subtype mix for the SINGLE designated community centre.
+
+    Space U8-style: supermarket anchor, F&B layer (split into
+    restaurant / kopitiam / cafe), retail, medical, entertainment,
+    and upper-floor office. This is the only asset in the mock
+    township that receives a full mall-style mix.
+    """
+    if lettable_area_m2 is None or lettable_area_m2 < 3000:
+        return None
+
+    mix = {}
+    # Supermarket anchor — ~28% of lettable
+    sm_area = round(lettable_area_m2 * 0.28, 1)
+    mix["supermarket"] = {"count": 1, "area_m2": sm_area}
+    remaining = lettable_area_m2 - sm_area
+
+    # Split remaining across the rest of the tenancy
+    # (share, typical unit size m²)
+    pattern = [
+        ("restaurant",         0.22, 350),
+        ("kopitiam",           0.08, 150),
+        ("cafe",               0.08, 150),
+        ("convenience_retail", 0.12, 250),
+        ("medical_retail",     0.08, 180),
+        ("services",           0.10, 200),
+        ("entertainment",      0.15, 500),
+        ("office",             0.17, 250),
+    ]
+    total_share = sum(s for _, s, _ in pattern)
+
+    for st, share, typical_m2 in pattern:
+        area = round(remaining * (share / total_share), 1)
+        if area <= 0:
+            continue
+        count = max(1, int(round(area / typical_m2)))
         mix[st] = {"count": count, "area_m2": area}
 
     return mix
+
+
+def _compute_commercial_unit_mix(asset_row, lettable_area_m2, subtype,
+                                  designated_mall_id=None):
+    """
+    Top-level dispatcher. Determines the physical form and returns
+    the matching subtype mix.
+
+    Returns None for single-tenant assets (cluster shop,
+    single-storey shop) — those are one tenant, one subtype.
+    """
+    if lettable_area_m2 is None or lettable_area_m2 < 400:
+        return None
+
+    form = _classify_commercial_form(asset_row, designated_mall_id)
+
+    if form == "community_centre":
+        return _community_centre_mix(lettable_area_m2)
+
+    if form == "shop_office_row":
+        return _shop_office_row_mix(lettable_area_m2)
+
+    # cluster_shop / single_storey_shop → no mix, single tenant
+    return None
 
 
 def _assign_unsold_units(assets_df, unsold_ids):
@@ -1422,7 +1616,9 @@ def _target_final_occupancy(aid, asset):
 
     if atype == "commercial":
         benchmark = {
-            "supermarket": 0.90, "convenience_retail": 0.85, "f_and_b": 0.80,
+            "supermarket": 0.90, "convenience_retail": 0.85,
+            "f_and_b": 0.80,
+            "restaurant": 0.75, "kopitiam": 0.85, "cafe": 0.70,
             "services": 0.85, "medical_retail": 0.85, "office": 0.85,
             "showroom": 0.80, "entertainment": 0.70,
         }.get(subtype, 0.85)
@@ -1623,12 +1819,7 @@ def _make_year_metrics(asset, year, occ, base, index, trajectory):
 
         unit_mix = _parse_unit_mix(base.get("unit_mix_json"))
         if unit_mix is not None:
-            occ_by = {}
-            for st in unit_mix:
-                s_occ = max(0.0, min(1.0, occ + seeded_uniform(
-                    f"{aid}-{st}-{year}-occ", -0.20, 0.20)))
-                occ_by[st] = round(s_occ, 3)
-            row["occupancy_by_subtype_json"] = json.dumps(occ_by)
+            pass
         elif subtype:
             row["occupancy_by_subtype_json"] = json.dumps(
                 {subtype: round(occ, 3)})
@@ -1643,11 +1834,73 @@ def _make_year_metrics(asset, year, occ, base, index, trajectory):
     return row
 
 
+def _build_subtype_trajectories(aid, asset, unit_mix, tclass,
+                                 unsold_ids, shoplot_vacant_ids,
+                                 history_years=HISTORY_YEARS):
+    """
+    Build a per-subtype occupancy trajectory for a mixed-use asset.
+
+    Each subtype has its own occupancy benchmark, its own
+    trajectory class, and its own noise seed. This is what makes
+    a real shop-office row look real: kopitiam stays healthy,
+    cafe dies, restaurant drifts.
+
+    Returns {subtype: [occ_y1, occ_y2, ..., occ_yN]}.
+    """
+    trajectories = {}
+
+    for st in unit_mix:
+        # Per-subtype trajectory class. Anchor on the asset
+        # id, but re-seed so different subtypes get different
+        # classes (a row can have one healthy kopitiam and
+        # one dead cafe).
+        st_seed = f"{aid}-{st}"
+        st_band = seeded_uniform(f"{st_seed}-subtype-traj", 0.0, 1.0)
+
+        # The asset's own trajectory class applies a global
+        # tilt: a declining row's subtypes mostly decline too.
+        if tclass in (TRAJECTORY_NEVER_ALIVE, TRAJECTORY_RECENT_FAILURE):
+            # Whole asset is dead — all subtypes are dead.
+            st_tclass = tclass
+        elif st_band < 0.35:
+            # 35% of subtypes inherit the asset's trajectory
+            st_tclass = tclass
+        elif st_band < 0.70:
+            # 35% of subtypes are stable regardless of the row
+            st_tclass = TRAJECTORY_STABLE
+        elif st_band < 0.85:
+            # 15% of subtypes are declining independent of the row
+            st_tclass = TRAJECTORY_DECLINING
+        else:
+            # 15% of subtypes are chronic low independent of the row
+            st_tclass = TRAJECTORY_CHRONIC_LOW
+
+        # Build a synthetic "asset" dict for the subtype so
+        # _target_final_occupancy picks the correct benchmark.
+        st_asset = {
+            "asset_type": "commercial",
+            "subtype": st,
+        }
+        st_traj = _generate_occupancy_trajectory(
+            f"{aid}-{st}", st_asset, st_tclass,
+            history_years=history_years,
+        )
+        trajectories[st] = st_traj
+
+    return trajectories
+
+
 def _build_multi_year_metrics(assets_df, unsold_ids, shoplot_vacant_ids,
                               anchor_deadspace_id, anchor_facility_id,
                               base_year=BASE_YEAR):
     """
     Generate HISTORY_YEARS rows of asset_metrics per asset.
+
+    For mixed-use assets with a unit_mix, each subtype gets its
+    own trajectory. The aggregate occupancy for the row is the
+    area-weighted average of the per-subtype occupancies. This
+    is what makes a shop-office row show "kopitiam healthy,
+    cafe dead" instead of "everything at 0.40".
     """
     all_rows = []
     for _, asset in assets_df.iterrows():
@@ -1657,7 +1910,7 @@ def _build_multi_year_metrics(assets_df, unsold_ids, shoplot_vacant_ids,
             anchor_deadspace_id=anchor_deadspace_id,
             anchor_facility_id=anchor_facility_id,
         )
-        trajectory = _generate_occupancy_trajectory(aid, asset, tclass)
+        unit_mix = _parse_unit_mix(asset.get("unit_mix_json"))
 
         base = {
             "completion_year": asset.get("completion_year"),
@@ -1667,12 +1920,50 @@ def _build_multi_year_metrics(assets_df, unsold_ids, shoplot_vacant_ids,
             "unit_mix_json": asset.get("unit_mix_json"),
         }
 
-        for i, year in enumerate(
-            range(base_year - HISTORY_YEARS + 1, base_year + 1)
-        ):
-            all_rows.append(
-                _make_year_metrics(asset, year, trajectory[i], base, i, trajectory)
+        if unit_mix and len(unit_mix) >= 2:
+            # Mixed-use asset: per-subtype trajectories.
+            sub_trajs = _build_subtype_trajectories(
+                aid, asset, unit_mix, tclass,
+                unsold_ids, shoplot_vacant_ids,
             )
+            total_area = sum(
+                float(unit_mix[st].get("area_m2") or 0)
+                for st in unit_mix
+            ) or 1.0
+
+            for i, year in enumerate(
+                range(base_year - HISTORY_YEARS + 1, base_year + 1)
+            ):
+                per_st = {
+                    st: sub_trajs[st][i] for st in unit_mix
+                }
+                weighted = sum(
+                    per_st[st] * float(unit_mix[st].get("area_m2") or 0)
+                    for st in per_st
+                ) / total_area
+                weighted = max(0.0, min(1.0, weighted))
+
+                row = _make_year_metrics(
+                    asset, year, weighted, base, i,
+                    sub_trajs[list(unit_mix.keys())[0]],
+                )
+                # Override the per-subtype JSON with the real
+                # per-subtype occupancies.
+                row["occupancy_by_subtype_json"] = json.dumps({
+                    st: round(per_st[st], 3) for st in per_st
+                })
+                all_rows.append(row)
+        else:
+            # Single-subtype asset: existing logic.
+            trajectory = _generate_occupancy_trajectory(aid, asset, tclass)
+            for i, year in enumerate(
+                range(base_year - HISTORY_YEARS + 1, base_year + 1)
+            ):
+                all_rows.append(
+                    _make_year_metrics(
+                        asset, year, trajectory[i], base, i, trajectory,
+                    )
+                )
 
     return pd.DataFrame(all_rows)
 
@@ -1722,6 +2013,7 @@ def _make_lease(asset_id, unit_idx, subtype, area_m2, asset_occ,
 
     per_m2 = {
         "supermarket": 150, "convenience_retail": 250, "f_and_b": 300,
+        "restaurant": 350, "kopitiam": 220, "cafe": 280,
         "services": 200, "medical_retail": 280, "showroom": 180,
         "office": 200, "entertainment": 220,
     }.get(subtype, 200)
@@ -1910,10 +2202,12 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf,
         return assets_df, set()
 
     subtype_pattern = (
-        ["convenience_retail"] * 3
-        + ["f_and_b"] * 4
-        + ["services"] * 3
-        + ["medical_retail"] * 2
+        ["kopitiam"] * 4
+        + ["restaurant"] * 2
+        + ["cafe"] * 2
+        + ["convenience_retail"] * 2
+        + ["services"] * 1
+        + ["medical_retail"] * 1
     )
 
     converted_ids = set()
@@ -2601,13 +2895,25 @@ def main():
             lambda p: pid_to_aid.get(str(p))
         )
 
-    # Phase A — compute unit_mix for every large-enough commercial.
+    # Phase B.4 — designate the single community_centre asset.
+    # The rest of the commercial stock is shop-office rows,
+    # cluster shops, and single-storey shops — never malls.
+    designated_mall_id = _designate_community_centre(assets_df)
+    if designated_mall_id:
+        print(f"  designated community_centre: {designated_mall_id}")
+    else:
+        print("  no community_centre in this township")
+
+    # Phase B.4 — compute unit_mix per commercial asset,
+    # dispatched by physical form.
     unit_mix_json_col = []
     for _, row in assets_df.iterrows():
         if row.get("asset_type") == "commercial":
             mix = _compute_commercial_unit_mix(
-                row, float(row.get("lettable_area_m2") or 0),
+                row,
+                float(row.get("lettable_area_m2") or 0),
                 row.get("subtype"),
+                designated_mall_id=designated_mall_id,
             )
             unit_mix_json_col.append(
                 json.dumps(mix) if mix else None)

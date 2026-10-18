@@ -70,10 +70,6 @@
       "type": ["string", "null"],
       "$comment": "Phase B.2 — per-subtype occupancy computed by B3. Preferred over the observed occupancy_by_subtype_json when both are present."
     },
-    "occupancy_by_subtype_target_json": {
-      "type": ["string", "null"],
-      "$comment": "Phase B.3 — per-subtype occupancy the Huff demand model says the asset COULD sustain today. NOT the actual occupancy. Compare with occupancy_by_subtype_calc_json to diagnose supply-side vs demand-side failure. Absent on single-subtype assets and on post-repurpose assets whose unit_mix has been cleared."
-    },
     "energy_by_subtype_json": {
       "type": ["string", "null"],
       "$comment": "Phase B.2 — per-subtype raw energy (kWh) before breakdown. Scale factor converts lettable area to floor area."

@@ -319,6 +319,30 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
         gain = max(0.0, min(0.90, gain))
         asset["_energy_efficiency_multiplier"] = 1.0 - gain
 
+    # Retrofit reduces the energy portion of opex.
+    #
+    # Without this, a retrofit that claims 22% energy savings
+    # produces no NOI improvement — the maintenance reduction
+    # (×0.8) is the only financial effect, and it is dwarfed by
+    # 7-year aging (×(1.03)^7 ≈ ×1.23) plus occupancy decline.
+    #
+    # Energy share of commercial opex: HVAC + lighting equipment
+    # is typically 30-40% of total opex in tropical retail. Use
+    # 0.35 as the mid-point. The energy efficiency multiplier
+    # is the fraction of original energy that remains; the
+    # reduction is (1 - multiplier) × energy_share.
+    energy_mult = asset.get("_energy_efficiency_multiplier", 1.0)
+    if _is_number(asset.get("opex_annual_rm")) and _is_number(energy_mult):
+        try:
+            em = float(energy_mult)
+            if 0.0 < em < 1.0:
+                energy_share = 0.35
+                opex = float(asset["opex_annual_rm"])
+                reduction = opex * energy_share * (1.0 - em)
+                asset["opex_annual_rm"] = opex - reduction
+        except (TypeError, ValueError):
+            pass
+
 
 def _apply_renovation(asset: dict, params: dict, intervention: dict) -> None:
     """

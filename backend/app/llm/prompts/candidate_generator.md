@@ -115,17 +115,41 @@ You are proposing an intervention on the whole asset, not on the
 subtype alone. The simulation reflects aggregate effect. The
 subtype level is a DIAGNOSTIC, not a lever.
 
-## Reading the per-subtype diagnosis
+## F&B subtypology
 
-Each mixed-use commercial target carries a `subtype_mix.diagnosis`
-block. Each subtype is classified as one of:
+Commercial F&B is split into three subtypes with distinct
+economics and competition radii. Choose the right one:
 
-| `kind` | Meaning | What to do |
-|---|---|---|
-| `healthy` | actual ≥ 60% AND target ≥ 60% | Retain. Do not touch. |
-| `supply_side` | actual << target AND target ≥ 60% | Repurpose this subtype to a same-class alternative, OR retrofit the operator. |
-| `demand_side` | target < 40% (regardless of actual) | Growing the catchment or repurposing to a lower-demand subtype. Repurposing to a HIGHER-demand subtype will not help — the catchment cannot sustain it. |
-| `unknown` | one of actual / target missing | Use the raw `occupancy_by_subtype` and `occupancy_target_by_subtype` directly. |
+| Subtype | What it is | Radius | Demand coeff. |
+|---|---|---|---|
+| `restaurant` | Sit-down dining (nasi kandar, Chinese restaurant, steakhouse) | 1500 m | 0.10 |
+| `kopitiam` | Neighbourhood coffee shop / hawker-style (kopitiam, food court stall, mixed rice) | 400 m | 0.08 |
+| `cafe` | Specialty cafe (brunch, artisan coffee, dessert) | 800 m | 0.06 |
+
+**When repurposing a dead F&B unit into another F&B subtype:**
+
+- A dead `restaurant` in a residential catchment → convert to
+  `kopitiam` (local catchment, lower radius, higher baseline).
+- A dead `kopitiam` in a young-professional catchment →
+  convert to `cafe` (walkable, matches demographic).
+- A dead `cafe` with no footfall → convert to `kopitiam`
+  (less discretionary spend).
+
+**When repurposing a dead F&B unit OUT of F&B entirely:**
+
+- Convert to `medical_retail` if there is a demand gap for
+  pharmacy/clinic.
+- Convert to `services` if the catchment has residents but
+  low foot traffic.
+
+Use `subtype_changes` on a shop-office row only when ONE F&B
+subtype is dead but others in the same row are healthy. The
+typical row has 2-5 F&B units — a dead single unit is not a
+reason to repurpose the whole asset.
+
+**Do NOT use the generic `f_and_b` subtype in a new plan.** It
+exists only as a backward-compatible fallback. The evaluator
+will flag a repurpose that targets `f_and_b`.
 
 **Examples of correct reasoning:**
 
@@ -272,7 +296,12 @@ directions.
 
 Each candidate:
 
-- `name` — short strategy label.
+- `name` — short strategy label. **The label must reflect what
+  the plan actually contains.** If the plan has only retrofits,
+  do not call it "walkability enhancement" or "green corridor".
+  If you want walkability in the name, include a
+  `pedestrian_upgrade` or `green_corridor` plan item. If the
+  plan has a `renovation`, "renovation" must be in the name.
 - `strategy_summary` — one sentence.
 - `reasoning_trace` — up to 120 words.
 - `plan` — one item per target asset.

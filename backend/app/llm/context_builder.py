@@ -601,10 +601,8 @@ def _build_subtype_mix(ds, asset_id: str) -> dict:
     return {
         "subtypes": subtypes,
         "occupancy_by_subtype": occ_by,
-        "occupancy_target_by_subtype": targets,
         "dead_subtypes": sorted(dead),
         "low_subtypes": sorted(low),
-        "diagnosis": _classify_subtype_failures(occ_by, targets),
     }
 
 
