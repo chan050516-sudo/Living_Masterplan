@@ -40,6 +40,7 @@ from .schemas import (
 )
 from .tool_service import TownshipDataSource
 from .validator import ProposalValidator
+from ..simulation.engine import simulate_scenario, write_scenario_result
 
 log = logging.getLogger(__name__)
 
@@ -269,7 +270,7 @@ def orchestrate_and_simulate_batch(
         llm_client=llm_client,
     )
 
-    return {
+    result = {
         "run_id": run_id,
         "scenario_id": scenario_id,
         "intent": intent,
@@ -302,6 +303,9 @@ def orchestrate_and_simulate_batch(
             "model": getattr(llm_client, "model", None),
         },
     }
+
+    _write_orchestration_result(result, repo_root)
+    return result
 
 
 # ------------------------------------------------------------------
@@ -451,6 +455,18 @@ def _simulate_candidates_shared(candidates, repo_root, selected_ids):
             selected_ids=selected_ids,
             _shared_cache=shared_cache,
         )
+        # NEW: persist the scenario result so the frontend can
+        # load per-year map layers from disk
+        if not cand["simulation"].get("error"):
+            try:
+                write_scenario_result(
+                    cand["simulation"], repo_root=repo_root,
+                )
+            except Exception as e:
+                log.warning(
+                    "Failed to write scenario %s: %s",
+                    cand["scenario_id"], e,
+                )
         log.info(
             "[shared] candidate %d/%d finished in %.1fs",
             idx, len(candidates), time.time() - t0,
@@ -850,7 +866,6 @@ def _write_interventions(ds, scenario_id, plan):
 
 def _run_simulation(scenario_id, repo_root, selected_ids=None,
                     _shared_cache=None):
-    from ..simulation.engine import simulate_scenario
     try:
         return simulate_scenario(
             scenario_id, repo_root=repo_root, selected_ids=selected_ids,
@@ -985,3 +1000,32 @@ def _load_prompt(name):
         log.warning("Prompt file missing: %s", path)
         return ""
     return path.read_text(encoding="utf-8")
+
+
+def _write_orchestration_result(result: dict, repo_root: Path) -> Path:
+    """Persist the full orchestration result for the API."""
+    import json as _json
+    import math as _math
+    from ..config import load_paths
+
+    paths = load_paths()
+    base = repo_root / paths["base"]
+    out_dir = base / "business" / "llm_runs"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    run_id = result.get("run_id", "unknown")
+    out = out_dir / f"{run_id}.json"
+
+    def _sanitize(obj):
+        if isinstance(obj, dict):
+            return {k: _sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_sanitize(v) for v in obj]
+        if isinstance(obj, float) and _math.isnan(obj):
+            return None
+        return obj
+
+    with open(out, "w", encoding="utf-8") as f:
+        _json.dump(_sanitize(result), f, indent=2, default=str)
+    log.info("Wrote orchestration result to %s", out)
+    return out

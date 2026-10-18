@@ -42,6 +42,20 @@ from .environmental import (
 )
 
 
+def _target_occupancy_from_dsr(dsr):
+    """
+    Mirror of simulation.occupancy.target_occupancy_from_dsr.
+    Kept inline to avoid a derived -> simulation import.
+    """
+    if dsr is None:
+        return 0.5
+    try:
+        d = float(dsr)
+    except (TypeError, ValueError):
+        return 0.5
+    return max(0.05, min(d, 0.98))
+
+
 def derive_commercial(ctx: DerivationContext) -> dict:
     asset = ctx.asset
     year = ctx.year
@@ -218,6 +232,49 @@ def derive_commercial(ctx: DerivationContext) -> dict:
 
     diversity = ctx.neighborhood_diversity
 
+    # Phase B.3 — per-subtype TARGET occupancy.
+    #
+    # The hash-based `occupancy_by_subtype` (in
+    # `_resolve_occupancy_by_subtype`) tells us the ACTUAL
+    # occupancy each subtype currently has. It is a
+    # deterministic spread around the aggregate, not a
+    # physical result.
+    #
+    # This target field is different. It answers: given the
+    # Huff-assigned demand for each subtype and that subtype's
+    # own area, what occupancy COULD the asset sustain today?
+    #
+    # The gap between target and actual is the diagnostic:
+    #   - actual << target  → supply-side failure
+    #                         (wrong tenant / wrong operator
+    #                          / wrong format)
+    #   - actual ≈ target    → demand-side reality
+    #                         (the catchment does not support
+    #                          any more of this subtype)
+    #
+    # The LLM reads both fields and decides: repurpose the
+    # subtype (supply-side) or grow the catchment
+    # (demand-side) or accept (demand-side, low ceiling).
+    occupancy_target_by_subtype = None
+    if unit_mix and huff_by_subtype:
+        target_by_st = {}
+        for _st, _info in unit_mix.items():
+            _st_area = float(_info.get("area_m2") or 0)
+            if _st_area <= 0:
+                continue
+            _st_demand = huff_by_subtype.get(_st)
+            if _st_demand is None:
+                continue
+            try:
+                _st_dsr = float(_st_demand) / _st_area
+            except (TypeError, ValueError, ZeroDivisionError):
+                continue
+            target_by_st[_st] = round(
+                _target_occupancy_from_dsr(_st_dsr), 4,
+            )
+        if target_by_st:
+            occupancy_target_by_subtype = json.dumps(target_by_st)
+
     return {
         "asset_id": asset["asset_id"],
         "year": year,
@@ -238,6 +295,7 @@ def derive_commercial(ctx: DerivationContext) -> dict:
         "dsr": dsr,
         "dsr_by_subtype_json": _json_or_none(dsr_by_subtype),
         "occupancy_by_subtype_calc_json": _json_or_none(occupancy_by_subtype),
+        "occupancy_by_subtype_target_json": occupancy_target_by_subtype,
         "energy_by_subtype_json": _json_or_none(energy_by_subtype),
         "carbon_by_subtype_json": _json_or_none(carbon_by_subtype),
         "shade_proxy_score": shade,

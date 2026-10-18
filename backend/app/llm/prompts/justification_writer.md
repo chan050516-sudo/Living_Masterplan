@@ -92,6 +92,16 @@ type: `repurpose`. All others leave occupancy unchanged.
 
 Report only what actually changed.
 
+## Partial repurpose
+
+When a plan item uses `subtype_changes`, only PART of the asset
+changes. Report:
+
+- Which subtype(s) changed, and how much area.
+- Which subtype(s) were retained.
+- The before/after AGGREGATE occupancy of the whole asset (the
+  simulation does not report per-subtype occupancy).
+
 ## Authority
 
 Each plan item carries an `execution_status`:
@@ -103,6 +113,23 @@ Each plan item carries an `execution_status`:
   "recommend the responsible authority to ...".
 
 Do not describe a `recommendation_only` item as if it were committed.
+
+## Mixed ownership
+
+When a plan item carries a warning about mixed ownership
+(`developer_held_units < unit_count`), the justification MUST
+state explicitly:
+
+1. How many units are developer-held vs sold.
+2. Whether the sold units are strata-titled (in which case
+   the proposal is a recommendation to those owners, not a
+   commitment).
+3. What regulatory precondition applies (change-of-use
+   filing, JMB special resolution, or master-title
+   redevelopment).
+
+Do not describe a mixed-ownership repurpose as if the
+developer could execute it unilaterally.
 
 ## Design detail — USE IT
 
@@ -166,6 +193,15 @@ mechanism is offered as an informed hypothesis."
 - `simulation_brief.township_metrics.*` holds township figures.
 - When citing a percentage, quote the source field in parentheses.
 - Never invent a percentage.
+
+## Never infer subtype
+
+Do not substitute the subtype you think
+fits the asset — use the one in `identity.subtype`.
+
+If you want to reference what the asset IS, quote the subtype
+directly: "BLD-0183, a medical_retail asset, ..." not
+"BLD-0183, a supermarket, ...".
 
 ## Example (format only)
 

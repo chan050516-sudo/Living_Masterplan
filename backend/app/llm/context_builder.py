@@ -571,6 +571,25 @@ def _build_subtype_mix(ds, asset_id: str) -> dict:
         except (json.JSONDecodeError, TypeError):
             pass
 
+    # Phase B.3 — per-subtype TARGET from the B3 deriver.
+    # This is the occupancy the Huff demand model says
+    # each subtype COULD sustain today, before any
+    # intervention. The LLM compares it against
+    # `occupancy_by_subtype` (actual) to classify the
+    # failure as supply-side or demand-side.
+    target_raw = m.get("occupancy_by_subtype_target_json")
+    targets = {}
+    if target_raw is not None and isinstance(target_raw, str):
+        try:
+            parsed = json.loads(target_raw)
+            if isinstance(parsed, dict):
+                for st, v in parsed.items():
+                    fv = _nan_to_none(v)
+                    if fv is not None:
+                        targets[st] = float(fv)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
     dead = []
     low = []
     for st, v in occ_by.items():
@@ -582,9 +601,55 @@ def _build_subtype_mix(ds, asset_id: str) -> dict:
     return {
         "subtypes": subtypes,
         "occupancy_by_subtype": occ_by,
+        "occupancy_target_by_subtype": targets,
         "dead_subtypes": sorted(dead),
         "low_subtypes": sorted(low),
+        "diagnosis": _classify_subtype_failures(occ_by, targets),
     }
+
+
+def _classify_subtype_failures(actual, targets):
+    """
+    Phase B.3 — pair actual and target occupancy per subtype
+    into a coarse diagnosis the LLM can reason over.
+
+    Returns a dict keyed by subtype with:
+        actual     : float | None
+        target     : float | None
+        kind       : "healthy" | "supply_side" | "demand_side"
+                     | "unknown"
+        gap        : target - actual (positive = underused)
+    """
+    out = {}
+    for st in set(actual.keys()) | set(targets.keys()):
+        a = actual.get(st)
+        t = targets.get(st)
+        if a is None or t is None:
+            out[st] = {
+                "actual": a, "target": t,
+                "kind": "unknown", "gap": None,
+            }
+            continue
+        gap = t - a
+        if a >= 0.60 and t >= 0.60:
+            kind = "healthy"
+        elif gap > 0.20 and t >= 0.60:
+            # Actual << target AND target is high enough to
+            # be worth chasing. This is the supply-side case.
+            kind = "supply_side"
+        elif t < 0.40:
+            # Target itself is low. No amount of tenant
+            # churn will fix the demand reality.
+            kind = "demand_side"
+        else:
+            kind = "unknown"
+        out[st] = {
+            "actual": round(a, 4),
+            "target": round(t, 4),
+            "kind": kind,
+            "gap": round(gap, 4),
+        }
+    return out
 
 
 def _nan_to_none(v):

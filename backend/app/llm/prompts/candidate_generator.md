@@ -115,6 +115,44 @@ You are proposing an intervention on the whole asset, not on the
 subtype alone. The simulation reflects aggregate effect. The
 subtype level is a DIAGNOSTIC, not a lever.
 
+## Reading the per-subtype diagnosis
+
+Each mixed-use commercial target carries a `subtype_mix.diagnosis`
+block. Each subtype is classified as one of:
+
+| `kind` | Meaning | What to do |
+|---|---|---|
+| `healthy` | actual ≥ 60% AND target ≥ 60% | Retain. Do not touch. |
+| `supply_side` | actual << target AND target ≥ 60% | Repurpose this subtype to a same-class alternative, OR retrofit the operator. |
+| `demand_side` | target < 40% (regardless of actual) | Growing the catchment or repurposing to a lower-demand subtype. Repurposing to a HIGHER-demand subtype will not help — the catchment cannot sustain it. |
+| `unknown` | one of actual / target missing | Use the raw `occupancy_by_subtype` and `occupancy_target_by_subtype` directly. |
+
+**Examples of correct reasoning:**
+
+> "F&B is classified `supply_side` — actual 8%, target 78%. The
+> catchment can clearly support an F&B floor; the current tenant
+> mix cannot fill it. Repurposing to a same-class alternative is
+> the right lever."
+
+> "Showroom is classified `demand_side` — target only 22%. No
+> tenant churn will fix this. Repurposing into a higher-demand
+> subtype would fail because the catchment cannot support it."
+
+**Rules:**
+
+- For `supply_side` subtypes, use `subtype_changes` (partial
+  repurpose) — convert only the dead subtype, keep the healthy
+  ones.
+- For `demand_side` subtypes, either accept the low ceiling
+  (recommend no action) or propose a **catalytic** intervention
+  that grows the catchment (new_development, residential, etc.).
+- **Never repurpose a `healthy` subtype.** The rationale must
+  state which subtypes are being retained and why.
+
+**Do NOT confuse actual with target.** `occupancy_by_subtype` is
+what the asset IS doing today. `occupancy_target_by_subtype` is
+what the Huff demand model says it COULD do. Both are needed to
+classify the failure.
 
 ## Authority — read before proposing
 
@@ -249,6 +287,64 @@ and `investment_case`.
 **`repurpose`**
 - `to_subtype` (required), `new_capacity`, `scale`,
   `target_demographic`, `program_mix`, `design_notes` (optional)
+
+**`repurpose` with `subtype_changes` (partial / mixed-use)**
+
+When the target is a mixed-use commercial asset (has a
+`subtype_mix` block in the context pack) and only SOME of its
+subtypes are failing, use `subtype_changes` instead of a full
+`to_subtype`:
+
+{
+  "type": "repurpose",
+  "parameters": {
+    "subtype_changes": [
+      {"from_subtype": "f_and_b", "to_subtype": "medical_retail"}
+    ],
+    "design_notes": "..."
+  }
+}
+
+**Rules:**
+
+- Each `to_subtype` MUST be in the SAME asset_class as its
+  `from_subtype`. Cross-class changes (retail → clinic) are
+  rejected by the validator. Use a full repurpose for those.
+- `area_m2` is optional. Omit it to convert the entire
+  `from_subtype`. Provide it to convert only part.
+- The healthy subtypes NOT listed in `subtype_changes` are
+  preserved untouched.
+- Do NOT combine `subtype_changes` with `to_subtype`. If
+  `subtype_changes` is present, `to_subtype` is ignored.
+- After the change, the asset's LARGEST remaining subtype must
+  stay in the same asset_class as before. Otherwise use a full
+  repurpose.
+
+**When to use which:**
+
+| Situation | Use |
+|---|---|
+| Entire asset is dead, single subtype | Full `repurpose` with `to_subtype` |
+| Entire asset is dead, mixed-use | Full `repurpose` with `to_subtype` |
+| Mixed-use asset, only SOME subtypes dead | `subtype_changes` |
+| Single-subtype asset, want to change class | Full `repurpose` |
+| Single-subtype asset, want same-class change | `renovation` (if available) |
+
+Read `subtype_mix.dead_subtypes` and `subtype_mix.low_subtypes`
+in the context pack. Name the specific subtype(s) in your
+rationale: *"the 600 m² F&B floor is at 8% occupancy; it will
+be converted to medical retail while the 800 m² supermarket at
+95% is retained."*
+
+**`renovation`**
+- `to_subtype` (required) — must be in the SAME asset_class
+  as the current asset. Use this for terrace → affordable_housing,
+  convenience_retail → f_and_b, community_hall → library.
+- `new_capacity`, `target_demographic`, `design_notes` (optional)
+- Duration: 6 months, 70% capacity retained during works.
+- **Not** a structural change. Do not use `repurpose` for
+  same-class subtype conversions — the 18-month closure and
+  0% capacity are inappropriate.
 
 **`retrofit`**
 - `measures` (required) — 2-4 of: hvac_upgrade, led_lighting,

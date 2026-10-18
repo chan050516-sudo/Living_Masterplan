@@ -1011,10 +1011,29 @@ def simulate_scenario(
             eff_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
 
             if eff_mix is not None:
-                # Still a mixed-use mall — keep the per-subtype
-                # supply nodes as generated.
-                for n in nodes:
-                    year_supply_nodes.append(dict(n))
+                # Phase B.2c — rebuild supply nodes from the
+                # EFFECTIVE mix, not the pipeline's original mix.
+                # A partial repurpose (subtype_changes) rewrites
+                # unit_mix_json on the effective asset; the
+                # pipeline's cached supply nodes still describe
+                # the pre-intervention mix. Rebuilding here means
+                # the Huff pool sees the post-intervention
+                # subtypes on the activation year and every
+                # later year.
+                #
+                # When no intervention has touched the mix,
+                # eff_mix equals the pipeline mix and the output
+                # is identical to the previous behaviour.
+                for st, m in eff_mix.items():
+                    area = float(m.get("area_m2") or 0)
+                    if area <= 0:
+                        continue
+                    year_supply_nodes.append({
+                        "asset_id": aid,
+                        "node": node_id,
+                        "attractiveness": area,
+                        "subtype": st,
+                    })
             else:
                 # Single-subtype asset (shoplot, or a mall that was
                 # repurposed and had its mix cleared).
@@ -2106,16 +2125,56 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
     if interventions_df is not None:
         for aid in ids:
             intvs = interventions_for_asset(aid, interventions_df)
-            if not any(
-                i.get("intervention_type") == "repurpose" for i in intvs
-            ):
+            repurpose = next(
+                (i for i in intvs if i.get("intervention_type") == "repurpose"),
+                None,
+            )
+            if repurpose is None:
                 continue
             a_row = assets_df[assets_df["asset_id"] == aid]
             if a_row.empty:
                 continue
-            gfa = _num_or_zero(a_row.iloc[0].get("floor_area_m2"))
-            saved = gfa * (
-                MATERIAL_INTENSITY_NEW_BUILD
+            asset = a_row.iloc[0]
+            gfa = _num_or_zero(asset.get("floor_area_m2"))
+            if gfa <= 0:
+                continue
+
+            # NEW: read target subtype from parameters
+            try:
+                params = json.loads(repurpose.get("parameters_json") or "{}")
+            except (json.JSONDecodeError, TypeError):
+                params = {}
+            target_subtype = params.get("to_subtype")
+
+            # NEW: use target subtype's material intensity
+            if target_subtype:
+                from ..taxonomy import get_subtype
+                defn = get_subtype(target_subtype) or {}
+                intensity_new = defn.get(
+                    "material_intensity_tco2e_m2", MATERIAL_INTENSITY_NEW_BUILD,
+                )
+            else:
+                intensity_new = MATERIAL_INTENSITY_NEW_BUILD
+            try:
+                intensity_new = float(intensity_new)
+            except (TypeError, ValueError):
+                intensity_new = MATERIAL_INTENSITY_NEW_BUILD
+
+            # NEW: if the asset has mixed ownership, only the
+            # developer-held portion is actually repurposable.
+            uc_raw = asset.get("unit_count")
+            held_raw = asset.get("developer_held_units")
+            repurposable_ratio = 1.0
+            try:
+                uc = int(uc_raw) if uc_raw is not None else 1
+                h = int(held_raw) if held_raw is not None else 0
+                if uc > 1 and 0 < h < uc:
+                    repurposable_ratio = h / uc
+            except (TypeError, ValueError):
+                pass
+
+            saved = gfa * repurposable_ratio * (
+                intensity_new
                 + DEMOLITION_CARBON_INTENSITY
                 - MATERIAL_INTENSITY_REPURPOSE
             )
@@ -2125,6 +2184,13 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
                     "before": 0.0,
                     "after": saved,
                     "unit": "tCO2e",
+                }
+                # NEW: expose the ratio so the frontend can show
+                # "13/22 units repurposed"
+                per_asset[aid]["_repurposable_ratio"] = {
+                    "before": None,
+                    "after": repurposable_ratio,
+                    "unit": "ratio",
                 }
 
     # ---- Link project pseudo-entries back to their target asset ----

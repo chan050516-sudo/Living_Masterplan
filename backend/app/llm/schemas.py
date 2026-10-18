@@ -109,6 +109,49 @@ PROPOSAL_PARAMETERS_SCHEMA = {
         "scale": {"type": "STRING", "enum": ["small", "medium", "large"]},
         "target_demographic": {"type": "STRING"},
         "program_mix": {"type": "ARRAY", "items": {"type": "STRING"}},
+        "subtype_changes": {
+            "type": "ARRAY",
+            "description": (
+                "Partial repurpose of a mixed-use asset. Each entry "
+                "converts one subtype's area into another subtype "
+                "WITHIN THE SAME asset_class. Use this instead of "
+                "`to_subtype` when only SOME subtypes of a mixed-use "
+                "asset are dead. The healthy subtypes NOT listed here "
+                "are preserved untouched. Do NOT combine with "
+                "`to_subtype` — if subtype_changes is present, "
+                "to_subtype is ignored."
+            ),
+            "items": {
+                "type": "OBJECT",
+                "properties": {
+                    "from_subtype": {
+                        "type": "STRING",
+                        "description": (
+                            "Subtype to convert FROM. Must be an "
+                            "existing key in the asset's unit_mix."
+                        ),
+                    },
+                    "to_subtype": {
+                        "type": "STRING",
+                        "description": (
+                            "Subtype to convert TO. Must be a "
+                            "taxonomy subtype in the SAME "
+                            "asset_class as from_subtype."
+                        ),
+                    },
+                    "area_m2": {
+                        "type": "NUMBER",
+                        "description": (
+                            "Optional. If absent, the ENTIRE area "
+                            "of from_subtype is converted. If "
+                            "present, must be positive and <= the "
+                            "current area of from_subtype."
+                        ),
+                    },
+                },
+                "required": ["from_subtype", "to_subtype"],
+            },
+        },
         "design_notes": {"type": "STRING"},
 
         # --- optional cost overrides ---
@@ -129,12 +172,9 @@ _PLAN_ITEM_SCHEMA = {
         "type": {
             "type": "STRING",
             "enum": [
-                "repurpose",
-                "retrofit",
-                "green_corridor",
-                "pedestrian_upgrade",
-                "new_development",
-                "delay_development",
+                "repurpose", "retrofit", "renovation",
+                "green_corridor", "pedestrian_upgrade",
+                "new_development", "delay_development",
                 "interim_solar_farm",
             ],
         },

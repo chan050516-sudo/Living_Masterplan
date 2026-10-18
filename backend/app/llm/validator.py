@@ -234,6 +234,7 @@ class ValidationResult:
 # specify timing.
 DEFAULT_TIMING = {
     "repurpose":          {"start_offset": 1, "duration_months": 18, "during": "unavailable", "capacity_ratio": 0.00},
+    "renovation":         {"start_offset": 0, "duration_months": 6, "during": "partial", "capacity_ratio": 0.70},
     "retrofit":           {"start_offset": 0, "duration_months": 12, "during": "partial",     "capacity_ratio": 0.60},
     "green_corridor":     {"start_offset": 0, "duration_months": 12, "during": "operational", "capacity_ratio": 1.00},
     "pedestrian_upgrade": {"start_offset": 0, "duration_months": 6,  "during": "partial",     "capacity_ratio": 1.00},
@@ -370,6 +371,38 @@ class ProposalValidator:
                     f"'{to_subtype}' — no-op."
                 )
 
+        if itype == "renovation":
+            to_subtype = params.get("to_subtype")
+            if not to_subtype:
+                errors.append(
+                    f"{asset_id}: renovation requires "
+                    f"parameters.to_subtype"
+                )
+                return errors, warnings, None
+            defn = get_subtype(to_subtype)
+            if defn is None:
+                errors.append(
+                    f"{asset_id}: renovation target '{to_subtype}' "
+                    f"not in taxonomy."
+                )
+                return errors, warnings, None
+            current_class = asset_row.get("asset_type")
+            target_class = defn.get("asset_class")
+            if target_class != current_class:
+                errors.append(
+                    f"{asset_id}: renovation target '{to_subtype}' is "
+                    f"in asset_class '{target_class}', current is "
+                    f"'{current_class}'. Use repurpose for cross-class "
+                    f"changes."
+                )
+                return errors, warnings, None
+            current_subtype = asset_row.get("subtype")
+            if to_subtype == current_subtype:
+                warnings.append(
+                    f"{asset_id}: renovation target equals current "
+                    f"subtype '{to_subtype}' — no-op."
+                )
+
         # Phase 14 — authority check.
         # Hard actions on a shared or advisory asset are not directly
         # executable by the developer. This is not a legality error
@@ -391,6 +424,33 @@ class ProposalValidator:
                     f"The plan is marked as 'recommendation_only'; the "
                     f"rationale should be phrased as a recommendation "
                     f"to the responsible authority."
+                )
+
+        # NEW — Phase A.1: mixed-ownership check.
+        # A repurpose (or new_development) on a multi-unit asset where
+        # some units are already sold is not actually under full
+        # developer control, even if the `authority` column says
+        # "full_control". The `developer_held_units` field records the
+        # split. Surface it so the LLM's rationale acknowledges the
+        # boundary.
+        if itype in HARD_ACTIONS:
+            unit_count = asset_row.get("unit_count")
+            held = asset_row.get("developer_held_units")
+            try:
+                uc = int(unit_count) if unit_count is not None else 1
+                h = int(held) if held is not None else 0
+            except (TypeError, ValueError):
+                uc, h = 1, 0
+            if uc > 1 and 0 < h < uc:
+                sold = uc - h
+                warnings.append(
+                    f"{asset_id}: '{itype}' targets a multi-unit asset with "
+                    f"{h}/{uc} units developer-held and {sold} units sold. "
+                    f"The sold units are governed by SPA / strata "
+                    f"arrangements; repurpose requires owner consent "
+                    f"(if strata-titled) or a master-title redevelopment "
+                    f"agreement. The plan remains valid but the rationale "
+                    f"must state the precondition."
                 )
 
         # ---- Catalytic link validation (Phase 15) ----
@@ -598,6 +658,28 @@ class ProposalValidator:
                         asset_id, measures, breakdown, warnings,
                         declared_capex=params.get("capex_delta_rm"),
                     )
+
+        # ------------------------------------------------------------------
+        # Partial repurpose via subtype_changes (Phase B.2c)
+        # ------------------------------------------------------------------
+        # A mixed-use asset (mall, shoplot cluster) can have only
+        # some of its subtypes failing. A full repurpose would
+        # destroy the healthy ones. subtype_changes converts only
+        # the dead portion, in place, without changing the asset's
+        # overall class.
+        if params.get("subtype_changes") is not None:
+            if itype != "repurpose":
+                errors.append(
+                    f"{asset_id}: subtype_changes is only valid on "
+                    f"a 'repurpose' intervention."
+                )
+                return errors, warnings, None
+            _validate_subtype_changes(
+                asset_id, asset_row, params["subtype_changes"],
+                self.ds.subtypes_config, errors, warnings,
+            )
+            if errors:
+                return errors, warnings, None        
 
         # Budget hints.
         # Pass the target subtype for every subtype-changing
@@ -830,6 +912,41 @@ class ProposalValidator:
                 return max(floor, gfa * rate)
             return floor
 
+        # Partial repurpose: only the converted area pays CAPEX.
+        if itype == "repurpose" and params.get("subtype_changes"):
+            mix = _parse_unit_mix_from_asset(asset_row)
+            total = 0.0
+            for ch in params["subtype_changes"]:
+                if not isinstance(ch, dict):
+                    continue
+                from_st = ch.get("from_subtype")
+                to_st = ch.get("to_subtype")
+                if not from_st or not to_st:
+                    continue
+                from_area = float(
+                    (mix.get(from_st) or {}).get("area_m2") or 0.0
+                )
+                requested = ch.get("area_m2")
+                if requested is not None:
+                    try:
+                        req = float(requested)
+                        converted = min(req, from_area) if from_area else req
+                    except (TypeError, ValueError):
+                        converted = from_area
+                else:
+                    converted = from_area
+                if converted <= 0:
+                    continue
+                rate = _CAPEX_RATE_BY_SUBTYPE.get(to_st)
+                if rate is None:
+                    rate = _CAPEX_RATE_BY_CLASS.get(
+                        asset_row.get("asset_type"), 200.0,
+                    )
+                total += converted * rate
+            if total > 0:
+                return max(_CAPEX_FLOOR.get("repurpose", 0.0), total)
+            return _CAPEX_FLOOR.get("repurpose", 0.0)
+
         if itype == "repurpose":
             rate = None
             if target_subtype:
@@ -841,6 +958,18 @@ class ProposalValidator:
             if floor_area > 0:
                 return max(floor, floor_area * rate)
             return floor
+
+        if itype == "renovation":
+            rate = _CAPEX_RATE_BY_SUBTYPE.get(
+                target_subtype, _CAPEX_RATE_BY_CLASS.get(
+                    asset_row.get("asset_type"), 200.0,
+                )
+            )
+            if floor_area > 0:
+                # Renovation costs ~50% of a full repurpose because
+                # there is no structural change.
+                return max(40_000.0, floor_area * rate * 0.5)
+            return 40_000.0
 
         # 3. Retrofit: fraction of the current-class rate
         if itype == "retrofit":
@@ -1087,3 +1216,160 @@ def _validate_measure_breakdown(asset_id, measures, breakdown, warnings,
                 )
         except (TypeError, ValueError):
             pass
+
+def _parse_unit_mix_from_asset(asset_row):
+    """Parse asset_row['unit_mix_json'] into a dict; {} on failure."""
+    import json as _json
+    raw = asset_row.get("unit_mix_json")
+    if not raw:
+        return {}
+    try:
+        if isinstance(raw, float) and math.isnan(raw):
+            return {}
+    except (TypeError, ValueError):
+        pass
+    try:
+        mix = _json.loads(raw) if isinstance(raw, str) else raw
+    except (_json.JSONDecodeError, TypeError):
+        return {}
+    if not isinstance(mix, dict):
+        return {}
+    return mix
+
+
+def _validate_subtype_changes(asset_id, asset_row, changes,
+                               subtypes_config, errors, warnings):
+    """
+    Validate a partial-repurpose subtype_changes block.
+
+    Rules:
+      1. Asset must have a unit_mix_json (mixed-use).
+      2. Each change must reference an existing from_subtype.
+      3. to_subtype must be in the SAME asset_class as from_subtype.
+      4. area_m2, if given, must be positive and <= current area.
+      5. After applying all changes, the primary (largest) subtype
+         must remain in the original asset_class so the asset's
+         `asset_type` does not flip (this is the middle-ground
+         limitation — cross-class changes must use a full repurpose).
+    """
+    if not isinstance(changes, list) or not changes:
+        errors.append(
+            f"{asset_id}: subtype_changes must be a non-empty list."
+        )
+        return
+
+    mix = _parse_unit_mix_from_asset(asset_row)
+    if not mix:
+        errors.append(
+            f"{asset_id}: subtype_changes requires an asset with a "
+            f"unit_mix_json. This asset is single-subtype; use a "
+            f"full repurpose instead."
+        )
+        return
+
+    current_class = asset_row.get("asset_type")
+
+    # Working state: {subtype: current area}
+    simulated = {}
+    for st, info in mix.items():
+        if not isinstance(info, dict):
+            continue
+        simulated[st] = float(info.get("area_m2") or 0.0)
+
+    for i, ch in enumerate(changes):
+        if not isinstance(ch, dict):
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}] is not an object."
+            )
+            continue
+
+        from_st = ch.get("from_subtype")
+        to_st = ch.get("to_subtype")
+
+        if not from_st or not to_st:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}] requires both "
+                f"from_subtype and to_subtype."
+            )
+            continue
+        if from_st not in mix:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}].from_subtype "
+                f"'{from_st}' not found in unit_mix "
+                f"({sorted(mix.keys())})."
+            )
+            continue
+
+        from_class = (subtypes_config.get(from_st) or {}).get(
+            "asset_class",
+        )
+        to_class = (subtypes_config.get(to_st) or {}).get(
+            "asset_class",
+        )
+        if to_class is None:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}].to_subtype "
+                f"'{to_st}' not in taxonomy."
+            )
+            continue
+        if from_class != to_class:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}] crosses asset "
+                f"class ({from_class} -> {to_class}). Use a full "
+                f"repurpose for cross-class changes."
+            )
+            continue
+
+        current_area = simulated.get(from_st, 0.0)
+        if current_area <= 0:
+            warnings.append(
+                f"{asset_id}: subtype_changes[{i}].from_subtype "
+                f"'{from_st}' already has 0 area — no-op."
+            )
+            continue
+
+        requested = ch.get("area_m2")
+        if requested is None:
+            converted = current_area
+        else:
+            try:
+                req = float(requested)
+            except (TypeError, ValueError):
+                errors.append(
+                    f"{asset_id}: subtype_changes[{i}].area_m2 "
+                    f"is not numeric."
+                )
+                continue
+            if req <= 0:
+                errors.append(
+                    f"{asset_id}: subtype_changes[{i}].area_m2 "
+                    f"must be positive."
+                )
+                continue
+            if req > current_area + 0.5:  # 0.5 m² tolerance
+                errors.append(
+                    f"{asset_id}: subtype_changes[{i}].area_m2 "
+                    f"({req}) exceeds current area of '{from_st}' "
+                    f"({current_area})."
+                )
+                continue
+            converted = req
+
+        simulated[from_st] = current_area - converted
+        simulated[to_st] = simulated.get(to_st, 0.0) + converted
+
+    # Sanity: resulting primary subtype must remain in current_class.
+    simulated = {k: v for k, v in simulated.items() if v > 0}
+    if simulated:
+        primary = max(simulated, key=lambda k: simulated[k])
+        primary_class = (subtypes_config.get(primary) or {}).get(
+            "asset_class",
+        )
+        if primary_class != current_class:
+            errors.append(
+                f"{asset_id}: after subtype_changes, the largest "
+                f"remaining subtype '{primary}' belongs to "
+                f"'{primary_class}', not '{current_class}'. A "
+                f"partial repurpose cannot change the asset's "
+                f"class — use a full repurpose instead."
+            )

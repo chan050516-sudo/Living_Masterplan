@@ -22,10 +22,8 @@ log = logging.getLogger(__name__)
 
 
 def apply_intervention(asset: dict, intervention: dict) -> dict:
-    """Returns a copy of asset with intervention state applied."""
     new_asset = dict(asset)
     itype = intervention["intervention_type"]
-
     try:
         params = json.loads(intervention.get("parameters_json") or "{}")
     except (json.JSONDecodeError, TypeError):
@@ -36,6 +34,9 @@ def apply_intervention(asset: dict, intervention: dict) -> dict:
 
     elif itype == "retrofit":
         _apply_retrofit(new_asset, params, intervention)
+
+    elif itype == "renovation":
+        _apply_renovation(new_asset, params, intervention)
 
     elif itype in ("pedestrian_upgrade", "green_corridor"):
         # Spatial-layer interventions modify the walking network.
@@ -56,6 +57,16 @@ def apply_intervention(asset: dict, intervention: dict) -> dict:
 
 
 def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
+    # Phase B.2c — partial repurpose.
+    # If subtype_changes is present, we convert only specific
+    # subtypes of a mixed-use asset, preserving the healthy ones.
+    if params.get("subtype_changes"):
+        _apply_partial_repurpose(
+            asset, params["subtype_changes"], intervention,
+        )
+        return
+
+    # ---- Existing full-repurpose path ----
     new_subtype = params.get("to_subtype")
     if new_subtype is None:
         target_asset_type = params.get("to", "community_facility")
@@ -77,14 +88,142 @@ def _apply_repurpose(asset: dict, params: dict, intervention: dict) -> None:
     if "new_capacity" in params:
         asset["capacity"] = params["new_capacity"]
 
-    # Phase B.2b — repurpose changes what the asset IS. The old
-    # unit_mix no longer describes it. Clear the mix so B4 does
-    # not apply the old subtype structure to the new subtype.
+    # Phase B.2b — full repurpose clears the old mix.
     asset["unit_mix_json"] = None
 
     delta = intervention.get("opex_delta_rm") or 0
     if _is_number(asset.get("opex_annual_rm")):
         asset["opex_annual_rm"] = float(asset["opex_annual_rm"]) + float(delta)
+
+
+def _apply_partial_repurpose(
+    asset: dict, changes: list, intervention: dict,
+) -> None:
+    """
+    Convert a subset of a mixed-use asset's subtypes in place.
+
+    Example: a 2,500 m² mall with unit_mix
+        {"supermarket": 800, "f_and_b": 600,
+         "services": 400, "medical_retail": 200}
+    and a dead F&B floor. The plan says
+        subtype_changes: [{from: "f_and_b", to: "clinic"}]
+
+    Result:
+        {"supermarket": 800, "clinic": 600,
+         "services": 400, "medical_retail": 200}
+    The primary subtype stays "supermarket" (largest area).
+    asset_type remains "commercial" (validator guarantees this).
+
+    B4 on the activation year re-reads unit_mix_json, sees the new
+    mix, and builds supply nodes with the updated subtype
+    breakdown. The Huff pool for "f_and_b" no longer receives
+    this asset's 600 m², and the "clinic" pool now does. The
+    aggregate Huff demand for the asset therefore shifts.
+
+    Limitation (middle-ground design): occupancy is computed
+    from the asset's AGGREGATE demand-to-supply ratio. There is
+    no per-subtype occupancy. The justification must describe
+    the change in aggregate terms.
+    """
+    raw = asset.get("unit_mix_json")
+    if not raw:
+        log.warning(
+            "Partial repurpose on asset %s with no unit_mix; "
+            "no-op.",
+            asset.get("asset_id"),
+        )
+        return
+    try:
+        mix = json.loads(raw) if isinstance(raw, str) else dict(raw)
+    except (json.JSONDecodeError, TypeError):
+        log.warning(
+            "Could not parse unit_mix_json on %s; partial repurpose "
+            "skipped.",
+            asset.get("asset_id"),
+        )
+        return
+    if not isinstance(mix, dict) or not mix:
+        return
+
+    working = {}
+    for st, info in mix.items():
+        if not isinstance(info, dict):
+            continue
+        working[st] = {
+            "area_m2": float(info.get("area_m2") or 0.0),
+            "count": int(info.get("count") or 1),
+        }
+
+    for ch in changes:
+        if not isinstance(ch, dict):
+            continue
+        from_st = ch.get("from_subtype")
+        to_st = ch.get("to_subtype")
+        if not from_st or not to_st or from_st not in working:
+            continue
+        if to_st == from_st:
+            continue
+
+        from_area = working[from_st]["area_m2"]
+        from_count = working[from_st]["count"]
+        if from_area <= 0:
+            continue
+
+        requested = ch.get("area_m2")
+        if requested is None:
+            converted_area = from_area
+        else:
+            try:
+                req = float(requested)
+            except (TypeError, ValueError):
+                req = from_area
+            converted_area = min(max(0.0, req), from_area)
+
+        if converted_area <= 0:
+            continue
+
+        ratio = converted_area / from_area
+        converted_count = max(
+            0, int(round(from_count * ratio)),
+        ) if ratio < 1.0 else from_count
+        if converted_area > 0 and converted_count == 0:
+            converted_count = 1  # always at least one unit of the target
+
+        working[from_st]["area_m2"] = from_area - converted_area
+        working[from_st]["count"] = from_count - converted_count
+
+        if to_st not in working:
+            working[to_st] = {"area_m2": 0.0, "count": 0}
+        working[to_st]["area_m2"] += converted_area
+        working[to_st]["count"] += converted_count
+
+    # Drop empty entries.
+    cleaned = {
+        st: info for st, info in working.items()
+        if info["area_m2"] > 0.5 and info["count"] > 0
+    }
+    if not cleaned:
+        return
+
+    primary = max(cleaned, key=lambda k: cleaned[k]["area_m2"])
+
+    out = {
+        st: {
+            "area_m2": round(info["area_m2"], 1),
+            "count": int(info["count"]),
+        }
+        for st, info in cleaned.items()
+    }
+    asset["unit_mix_json"] = json.dumps(out)
+    asset["subtype"] = primary
+    # asset_type is preserved — the validator rejects any change
+    # that would flip the primary subtype's asset_class.
+
+    delta = intervention.get("opex_delta_rm") or 0
+    if _is_number(asset.get("opex_annual_rm")):
+        asset["opex_annual_rm"] = (
+            float(asset["opex_annual_rm"]) + float(delta)
+        )
 
 
 def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
@@ -179,6 +318,32 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
             pass
         gain = max(0.0, min(0.90, gain))
         asset["_energy_efficiency_multiplier"] = 1.0 - gain
+
+
+def _apply_renovation(asset: dict, params: dict, intervention: dict) -> None:
+    """
+    Same-class subtype change. No structural demolition,
+    no change of asset_type, no clearing of unit_mix or
+    floor area. Used for terrace → affordable_housing,
+    convenience_retail → f_and_b, community_hall → library.
+
+    The asset's physical shell is unchanged; what changes
+    is the target demographic and the operational profile.
+    """
+    new_subtype = params.get("to_subtype")
+    if new_subtype is None:
+        return
+    subtype_def = get_subtype(new_subtype)
+    if subtype_def is None:
+        return
+    # Only change subtype — leave asset_type, capacity,
+    # floor_area, lettable_area, unit_mix, unit_count intact.
+    asset["subtype"] = new_subtype
+    delta = intervention.get("opex_delta_rm") or 0
+    if _is_number(asset.get("opex_annual_rm")):
+        asset["opex_annual_rm"] = (
+            float(asset["opex_annual_rm"]) + float(delta)
+        )
 
 
 def apply_construction_state(

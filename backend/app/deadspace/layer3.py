@@ -25,11 +25,17 @@ latter; the LLM is told both.
 # `classify_by_authority` for the execution split.
 
 ACTION_SPACE = {
+    "residential": [
+        "repurpose", "retrofit", "pedestrian_upgrade",
+        "renovation",   # NEW — same-class subtype change
+    ],
     "commercial": [
         "repurpose", "retrofit", "pedestrian_upgrade", "green_corridor",
+        "renovation",   # NEW — e.g. convenience_retail → f_and_b
     ],
     "community_facility": [
         "retrofit", "pedestrian_upgrade", "repurpose",
+        "renovation",   # NEW — e.g. community_hall → library
     ],
     "green_space": [
         "green_corridor", "pedestrian_upgrade",
@@ -42,9 +48,6 @@ ACTION_SPACE = {
     # authority. Developer-held unsold units can be repurposed;
     # sold / strata units cannot. The legal list is the same; the
     # authority check filters the executable subset.
-    "residential": [
-        "repurpose", "retrofit", "pedestrian_upgrade",
-    ],
 }
 
 
