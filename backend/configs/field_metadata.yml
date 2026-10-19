@@ -96,6 +96,18 @@ asset_metrics:
       same subtype receives the same intensity, so per-building
       life-cycle ranking is invalid. Use only for township-scale
       order-of-magnitude comparison.
+  sequestration_by_year_tco2e_year:
+    tier: 2
+    source: derived
+    unit: tCO2e/yr
+  sequestration_cumulative_tco2e:
+    tier: 2
+    source: derived
+    unit: tCO2e
+  net_carbon_by_year_tco2e_year:
+    tier: 2
+    source: derived
+    unit: tCO2e/yr
 
   # Green
   green_coverage:                   { tier: 2, source: derived, unit: ratio }

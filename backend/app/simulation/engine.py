@@ -1592,6 +1592,7 @@ def simulate_scenario(
             metric_row["canopy_coverage"] = canopy_from_b3
             metric_row["operational_capacity_ratio"] = capacity_ratio
             metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
+            metric_row["land_area_m2"] = eff.get("land_area_m2")     # sequestration
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -2165,6 +2166,7 @@ def _state_from_df(derived_df, assets_df):
             row_dict["_effective_capacity"] = a.get("capacity")
             row_dict["_effective_lettable"] = a.get("lettable_area_m2")
             row_dict["floor_area_m2"] = a.get("floor_area_m2")   # P1-3 fix
+            row_dict["land_area_m2"] = a.get("land_area_m2")     # sequestration
         row_dict["_state_kind"] = "asset"
         state[aid] = row_dict
     return state
@@ -2494,6 +2496,21 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
     carbon sums across every simulated year up to final_year — this is
     the number that actually differs between SC-CURRENT and SC-DELAY,
     since both scenarios have the project operating by final_year.
+
+    Carbon sequestration
+    --------------------
+    Reported as a yearly rate (tCO2e/year), matching the temporal
+    structure of `carbon_operational_tco2e`. This makes it possible
+    to compare the two side-by-side:
+
+        net_carbon_by_year[year] = operational_carbon[year]
+                                   - sequestration[year]
+
+    A negative net figure means the township is a net sink that year.
+
+    Sequestration does NOT enter `carbon_operational_tco2e` — that
+    would conflate a physical removal process with an emission
+    stream and corrupt the primary carbon comparison.
     """
     before = state_by_year.get(base_year, {})
     after = state_by_year.get(final_year, {})
@@ -2553,6 +2570,63 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
             if _is_valid(c):
                 project_carbon_cumulative += float(c) * dt
 
+    # ---- Carbon sequestration, yearly rate ----
+    #
+    # `load_assumptions` is imported at module level and
+    # lru_cached; the call is effectively free.
+    _assumptions = load_assumptions()
+    _seq_cfg = (
+        _assumptions.get("carbon_accounting", {})
+        .get("sequestration", {})
+    )
+    _uptake_rate = float(
+        _seq_cfg.get("canopy_uptake_tco2e_per_m2_year", 0.0015),
+    )
+
+    def _seq_for_state(state_dict):
+        total = 0.0
+        for aid, st in state_dict.items():
+            if _is_project(aid):
+                continue
+            if st.get("_effective_asset_type") != "green_space":
+                continue
+            canopy = st.get("canopy_coverage")
+            land = st.get("land_area_m2")
+            if not _is_valid(canopy) or not _is_valid(land):
+                continue
+            try:
+                total += float(land) * float(canopy) * _uptake_rate
+            except (TypeError, ValueError):
+                continue
+        return total
+
+    # Per-year table of sequestration, operational carbon, and net
+    seq_by_year = {}
+    op_by_year = {}
+    net_by_year = {}
+    for y in years:
+        yr_state = state_by_year.get(y, {})
+        seq_val = _seq_for_state(yr_state)
+        op_val = _sum_carbon(yr_state)
+        seq_by_year[str(y)] = round(seq_val, 2)
+        op_by_year[str(y)] = (
+            round(op_val, 2) if op_val is not None else None
+        )
+        net_by_year[str(y)] = (
+            round(op_val - seq_val, 2) if op_val is not None else None
+        )
+
+    seq_before = seq_by_year.get(str(base_year), 0.0)
+    seq_after = seq_by_year.get(str(final_year), 0.0)
+
+    # Cumulative sequestration: sum(rate × years_in_window)
+    seq_cumulative = 0.0
+    for idx, y in enumerate(years):
+        if y > final_year:
+            break
+        dt = (y - years[idx - 1]) if idx > 0 else 1
+        seq_cumulative += seq_by_year.get(str(y), 0.0) * dt
+
     return {
         "walk_15min_avg_coverage_before": walk_before,
         "walk_15min_avg_coverage_after": walk_after,
@@ -2568,6 +2642,22 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
         "project_carbon_cumulative_tco2e": (
             project_carbon_cumulative if project_carbon_cumulative > 0 else None
         ),
+        # ---- Carbon sequestration, yearly ----
+        "sequestration_by_year_tco2e_year": seq_by_year,
+        "sequestration_before_tco2e_year": (
+            round(seq_before, 2) if seq_before > 0 else None
+        ),
+        "sequestration_after_tco2e_year": (
+            round(seq_after, 2) if seq_after > 0 else None
+        ),
+        "sequestration_delta_tco2e_year": round(seq_after - seq_before, 2),
+        "sequestration_cumulative_tco2e": (
+            round(seq_cumulative, 2) if seq_cumulative > 0 else None
+        ),
+        "canopy_uptake_rate_tco2e_per_m2_year": _uptake_rate,
+        # ---- Net carbon (operational - sequestration), yearly ----
+        "operational_carbon_by_year_tco2e_year": op_by_year,
+        "net_carbon_by_year_tco2e_year": net_by_year,
     }
 
 

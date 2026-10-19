@@ -56,6 +56,29 @@ DEFAULTS = {
 }
 
 
+# ------------------------------------------------------------------
+# M8 — accessibility relevance by subtype
+# ------------------------------------------------------------------
+# Not every commercial asset fails by being unreachable on foot.
+# A showroom, a supermarket with a 3 km competition radius, or an
+# office tower is driven to; judging it against 5-minute walking
+# coverage penalises a business model that never wanted footfall.
+#
+# These tables say: for this subtype, which accessibility metric
+# actually matters for its commercial viability?
+WALKING_CRITICAL_SUBTYPES = frozenset({
+    "convenience_retail", "kopitiam", "cafe",
+    "f_and_b", "medical_retail", "services",
+    "clinic", "childcare",
+    "community_hall", "library",
+})
+
+DRIVING_CRITICAL_SUBTYPES = frozenset({
+    "supermarket", "office", "showroom", "entertainment",
+    "sports_centre", "school", "restaurant",
+})
+
+
 def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
     t = {**DEFAULTS, **(thresholds or {})}
     reasons = []
@@ -74,13 +97,19 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         if dsr is not None and dsr < t["dsr_below"]:
             reasons.append("dsr_below_threshold")
 
-        wcov = metrics.get("coverage_ratio_5min_walk")
-        if wcov is not None and wcov < t["walking_coverage_5min_below"]:
-            reasons.append("walking_accessibility_deficit")
-
-        dcov = metrics.get("coverage_ratio_10min_drive")
-        if dcov is not None and dcov < t["driving_coverage_10min_below"]:
-            reasons.append("driving_accessibility_deficit")
+        # M8 — walking / driving accessibility is judged only for
+        # subtypes whose business model actually depends on it. A
+        # showroom's 5-min walk coverage is irrelevant to whether
+        # it is deadspace; a café's is central.
+        subtype = metrics.get("subtype") or ""
+        if subtype in WALKING_CRITICAL_SUBTYPES:
+            wcov = metrics.get("coverage_ratio_5min_walk")
+            if wcov is not None and wcov < t["walking_coverage_5min_below"]:
+                reasons.append("walking_accessibility_deficit")
+        if subtype in DRIVING_CRITICAL_SUBTYPES:
+            dcov = metrics.get("coverage_ratio_10min_drive")
+            if dcov is not None and dcov < t["driving_coverage_10min_below"]:
+                reasons.append("driving_accessibility_deficit")
 
         mismatch = metrics.get("demographic_mismatch")
         if mismatch is not None and mismatch > t["demographic_mismatch_above"]:

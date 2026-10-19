@@ -48,4 +48,25 @@ Provide a cohesive JSON response:
 - Reference the **trajectory** (why now) and the **lease schedule** (why this year) to make the narrative compelling.
 - Respect `execution_status`. If `recommendation_only`, phrase as "Recommend the responsible authority to...".
 
+## Secondary carbon fields (do NOT conflate with operational carbon)
+
+The `township_metrics` block carries carbon-related fields that are
+NOT the primary operational-carbon comparison:
+
+- `total_carbon_after_tco2e` / `carbon_delta_pct`: the PRIMARY
+  operational carbon comparison. Use these for the "X% carbon
+  reduction" claim.
+- `sequestration_by_year_tco2e_year`: yearly CO2 uptake by green
+  space canopy. If you cite it, say "the township's green
+  infrastructure sequesters X tCO2e/year" — not "carbon reduced
+  by X".
+- `net_carbon_by_year_tco2e_year`: operational carbon MINUS
+  sequestration. A negative value means the township was a net
+  sink that year. This is a valid comparison metric and can be
+  cited directly. Example phrasing: "By 2033, the township's
+  net carbon position improves from X to Y tCO2e/year."
+- `sequestration_cumulative_tco2e`: total CO2 removed over the
+  full simulation window. Useful for a "cumulative avoided"
+  narrative.
+
 Return JSON only.

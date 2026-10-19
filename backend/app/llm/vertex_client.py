@@ -154,12 +154,16 @@ class VertexGeminiClient:
         if isinstance(last, types.Content) and last.parts:
             last.parts.append(types.Part(text=schema_text))
 
+        print("[POINT 3] Schema 拼接完成，准备构建 GenerateContentConfig...", flush=True)
+
         config = types.GenerateContentConfig(
             response_mime_type="application/json",
             thinking_config=types.ThinkingConfig(
                 thinking_level=types.ThinkingLevel.LOW,
             ),
         )
+
+        print("[POINT 4] ！！！马上发起 self.client.models.generate_content 请求！！！", flush=True)
 
         log.info("Stage 2: sending structured-via-prompt request "
                  "(%d messages)", len(messages))

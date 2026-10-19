@@ -168,6 +168,25 @@ def compute_derived_metrics(
 
         aid = asset["asset_id"]
 
+        # M7a — resolve subtype BEFORE computing the demographic
+        # catchment, so that catchment can use the subtype's own
+        # competition_radius_m instead of a fixed 1200 m.
+        #
+        # Rationale: a café's demographic catchment is a 400 m walk;
+        # a supermarket's is a 3 km drive. Using the same 1200 m
+        # for both aggregated the whole township into every
+        # catchment, which made `demographic_mismatch` permanently
+        # zero because every asset's catchment looked like the
+        # township average.
+        subtype = asset.get("subtype") or default_subtype_for(atype)
+        subtype_cfg = subtypes_config.get(subtype, {})
+
+        _demographic_radius = subtype_cfg.get("competition_radius_m")
+        try:
+            _demographic_radius = float(_demographic_radius)
+        except (TypeError, ValueError):
+            _demographic_radius = 800.0  # township-typical fallback
+
         walking_profile = _compute_asset_profile(
             asset_entry=walking_pipeline["asset_entries"].get(aid),
             demand_entries=walking_pipeline["demand_entries"],
@@ -191,7 +210,7 @@ def compute_derived_metrics(
             demand_entries=walking_pipeline["demand_entries_with_age"],
             distance_matrix=walking_pipeline["distance_matrix"],
             asset_entry=walking_pipeline["asset_entries"].get(aid),
-            max_distance_m=1200.0,
+            max_distance_m=_demographic_radius,   # M7a
         )
 
         asset_vn = walking_pipeline["asset_entries"].get(aid, {}).get("virtual_node")
@@ -203,9 +222,6 @@ def compute_derived_metrics(
             radius_m=DIVERSITY_RADIUS_M,
         )
 
-        subtype = asset.get("subtype") or default_subtype_for(atype)
-
-        subtype_cfg = subtypes_config.get(subtype, {})
         coeff = subtype_cfg.get("demand_coefficient_m2_per_person", 0.05) or 0.05
 
         # Per-subtype Huff demand for this asset.

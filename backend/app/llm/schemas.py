@@ -403,9 +403,54 @@ _PLAN_ITEM_SCHEMA = {
             ],
         },
     },
-    "required": ["asset_id", "type", "role", "parameters", "rationale"],
+    "required": ["asset_id", "type", "parameters", "rationale"],
 }
 
+# ------------------------------------------------------------------
+# One complete candidate — a named strategy with a plan covering
+# every target asset.
+# ------------------------------------------------------------------
+# This is the object that each element of `candidates` must be.
+# `_PLAN_ITEM_SCHEMA` describes a SINGLE asset-level intervention,
+# which is the element of `CANDIDATE_SCHEMA.plan`, not the candidate
+# itself. Rebinding candidates.items to _PLAN_ITEM_SCHEMA made the
+# LLM emit flat lists of plan items with no name and no enclosing
+# plan, which every candidate then failed to validate against
+# ("plan is empty or malformed").
+CANDIDATE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "name": {
+            "type": "STRING",
+            "description": (
+                "A short strategy label, e.g. 'Full repurpose', "
+                "'Cost recovery', 'Mixed-use intervention'."
+            ),
+        },
+        "strategy_summary": {
+            "type": "STRING",
+            "description": (
+                "One sentence explaining what this candidate is "
+                "trying to achieve."
+            ),
+        },
+        "reasoning_trace": {
+            "type": "STRING",
+            "description": (
+                "Why this candidate makes sense, up to 120 words."
+            ),
+        },
+        "plan": {
+            "type": "ARRAY",
+            "description": (
+                "One item per target asset. Every target must appear "
+                "exactly once in every candidate."
+            ),
+            "items": _PLAN_ITEM_SCHEMA,
+        },
+    },
+    "required": ["name", "strategy_summary", "plan"],
+}
 
 # ------------------------------------------------------------------
 # Stage 2.7 — Final Selection & Justification (Merged)
@@ -468,4 +513,4 @@ FINAL_DECISION_SCHEMA = {
 #
 # Same for FINAL_DECISION_SCHEMA — it doesn't reference
 # _PLAN_ITEM_SCHEMA, so no rebind needed there.
-CANDIDATES_SCHEMA["properties"]["candidates"]["items"] = _PLAN_ITEM_SCHEMA
+CANDIDATES_SCHEMA["properties"]["candidates"]["items"] = CANDIDATE_SCHEMA

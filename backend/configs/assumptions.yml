@@ -210,3 +210,21 @@ off_network_defaults:
   residential_default_m: 20.0
   green_space_default_m: 5.0
   undeveloped_parcel_default_m: 15.0
+
+# ----------------------------------------------------------------
+# Carbon sequestration — township-level green-space CO2 uptake
+# ----------------------------------------------------------------
+# Yearly rate (tCO2e/year), same temporal structure as
+# `carbon_operational_tco2e`. Reported by B4's
+# `_compute_township_metrics` alongside operational carbon so the
+# two can be compared year-by-year.
+#
+# Does NOT enter `carbon_operational_tco2e` — sequestration is a
+# physical removal process, not an emission stream. Mixing the two
+# would corrupt the primary carbon comparison.
+#
+# Rate source: IPCC 2006 Guidelines, tropical moist forest NPP,
+# reduced for urban soil / water limitation. Conservative.
+carbon_accounting:
+  sequestration:
+    canopy_uptake_tco2e_per_m2_year: 0.0015

@@ -131,7 +131,7 @@ def orchestrate_and_simulate_batch(
         run_id, len(context_pack["targets"]),
         len(context_pack["available_subtypes"]),
     )
-
+    
     # ---- Stage 2 + 2.5a: generate candidates and validate them ----
     valid_candidates: list = []
     last_raw_candidates: list = []
@@ -391,6 +391,13 @@ def _generate_candidates(
     import time
 
     prompt = _load_prompt("candidate_generator.md")
+
+    user_content = {
+        "context_pack": context_pack,
+        "attempt": attempt,
+    }
+    if candidate_feedback:
+        user_content["candidate_feedback"] = candidate_feedback
 
     user_content = {
         "context_pack": context_pack,
