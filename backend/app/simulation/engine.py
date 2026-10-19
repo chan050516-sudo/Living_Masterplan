@@ -75,6 +75,7 @@ from ..derived.environmental import (
     embodied_amortised,
     maintenance_carbon_annual,
     calculate_surface_temp_delta,
+    effective_canopy_for_uhi,          # P2-2 fix
     interim_solar_generation,
     canopy_growth,
     embodied_carbon_for_subtype,
@@ -1096,11 +1097,14 @@ def simulate_scenario(
         # enter the Huff demand pool. Without this, `catchment_growth`
         # catalytic interventions have no observable effect on the
         # beneficiary's effective_demand_m2.
-        projected_demand_nodes.extend(
-            _new_project_demand_nodes(
-                active_projects, geometry, pipeline_nodes_gdf,
-            )
+        #
+        # P2-7 — the node map is returned explicitly and threaded
+        # through to `_compute_project_reachable_population`.
+        _project_demand_nodes, project_node_map = _new_project_demand_nodes(
+            active_projects, geometry, pipeline_nodes_gdf,
         )
+        projected_demand_nodes.extend(_project_demand_nodes)
+
         huff_m2 = huff_gravity_by_subtype(
             distance_matrix,
             projected_demand_nodes,
@@ -1280,7 +1284,7 @@ def simulate_scenario(
                 )
 
             # ---- Environmental (subtype-aware) ----
-            floor_area = float(eff.get("floor_area_m2") or 0)
+            floor_area = _safe_num(eff.get("floor_area_m2"), 0.0)
 
             # Phase 11 — interim solar farm: the asset generates rather
             # than consumes. Carbon is a negative offset.
@@ -1402,15 +1406,35 @@ def simulate_scenario(
                     rate = 0.0
                 split = productive_stranded_carbon(carbon, rate)
 
-            # Phase 11 — UHI proxy with type-specific canopy fallback
-            if canopy_from_b3 is not None and canopy_from_b3 > 0.01:
-                canopy_for_uhi = canopy_from_b3
-            elif effective_type == "residential":
-                canopy_for_uhi = 0.25
-            elif effective_type == "green_space":
-                canopy_for_uhi = 0.60
-            else:
-                canopy_for_uhi = 0.10
+            # P2-3 fix — align with B3: green_space has no energy
+            # intensity and no operational carbon (B3's green deriver
+            # does not compute `carbon_operational_tco2e`, so the
+            # field is NaN in the 2026 baseline). B4 was writing 0,
+            # which made the comparison block render "null → 0".
+            # Force all three fields to None so the comparison key
+            # is dropped cleanly by `_valid()` in `_build_comparison`.
+            if effective_type == "green_space":
+                carbon = None
+                energy = None
+                split = {
+                    "carbon_productive_tco2e": None,
+                    "carbon_stranded_tco2e": None,
+                    "stranded_carbon_ratio": None,
+                }
+            # Phase 11 — UHI proxy.
+            #
+            # P2-2 fix — delegate to B3's `effective_canopy_for_uhi`
+            # so both layers use the same fallback table
+            # (residential=0.25, community_facility=0.20,
+            # commercial=0.10, green_space=0.60,
+            # undeveloped_parcel=0.05). The previous hand-rolled
+            # branch collapsed community_facility and
+            # undeveloped_parcel into the commercial default,
+            # which made an un-intervened community facility's UHI
+            # jump between 2026 (B3) and 2027+ (B4).
+            canopy_for_uhi = effective_canopy_for_uhi(
+                canopy_from_b3, effective_type,
+            )
             uhi = calculate_surface_temp_delta(
                 canopy_coverage_ratio=canopy_for_uhi,
                 is_hard_surface=(effective_type != "green_space"),
@@ -1472,6 +1496,14 @@ def simulate_scenario(
                     state_by_year=state_by_year,
                     base_year=base_year,
                     assumptions=assumptions,
+                )
+                # P1-4 fix — refresh per-subtype occupancy so the
+                # subunit breakdown reflects the new aggregate.
+                _recompute_per_subtype_occupancy(
+                    metric_row=metric_row,
+                    eff=eff,
+                    new_occ=new_occ,
+                    prev_occ=prev_occ,
                 )
             elif effective_type == "residential":
                 if activated is not None:
@@ -1541,6 +1573,7 @@ def simulate_scenario(
                 active_projects,
                 current_pipeline.get("asset_entries", {}).get(aid),
                 distance_matrix,
+                project_node_map=project_node_map,   # P2-7 fix
             )
             metric_row["reachable_population_walk"] = (
                 _base_reachable + _project_reachable
@@ -1558,6 +1591,7 @@ def simulate_scenario(
             metric_row["surface_temp_delta_c"] = uhi
             metric_row["canopy_coverage"] = canopy_from_b3
             metric_row["operational_capacity_ratio"] = capacity_ratio
+            metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -1641,6 +1675,11 @@ def _add_project_state(year_state, proj, year, emission_factor):
     structural lifespan from taxonomy.yml, not a global 50-year
     constant. A 30-year convenience retail and a 60-year terrace
     house do not amortise their locked-in carbon at the same rate.
+
+    P1-3 / P1-5 fix: carries floor_area_m2, occupancy_rate,
+    utilisation_rate, and noi_rm so the frontend summary card for a
+    new_development asset shows the project's outcome instead of
+    a wall of zeros.
     """
     pid = proj.get("project_id")
     if not pid:
@@ -1678,10 +1717,45 @@ def _add_project_state(year_state, proj, year, emission_factor):
         is_hard_surface=True,
     )
 
+    # ---- P1-5: derive occupancy / utilisation / NOI from subtype ----
+    # A delivered project is a real asset from the moment it activates.
+    # Its headline metrics (space utilisation, annual NOI) must be
+    # non-zero on the frontend card.
+    _subtype_defn = get_subtype(subtype) or {}
+    _asset_class = _subtype_defn.get("asset_class")
+    _bench_occ = get_occupancy_benchmark(subtype) or 0.85
+
+    if _asset_class == "commercial":
+        # Rough yield-on-cost: 5% NOI on a RM 3,500/m² build.
+        # Scaled by occupancy so a half-let shop does not show
+        # the same NOI as a fully-let one.
+        _capex_per_m2 = 3500.0
+        noi_rm = gfa * _capex_per_m2 * 0.05 * _bench_occ
+        occupancy_rate = _bench_occ
+        utilisation_rate = None
+    elif _asset_class == "residential":
+        noi_rm = None
+        occupancy_rate = _bench_occ
+        utilisation_rate = None
+    elif _asset_class == "community_facility":
+        noi_rm = None
+        occupancy_rate = None
+        utilisation_rate = _bench_occ
+    else:
+        noi_rm = None
+        occupancy_rate = None
+        utilisation_rate = None
+
     year_state[key] = {
         "asset_id": key,
         "year": year,
         "subtype": subtype,
+        # ---- P1-3 / P1-5: fields the frontend card expects ----
+        "floor_area_m2": gfa,
+        "occupancy_rate": occupancy_rate,
+        "utilisation_rate": utilisation_rate,
+        "noi_rm": noi_rm,
+        # ---- existing fields ----
         "carbon_operational_tco2e": carbon,
         "carbon_productive_tco2e": carbon,
         "carbon_stranded_tco2e": 0.0,
@@ -1924,10 +1998,24 @@ def _new_project_demand_nodes(active_projects, geometry, nodes_gdf):
     Only residential land use contributes demand nodes; commercial
     and facility projects contribute supply nodes via the sibling
     function.
+
+    P2-7 fix — returns an explicit `project_id → node_id` map instead
+    of stashing `_node_id` on each project dict. The previous design
+    mutated the caller's `active_projects` list, which is safe only
+    because the list is reconstructed per-year. Any caching or
+    concurrent use of the list would have silently corrupted the
+    node assignment.
+
+    Returns
+    -------
+    (demand_nodes, project_node_map)
+        demand_nodes       : list of Huff demand node dicts
+        project_node_map   : {project_id: resolved_node_id}
     """
     from ..taxonomy import get_subtype, default_subtype_for
 
     out = []
+    project_node_map: dict = {}
     for proj in active_projects:
         subtype = proj.get("subtype")
         if not subtype:
@@ -1969,23 +2057,20 @@ def _new_project_demand_nodes(active_projects, geometry, nodes_gdf):
         except Exception:
             continue
 
-        # Phase E blocker fix — stash the resolved node id on the
-        # project dict so `_compute_project_reachable_population` can
-        # look it up when computing the asset's walking catchment.
-        # The dict is shared by reference with the caller's
-        # active_projects list.
-        proj["_node_id"] = proj_node
+        project_id = proj.get("project_id") or "?"
+        project_node_map[project_id] = proj_node
 
         out.append({
-            "population_id": f"PRJ-POP-{proj.get('project_id', '?')}",
+            "population_id": f"PRJ-POP-{project_id}",
             "node": proj_node,
             "population": pop,
         })
-    return out
+    return out, project_node_map
 
 
 def _compute_project_reachable_population(
     active_projects, asset_entry, distance_matrix,
+    project_node_map=None,
     max_distance_m=1200.0,
 ):
     """
@@ -2004,17 +2089,22 @@ def _compute_project_reachable_population(
     claim was capped at `partially_verified`.
 
     This function fills the gap by walking the delivered projects,
-    resolving each one's node via `_node_id` (stashed by
-    `_new_project_demand_nodes`), and summing the populations within
-    max_distance_m of the asset's virtual node.
+    resolving each one's node via `project_node_map`, and summing
+    the populations within max_distance_m of the asset's virtual node.
 
     max_distance_m defaults to 1200 m, matching B3's own catchment
     computation (`aggregate_catchment_profile(max_distance_m=1200.0)`).
     A project beyond that threshold is not inside the asset's walk
     catchment and must not count.
+
+    P2-7 fix — the project → node mapping now arrives via an explicit
+    parameter rather than a `_node_id` field stashed on the project
+    dict by `_new_project_demand_nodes`.
     """
     if not active_projects or not asset_entry:
         return 0.0
+    if project_node_map is None:
+        project_node_map = {}
     asset_vn = asset_entry.get("virtual_node")
     if not asset_vn or asset_vn not in distance_matrix:
         return 0.0
@@ -2025,7 +2115,8 @@ def _compute_project_reachable_population(
 
     total = 0.0
     for proj in active_projects:
-        proj_node = proj.get("_node_id")
+        project_id = proj.get("project_id") or "?"
+        proj_node = project_node_map.get(project_id)
         if not proj_node:
             continue
         d_net = row.get(proj_node)
@@ -2073,6 +2164,7 @@ def _state_from_df(derived_df, assets_df):
             row_dict["_effective_asset_type"] = a["asset_type"]
             row_dict["_effective_capacity"] = a.get("capacity")
             row_dict["_effective_lettable"] = a.get("lettable_area_m2")
+            row_dict["floor_area_m2"] = a.get("floor_area_m2")   # P1-3 fix
         row_dict["_state_kind"] = "asset"
         state[aid] = row_dict
     return state
@@ -2645,6 +2737,63 @@ def _scenario_name(scenario_id: str) -> str:
         "SC-DELAY": "Option C - Delay + Replan",
     }
     return names.get(scenario_id, scenario_id)
+
+
+def _recompute_per_subtype_occupancy(metric_row, eff, new_occ, prev_occ):
+    """
+    P1-4 fix — keep per-subtype occupancy in sync with the aggregate.
+
+    B3 computes `occupancy_by_subtype_calc_json` at the base year
+    with a fixed seeded spread. B4 only updates the aggregate
+    `occupancy_rate`, so without this fix the per-subtype breakdown
+    shown on the dashboard froze at the 2026 snapshot even as the
+    aggregate moved. Partial repurpose demos then showed identical
+    "before" and "after" per-subtype occupancies despite the
+    aggregate jumping.
+
+    Strategy:
+      - scale each EXISTING subtype by (new_occ / prev_occ)
+      - initialise NEW subtypes (introduced by a partial repurpose)
+        to their subtype benchmark, falling back to new_occ
+      - clip everything to [0, 1]
+    """
+    mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
+    if not mix:
+        return
+
+    old_json = metric_row.get("occupancy_by_subtype_calc_json")
+    try:
+        old = json.loads(old_json) if isinstance(old_json, str) and old_json else {}
+    except (json.JSONDecodeError, TypeError):
+        old = {}
+    if not isinstance(old, dict):
+        old = {}
+
+    base = float(prev_occ) if prev_occ and float(prev_occ) > 0 else 1.0
+    try:
+        ratio = float(new_occ) / base if base > 0 else 1.0
+    except (TypeError, ValueError, ZeroDivisionError):
+        ratio = 1.0
+
+    result = {}
+    for st in mix.keys():
+        v = old.get(st)
+        if v is None:
+            # Newly introduced subtype (partial repurpose target).
+            bench = get_occupancy_benchmark(st)
+            try:
+                bench_f = float(bench) if bench is not None else float(new_occ)
+            except (TypeError, ValueError):
+                bench_f = float(new_occ)
+            result[st] = round(min(1.0, max(0.0, bench_f)), 4)
+        else:
+            try:
+                v_f = float(v) * ratio
+            except (TypeError, ValueError):
+                v_f = float(new_occ)
+            result[st] = round(min(1.0, max(0.0, v_f)), 4)
+
+    metric_row["occupancy_by_subtype_calc_json"] = json.dumps(result)
 
 
 def _json_safe(obj):

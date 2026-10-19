@@ -16,6 +16,10 @@ legal for this asset type?". Authority answers a different question:
 latter; the LLM is told both.
 """
 
+import logging
+
+log = logging.getLogger(__name__)
+
 # ---------------------------------------------------------------
 # Intervention legality per asset type
 # ---------------------------------------------------------------
@@ -141,6 +145,87 @@ def classify_by_authority(asset_type: str, authority: str) -> dict:
     }
 
 
+# ---------------------------------------------------------------
+# Phase 16+ — flag → physical intervention mapping
+# ---------------------------------------------------------------
+# A flag says *what is wrong*. This table says *what kind of
+# intervention can physically address that problem*. It is a
+# **soft** filter: `candidate_interventions` is filtered to the
+# union of mapped interventions across the fired flags, BUT if that
+# union is empty (a flag maps to no intervention, or the union
+# misses the asset's legal set), we fall back to the full legal
+# set so the LLM never sees an empty action space.
+#
+# Why we filter at all
+# --------------------
+# `high_uhi_exposure` says "this asset is a heat island". The
+# physically reasonable responses are canopy injection
+# (green_corridor / pedestrian_upgrade) and envelope / HVAC work
+# (retrofit). Returning `repurpose` alongside them lets the LLM
+# propose demolishing a live asset just to fix heat — an
+# over-broad action space invites an over-broad plan.
+#
+# Why the fallback
+# ----------------
+# Trajectory flags (rapid_decline / falling_from_healthy /
+# chronic_stagnation) and `uhi_data_anomaly` are *symptoms* or
+# *data problems*, not problem classes. They map to `set()` on
+# purpose: when they are the only fired flags, the union is
+# empty, and the caller receives the full legal set. This
+# deliberately avoids "we detected a problem but have no
+# candidate interventions" dead ends.
+#
+# A flag not in this table is logged at WARNING (see
+# `evaluate`) so a newly introduced flag cannot silently
+# disappear from the LLM's action space.
+_FLAG_TO_INTERVENTIONS = {
+    # ---- Occupancy / utilisation failure ----
+    "low_occupancy":                    {"repurpose", "pedestrian_upgrade", "green_corridor", "retrofit"},
+    "below_benchmark_occupancy":        {"repurpose", "pedestrian_upgrade", "retrofit"},
+    "long_vacancy":                     {"repurpose", "retrofit"},
+    "low_utilisation":                  {"repurpose", "retrofit", "pedestrian_upgrade"},
+    "chronic_stagnation":               set(),   # symptom; fallback to full set
+    "built_value_not_realized":         {"repurpose", "retrofit", "pedestrian_upgrade"},
+
+    # ---- Demand-supply / financial ----
+    "dsr_below_threshold":              {"repurpose"},
+    "negative_noi":                     {"repurpose", "retrofit"},
+    "maintenance_surge_high":           {"retrofit"},
+    "demographic_mismatch":             {"repurpose"},
+    "low_neighborhood_diversity":       {"repurpose"},
+
+    # ---- Accessibility ----
+    "walking_accessibility_deficit":    {"pedestrian_upgrade", "green_corridor"},
+    "driving_accessibility_deficit":    {"pedestrian_upgrade"},
+    "low_accessibility":                {"pedestrian_upgrade", "green_corridor"},
+    "low_accessibility_high_ecological_value": {"pedestrian_upgrade", "green_corridor"},
+
+    # ---- Facility coverage ----
+    "insufficient_coverage":            {"repurpose", "pedestrian_upgrade"},
+
+    # ---- Environmental ----
+    "high_stranded_carbon":             {"repurpose", "retrofit"},
+    "high_stranded_carbon_ratio_small_asset": {"repurpose", "retrofit"},
+    "high_uhi_exposure":                {"green_corridor", "pedestrian_upgrade", "retrofit"},
+    "uhi_data_anomaly":                 set(),   # data problem; no physical fix
+    "low_green_coverage":               {"green_corridor"},
+    "low_canopy_coverage":              {"green_corridor"},
+    "low_green_per_capita":             {"green_corridor"},
+
+    # ---- Subtype mix ----
+    "subtype_mix_dead":                 {"repurpose"},
+    "subtype_mix_low":                  {"repurpose", "retrofit"},
+
+    # ---- Undeveloped parcel ----
+    "negative_demand_supply_gap":       {"delay_development", "interim_solar_farm"},
+    "weak_future_demand":               {"delay_development", "interim_solar_farm"},
+
+    # ---- Trajectory-only (never a problem class on its own) ----
+    "rapid_decline":                    set(),   # symptom; fallback to full set
+    "falling_from_healthy":             set(),   # symptom; fallback to full set
+}
+
+
 def evaluate(asset_type: str, diagnostics: dict = None,
              layer1: dict = None, layer2: dict = None) -> dict:
     """
@@ -157,11 +242,24 @@ def evaluate(asset_type: str, diagnostics: dict = None,
     has_legal_actions — the asset TYPE has some legal intervention.
         A type property. Not a state.
 
-    candidate_interventions — the subset indicated by the asset's
-        diagnosis. Empty when neither layer1 nor layer2 fired.
+    candidate_interventions — the subset of legal interventions
+        indicated by the asset's diagnosis. Two levels of filtering:
+
+          1. Gate: empty when neither layer1 nor layer2 fired.
+          2. Flag match: restricted to the union of
+             `_FLAG_TO_INTERVENTIONS[flag]` across every fired
+             flag, intersected with the asset's legal set.
+             If that union is empty (trajectory-only diagnosis,
+             or a flag with no mapped intervention), we fall back
+             to the full legal set so the LLM never sees an
+             empty action space.
 
     actionable — legacy alias for has_legal_actions. Deprecated;
         retained only for schema compatibility.
+
+    The `diagnostics` parameter is accepted for backward
+    compatibility and unused. Fired flags come from `layer1.reasons`
+    and `layer2.reasons`.
     """
     legal = ACTION_SPACE.get(asset_type, [])
 
@@ -169,24 +267,74 @@ def evaluate(asset_type: str, diagnostics: dict = None,
     layer2_triggered = bool(layer2 and layer2.get("triggered"))
     diagnosed = layer1_triggered or layer2_triggered
 
-    if diagnosed:
-        parts = []
-        if layer1_triggered:
-            parts.append("layer1")
-        if layer2_triggered:
-            parts.append("layer2")
-        reason = f"diagnosis triggered by {'+'.join(parts)}"
-    else:
-        reason = (
-            "no layer triggered; no intervention is indicated "
-            "regardless of legal action space"
+    if not diagnosed:
+        return {
+            "has_legal_actions": len(legal) > 0,
+            "actionable": len(legal) > 0,   # deprecated alias
+            "candidate_interventions": [],
+            "diagnosis_active": False,
+            "reason": (
+                "no layer triggered; no intervention is indicated "
+                "regardless of legal action space"
+            ),
+        }
+
+    # ---- Flag → intervention union ----
+    all_flags = (
+        list((layer1 or {}).get("reasons", []))
+        + list((layer2 or {}).get("reasons", []))
+    )
+
+    mapped: set = set()
+    unmapped_flags: list = []
+    for f in all_flags:
+        if f in _FLAG_TO_INTERVENTIONS:
+            mapped |= _FLAG_TO_INTERVENTIONS[f]
+        else:
+            unmapped_flags.append(f)
+
+    if unmapped_flags:
+        # Newly introduced flag without a mapping. Surface it so
+        # the developer knows to extend `_FLAG_TO_INTERVENTIONS`.
+        # The fallback below keeps the LLM productive meanwhile.
+        log.warning(
+            "layer3: flags without an intervention mapping: %s "
+            "(asset_type=%s). These contribute nothing to "
+            "candidate_interventions; falling back to the full "
+            "legal set will be applied if the union is empty.",
+            unmapped_flags, asset_type,
         )
+
+    filtered = [i for i in legal if i in mapped]
+
+    if not filtered:
+        # Fallback: trajectory-only diagnosis, or a flag with no
+        # mapped intervention that intersects this asset's legal
+        # set. Keep the LLM productive by returning the full
+        # legal set; the rationale field explains why.
+        filtered = list(legal)
+        filter_note = (
+            "no flag-mapped intervention intersected the legal set; "
+            "using the full legal set as fallback"
+        )
+    else:
+        filter_note = (
+            f"filtered to {len(filtered)} of {len(legal)} legal "
+            f"interventions based on fired flags"
+        )
+
+    parts = []
+    if layer1_triggered:
+        parts.append("layer1")
+    if layer2_triggered:
+        parts.append("layer2")
+    reason = f"diagnosis triggered by {'+'.join(parts)}; {filter_note}"
 
     return {
         "has_legal_actions": len(legal) > 0,
         "actionable": len(legal) > 0,   # deprecated alias
-        "candidate_interventions": list(legal) if diagnosed else [],
-        "diagnosis_active": diagnosed,
+        "candidate_interventions": filtered,
+        "diagnosis_active": True,
         "reason": reason,
     }
 

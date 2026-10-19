@@ -295,11 +295,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -511,11 +510,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -707,11 +705,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -788,11 +785,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -878,11 +874,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -1000,11 +995,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -1124,11 +1118,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -1216,11 +1209,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -1625,11 +1617,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -1678,11 +1669,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -1863,11 +1853,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -2479,11 +2468,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -2895,13 +2883,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -3743,11 +3729,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -4005,11 +3990,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -4062,11 +4046,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -4481,11 +4464,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5067,11 +5049,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5155,11 +5136,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5389,11 +5369,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5483,11 +5462,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5576,11 +5554,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5900,11 +5877,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -5994,11 +5970,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -6483,11 +6458,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -6540,11 +6514,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -7385,11 +7358,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -7602,13 +7574,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -8041,11 +8011,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -8095,13 +8064,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -8575,11 +8542,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -8663,11 +8629,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -8720,11 +8685,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -9033,13 +8997,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -9546,11 +9508,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -9599,11 +9560,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -10077,13 +10037,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -10161,11 +10119,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -10276,13 +10233,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -10722,13 +10677,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -10958,11 +10911,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -11013,11 +10965,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -11165,13 +11116,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -11579,11 +11528,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -11681,11 +11629,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -11849,11 +11796,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -12104,13 +12050,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -12442,11 +12386,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -12533,11 +12476,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -12813,13 +12755,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -13032,11 +12972,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -13158,11 +13097,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -13218,11 +13156,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -13651,11 +13588,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -13977,11 +13913,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -14056,11 +13991,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -14158,11 +14092,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -14458,11 +14391,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -14515,13 +14447,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -14590,11 +14520,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -14778,11 +14707,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -15300,11 +15228,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -15526,11 +15453,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -15612,11 +15538,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -16036,11 +15961,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -16127,11 +16051,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -16311,13 +16234,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -16454,11 +16375,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -16581,11 +16501,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -16709,11 +16628,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -17138,13 +17056,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -17281,11 +17197,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -17382,11 +17297,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -17560,11 +17474,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -17646,11 +17559,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -18028,13 +17940,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -18831,11 +18741,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -18932,11 +18841,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -19287,11 +19195,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -19394,11 +19301,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -19668,11 +19574,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -19753,13 +19658,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -19997,11 +19900,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -20292,11 +20194,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -20348,13 +20249,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -20559,11 +20458,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -20918,11 +20816,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -20971,11 +20868,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -21102,11 +20998,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -21614,11 +21509,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -21803,11 +21697,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -22010,11 +21903,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -22686,14 +22578,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -22989,11 +22878,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -23074,11 +22962,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -23688,11 +23575,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -24500,11 +24386,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -25312,11 +25197,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -25596,11 +25480,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -26215,11 +26098,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -26522,11 +26404,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -26619,11 +26500,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -26782,11 +26662,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -27025,11 +26904,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -27383,11 +27261,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -27474,11 +27351,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -27758,11 +27634,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -28044,7 +27919,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28124,13 +27999,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -28195,7 +28068,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28374,7 +28247,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28421,7 +28294,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28468,7 +28341,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28713,7 +28586,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28770,11 +28643,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -28855,7 +28727,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28902,7 +28774,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -28961,11 +28833,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29155,11 +29026,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29274,11 +29144,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29359,7 +29228,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -29538,7 +29407,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -29588,11 +29457,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29652,13 +29520,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29723,7 +29589,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -29770,13 +29636,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29841,7 +29705,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -29900,11 +29764,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -29989,7 +29852,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -30042,11 +29905,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -30118,13 +29980,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -30386,13 +30246,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -30655,7 +30513,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -30702,7 +30560,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -30757,11 +30615,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -30848,11 +30705,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -30933,7 +30789,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -30980,7 +30836,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -31028,11 +30884,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31088,11 +30943,10 @@
       "candidate_interventions": [
         "repurpose",
         "retrofit",
-        "pedestrian_upgrade",
-        "renovation"
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31147,7 +31001,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -31194,7 +31048,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -31241,7 +31095,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -31288,7 +31142,7 @@
         "renovation"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; no flag-mapped intervention intersected the legal set; using the full legal set as fallback"
     },
     "contributing_factors": [
       {
@@ -31376,11 +31230,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31462,13 +31315,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31519,13 +31370,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31576,13 +31425,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31633,13 +31480,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31690,13 +31535,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31747,13 +31590,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31804,13 +31645,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31861,13 +31700,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31918,13 +31755,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -31975,13 +31810,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32032,13 +31865,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32089,13 +31920,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32146,13 +31975,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32205,13 +32032,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32268,13 +32093,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32329,13 +32152,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32386,13 +32207,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32443,13 +32262,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32500,13 +32317,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32557,13 +32372,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32614,13 +32427,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32671,13 +32482,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32728,13 +32537,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "retrofit",
         "pedestrian_upgrade",
-        "repurpose",
-        "renovation"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32800,11 +32607,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32899,11 +32705,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -32978,11 +32783,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33069,11 +32873,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33156,11 +32959,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33227,11 +33029,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33304,11 +33105,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33395,11 +33195,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33482,11 +33281,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33553,11 +33351,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33624,11 +33421,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33695,11 +33491,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33766,11 +33561,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33843,11 +33637,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33926,11 +33719,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -33992,14 +33784,12 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34070,11 +33860,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34163,11 +33952,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34252,11 +34040,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34335,11 +34122,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34412,11 +34198,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34495,11 +34280,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34571,11 +34355,10 @@
         "repurpose",
         "retrofit",
         "pedestrian_upgrade",
-        "green_corridor",
-        "renovation"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34650,7 +34433,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34697,7 +34480,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34747,7 +34530,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34801,7 +34584,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34855,7 +34638,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34909,7 +34692,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -34963,7 +34746,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35017,7 +34800,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35071,7 +34854,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35122,7 +34905,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35165,11 +34948,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35219,7 +35001,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35273,7 +35055,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35327,7 +35109,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35374,11 +35156,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35425,7 +35206,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35475,7 +35256,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35529,7 +35310,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35576,11 +35357,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35630,7 +35410,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35684,7 +35464,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35738,7 +35518,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35792,7 +35572,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35839,11 +35619,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35890,7 +35669,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35933,11 +35712,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -35987,7 +35765,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36041,7 +35819,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36095,7 +35873,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36146,7 +35924,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36196,7 +35974,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36250,7 +36028,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36304,7 +36082,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36355,7 +36133,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36402,7 +36180,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36452,7 +36230,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36506,7 +36284,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36557,7 +36335,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36600,11 +36378,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36647,11 +36424,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor",
-        "pedestrian_upgrade"
+        "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36701,7 +36477,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36755,7 +36531,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36809,7 +36585,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36863,7 +36639,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36914,7 +36690,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -36964,7 +36740,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37018,7 +36794,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37072,7 +36848,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37126,7 +36902,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37177,7 +36953,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37227,7 +37003,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37277,12 +37053,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37333,12 +37108,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37389,12 +37163,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37445,12 +37218,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37501,12 +37273,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37557,12 +37328,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37613,12 +37383,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37669,12 +37438,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
@@ -37725,12 +37493,11 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "new_development",
         "delay_development",
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {

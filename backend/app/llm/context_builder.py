@@ -150,7 +150,7 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "green_coverage": derived.get("green_coverage"),
             "canopy_coverage": derived.get("canopy_coverage"),
             "green_per_capita_m2": derived.get("green_per_capita_m2"),
-            "surface_temp_delta_c": derived.get("carbon_operational_tco2e"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
         }
     elif asset_type == "community_facility":
         key_metrics = {

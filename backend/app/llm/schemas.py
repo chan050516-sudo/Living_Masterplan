@@ -165,37 +165,11 @@ PROPOSAL_PARAMETERS_SCHEMA = {
 # Reusable plan item (one intervention on one asset)
 # ------------------------------------------------------------------
 
-_PLAN_ITEM_SCHEMA = {
-    "type": "OBJECT",
-    "properties": {
-        "asset_id": {"type": "STRING"},
-        "type": {
-            "type": "STRING",
-            "enum": [
-                "repurpose", "retrofit", "renovation",
-                "green_corridor", "pedestrian_upgrade",
-                "new_development", "delay_development",
-                "interim_solar_farm",
-            ],
-        },
-        "parameters": PROPOSAL_PARAMETERS_SCHEMA,
-        "rationale": {"type": "STRING"},
-        "investment_case": {
-            "type": "OBJECT",
-            "properties": {
-                "capital_invested": {"type": "STRING"},
-                "return_delivered": {"type": "STRING"},
-                "strategic_rationale": {"type": "STRING"},
-            },
-            "required": [
-                "capital_invested",
-                "return_delivered",
-                "strategic_rationale",
-            ],
-        },
-    },
-    "required": ["asset_id", "type", "parameters", "rationale"],
-}
+# _PLAN_ITEM_SCHEMA is defined at the END of this file (after
+# CATALYTIC_LINK_SCHEMA). We use a forward-reference pattern here:
+# CANDIDATES_SCHEMA is rebound at the bottom of the file once the
+# canonical _PLAN_ITEM_SCHEMA exists. Do NOT reference
+# _PLAN_ITEM_SCHEMA in this top section.
 
 
 # ------------------------------------------------------------------
@@ -224,38 +198,7 @@ CANDIDATES_SCHEMA = {
                 "bold move (repurpose / new_development); at least one "
                 "may be incremental (retrofit / upgrade)."
             ),
-            "items": {
-                "type": "OBJECT",
-                "properties": {
-                    "name": {
-                        "type": "STRING",
-                        "description": (
-                            "A short strategy label, e.g. "
-                            "'Full repurpose', 'Cost recovery', "
-                            "'Mixed-use intervention'."
-                        ),
-                    },
-                    "strategy_summary": {
-                        "type": "STRING",
-                        "description": (
-                            "One sentence explaining what this "
-                            "candidate is trying to achieve."
-                        ),
-                    },
-                    "reasoning_trace": {
-                        "type": "STRING",
-                        "description": (
-                            "Why this candidate makes sense, up to "
-                            "120 words."
-                        ),
-                    },
-                    "plan": {
-                        "type": "ARRAY",
-                        "items": _PLAN_ITEM_SCHEMA,
-                    },
-                },
-                "required": ["name", "strategy_summary", "plan"],
-            },
+            "items": {"type": "OBJECT"},
         },
     },
     "required": ["reasoning_trace", "candidates"],
@@ -426,6 +369,7 @@ _PLAN_ITEM_SCHEMA = {
             "enum": [
                 "repurpose",
                 "retrofit",
+                "renovation",
                 "green_corridor",
                 "pedestrian_upgrade",
                 "new_development",
@@ -511,3 +455,17 @@ FINAL_DECISION_SCHEMA = {
         "executive_summary", "why_this_plan", "what_simulation_shows", "recommendation"
     ],
 }
+
+
+# ------------------------------------------------------------------
+# Deferred rebind (P0-2 fix)
+# ------------------------------------------------------------------
+# CANDIDATES_SCHEMA was defined before the canonical
+# _PLAN_ITEM_SCHEMA (the one with role / catalytic_link / renovation)
+# existed. Python evaluates dicts at definition time, so the earlier
+# binding captured a stale version. Rebind the nested schema now that
+# the canonical _PLAN_ITEM_SCHEMA is available.
+#
+# Same for FINAL_DECISION_SCHEMA — it doesn't reference
+# _PLAN_ITEM_SCHEMA, so no rebind needed there.
+CANDIDATES_SCHEMA["properties"]["candidates"]["items"] = _PLAN_ITEM_SCHEMA

@@ -354,25 +354,39 @@ class ProposalValidator:
             )
             return errors, warnings, None
 
-        # Repurpose: subtype must exist and not equal current subtype
+        # Repurpose: full repurpose requires to_subtype; partial repurpose
+        # (subtype_changes) does NOT — it converts individual subtypes
+        # in place, and the aggregate subtype is recomputed by the engine.
+        #
+        # P1-1 fix: prior code rejected every partial repurpose because it
+        # unconditionally required to_subtype. Now:
+        #   - has_changes = True  → to_subtype is optional; subtype_changes
+        #                            is validated later by
+        #                            _validate_subtype_changes
+        #   - has_changes = False → to_subtype is required (original path)
         to_subtype = params.get("to_subtype")
+        has_changes = bool(params.get("subtype_changes"))
         if itype == "repurpose":
-            if not to_subtype:
-                errors.append(f"{asset_id}: repurpose requires parameters.to_subtype")
-                return errors, warnings, None
-            defn = get_subtype(to_subtype)
-            if defn is None:
+            if not to_subtype and not has_changes:
                 errors.append(
-                    f"{asset_id}: subtype '{to_subtype}' not in taxonomy. "
-                    f"Call get_available_subtypes first."
+                    f"{asset_id}: repurpose requires either "
+                    f"parameters.to_subtype or parameters.subtype_changes"
                 )
                 return errors, warnings, None
-            current_subtype = asset_row.get("subtype")
-            if to_subtype == current_subtype:
-                warnings.append(
-                    f"{asset_id}: repurpose target equals current subtype "
-                    f"'{to_subtype}' — no-op."
-                )
+            if not has_changes:
+                defn = get_subtype(to_subtype)
+                if defn is None:
+                    errors.append(
+                        f"{asset_id}: subtype '{to_subtype}' not in taxonomy. "
+                        f"Call get_available_subtypes first."
+                    )
+                    return errors, warnings, None
+                current_subtype = asset_row.get("subtype")
+                if to_subtype == current_subtype:
+                    warnings.append(
+                        f"{asset_id}: repurpose target equals current subtype "
+                        f"'{to_subtype}' — no-op."
+                    )
 
         if itype == "renovation":
             to_subtype = params.get("to_subtype")

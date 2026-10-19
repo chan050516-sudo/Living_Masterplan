@@ -15,10 +15,57 @@ Phase 11 changes:
 import json
 import logging
 import math
+from ..config import load_assumptions
 
 from ..taxonomy import get_subtype, DEFAULT_SUBTYPE_BY_ASSET_TYPE
 
 log = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------
+# Cached assumptions accessor (P2-6 fix)
+# ---------------------------------------------------------------
+# `apply_intervention` is called once per asset-intervention pair
+# per simulated year, which can be hundreds of calls per run.
+# Load assumptions.yml once and reuse.
+#
+# The module holds no state beyond this cache, so the function is
+# still safe to call from any thread that holds the GIL.
+_ASSUMPTIONS_CACHE = None
+
+
+def _get_assumptions() -> dict:
+    global _ASSUMPTIONS_CACHE
+    if _ASSUMPTIONS_CACHE is None:
+        _ASSUMPTIONS_CACHE = load_assumptions()
+    return _ASSUMPTIONS_CACHE
+
+
+def _energy_split_for(asset_type: str) -> dict:
+    """
+    Return the hvac / lighting / base energy split for a given asset
+    class, normalised to sum 1.0.
+
+    P2-6 fix — mirrors `environmental.breakdown_energy`'s normalisation
+    so a future edit to assumptions.yml propagates here automatically.
+    Falls back to a 50/30/20 tropical default when the asset type is
+    missing.
+    """
+    assumptions = _get_assumptions()
+    raw = (
+        assumptions.get("energy_breakdown", {})
+        .get(asset_type, {})
+    ) or {}
+    hvac = float(raw.get("hvac", 0.50))
+    lighting = float(raw.get("lighting_equipment", 0.30))
+    base = float(raw.get("base_load", 0.20))
+    total = hvac + lighting + base
+    if total <= 0:
+        return {"hvac": 0.50, "lighting": 0.30, "base": 0.20}
+    return {
+        "hvac": hvac / total,
+        "lighting": lighting / total,
+        "base": base / total,
+    }
 
 
 def apply_intervention(asset: dict, intervention: dict) -> dict:
@@ -304,10 +351,18 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
         asset["_lighting_multiplier"] = lighting_mult
         asset["_base_multiplier"] = base_mult
 
-        # Backward-compat aggregate (weighted by typical breakdown
-        # shares: hvac 60%, lighting 25%, base 15%).
+        # P2-6 fix — the aggregate multiplier used to be
+        # hardcoded with the COMMERCIAL split (0.60/0.25/0.15)
+        # regardless of the asset's actual class. A residential
+        # retrofit was therefore being weighted as if it were a
+        # retail store. Read the real split from assumptions.yml
+        # (via `_energy_split_for`) so a residential retrofit uses
+        # 0.40/0.35/0.25 and a facility uses 0.55/0.25/0.20.
+        _split = _energy_split_for(asset.get("asset_type", "commercial"))
         asset["_energy_efficiency_multiplier"] = (
-            0.60 * hvac_mult + 0.25 * lighting_mult + 0.15 * base_mult
+            _split["hvac"] * hvac_mult
+            + _split["lighting"] * lighting_mult
+            + _split["base"] * base_mult
         )
     else:
         gain = 0.15

@@ -108,12 +108,41 @@ def main():
         # Find a mixed-use asset with dead subtypes, but don't force the model to fully repurpose it.
         title = "Scenario 1: Precision Medicine (Subunit Repurpose)"
         
-        # Find an asset with a subtype_mix
-        mixed_assets = [aid for aid, r in ds.deadspace.items() if r.get("subtype_mix") and r.get("status") in ["deadspace_candidate", "monitor"]]
+        # P1-6 fix — deadspace records do NOT carry `subtype_mix`.
+        # Walk the assets + metrics tables directly to find a
+        # commercial mixed-use asset with at least one dead subtype.
+        mixed_assets = []
+        for aid in ds.deadspace.keys():
+            _a = ds._asset_row(aid) or {}
+            if _a.get("asset_type") != "commercial":
+                continue
+            _mix_raw = _a.get("unit_mix_json")
+            if _mix_raw is None:
+                continue
+            try:
+                _mix = json.loads(_mix_raw) if isinstance(_mix_raw, str) else _mix_raw
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(_mix, dict) or len(_mix) < 2:
+                continue
+
+            _m = ds._metric_row(aid, ds.year) or {}
+            _occ_by_raw = _m.get("occupancy_by_subtype_calc_json")
+            if not _occ_by_raw:
+                continue
+            try:
+                _occ_by = json.loads(_occ_by_raw) if isinstance(_occ_by_raw, str) else _occ_by_raw
+            except (json.JSONDecodeError, TypeError):
+                continue
+            if not isinstance(_occ_by, dict):
+                continue
+            if any(float(v) < 0.30 for v in _occ_by.values() if v is not None):
+                mixed_assets.append(aid)
+
         if mixed_assets:
             target_ids = [mixed_assets[0]]
         else:
-            target_ids = ["BLD-0183"] # fallback
+            target_ids = ["BLD-0183"]  # fallback
             
         query = (
             f"We are looking at {target_ids[0]}. The aggregate occupancy might look okay, "
@@ -151,10 +180,23 @@ def main():
         # Give it two assets: a residential with lease constraints, and a commercial with demographic mismatch.
         title = "Scenario 3: The Master Planner (Trajectory & Lease Awareness)"
         
-        # We need a residential asset and a commercial asset
-        res_ids = [aid for aid, r in ds.deadspace.items() if aid.startswith("BLD-0") and r.get("status") == "deadspace_candidate"][:1]
-        comm_ids = [aid for aid, r in ds.deadspace.items() if aid.startswith("BLD-0") and r.get("status") == "deadspace_candidate" and aid not in res_ids][:1]
-        
+        # P1-6 fix — "BLD-" prefix covers residential, commercial AND
+        # community_facility (all building-derived). Filter by
+        # asset_type instead of guessing from the id prefix.
+        res_pool, comm_pool = [], []
+        for aid, r in ds.deadspace.items():
+            if r.get("status") != "deadspace_candidate":
+                continue
+            _a = ds._asset_row(aid) or {}
+            atype = _a.get("asset_type")
+            if atype == "residential":
+                res_pool.append(aid)
+            elif atype == "commercial":
+                comm_pool.append(aid)
+
+        res_ids = res_pool[:1]
+        comm_ids = comm_pool[:1]
+
         if res_ids and comm_ids:
             target_ids = [comm_ids[0], res_ids[0]]
         else:

@@ -25,10 +25,40 @@ def decide_status(asset_type, layer1, layer2, layer3, authority=None):
       plus ANY snapshot flag is sufficient for deadspace_candidate.
       The full l1 AND l2 requirement still applies to slow declines,
       where the asset is still functional and the operator has time.
+
+    P2-1 fix — `actionable` is a deprecated alias for
+      `has_legal_actions`, which is True for every asset type (all
+      five classes appear in deadspace.layer3.ACTION_SPACE). The
+      previous `if not l3: return "monitor"` was therefore dead
+      code. The semantically correct signal is
+      `candidate_interventions`: empty when neither layer fired,
+      populated when the diagnosis indicates an intervention.
+      With the layer3 flag-filter added, the field is now a
+      filtered subset; the layer3 fallback keeps it non-empty for
+      any diagnosed asset whose legal set is itself non-empty.
+
+    Deepening (②) — community_facility now requires L1 AND L2.
+
+      Previously any single L1 flag (`low_utilisation`,
+      `high_uhi_exposure`, `high_stranded_carbon`) pushed the
+      facility into "underperforming_facility". A small facility
+      serving a small catchment has low utilisation by
+      construction, not by failure. Requiring L2
+      (`insufficient_coverage`) means the diagnosis actually has
+      to demonstrate value failure, not just below-benchmark
+      operation.
+
+      `rapid_decline` is still allowed to fire alone. A facility
+      losing 20%+ utilisation in one year is failing right now
+      regardless of where its coverage sits. Note that
+      `rapid_decline` implies `l1` (it is itself an L1 reason),
+      so the correct expression is `(l1 and l2) or has_rapid_decline`,
+      NOT `l1 and (l2 or has_rapid_decline)` — the latter
+      collapses to `l1` when rapid_decline is present.
     """
     l1 = layer1["triggered"]
     l2 = layer2["triggered"]
-    l3 = layer3["actionable"]
+    l3 = bool(layer3.get("candidate_interventions"))
 
     if not (l1 or l2):
         return "healthy"
@@ -47,7 +77,10 @@ def decide_status(asset_type, layer1, layer2, layer3, authority=None):
         return "monitor"
 
     if asset_type == "community_facility":
-        if l1:
+        # Deepening (②): normal underperformance requires BOTH
+        # layers (below benchmark AND value not realised).
+        # rapid_decline remains an emergency override.
+        if (l1 and l2) or has_rapid_decline:
             return "underperforming_facility"
         return "monitor"
 

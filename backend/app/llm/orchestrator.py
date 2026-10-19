@@ -35,11 +35,16 @@ from .context_builder import build_context_pack
 from .schemas import (
     INTENT_SCHEMA,
     CANDIDATES_SCHEMA,
-    FINAL_DECISION_SCHEMA, # 替换原本的两个
+    FINAL_DECISION_SCHEMA,  # 替换原本的两个
 )
 from .tool_service import TownshipDataSource
 from .validator import ProposalValidator
-from ..simulation.engine import simulate_scenario, write_scenario_result
+from ..derived.environmental import MATERIAL_INTENSITY_REPURPOSE
+from ..simulation.engine import (
+    PROJECT_ID_PREFIX,
+    simulate_scenario,
+    write_scenario_result,
+)
 
 log = logging.getLogger(__name__)
 
@@ -47,6 +52,26 @@ log = logging.getLogger(__name__)
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 MAX_PROPOSAL_ATTEMPTS = 2
 MAX_PARALLEL_SIMULATIONS = 3
+
+
+# P2-5 fix — new-build CAPEX reference rates (RM per m² GFA).
+#
+# Used ONLY to size the "what if we rebuilt instead of reused"
+# counterfactual on the frontend card. This table intentionally
+# mirrors `bukit_jelutong/build_mock_data.CAPEX_PER_M2`, but that
+# module is a preprocessing script and must not be imported by
+# runtime code. Keeping a local copy at the orchestration layer
+# makes the dependency explicit and reviewable.
+#
+# Material intensity for the repurpose side is NOT duplicated —
+# it comes from `derived.environmental.MATERIAL_INTENSITY_REPURPOSE`.
+_NEW_BUILD_CAPEX_RM_PER_M2 = {
+    "commercial":         3500.0,
+    "community_facility": 3000.0,
+    "residential":        2500.0,
+    "green_space":         400.0,
+    "undeveloped_parcel":    0.0,
+}
 
 
 # ------------------------------------------------------------------
@@ -75,6 +100,7 @@ def orchestrate_and_simulate_batch(
     llm_client,
     repo_root: Path = None,
     base_year: int = 2026,
+    attachments: list = None,
 ) -> dict:
     """
     Run the multi-candidate pipeline.
@@ -92,7 +118,10 @@ def orchestrate_and_simulate_batch(
 
     # ---- Stage 0: intent parsing ----
     log.info("[%s] Stage 0 — intent parsing", run_id)
-    intent = _parse_intent(user_query, selected_asset_ids, llm_client, base_year)
+    intent = _parse_intent(
+        user_query, selected_asset_ids, llm_client, base_year,
+        attachments=attachments,
+    )
 
     # ---- Stage 1: context assembly ----
     log.info("[%s] Stage 1 — context assembly", run_id)
@@ -409,23 +438,60 @@ def _generate_candidates(
 def _simulate_candidates_shared(candidates, repo_root, selected_ids):
     """
     Run B4 for the baseline and every candidate, sharing the heavy setup.
-    
+
     Multi-asset support: B4 natively simulates all assets in the township,
     but the comparison block will filter down to the `selected_ids`.
     We first run the baseline (SC-CURRENT) so we have a valid comparison
     for the frontend dashboard.
+
+    P2-4 fix — the baseline `years` dict was copied verbatim into every
+    candidate's scenario JSON, producing N_candidates × N_years ×
+    N_assets duplication. It is now trimmed to the union of:
+
+      - `selected_ids`
+      - catalytic beneficiaries across every candidate
+      - PRJ::* project pseudo-entries
+
+    The catalytic beneficiaries are not known until AFTER candidate
+    generation, so the union is computed here, before the simulation
+    loop, from the candidates that have already been validated.
     """
     if not candidates:
         return
 
     shared_cache: dict = {}
-    
+
     # Run baseline (SC-CURRENT) first to provide comparison data
     log.info("[shared] simulating BASELINE (SC-CURRENT)")
     baseline_sim = _run_simulation(
-        "SC-CURRENT", repo_root, selected_ids=selected_ids, _shared_cache=shared_cache
+        "SC-CURRENT", repo_root, selected_ids=selected_ids,
+        _shared_cache=shared_cache,
     )
-    baseline_years = baseline_sim.get("years", {})
+    baseline_years_full = baseline_sim.get("years", {})
+
+    # P2-4 fix — collect every asset the frontend needs to render,
+    # not the whole township state.
+    extra_ids: set = set()
+    for cand in candidates:
+        for item in cand.get("plan", []):
+            if item.get("role") != "catalytic":
+                continue
+            b_id = (item.get("catalytic_link") or {}).get(
+                "beneficiary_asset_id",
+            )
+            if b_id:
+                extra_ids.add(b_id)
+
+    keep_ids = set(selected_ids or []) | extra_ids
+    baseline_years = _filter_years_to_ids(baseline_years_full, keep_ids)
+
+    log.info(
+        "[shared] baseline trimmed to %d asset ids (from %d)",
+        len(next(iter(baseline_years.values()), {}).get("assets", {}))
+            if baseline_years else 0,
+        len(next(iter(baseline_years_full.values()), {}).get("assets", {}))
+            if baseline_years_full else 0,
+    )
 
     # Run all candidates
     for idx, cand in enumerate(candidates, start=1):
@@ -435,17 +501,23 @@ def _simulate_candidates_shared(candidates, repo_root, selected_ids):
         )
         t0 = time.time()
         cand["simulation"] = _run_simulation(
-            cand["scenario_id"], repo_root, selected_ids=selected_ids, _shared_cache=shared_cache
+            cand["scenario_id"], repo_root, selected_ids=selected_ids,
+            _shared_cache=shared_cache,
         )
-        
+
         # Inject baseline data into the simulation result
         if not cand["simulation"].get("error"):
             cand["simulation"]["_baseline_years"] = baseline_years
             try:
-                write_scenario_result(cand["simulation"], repo_root=repo_root)
+                write_scenario_result(
+                    cand["simulation"], repo_root=repo_root,
+                )
             except Exception as e:
-                log.warning(f"Failed to write scenario {cand['scenario_id']}: {e}")
-                
+                log.warning(
+                    f"Failed to write scenario "
+                    f"{cand['scenario_id']}: {e}"
+                )
+
         log.info(
             "[shared] candidate %d/%d finished in %.1fs",
             idx, len(candidates), time.time() - t0,
@@ -494,6 +566,12 @@ def _verify_catalytic_links(candidates):
     Levels are strictly capped downward by simulation evidence:
       - declared > achievable  →  set to achievable
       - declared <= achievable →  unchanged
+
+    P3-a fix — verification notes are now attached to the candidate
+    (as `_verification_notes`), not to the catalytic_link dict. This
+    keeps `catalytic_link` structurally aligned with
+    `CATALYTIC_LINK_SCHEMA` so a future strict schema pass cannot
+    flag the extra `_verification_notes` key.
     """
     _LEVEL_ORDER = {"verified": 2, "partially_verified": 1, "claimed": 0}
 
@@ -519,6 +597,8 @@ def _verify_catalytic_links(candidates):
         brief = cand.get("simulation_brief") or {}
         per_asset = brief.get("per_asset_metrics") or {}
 
+        notes: list = []
+
         for item in cand.get("plan", []):
             if item.get("role") != "catalytic":
                 continue
@@ -533,9 +613,9 @@ def _verify_catalytic_links(candidates):
                 # the claim to "claimed" — nothing was measured.
                 if link.get("verification_level") != "claimed":
                     link["verification_level"] = "claimed"
-                    link.setdefault("_verification_notes", []).append(
-                        "beneficiary not in simulation brief; "
-                        "downgraded to 'claimed'"
+                    notes.append(
+                        f"{beneficiary}: beneficiary not in simulation "
+                        f"brief; downgraded to 'claimed'"
                     )
                 continue
 
@@ -577,11 +657,15 @@ def _verify_catalytic_links(candidates):
             declared = link.get("verification_level", "claimed")
             if _LEVEL_ORDER.get(declared, 0) > _LEVEL_ORDER.get(achievable, 0):
                 link["verification_level"] = achievable
-                link.setdefault("_verification_notes", []).append(
-                    f"simulation only supports '{achievable}' for "
-                    f"mechanism '{link.get('mechanism')}' on this "
-                    f"beneficiary; downgraded from '{declared}'"
+                notes.append(
+                    f"{beneficiary}: simulation only supports "
+                    f"'{achievable}' for mechanism "
+                    f"'{link.get('mechanism')}'; downgraded from "
+                    f"'{declared}'"
                 )
+
+        if notes:
+            cand["_verification_notes"] = notes
 
 
 def _build_catalytic_evidence(candidates):
@@ -756,22 +840,78 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             return float(val) if val is not None and not pd.isna(val) else default
 
         def _get_util(state):
-            return _get(state, "occupancy_rate") or _get(state, "utilisation_rate")
+            """
+            Return the primary utilisation metric for this state row,
+            distinguishing "missing" from "genuinely zero".
+
+            P3-b fix — the old `or` chain treated a legitimate
+            0-occupancy asset as falsy and fell through to
+            utilisation_rate. That happened to produce 0 for
+            residential today (utilisation_rate is None there), but
+            the intent was opaque and the behaviour would change the
+            moment utilisation_rate became populated for a
+            residential row. Explicit None check.
+            """
+            occ = _get(state, "occupancy_rate", default=None)
+            if occ is not None:
+                return occ
+            util = _get(state, "utilisation_rate", default=None)
+            if util is not None:
+                return util
+            return 0.0
 
         # --- 1. Counterfactual Calculation ---
-        asset_intv = next((i for i in simulation.get("interventions", []) if i.get("target_asset_id") == aid), None)
-        avoided_embodied = comparison.get("per_asset", {}).get(aid, {}).get("avoided_embodied_carbon_tco2e", {}).get("after", 0.0)
-        
-        floor_area = _get(final_state, "floor_area_m2", 0.0)
-        capex_invested = float(asset_intv.get("capex_delta_rm") or 0) if asset_intv else 0.0
-        
-        # Estimate: New Build Embodied = Repurpose Embodied + Avoided Embodied
-        carbon_repurpose = floor_area * 0.08 if floor_area > 0 else 0
-        carbon_new_build = carbon_repurpose + avoided_embodied if avoided_embodied > 0 else 0
-        
-        # Estimate: New Build CAPEX = Area * Industry Cost Rate
-        new_build_rate = 3500 if final_state.get("_effective_asset_type") == "commercial" else 2500
-        capex_new_build = floor_area * new_build_rate if floor_area > 0 else 0
+        asset_intv = next(
+            (i for i in simulation.get("interventions", [])
+             if i.get("target_asset_id") == aid),
+            None,
+        )
+        avoided_embodied = (
+            comparison.get("per_asset", {})
+            .get(aid, {})
+            .get("avoided_embodied_carbon_tco2e", {})
+            .get("after", 0.0)
+        )
+
+        # P1-3 fix — see note in previous response. floor_area is
+        # carried by B4's metric_row (P1-3 fix) with a legacy
+        # fallback for older scenario files.
+        floor_area = (
+            _get(final_state, "floor_area_m2", 0.0)
+            or _get(final_state, "_effective_lettable", 0.0) / 0.85
+            or _get(final_state, "_project_gfa_m2", 0.0)
+        )
+        capex_invested = (
+            float(asset_intv.get("capex_delta_rm") or 0)
+            if asset_intv else 0.0
+        )
+
+        # Estimate: New Build Embodied = Repurpose Embodied + Avoided Embodied.
+        #
+        # P2-5 fix — reuse `MATERIAL_INTENSITY_REPURPOSE` from
+        # `derived.environmental` instead of a literal 0.08. The two
+        # had drifted in the past; a single import keeps them in
+        # lockstep.
+        carbon_repurpose = (
+            floor_area * MATERIAL_INTENSITY_REPURPOSE
+            if floor_area > 0 else 0.0
+        )
+        carbon_new_build = (
+            carbon_repurpose + avoided_embodied
+            if avoided_embodied > 0 else 0.0
+        )
+
+        # P2-5 fix — new-build CAPEX is derived from a named table
+        # rather than a hardcoded if/else. Same table used by mock
+        # preprocessing; see `_NEW_BUILD_CAPEX_RM_PER_M2` at the top
+        # of this module.
+        _new_build_rate = _NEW_BUILD_CAPEX_RM_PER_M2.get(
+            final_state.get("_effective_asset_type", "commercial"),
+            _NEW_BUILD_CAPEX_RM_PER_M2["commercial"],
+        )
+        capex_new_build = (
+            floor_area * _new_build_rate if floor_area > 0 else 0.0
+        )   
 
         # --- 2. Subunit Breakdown ---
         subunits = []
@@ -1049,6 +1189,40 @@ def _run_simulation(scenario_id, repo_root, selected_ids=None,
     except Exception as e:
         log.exception("Simulation failed for %s", scenario_id)
         return {"error": f"{type(e).__name__}: {e}"}
+
+
+def _filter_years_to_ids(years_dict: dict, keep_ids: set) -> dict:
+    """
+    P2-4 fix — trim the baseline `years` payload to the assets the
+    frontend actually renders.
+
+    The full SC-CURRENT `years` dict carries every township asset for
+    every simulated year. Copying it verbatim into each candidate's
+    scenario JSON means N_candidates × N_years × N_assets duplicate
+    state. Two classes of ids are retained:
+
+      - keep_ids  : selected targets + catalytic beneficiaries
+      - PRJ::*    : project pseudo-entries, needed by the
+                    new_development frontend fallback in
+                    `_build_frontend_payload`
+
+    An empty `keep_ids` returns the input unchanged (so a caller that
+    passes no filter gets the full baseline, matching the pre-fix
+    behaviour).
+    """
+    if not keep_ids:
+        return years_dict
+
+    out: dict = {}
+    for year_key, year_data in years_dict.items():
+        assets = year_data.get("assets", {})
+        filtered = {
+            aid: st
+            for aid, st in assets.items()
+            if aid in keep_ids or aid.startswith(PROJECT_ID_PREFIX)
+        }
+        out[year_key] = {**year_data, "assets": filtered}
+    return out
 
 
 # ------------------------------------------------------------------
