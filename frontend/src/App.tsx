@@ -2,64 +2,210 @@ import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
-import { C, cap, btn, scoreColor } from './theme'
+import { C, cap, btn } from './theme'
 import { MapLegend, MapControls } from './components/ui'
 import { DeadspaceList } from './components/DeadspaceList'
 import { AssetPanel } from './components/AssetPanel'
 import { ComparisonModal } from './components/ComparisonModal'
-import type { Asset, AiAnswer, AiOption, Comparison } from './types'
+import type { Asset, Diagnosis, AiAnswer, Comparison, Proposal } from './types'
+import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
 maplibregl.setWorkerUrl(workerUrl)
+
+const YEARS = [2026, 2027, 2028, 2030, 2033]
+const METRES_PER_FLOOR = 3.2
+const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/** Average of a polygon's outer ring, or the point itself. */
+function centroidOf(geometry: Geometry): [number, number] {
+  if (geometry.type === 'Point') {
+    return [geometry.coordinates[0], geometry.coordinates[1]]
+  }
+  const ring =
+    geometry.type === 'Polygon'
+      ? geometry.coordinates[0]
+      : geometry.type === 'MultiPolygon'
+        ? geometry.coordinates[0][0]
+        : null
+  if (!ring || ring.length === 0) return [0, 0]
+  let x = 0
+  let y = 0
+  for (const p of ring) { x += p[0]; y += p[1] }
+  return [x / ring.length, y / ring.length]
+}
+
+/** Status enum → colour. v1.2 §8.2. */
+const STATUS_PAINT: maplibregl.ExpressionSpecification = [
+  'match',
+  ['get', 'status'],
+  'healthy', '#3fb27f',
+  'monitor', '#f7931d',
+  'improvement_opportunity', '#f7931d',
+  'development_risk', '#f15c22',
+  'deadspace_candidate', '#d71920',
+  'underperforming_facility', '#d71920',
+  '#5a4f59',
+]
+
+const ASSET_LAYERS = ['assets-3d', 'green-fill', 'points-dot']
 
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const markerRef = useRef<maplibregl.Marker | null>(null)
+  const markersRef = useRef<maplibregl.Marker[]>([])
   const assetsRef = useRef<Asset[]>([])
 
+  const buildingsRef = useRef<FeatureCollection>(EMPTY)
+  const greenPolyRef = useRef<FeatureCollection>(EMPTY)
+  const pointsRef = useRef<FeatureCollection>(EMPTY)
+
   const [assets, setAssets] = useState<Asset[]>([])
-  const [selected, setSelected] = useState<Asset | null>(null)
-  const [year, setYear] = useState<'now' | '3y'>('now')
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [year, setYear] = useState(2026)
   const [bearing, setBearing] = useState(-20)
   const [tilted, setTilted] = useState(true)
   const [question, setQuestion] = useState('')
   const [answer, setAnswer] = useState<AiAnswer | null>(null)
   const [loading, setLoading] = useState(false)
-  const [preview, setPreview] = useState<AiOption | null>(null)
+  const [previewing, setPreviewing] = useState(false)
   const [comparison, setComparison] = useState<Comparison | null>(null)
+  const [mapReady, setMapReady] = useState(false)
 
-  async function ask() {
-    if (!selected) return
-    const asked = question.trim() || 'What should we do with this asset?'
-    setLoading(true)
-    const all = await (await fetch('/data/options.json')).json()
-    setTimeout(() => {
-      const found = all[selected.id]
-      setAnswer(found ? { ...found, asked } : null)
-      setQuestion('')
-      setLoading(false)
-    }, 600)
+  const selectedAssets = selectedIds
+    .map((id) => assets.find((a) => a.id === id))
+    .filter((a): a is Asset => !!a)
+
+  const primary = selectedAssets[0] ?? null
+
+  function selectOnly(id: string) {
+    setSelectedIds([id])
+    setAnswer(null); setQuestion(''); setPreviewing(false)
+    const a = assetsRef.current.find((x) => x.id === id)
+    if (a) mapRef.current?.easeTo({ center: a.center, zoom: 17.5, pitch: 58, duration: 900 })
   }
 
-  async function simulate() {
-    if (!selected) return
-    const all = await (await fetch('/data/comparison.json')).json()
-    setComparison(all[selected.id] ?? null)
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
+    setAnswer(null); setPreviewing(false)
   }
 
   function closePanel() {
-    setSelected(null); setAnswer(null); setQuestion(''); setPreview(null)
+    setSelectedIds([]); setAnswer(null); setQuestion(''); setPreviewing(false)
+  }
+
+  /** PLACEHOLDER until the B7 endpoint exists. */
+  async function ask() {
+    if (selectedAssets.length === 0) return
+    const asked = question.trim() || 'What should we do with these assets?'
+    setLoading(true)
+
+    const plan: Proposal[] = selectedAssets.map((a) => {
+      const options = a.diagnosis?.layer3.candidate_interventions ?? []
+      return {
+        asset_id: a.id,
+        type: options[0] ?? 'retrofit',
+        parameters: {},
+        rationale:
+          a.diagnosis && a.diagnosis.flags.length > 0
+            ? `Flagged for ${a.diagnosis.flags.slice(0, 3).join(', ')}.`
+            : 'No flags raised; preventive action only.',
+      }
+    })
+
+    setTimeout(() => {
+      setAnswer({
+        asked,
+        reasoning_trace: 'Placeholder plan: the B7 reasoning layer is not wired up yet.',
+        plan,
+      })
+      setQuestion('')
+      setLoading(false)
+    }, 500)
+  }
+
+  /** PLACEHOLDER until the B4 endpoint exists. */
+  async function simulate() {
+    setComparison(null)
   }
 
   useEffect(() => {
-    fetch('/data/assets.geojson')
-      .then((r) => r.json())
-      .then((d) => {
-        const list = d.features.map((f: { properties: Asset }) => f.properties)
-        assetsRef.current = list
-        setAssets(list)
-      })
-  }, [])
+    const get = (p: string) =>
+      fetch(p).then((r) => r.json()).catch(() => null)
+
+    Promise.all([
+      get('/data/buildings.geojson'),
+      get('/data/green_blue.geojson'),
+      get('/data/amenities.geojson'),
+      get(`/data/deadspace_${year}.json`),
+    ]).then(([bld, green, amen, deadspace]) => {
+      const byId = new Map<string, Diagnosis>()
+      for (const d of (deadspace as Diagnosis[] | null) ?? []) byId.set(d.asset_id, d)
+
+      const list: Asset[] = []
+      const buildingFeatures: Feature[] = []
+      const greenPolyFeatures: Feature[] = []
+      const pointFeatures: Feature[] = []
+
+      const take = (fc: FeatureCollection | null, kind: 'building' | 'green' | 'amenity') => {
+        if (!fc?.features) return
+        for (const f of fc.features) {
+          const p = (f.properties ?? {}) as Record<string, unknown>
+          const id = String(p.id ?? p.building_id ?? p.green_id ?? p.amenity_id ?? '')
+          if (!id) continue
+
+          const floors = typeof p.floors === 'number' ? p.floors : null
+          const diagnosis = byId.get(id) ?? null
+
+          list.push({
+            building_id: String(p.building_id ?? id),
+            parcel_id: String(p.parcel_id ?? ''),
+            asset_id: String(p.asset_id ?? id),
+            building_type: String(p.building_type ?? p.amenity_type ?? p.green_type ?? kind),
+            floors,
+            gfa_m2: typeof p.gfa_m2 === 'number' ? p.gfa_m2 : 0,
+            geometry_source: String(p.geometry_source ?? ''),
+            height: kind === 'building' ? (floors ?? 2) * METRES_PER_FLOOR : 0,
+            id,
+            subtype:
+              typeof p.subtype === 'string' ? p.subtype
+                : typeof p.amenity_type === 'string' ? p.amenity_type
+                  : typeof p.green_type === 'string' ? p.green_type
+                    : null,
+            diagnosis,
+            center: centroidOf(f.geometry),
+          })
+
+          const tagged: Feature = {
+            ...f,
+            properties: {
+              ...f.properties,
+              id,
+              kind,
+              status: diagnosis?.status ?? 'healthy',
+              height: kind === 'building' ? (floors ?? 2) * METRES_PER_FLOOR : 0,
+            },
+          }
+
+          if (f.geometry.type === 'Point') pointFeatures.push(tagged)
+          else if (kind === 'building') buildingFeatures.push(tagged)
+          else greenPolyFeatures.push(tagged)
+        }
+      }
+
+      take(bld as FeatureCollection | null, 'building')
+      take(green as FeatureCollection | null, 'green')
+      take(amen as FeatureCollection | null, 'amenity')
+
+      buildingsRef.current = { type: 'FeatureCollection', features: buildingFeatures }
+      greenPolyRef.current = { type: 'FeatureCollection', features: greenPolyFeatures }
+      pointsRef.current = { type: 'FeatureCollection', features: pointFeatures }
+
+      assetsRef.current = list
+      setAssets(list)
+    })
+  }, [year])
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -78,8 +224,8 @@ export default function App() {
         },
         layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
       },
-      center: [101.5005, 3.1915],
-      zoom: 15,
+      center: [101.528, 3.112],
+      zoom: 14,
       pitch: 55,
       bearing: -20,
       maxPitch: 80,
@@ -99,84 +245,152 @@ export default function App() {
 
     map.on('load', () => {
       map.setSky({ 'sky-color': '#1a1320', 'horizon-color': '#4a3a48', 'sky-horizon-blend': 0.6 })
-      map.addSource('assets', { type: 'geojson', data: '/data/assets.geojson' })
+
+      map.addSource('assets', { type: 'geojson', data: EMPTY })
+      map.addSource('green', { type: 'geojson', data: EMPTY })
+      map.addSource('points', { type: 'geojson', data: EMPTY })
+
+      map.addLayer({
+        id: 'green-fill',
+        type: 'fill',
+        source: 'green',
+        paint: {
+          'fill-color': STATUS_PAINT as never,
+          'fill-opacity': 0.35,
+        },
+      })
+
       map.addLayer({
         id: 'assets-3d',
         type: 'fill-extrusion',
         source: 'assets',
         paint: {
-          'fill-extrusion-color': scoreColor('score') as never,
-          'fill-extrusion-height': ['coalesce', ['get', 'height'], 30] as never,
+          'fill-extrusion-color': STATUS_PAINT as never,
+          'fill-extrusion-height': ['coalesce', ['get', 'height'], 8] as never,
           'fill-extrusion-vertical-gradient': true,
           'fill-extrusion-opacity': 0.92,
         },
       })
 
-      map.on('click', 'assets-3d', (e) => {
-        const id = e.features?.[0]?.properties?.id
-        const found = assetsRef.current.find((a) => a.id === id)
-        if (found) { setSelected(found); setAnswer(null); setQuestion(''); setPreview(null) }
-        map.easeTo({ center: e.lngLat, zoom: 16.3, pitch: 58, duration: 1100 })
+      map.addLayer({
+        id: 'points-dot',
+        type: 'circle',
+        source: 'points',
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never,
+          'circle-color': STATUS_PAINT as never,
+          'circle-stroke-width': 1.5,
+          'circle-stroke-color': 'rgba(0,0,0,.55)',
+        },
       })
-      map.on('mouseenter', 'assets-3d', () => { map.getCanvas().style.cursor = 'pointer' })
-      map.on('mouseleave', 'assets-3d', () => { map.getCanvas().style.cursor = '' })
+
+      const onClick = (e: maplibregl.MapLayerMouseEvent) => {
+        const id = e.features?.[0]?.properties?.id
+        if (typeof id !== 'string') return
+        const ev = e.originalEvent
+        if (ev.ctrlKey || ev.metaKey || ev.shiftKey) toggleSelect(id)
+        else selectOnly(id)
+      }
+
+      for (const layer of ASSET_LAYERS) {
+        map.on('click', layer, onClick)
+        map.on('mouseenter', layer, () => { map.getCanvas().style.cursor = 'pointer' })
+        map.on('mouseleave', layer, () => { map.getCanvas().style.cursor = '' })
+      }
+
+      setMapReady(true)
     })
 
     return () => map.remove()
   }, [])
 
+  // Push features in once both the map and the data are ready.
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !map.getLayer('assets-3d')) return
-    const f = year === 'now' ? 'score' : 'score_3y'
+    if (!mapReady || !map) return
+    ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
+    ;(map.getSource('green') as maplibregl.GeoJSONSource | undefined)?.setData(greenPolyRef.current)
+    ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
+  }, [mapReady, assets])
 
-    if (preview && selected) {
-      map.setPaintProperty('assets-3d', 'fill-extrusion-color', [
-        'case',
-        ['==', ['get', 'id'], selected.id], C.intervene,
-        ['in', ['get', 'id'], ['literal', preview.spillover ?? []]], C.spill,
-        scoreColor(f),
-      ] as never)
-    } else if (selected) {
-      map.setPaintProperty('assets-3d', 'fill-extrusion-color', [
-        'case',
-        ['==', ['get', 'id'], selected.id], C.selected,
-        scoreColor(f),
-      ] as never)
-    } else {
-      map.setPaintProperty('assets-3d', 'fill-extrusion-color', scoreColor(f) as never)
+  // Fit the camera to the data once.
+  const fittedRef = useRef(false)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || fittedRef.current || assets.length === 0) return
+    const bounds = new maplibregl.LngLatBounds()
+    for (const a of assets) {
+      const [lng, lat] = a.center
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue
+      if (lng === 0 && lat === 0) continue
+      bounds.extend(a.center)
     }
-  }, [selected, preview, year])
+    if (bounds.isEmpty()) return
+    map.fitBounds(bounds, { padding: 60, pitch: 55, bearing: -20, duration: 0 })
+    fittedRef.current = true
+  }, [assets])
 
+  // Recolour for selection and preview.
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
-    markerRef.current?.remove()
-    markerRef.current = null
-    if (!selected?.center) return
+    if (!map || !mapReady) return
 
-    const el = document.createElement('div')
-    el.style.cssText = 'display:flex;flex-direction:column;align-items:center;pointer-events:none;animation:popIn .3s cubic-bezier(.22,.8,.3,1) both'
-    el.innerHTML = `
-      <div style="
-        background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;
-        padding:8px 14px;color:#fff;font:600 11.5px/1 system-ui,sans-serif;
-        letter-spacing:.11em;text-transform:uppercase;white-space:nowrap;
-        box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
-        backdrop-filter:blur(4px)">${selected.name}</div>
-      <div style="width:0;height:30px;border-left:1px dashed rgba(255,255,255,.55)"></div>
-      <div style="width:9px;height:9px;border-radius:50%;background:#fff;
-        box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
-    `
-    markerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
-      .setLngLat(selected.center)
-      .addTo(map)
+    const selectedColour = previewing ? C.intervene : C.selected
+    const expr =
+      selectedIds.length === 0
+        ? STATUS_PAINT
+        : ([
+            'case',
+            ['in', ['get', 'id'], ['literal', selectedIds]], selectedColour,
+            STATUS_PAINT,
+          ] as never)
 
-    return () => { markerRef.current?.remove(); markerRef.current = null }
-  }, [selected])
+    map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
+    map.setPaintProperty('green-fill', 'fill-color', expr as never)
+    map.setPaintProperty('points-dot', 'circle-color', expr as never)
+  }, [selectedIds, previewing, assets, mapReady])
+
+  // A floating tag above each selected asset.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    markersRef.current.forEach((m) => m.remove())
+    markersRef.current = []
+
+    selectedAssets.forEach((asset) => {
+      const el = document.createElement('div')
+      el.style.cssText = 'pointer-events:none'
+      el.innerHTML = `
+        <div style="
+          display:flex;flex-direction:column;align-items:center;
+          animation:popIn .3s cubic-bezier(.22,.8,.3,1) both">
+          <div style="
+            background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;
+            padding:7px 12px;color:#fff;font:600 11px/1 ui-monospace,monospace;
+            letter-spacing:.08em;white-space:nowrap;
+            box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
+            backdrop-filter:blur(4px)">${asset.id}</div>
+          <div style="width:0;height:26px;border-left:1px dashed rgba(255,255,255,.55)"></div>
+          <div style="width:9px;height:9px;border-radius:50%;background:#fff;
+            box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
+        </div>
+      `
+      markersRef.current.push(
+        new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat(asset.center)
+          .addTo(map),
+      )
+    })
+
+    return () => {
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current = []
+    }
+  }, [selectedIds, assets, mapReady])
 
   const zoomBy = (d: 1 | -1) =>
-    mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 15) + d, duration: 320 })
+    mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d, duration: 320 })
 
   const resetNorth = () =>
     mapRef.current?.easeTo({ bearing: 0, pitch: 55, duration: 600 })
@@ -199,17 +413,32 @@ export default function App() {
         gap: 14, background: '#241c23',
       }}>
         <strong style={{ fontSize: 14, letterSpacing: '.14em' }}>LIVING MASTERPLAN</strong>
-        <span style={{ fontSize: 13, color: C.muted }}>Elmina West</span>
-        {preview && (
+        <span style={{ fontSize: 13, color: C.muted }}>Bukit Jelutong</span>
+
+        {selectedIds.length > 1 && (
           <span className="pop" style={{
             fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: C.selected,
             border: `1px solid ${C.selected}`, borderRadius: 5, padding: '3px 9px',
-          }}>Preview · {preview.title}</span>
+            display: 'flex', alignItems: 'center', gap: 8,
+          }}>
+            {selectedIds.length} selected
+            <button className="btn" onClick={closePanel}
+              style={{ ...btn(false), padding: '1px 6px', fontSize: 10 }}>Clear</button>
+          </span>
         )}
+
         <span style={{ flex: 1 }} />
         <span style={{ ...cap, marginRight: 4 }}>Horizon</span>
-        <button className={`btn${year === 'now' ? ' primary' : ''}`} onClick={() => setYear('now')} style={btn(year === 'now')}>Current</button>
-        <button className={`btn${year === '3y' ? ' primary' : ''}`} onClick={() => setYear('3y')} style={btn(year === '3y')}>+3 years</button>
+        {YEARS.map((y) => (
+          <button
+            key={y}
+            className={`btn${year === y ? ' primary' : ''}`}
+            onClick={() => setYear(y)}
+            style={btn(year === y)}
+          >
+            {y}
+          </button>
+        ))}
       </header>
 
       {comparison && <ComparisonModal data={comparison} onClose={() => setComparison(null)} />}
@@ -217,7 +446,7 @@ export default function App() {
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <main style={{ position: 'relative', flex: 1 }}>
           <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
-          <MapLegend preview={!!preview} year={year} />
+          <MapLegend preview={previewing} />
           <MapControls bearing={bearing} tilted={tilted} onZoom={zoomBy} onCompass={resetNorth} onTilt={toggleTilt} />
         </main>
 
@@ -225,31 +454,21 @@ export default function App() {
           width: 420, flex: 'none', padding: 22, overflowY: 'auto',
           background: C.panel, borderLeft: `1px solid ${C.line}`,
         }}>
-          {selected ? (
+          {primary ? (
             <AssetPanel
-              asset={selected} year={year}
+              assets={selectedAssets}
               question={question} setQuestion={setQuestion}
               answer={answer} loading={loading} onAsk={ask}
-              preview={preview} onPreview={setPreview} onClearPreview={() => setPreview(null)}
+              previewing={previewing}
+              onPreview={() => setPreviewing(true)}
+              onClearPreview={() => setPreviewing(false)}
               onSimulate={simulate} onClose={closePanel}
             />
           ) : (
-            <DeadspaceList assets={assets} year={year} onPick={(a) => setSelected(a)} />
+            <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} />
           )}
         </aside>
       </div>
     </div>
   )
 }
-
-/*
-performance
-asset asking allow them to ask multiple choice less than 8 assets 
-how we can avoid sth to be a dead space
-for first shoplot the plan is what second is what and third is what
-current carbon emmision is how many percent and so on
-add 
-time slider cluster 1 2 3 to 5 
-
-try more realistic geojson
-*/

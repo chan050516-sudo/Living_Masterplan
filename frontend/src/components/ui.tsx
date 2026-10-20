@@ -71,11 +71,12 @@ export function Stat({ label, value, unit, tier }: { label: string; value: strin
   )
 }
 
-export function MapLegend({ preview, year }: { preview: boolean; year: 'now' | '3y' }) {
+export function MapLegend({ preview }: { preview: boolean }) {
   const items: Array<[string, string]> = [
-    [C.bad, 'Underperforming'],
-    [C.warn, 'At risk'],
-    [C.good, 'Performing'],
+    ['#3fb27f', 'Healthy'],
+    ['#f7931d', 'Monitor / opportunity'],
+    ['#f15c22', 'Development risk'],
+    ['#d71920', 'Deadspace / underperforming'],
     [C.selected, 'Selected'],
   ]
   if (preview) items.push([C.spill, 'Spillover'])
@@ -86,10 +87,7 @@ export function MapLegend({ preview, year }: { preview: boolean; year: 'now' | '
       background: 'rgba(31,24,30,.94)', border: `1px solid ${C.line}`,
       backdropFilter: 'blur(6px)', minWidth: 236,
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-        <span style={{ ...cap, fontSize: 10 }}>Performance score</span>
-        <span style={{ ...cap, fontSize: 10, color: C.faint }}>{year === 'now' ? 'Current' : '+3 years'}</span>
-      </div>
+      <div style={{ ...cap, fontSize: 10, marginBottom: 12 }}>Asset status</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px 14px' }}>
         {items.map(([c, label]) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#cfc6cd' }}>
