@@ -75,6 +75,7 @@ export default function App() {
   const pointsRef = useRef<FeatureCollection>(EMPTY)
 
   const [assets, setAssets] = useState<Asset[]>([])
+  const [profilesData, setProfilesData] = useState<Record<string, AssetProfile>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [year, setYear] = useState(2026)
   const [bearing, setBearing] = useState(-20)
@@ -137,10 +138,19 @@ export default function App() {
     if (analysis) setShowComparison(true)
   }
 
-  // Load profiles and geometry from the API, then join them on asset_id.
+  // 1. Fetch Profiles once on mount (Base Year 2026 data)
   useEffect(() => {
-    Promise.all([fetchProfiles(), fetchGeometry()])
-      .then(([profiles, geo]) => {
+    fetchProfiles()
+      .then((profiles) => setProfilesData(profiles))
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+  }, [])
+
+  // 2. Fetch Geometry and merge with profiles whenever `year` changes
+  useEffect(() => {
+    if (Object.keys(profilesData).length === 0) return
+
+    fetchGeometry(undefined, year)
+      .then((geo) => {
         const list: Asset[] = []
         const buildingFeatures: Feature[] = []
         const areaFeatures: Feature[] = []
@@ -152,10 +162,24 @@ export default function App() {
           if (!id) continue
           if (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString') continue
 
-          const profile = profiles[id] ?? null
-          const diagnosis = profile?.deadspace_diagnosis ?? null
+          const profile = profilesData[id] ?? null
           const mapStatus = String(p.map_status ?? 'healthy')
           const height = heightOf(profile)
+
+          // Reconstruct a dynamic diagnosis object using backend geometry metadata
+          // so the DeadspaceList (sidebar) updates its flags and urgency dynamically.
+          const backendFlags = (p.flags as string[]) || []
+          const backendUrgency = Number(p.urgency_index ?? 0)
+          
+          let dynamicDiagnosis = profile?.deadspace_diagnosis ?? null
+          if (dynamicDiagnosis) {
+            dynamicDiagnosis = {
+              ...dynamicDiagnosis,
+              status: mapStatus as any,
+              flags: backendFlags,
+              urgency_index: backendUrgency,
+            }
+          }
 
           list.push({
             id,
@@ -164,19 +188,23 @@ export default function App() {
             assetType: profile?.identity.asset_type ?? 'unknown',
             mapStatus,
             profile,
-            diagnosis,
+            diagnosis: dynamicDiagnosis,
             center: centroidOf(f.geometry),
             height,
           })
+
+          const backendHeight = Number(p.height)
+          const finalHeight = !Number.isNaN(backendHeight) && backendHeight > 0 
+            ? backendHeight 
+            : height
 
           const tagged: Feature = {
             ...f,
             properties: {
               ...f.properties,
               id,
-              // The diagnosis is more specific than map_status, so prefer it.
-              status: diagnosis?.status ?? mapStatus,
-              height,
+              status: mapStatus,
+              height: finalHeight,
             },
           }
 
@@ -191,9 +219,17 @@ export default function App() {
 
         assetsRef.current = list
         setAssets(list)
+        
+        // Trigger map source update
+        const map = mapRef.current
+        if (map && mapReady) {
+          ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
+          ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
+          ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
+        }
       })
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))
-  }, [])
+  }, [year, profilesData, mapReady])
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -291,15 +327,6 @@ export default function App() {
 
     return () => map.remove()
   }, [])
-
-  // Push features in once both the map and the data are ready.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!mapReady || !map) return
-    ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
-    ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
-    ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
-  }, [mapReady, assets])
 
   // Fit the camera to the data once.
   const fittedRef = useRef(false)
