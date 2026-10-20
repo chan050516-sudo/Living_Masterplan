@@ -1,59 +1,84 @@
 import { useState } from 'react'
 import { C, cap, mono } from '../theme'
-import type { Comparison, MetricDelta } from '../types'
+import type { AnalyzeResult, MainMetric } from '../types'
 
-/** Turns a raw number into something readable, based on its unit. */
-function fmt(v: number | null, unit: string) {
-  if (v === null || v === undefined) return '—'
+function fmt(v: number | null | undefined, unit: string) {
+  if (v === null || v === undefined || Number.isNaN(v)) return '—'
   if (unit === 'ratio') return `${(v * 100).toFixed(1)}%`
   if (unit === 'RM') return `RM ${Math.round(v).toLocaleString()}`
   if (unit === 'm') return `${Math.round(v)} m`
-  if (unit === 'Celsius') return `+${v.toFixed(1)} °C`
-  if (unit.startsWith('tCO2e')) return `${v.toLocaleString(undefined, { maximumFractionDigits: 1 })}`
-  return String(v)
+  if (unit.startsWith('tCO2e')) return v.toLocaleString(undefined, { maximumFractionDigits: 1 })
+  return v.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
 function pretty(s: string) {
-  const t = s.replace(/_tco2e$/, '').replace(/_rm$/, '').replace(/_m$/, '').replace(/_/g, ' ')
+  const t = s.replace(/_tco2e$/, '').replace(/_rm$/, '').replace(/_m2$/, ' m²').replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
-/** Did the metric move, and is up good or bad? Returns a colour or null. */
-function deltaColor(key: string, d: MetricDelta) {
-  if (d.before === null || d.after === null) return null
-  const diff = d.after - d.before
+function moveColor(before: number | null, after: number | null, lowerIsBetter: boolean) {
+  if (before === null || after === null) return null
+  const diff = after - before
   if (Math.abs(diff) < 1e-9) return null
-  const lowerIsBetter = /carbon|stranded|distance|maintenance|surge|temp/.test(key)
   const good = lowerIsBetter ? diff < 0 : diff > 0
   return good ? '#3fb27f' : '#d71920'
 }
 
-function MetricRow({ name, d }: { name: string; d: MetricDelta }) {
-  const col = deltaColor(name, d)
-  const unit = d.unit ?? ''
+function Row({ label, before, after, unit, lowerIsBetter = false }: {
+  label: string
+  before: number | null
+  after: number | null
+  unit: string
+  lowerIsBetter?: boolean
+}) {
+  const col = moveColor(before, after, lowerIsBetter)
   return (
     <tr>
-      <td style={{ padding: '9px 10px', fontSize: 12.5, color: '#cfc6cd' }}>
-        {pretty(name)}
-        {unit.startsWith('tCO2e') && <span style={{ color: C.faint }}> (tCO₂e)</span>}
-      </td>
+      <td style={{ padding: '9px 10px', fontSize: 12.5, color: '#cfc6cd' }}>{label}</td>
       <td style={{ ...mono, padding: '9px 10px', fontSize: 13, textAlign: 'right', color: C.faint }}>
-        {fmt(d.before, unit)}
+        {fmt(before, unit)}
       </td>
       <td style={{ ...mono, padding: '9px 10px', fontSize: 13, textAlign: 'right', color: col ?? C.text }}>
-        {fmt(d.after, unit)}
+        {fmt(after, unit)}
       </td>
     </tr>
   )
 }
 
-export function ComparisonModal({ data, onClose }: { data: Comparison; onClose: () => void }) {
-  const assetIds = Object.keys(data.per_asset)
-  const [active, setActive] = useState(data.focus_asset_id ?? assetIds[0] ?? '')
+function Headline({ label, value, unit, good }: {
+  label: string; value: string; unit: string; good: boolean
+}) {
+  return (
+    <div style={{ padding: 15, background: C.card, border: `1px solid ${C.line}`, borderRadius: 8 }}>
+      <div style={{ ...cap, fontSize: 9.5, marginBottom: 8 }}>{label}</div>
+      <div style={{ ...mono, fontSize: 23, color: good ? '#3fb27f' : '#d71920' }}>{value}</div>
+      <div style={{ fontSize: 11, color: C.faint, marginTop: 3 }}>{unit}</div>
+    </div>
+  )
+}
 
-  const rows = data.per_asset[active] ?? {}
+export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClose: () => void }) {
+  const ids = data.assets_analysis.map((a) => a.asset_id)
+  const [active, setActive] = useState(ids[0] ?? '')
+  const current = data.assets_analysis.find((a) => a.asset_id === active)
   const t = data.township_metrics
-  const a = data.aggregate
+  const j = data.decision.justification
+
+  // Totals across every asset in the plan.
+  let capexSaved = 0
+  let carbonAverted = 0
+  for (const a of data.assets_analysis) {
+    capexSaved += a.summary_card.financial?.counterfactual?.capex_saved_rm ?? 0
+    carbonAverted += a.summary_card.environmental?.counterfactual?.net_carbon_averted_tco2e ?? 0
+  }
+
+  const metrics: MainMetric[] = []
+  if (current?.summary_card.financial?.main_metric) metrics.push(current.summary_card.financial.main_metric)
+  if (current?.summary_card.social?.main_metric) metrics.push(current.summary_card.social.main_metric)
+
+  const socialExtras = current?.summary_card.social?.metrics ?? {}
+  const envMetrics = current?.summary_card.environmental?.main_metrics ?? []
+  const timeline = current?.timeline
 
   return (
     <div
@@ -68,11 +93,11 @@ export function ComparisonModal({ data, onClose }: { data: Comparison; onClose: 
         className="pop"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 'min(820px, 100%)', maxHeight: '100%', overflowY: 'auto',
+          width: 'min(860px, 100%)', maxHeight: '100%', overflowY: 'auto',
           background: C.panel, border: `1px solid ${C.line}`, borderRadius: 12, padding: 26,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
           <span style={{ ...cap, fontSize: 11 }}>Scenario comparison</span>
           <span style={{ flex: 1 }} />
           <button
@@ -84,33 +109,54 @@ export function ComparisonModal({ data, onClose }: { data: Comparison; onClose: 
           >×</button>
         </div>
 
+        <h2 style={{ margin: '0 0 6px', fontSize: 19, fontWeight: 500 }}>
+          {data.decision.selected_candidate}
+        </h2>
+        <div style={{ ...mono, fontSize: 11, color: C.faint, marginBottom: 22 }}>
+          {data.scenario_id}
+        </div>
+
         <div style={{
           display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
           gap: 14, marginBottom: 24,
         }}>
           <Headline
-            label="Embodied carbon avoided"
-            value={a.avoided_embodied_carbon_tco2e.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-            unit="tCO₂e"
-            good
+            label="Embodied carbon averted"
+            value={carbonAverted.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            unit="tCO₂e not emitted"
+            good={carbonAverted > 0}
+          />
+          <Headline
+            label="CAPEX avoided"
+            value={`RM ${Math.round(capexSaved).toLocaleString()}`}
+            unit="vs building new"
+            good={capexSaved > 0}
           />
           <Headline
             label="Township carbon"
-            value={`${(t.carbon_delta_pct * 100).toFixed(1)}%`}
+            value={`${(t.carbon_delta_pct * 100).toFixed(2)}%`}
             unit={t.carbon_delta_pct < 0 ? 'reduction' : 'increase'}
             good={t.carbon_delta_pct < 0}
           />
-          <Headline
-            label="15-min walk coverage"
-            value={`${(t.walk_15min_coverage_delta * 100).toFixed(1)}%`}
-            unit="change"
-            good={t.walk_15min_coverage_delta >= 0}
-          />
         </div>
 
-        {assetIds.length > 1 && (
+        <div style={{
+          padding: 16, background: C.card, border: `1px solid ${C.line}`,
+          borderRadius: 8, marginBottom: 22,
+        }}>
+          <div style={{ ...cap, fontSize: 10, color: C.accent, marginBottom: 9 }}>What the simulation shows</div>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: '#cfc6cd' }}>
+            {j.what_simulation_shows}
+          </p>
+          <div style={{ ...cap, fontSize: 10, color: C.accent, margin: '16px 0 9px' }}>Why this plan</div>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: '#cfc6cd' }}>
+            {j.why_this_plan}
+          </p>
+        </div>
+
+        {ids.length > 1 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-            {assetIds.slice(0, 12).map((id) => (
+            {ids.map((id) => (
               <button
                 key={id}
                 className={`chip${active === id ? ' on' : ''}`}
@@ -132,59 +178,85 @@ export function ComparisonModal({ data, onClose }: { data: Comparison; onClose: 
               <th style={{ ...cap, fontSize: 10, textAlign: 'left', padding: '0 10px 10px' }}>
                 {active || 'Metric'}
               </th>
-              <th style={{ ...cap, fontSize: 10, textAlign: 'right', padding: '0 10px 10px', color: C.faint }}>Before</th>
-              <th style={{ ...cap, fontSize: 10, textAlign: 'right', padding: '0 10px 10px' }}>After</th>
+              <th style={{ ...cap, fontSize: 10, textAlign: 'right', padding: '0 10px 10px', color: C.faint }}>
+                Baseline
+              </th>
+              <th style={{ ...cap, fontSize: 10, textAlign: 'right', padding: '0 10px 10px' }}>
+                Intervention
+              </th>
             </tr>
           </thead>
           <tbody>
-            {Object.entries(rows).map(([name, d]) => (
-              <MetricRow key={name} name={name} d={d} />
+            {metrics.map((m) => (
+              <Row key={m.label} label={m.label} before={m.baseline} after={m.intervention} unit={m.unit} />
+            ))}
+            {Object.entries(socialExtras).map(([k, v]) => (
+              <Row key={k} label={pretty(k)} before={v.baseline} after={v.intervention} unit={k.includes('ratio') ? 'ratio' : ''} />
+            ))}
+            {envMetrics.map((m) => (
+              <Row key={m.label} label={m.label} before={m.baseline} after={m.intervention} unit={m.unit} lowerIsBetter />
             ))}
           </tbody>
         </table>
+
+        {timeline && Object.keys(timeline.metrics).length > 0 && (
+          <div style={{ marginTop: 24, paddingTop: 18, borderTop: `1px solid ${C.line}` }}>
+            <div style={{ ...cap, fontSize: 10, marginBottom: 12 }}>Time series</div>
+            {Object.entries(timeline.metrics).map(([name, series]) => (
+              <div key={name} style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 12.5, color: '#cfc6cd', marginBottom: 8 }}>{pretty(name)}</div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ ...cap, fontSize: 9.5, textAlign: 'left', padding: '0 8px 8px' }} />
+                      {timeline.years.map((y) => (
+                        <th key={y} style={{ ...cap, fontSize: 9.5, textAlign: 'right', padding: '0 8px 8px' }}>{y}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ fontSize: 12, color: C.faint, padding: '6px 8px' }}>Baseline</td>
+                      {series.baseline.map((v, i) => (
+                        <td key={i} style={{ ...mono, fontSize: 12, textAlign: 'right', padding: '6px 8px', color: C.faint }}>
+                          {fmt(v, name.endsWith('_rm') ? 'RM' : '')}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr>
+                      <td style={{ fontSize: 12, padding: '6px 8px' }}>Intervention</td>
+                      {series.intervention.map((v, i) => (
+                        <td key={i} style={{ ...mono, fontSize: 12, textAlign: 'right', padding: '6px 8px' }}>
+                          {fmt(v, name.endsWith('_rm') ? 'RM' : '')}
+                        </td>
+                      ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div style={{ marginTop: 22, paddingTop: 18, borderTop: `1px solid ${C.line}` }}>
           <div style={{ ...cap, fontSize: 10, marginBottom: 12 }}>Township</div>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
-              <MetricRow
-                name="total_carbon_tco2e"
-                d={{ before: t.total_carbon_before_tco2e, after: t.total_carbon_after_tco2e, unit: 'tCO2e' }}
+              <Row
+                label="Total carbon (tCO₂e)"
+                before={t.total_carbon_before_tco2e}
+                after={t.total_carbon_after_tco2e}
+                unit="tCO2e"
+                lowerIsBetter
               />
-              <MetricRow
-                name="walk_15min_coverage"
-                d={{ before: t.walk_15min_avg_coverage_before, after: t.walk_15min_avg_coverage_after, unit: 'ratio' }}
-              />
-              <tr>
-                <td style={{ padding: '9px 10px', fontSize: 12.5, color: '#cfc6cd' }}>
-                  Cumulative project carbon <span style={{ color: C.faint }}>(tCO₂e)</span>
-                </td>
-                <td style={{ padding: '9px 10px', textAlign: 'right', color: C.faint }}>—</td>
-                <td style={{ ...mono, padding: '9px 10px', fontSize: 13, textAlign: 'right' }}>
-                  {t.project_carbon_cumulative_tco2e.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </td>
-              </tr>
             </tbody>
           </table>
           <p style={{ fontSize: 11.5, color: C.faint, lineHeight: 1.6, marginTop: 14 }}>
-            Across {a.asset_count} assets. Township totals include delivered development projects; the per-asset table does not.
+            Township totals include development projects delivered on schedule, so they can rise even when the
+            intervention itself avoids emissions. The averted embodied carbon above is the effect of reuse.
           </p>
         </div>
       </div>
-    </div>
-  )
-}
-
-function Headline({ label, value, unit, good }: {
-  label: string; value: string; unit: string; good: boolean
-}) {
-  return (
-    <div style={{
-      padding: 15, background: C.card, border: `1px solid ${C.line}`, borderRadius: 8,
-    }}>
-      <div style={{ ...cap, fontSize: 9.5, marginBottom: 8 }}>{label}</div>
-      <div style={{ ...mono, fontSize: 24, color: good ? '#3fb27f' : '#d71920' }}>{value}</div>
-      <div style={{ fontSize: 11, color: C.faint, marginTop: 3 }}>{unit}</div>
     </div>
   )
 }

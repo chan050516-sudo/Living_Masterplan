@@ -85,7 +85,7 @@ export function DeadspaceList({ assets, onPick }: {
 
         return (
           <button
-            key={a.asset_id}
+            key={a.id}
             className="ds-card fade"
             onClick={() => onPick(a)}
             style={{
@@ -97,7 +97,7 @@ export function DeadspaceList({ assets, onPick }: {
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: col, flex: 'none' }} />
-                <strong style={{ ...mono, fontSize: 13 }}>{a.asset_id}</strong>
+                <strong style={{ fontSize: 13.5 }}>{a.name}</strong>
               </span>
               {subtype && (
                 <span style={{ fontSize: 11, color: C.faint, whiteSpace: 'nowrap' }}>{subtype}</span>

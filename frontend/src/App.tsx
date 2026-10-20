@@ -7,7 +7,8 @@ import { MapLegend, MapControls } from './components/ui'
 import { DeadspaceList } from './components/DeadspaceList'
 import { AssetPanel } from './components/AssetPanel'
 import { ComparisonModal } from './components/ComparisonModal'
-import type { Asset, Diagnosis, AiAnswer, Comparison, Proposal } from './types'
+import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
+import type { Asset, AssetProfile, AnalyzeResult } from './types'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
 maplibregl.setWorkerUrl(workerUrl)
@@ -34,7 +35,19 @@ function centroidOf(geometry: Geometry): [number, number] {
   return [x / ring.length, y / ring.length]
 }
 
-/** Status enum → colour. v1.2 §8.2. */
+/**
+ * The API gives floor area and land area but not floor count, so infer it.
+ * 13,475 m² of floor on 6,738 m² of land ≈ 2 storeys.
+ */
+function heightOf(profile: AssetProfile | null): number {
+  const floor = profile?.physical.floor_area_m2
+  const land = profile?.physical.land_area_m2
+  if (!floor || !land || land <= 0) return 0
+  const floors = Math.max(1, Math.round(floor / land))
+  return Math.min(floors, 40) * METRES_PER_FLOOR
+}
+
+/** Status → colour. v1.2 §8.2 plus the API's own extra statuses. */
 const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'match',
   ['get', 'status'],
@@ -44,10 +57,12 @@ const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'development_risk', '#f15c22',
   'deadspace_candidate', '#d71920',
   'underperforming_facility', '#d71920',
+  'intervened', '#2196f3',
+  'vacant', '#9e9e9e',
   '#5a4f59',
 ]
 
-const ASSET_LAYERS = ['assets-3d', 'green-fill', 'points-dot']
+const ASSET_LAYERS = ['assets-3d', 'area-fill', 'points-dot']
 
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -56,7 +71,7 @@ export default function App() {
   const assetsRef = useRef<Asset[]>([])
 
   const buildingsRef = useRef<FeatureCollection>(EMPTY)
-  const greenPolyRef = useRef<FeatureCollection>(EMPTY)
+  const areaRef = useRef<FeatureCollection>(EMPTY)
   const pointsRef = useRef<FeatureCollection>(EMPTY)
 
   const [assets, setAssets] = useState<Asset[]>([])
@@ -65,10 +80,12 @@ export default function App() {
   const [bearing, setBearing] = useState(-20)
   const [tilted, setTilted] = useState(true)
   const [question, setQuestion] = useState('')
-  const [answer, setAnswer] = useState<AiAnswer | null>(null)
+  const [analysis, setAnalysis] = useState<AnalyzeResult | null>(null)
+  const [asked, setAsked] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [previewing, setPreviewing] = useState(false)
-  const [comparison, setComparison] = useState<Comparison | null>(null)
+  const [showComparison, setShowComparison] = useState(false)
   const [mapReady, setMapReady] = useState(false)
 
   const selectedAssets = selectedIds
@@ -77,9 +94,14 @@ export default function App() {
 
   const primary = selectedAssets[0] ?? null
 
+  function reset() {
+    setAnalysis(null); setAsked(''); setError(null)
+    setPreviewing(false); setShowComparison(false)
+  }
+
   function selectOnly(id: string) {
     setSelectedIds([id])
-    setAnswer(null); setQuestion(''); setPreviewing(false)
+    setQuestion(''); reset()
     const a = assetsRef.current.find((x) => x.id === id)
     if (a) mapRef.current?.easeTo({ center: a.center, zoom: 17.5, pitch: 58, duration: 900 })
   }
@@ -88,93 +110,63 @@ export default function App() {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     )
-    setAnswer(null); setPreviewing(false)
+    reset()
   }
 
   function closePanel() {
-    setSelectedIds([]); setAnswer(null); setQuestion(''); setPreviewing(false)
+    setSelectedIds([]); setQuestion(''); reset()
   }
 
-  /** PLACEHOLDER until the B7 endpoint exists. */
+  /** Sends the question and the selected IDs to the B7 pipeline. */
   async function ask() {
     if (selectedAssets.length === 0) return
-    const asked = question.trim() || 'What should we do with these assets?'
-    setLoading(true)
-
-    const plan: Proposal[] = selectedAssets.map((a) => {
-      const options = a.diagnosis?.layer3.candidate_interventions ?? []
-      return {
-        asset_id: a.id,
-        type: options[0] ?? 'retrofit',
-        parameters: {},
-        rationale:
-          a.diagnosis && a.diagnosis.flags.length > 0
-            ? `Flagged for ${a.diagnosis.flags.slice(0, 3).join(', ')}.`
-            : 'No flags raised; preventive action only.',
-      }
-    })
-
-    setTimeout(() => {
-      setAnswer({
-        asked,
-        reasoning_trace: 'Placeholder plan: the B7 reasoning layer is not wired up yet.',
-        plan,
-      })
+    const q = question.trim() || 'What should we do with these assets?'
+    setLoading(true); setError(null); setAsked(q)
+    try {
+      const res = await runAnalysis(q, selectedIds)
+      setAnalysis(res)
       setQuestion('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
       setLoading(false)
-    }, 500)
+    }
   }
 
-  /** PLACEHOLDER until the B4 endpoint exists. */
-  async function simulate() {
-    setComparison(null)
+  function simulate() {
+    if (analysis) setShowComparison(true)
   }
 
+  // Load profiles and geometry from the API, then join them on asset_id.
   useEffect(() => {
-    const get = (p: string) =>
-      fetch(p).then((r) => r.json()).catch(() => null)
+    Promise.all([fetchProfiles(), fetchGeometry()])
+      .then(([profiles, geo]) => {
+        const list: Asset[] = []
+        const buildingFeatures: Feature[] = []
+        const areaFeatures: Feature[] = []
+        const pointFeatures: Feature[] = []
 
-    Promise.all([
-      get('/data/buildings.geojson'),
-      get('/data/green_blue.geojson'),
-      get('/data/amenities.geojson'),
-      get(`/data/deadspace_${year}.json`),
-    ]).then(([bld, green, amen, deadspace]) => {
-      const byId = new Map<string, Diagnosis>()
-      for (const d of (deadspace as Diagnosis[] | null) ?? []) byId.set(d.asset_id, d)
-
-      const list: Asset[] = []
-      const buildingFeatures: Feature[] = []
-      const greenPolyFeatures: Feature[] = []
-      const pointFeatures: Feature[] = []
-
-      const take = (fc: FeatureCollection | null, kind: 'building' | 'green' | 'amenity') => {
-        if (!fc?.features) return
-        for (const f of fc.features) {
+        for (const f of geo.features) {
           const p = (f.properties ?? {}) as Record<string, unknown>
-          const id = String(p.id ?? p.building_id ?? p.green_id ?? p.amenity_id ?? '')
+          const id = String(p.asset_id ?? '')
           if (!id) continue
+          if (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString') continue
 
-          const floors = typeof p.floors === 'number' ? p.floors : null
-          const diagnosis = byId.get(id) ?? null
+          const profile = profiles[id] ?? null
+          const diagnosis = profile?.deadspace_diagnosis ?? null
+          const mapStatus = String(p.map_status ?? 'healthy')
+          const height = heightOf(profile)
 
           list.push({
-            building_id: String(p.building_id ?? id),
-            parcel_id: String(p.parcel_id ?? ''),
-            asset_id: String(p.asset_id ?? id),
-            building_type: String(p.building_type ?? p.amenity_type ?? p.green_type ?? kind),
-            floors,
-            gfa_m2: typeof p.gfa_m2 === 'number' ? p.gfa_m2 : 0,
-            geometry_source: String(p.geometry_source ?? ''),
-            height: kind === 'building' ? (floors ?? 2) * METRES_PER_FLOOR : 0,
             id,
-            subtype:
-              typeof p.subtype === 'string' ? p.subtype
-                : typeof p.amenity_type === 'string' ? p.amenity_type
-                  : typeof p.green_type === 'string' ? p.green_type
-                    : null,
+            name: profile?.identity.asset_name ?? id,
+            subtype: profile?.identity.subtype ?? null,
+            assetType: profile?.identity.asset_type ?? 'unknown',
+            mapStatus,
+            profile,
             diagnosis,
             center: centroidOf(f.geometry),
+            height,
           })
 
           const tagged: Feature = {
@@ -182,30 +174,26 @@ export default function App() {
             properties: {
               ...f.properties,
               id,
-              kind,
-              status: diagnosis?.status ?? 'healthy',
-              height: kind === 'building' ? (floors ?? 2) * METRES_PER_FLOOR : 0,
+              // The diagnosis is more specific than map_status, so prefer it.
+              status: diagnosis?.status ?? mapStatus,
+              height,
             },
           }
 
           if (f.geometry.type === 'Point') pointFeatures.push(tagged)
-          else if (kind === 'building') buildingFeatures.push(tagged)
-          else greenPolyFeatures.push(tagged)
+          else if (height > 0) buildingFeatures.push(tagged)
+          else areaFeatures.push(tagged)
         }
-      }
 
-      take(bld as FeatureCollection | null, 'building')
-      take(green as FeatureCollection | null, 'green')
-      take(amen as FeatureCollection | null, 'amenity')
+        buildingsRef.current = { type: 'FeatureCollection', features: buildingFeatures }
+        areaRef.current = { type: 'FeatureCollection', features: areaFeatures }
+        pointsRef.current = { type: 'FeatureCollection', features: pointFeatures }
 
-      buildingsRef.current = { type: 'FeatureCollection', features: buildingFeatures }
-      greenPolyRef.current = { type: 'FeatureCollection', features: greenPolyFeatures }
-      pointsRef.current = { type: 'FeatureCollection', features: pointFeatures }
-
-      assetsRef.current = list
-      setAssets(list)
-    })
-  }, [year])
+        assetsRef.current = list
+        setAssets(list)
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+  }, [])
 
   useEffect(() => {
     if (!mapContainer.current) return
@@ -247,13 +235,13 @@ export default function App() {
       map.setSky({ 'sky-color': '#1a1320', 'horizon-color': '#4a3a48', 'sky-horizon-blend': 0.6 })
 
       map.addSource('assets', { type: 'geojson', data: EMPTY })
-      map.addSource('green', { type: 'geojson', data: EMPTY })
+      map.addSource('area', { type: 'geojson', data: EMPTY })
       map.addSource('points', { type: 'geojson', data: EMPTY })
 
       map.addLayer({
-        id: 'green-fill',
+        id: 'area-fill',
         type: 'fill',
-        source: 'green',
+        source: 'area',
         paint: {
           'fill-color': STATUS_PAINT as never,
           'fill-opacity': 0.35,
@@ -309,7 +297,7 @@ export default function App() {
     const map = mapRef.current
     if (!mapReady || !map) return
     ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
-    ;(map.getSource('green') as maplibregl.GeoJSONSource | undefined)?.setData(greenPolyRef.current)
+    ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
     ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
   }, [mapReady, assets])
 
@@ -346,7 +334,7 @@ export default function App() {
           ] as never)
 
     map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
-    map.setPaintProperty('green-fill', 'fill-color', expr as never)
+    map.setPaintProperty('area-fill', 'fill-color', expr as never)
     map.setPaintProperty('points-dot', 'circle-color', expr as never)
   }, [selectedIds, previewing, assets, mapReady])
 
@@ -367,10 +355,10 @@ export default function App() {
           animation:popIn .3s cubic-bezier(.22,.8,.3,1) both">
           <div style="
             background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;
-            padding:7px 12px;color:#fff;font:600 11px/1 ui-monospace,monospace;
-            letter-spacing:.08em;white-space:nowrap;
+            padding:7px 12px;color:#fff;font:600 11px/1 system-ui,sans-serif;
+            letter-spacing:.06em;white-space:nowrap;
             box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
-            backdrop-filter:blur(4px)">${asset.id}</div>
+            backdrop-filter:blur(4px)">${asset.name}</div>
           <div style="width:0;height:26px;border-left:1px dashed rgba(255,255,255,.55)"></div>
           <div style="width:9px;height:9px;border-radius:50%;background:#fff;
             box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
@@ -441,7 +429,9 @@ export default function App() {
         ))}
       </header>
 
-      {comparison && <ComparisonModal data={comparison} onClose={() => setComparison(null)} />}
+      {showComparison && analysis && (
+        <ComparisonModal data={analysis} onClose={() => setShowComparison(false)} />
+      )}
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <main style={{ position: 'relative', flex: 1 }}>
@@ -458,7 +448,8 @@ export default function App() {
             <AssetPanel
               assets={selectedAssets}
               question={question} setQuestion={setQuestion}
-              answer={answer} loading={loading} onAsk={ask}
+              asked={asked} analysis={analysis} loading={loading} error={error}
+              onAsk={ask}
               previewing={previewing}
               onPreview={() => setPreviewing(true)}
               onClearPreview={() => setPreviewing(false)}
