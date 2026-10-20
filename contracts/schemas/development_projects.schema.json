@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/development_projects.schema.json",
+  "title": "development_projects.csv",
+  "description": "Row schema for development_projects.csv — planned / committed development pipeline. Each project is delivered as a virtual PRJ::<id> entry in the simulation when its planned_delivery_year arrives.",
+  "type": "object",
+  "required": [
+    "project_id", "parcel_id", "project_name", "project_status",
+    "planned_start_year", "planned_delivery_year", "gfa_m2", "land_use", "capex_rm"
+  ],
+  "properties": {
+    "project_id": { "type": "string", "pattern": "^PRJ-" },
+    "parcel_id": { "type": "string", "pattern": "^P-" },
+    "asset_id": { "type": ["string", "null"] },
+    "project_name": { "type": "string" },
+    "project_status": {
+      "enum": ["committed", "approved", "proposed", "hypothetical", "cancelled"]
+    },
+    "planned_start_year": { "type": "integer" },
+    "planned_delivery_year": { "type": "integer" },
+    "gfa_m2": { "type": "number", "minimum": 0 },
+    "units": { "type": ["integer", "null"], "minimum": 0 },
+    "land_use": { "type": "string" },
+    "capex_rm": { "type": "number", "minimum": 0 },
+    "scenario_dependency": {
+      "type": ["string", "null"],
+      "$comment": "Descriptive tag only; the simulation reads delay/cancel directives from interventions.csv, not from this field."
+    }
+  }
+}

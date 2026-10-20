@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/network.schema.json",
+  "title": "network.geojson",
+  "description": "Spatial layer: pedestrian / road network edges. canopy_coverage_ratio is required for canopy-adjusted walkability.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "parcels.schema.json#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["LineString", "MultiLineString"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/NetworkProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "NetworkProperties": {
+      "type": "object",
+      "required": [
+        "edge_id", "edge_type", "from_node", "to_node",
+        "length_m", "access_type", "canopy_coverage_ratio",
+        "walk_ok", "drive_ok"
+      ],
+      "properties": {
+        "edge_id": { "type": "string", "pattern": "^E-" },
+        "edge_type": {
+          "enum": [
+            "footway", "pedestrian", "path", "steps", "track", "bridleway",
+            "cycleway", "living_street", "service", "residential",
+            "unclassified", "road", "crossing", "corridor", "sidewalk",
+            "platform",
+            "tertiary", "tertiary_link",
+            "secondary", "secondary_link",
+            "primary", "primary_link",
+            "trunk", "trunk_link",
+            "motorway", "motorway_link",
+            "transit"
+          ],
+          "$comment": "Union of WALKABLE_HIGHWAY, DRIVABLE_HIGHWAY, and TRANSIT_HIGHWAY from osm_pipeline.py. Keep in sync when either set changes."
+        },
+        "from_node": { "type": "string", "pattern": "^N-" },
+        "to_node": { "type": "string", "pattern": "^N-" },
+        "length_m": { "type": "number", "minimum": 0 },
+        "walk_speed_kmh": { "type": "number", "minimum": 0, "default": 4.5 },
+        "access_type": { "enum": ["public", "private", "restricted"] },
+        "canopy_coverage_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Fraction of edge shaded by canopy. 0 = no shade, 1 = fully shaded."
+        },
+        "walk_ok": {
+          "type": "boolean",
+          "$comment": "True when the edge is eligible for the walking graph. Motorways are False."
+        },
+        "drive_ok": {
+          "type": "boolean",
+          "$comment": "True when the edge is eligible for the driving graph. Motorways are False in this model (township-scale driving only)."
+        },
+        "highway_raw": {
+          "type": ["string", "null"],
+          "$comment": "Raw OSM highway tag value. Preserved for audit."
+        }
+      }
+    }
+  }
+}

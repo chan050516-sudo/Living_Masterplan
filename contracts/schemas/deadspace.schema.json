@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/deadspace.schema.json",
+  "title": "Deadspace",
+  "description": "Output of B6. Three-layer flag-based detection. No composite score is produced — see urgency_index for the internal sort key.",
+  "type": "object",
+  "required": [
+    "asset_id", "year", "status", "flags", "urgency_index",
+    "layer1", "layer2", "layer3",
+    "contributing_factors", "evidence", "model_version"
+  ],
+  "properties": {
+    "asset_id": { "type": "string" },
+    "year": { "type": "integer" },
+    "status": {
+      "enum": [
+        "deadspace_candidate", "underperforming_facility",
+        "development_risk", "improvement_opportunity",
+        "monitor", "healthy"
+      ]
+    },
+    "flags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "$comment": "Flat list of every flag raised by layer1 + layer2. Order is not significant."
+    },
+    "urgency_index": {
+      "type": "number",
+      "minimum": 0,
+      "$comment": "Internal-only ranking key. NOT shown in the UI and NOT comparable across scenarios."
+    },
+    "layer1": {
+      "type": "object",
+      "required": ["triggered", "reasons"],
+      "properties": {
+        "triggered": { "type": "boolean" },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "layer2": {
+      "type": "object",
+      "required": ["triggered", "reasons"],
+      "properties": {
+        "triggered": { "type": "boolean" },
+        "reasons": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "layer3": {
+      "type": "object",
+      "required": [
+        "has_legal_actions", "candidate_interventions",
+        "diagnosis_active", "reason"
+      ],
+      "properties": {
+        "has_legal_actions": {
+          "type": "boolean",
+          "$comment": "True when the asset TYPE has any legal intervention. Type property, not asset state."
+        },
+        "actionable": {
+          "type": "boolean",
+          "deprecated": true,
+          "$comment": "Phase 16 — legacy alias for has_legal_actions. Kept for schema compatibility with status.py. Do not consume."
+        },
+        "diagnosis_active": {
+          "type": "boolean",
+          "$comment": "True when layer1 or layer2 fired. Only then is candidate_interventions populated."
+        },
+        "candidate_interventions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "$comment": "Interventions indicated by the asset's diagnosis. Empty when no layer fired."
+        },
+        "reason": {
+          "type": "string",
+          "$comment": "Human-readable explanation of why candidate_interventions is empty or populated."
+        }
+      }
+    },
+    "contributing_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["factor", "contribution"],
+        "properties": {
+          "factor": { "type": "string" },
+          "contribution": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "evidence": { "type": "array", "items": { "type": "string" } },
+    "model_version": { "type": "string" }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/intervention.schema.json",
+  "title": "Intervention",
+  "type": "object",
+  "required": ["intervention_type", "target_asset_id", "parameters_json"],
+  "properties": {
+    "scenario_id": { "type": "string", "pattern": "^SC-" },
+    "intervention_id": { "type": "string", "pattern": "^INT-" },
+    "target_asset_id": {
+      "type": ["string", "null"],
+      "$comment": "Null for placeholder directives such as the SC-CURRENT no_op row. Row is kept for CSV column alignment."
+    },
+    "intervention_type": {
+      "enum": [
+        "repurpose", "retrofit", "green_corridor",
+        "pedestrian_upgrade", "new_development",
+        "delay_development", "no_op",
+        "interim_solar_farm"
+      ]
+    },
+    "parameters_json": {
+      "type": "string",
+      "description": "JSON-encoded parameters. For repurpose, to_subtype (a taxonomy key) takes precedence; the legacy `to` field (an asset_type) is only honoured when to_subtype is absent. Any capex_delta_rm / opex_delta_rm declared here overrides the validator's internal estimate."
+    },
+    "expected_derived_json": { "type": ["string", "null"] },
+    "expected_source": { "type": ["string", "null"] },
+    "construction_start_year": { "type": "integer" },
+    "construction_duration_months": { "type": "integer" },
+    "activation_year": { "type": "integer" },
+    "during_construction_status": {
+      "enum": ["unavailable", "partial", "operational"]
+    },
+    "capex_delta_rm": { "type": ["number", "null"] },
+    "opex_delta_rm": { "type": ["number", "null"] },
+    "validation_status": { "enum": ["pending", "validated", "corrected", "rejected"] },
+    "status": { "enum": ["proposed", "simulated", "applied", "discarded"] }
+  }
+}

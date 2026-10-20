@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/population.schema.json",
+  "title": "population.geojson",
+  "description": "Spatial layer: population clusters with demographic breakdown. Used as demand nodes for Huff gravity and affinity mismatch.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "parcels.schema.json#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["Polygon", "MultiPolygon", "Point"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/PopulationProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "PopulationProperties": {
+      "type": "object",
+      "required": [
+        "population_id", "total_population",
+        "age_0_14", "age_15_64", "age_65_plus",
+        "household_size", "source"
+      ],
+      "properties": {
+        "population_id": { "type": "string", "pattern": "^POP-" },
+        "asset_id": { "type": ["string", "null"] },
+        "total_population": { "type": "integer", "minimum": 0 },
+        "age_0_14": { "type": "integer", "minimum": 0 },
+        "age_15_64": { "type": "integer", "minimum": 0 },
+        "age_65_plus": { "type": "integer", "minimum": 0 },
+        "median_income_rm": { "type": ["number", "null"], "minimum": 0 },
+        "household_size": { "type": "number", "minimum": 0 },
+        "source": { "type": "string" }
+      }
+    }
+  }
+}

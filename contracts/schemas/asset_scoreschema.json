@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/asset_score.schema.json",
+  "title": "AssetScore",
+  "description": "Output of B5 (not yet implemented). Scores 0-100 per dimension plus overall. NOTE: B6 does not consume this schema — deadspace detection is flag-based as of v0.4.0.",
+  "type": "object",
+  "required": [
+    "asset_id", "asset_type", "year", "overall_score",
+    "financial_score", "environmental_score", "social_score",
+    "risk_score", "confidence", "data_completeness",
+    "weights_used", "component_scores", "model_version"
+  ],
+  "properties": {
+    "asset_id": { "type": "string" },
+    "asset_type": { "type": "string" },
+    "year": { "type": "integer" },
+    "overall_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "financial_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "environmental_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "social_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "risk_score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "confidence": { "enum": ["high", "medium", "low"] },
+    "data_completeness": { "type": "number", "minimum": 0, "maximum": 1 },
+    "weights_used": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "component_scores": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 0, "maximum": 100 }
+    },
+    "model_version": { "type": "string" }
+  }
+}

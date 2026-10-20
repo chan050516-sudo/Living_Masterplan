@@ -1,0 +1,88 @@
+# Peer distribution benchmarks for diagnosis.
+# These are used to determine whether an asset is below its peers,
+# NOT to compute a synthetic score.
+#
+# Structure:
+#   field_name:
+#     p25: value
+#     p50: value
+#     p75: value
+#     source: citation or "assumption"
+#     status: peer_based | industry | assumption
+
+version: "0.4.0"
+
+commercial:
+  occupancy_rate:
+    p25: 0.30
+    p50: 0.60
+    p75: 0.85
+    source: "Malaysia retail market report 2024"
+    status: industry
+
+  noi_yield_annual:
+    p25: -0.01
+    p50: 0.045
+    p75: 0.075
+    source: "Industry benchmark"
+    status: industry
+
+  vacancy_duration_months:
+    p25: 3
+    p50: 8
+    p75: 18
+    source: "Industry benchmark"
+    status: industry
+
+community_facility:
+  utilisation_rate:
+    p25: 0.30
+    p50: 0.55
+    p75: 0.75
+    source: "Planning standard"
+    status: industry
+
+  service_coverage:
+    p25: 0.50
+    p50: 0.75
+    p75: 0.95
+    source: "Planning standard"
+    status: industry
+
+  cost_per_user_rm:
+    p25: 20
+    p50: 60
+    p75: 150
+    source: "Assumption"
+    status: assumption
+
+residential:
+  occupancy_rate:
+    p25: 0.75
+    p50: 0.90
+    p75: 0.97
+    source: "Market research"
+    status: industry
+
+green_space:
+  green_coverage:
+    p25: 0.10
+    p50: 0.30
+    p75: 0.60
+    source: "Planning standard"
+    status: industry
+
+  canopy_coverage:
+    p25: 0.05
+    p50: 0.20
+    p75: 0.40
+    source: "Planning standard"
+    status: industry
+
+undeveloped_parcel:
+  development_feasibility:
+    p25: 0.40
+    p50: 0.70
+    p75: 0.95
+    source: "Assumption"
+    status: assumption

@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/amenities.schema.json",
+  "title": "amenities.geojson",
+  "description": "Spatial layer: transit stops, schools, clinics and other POIs. Currently loaded by geometry_loader but not consumed by B3 / B4 / B6. Reserved for future transit-mix analysis.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "parcels.schema.json#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["Point", "Polygon", "LineString"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/AmenityProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "AmenityProperties": {
+      "type": "object",
+      "required": ["amenity_id", "amenity_type"],
+      "properties": {
+        "amenity_id": { "type": "string", "pattern": "^A-" },
+        "amenity_type": {
+          "enum": [
+            "transit_station", "bus_stop",
+            "school", "library",
+            "clinic", "hospital",
+            "place_of_worship", "community_centre",
+            "food_beverage", "finance", "retail",
+            "fuel", "parking",
+            "other"
+          ],
+          "$comment": "Normalised vocabulary. The raw OSM value is preserved in amenity_type_raw."
+        },
+        "amenity_type_raw": {
+          "type": ["string", "null"],
+          "$comment": "Raw OSM amenity tag value (e.g. restaurant, pharmacy, kindergarten). Preserved for audit."
+        },
+        "capacity": { "type": ["number", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

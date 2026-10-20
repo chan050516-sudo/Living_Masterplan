@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/buildings.schema.json",
+  "title": "buildings.geojson",
+  "description": "Spatial layer: building footprints. Business data lives in assets.csv.",
+  "type": "object",
+  "required": ["type", "metadata", "features"],
+  "properties": {
+    "type": { "const": "FeatureCollection" },
+    "metadata": { "$ref": "parcels.schema.json#/$defs/Metadata" },
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "id", "geometry", "properties"],
+        "properties": {
+          "type": { "const": "Feature" },
+          "id": { "type": "string" },
+          "geometry": {
+            "type": "object",
+            "required": ["type", "coordinates"],
+            "properties": {
+              "type": { "enum": ["Polygon", "MultiPolygon"] },
+              "coordinates": { "type": "array" }
+            }
+          },
+          "properties": { "$ref": "#/$defs/BuildingProperties" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "BuildingProperties": {
+      "type": "object",
+      "required": [
+          "building_id", "parcel_id", "asset_id", "building_type",
+          "subtype", "geometry_source"
+      ],
+      "properties": {
+        "building_id": { "type": "string", "pattern": "^BLD-" },
+        "parcel_id": { "type": "string", "pattern": "^P-" },
+        "asset_id": { "type": "string" },
+        "building_type": {
+          "enum": ["commercial", "community_facility", "residential",
+                   "mixed_use", "industrial", "institutional", "unknown"]
+        },
+        "floors": { "type": ["integer", "null"], "minimum": 0 },
+        "gfa_m2": { "type": ["number", "null"], "minimum": 0 },
+        "completion_year": { "type": ["integer", "null"] },
+        "geometry_source": { "enum": ["OpenStreetMap", "Microsoft Building Footprints", "Manual", "Derived"] },
+        "subtype": {
+            "type": ["string", "null"],
+            "$comment": "Taxonomy subtype derived from building_raw + footprint + building_type. Null when the building is an attachment or below the asset footprint threshold."
+        },
+        "is_asset": {
+            "type": "boolean",
+            "$comment": "False for attachments and undersized structures. Excluded from assets.csv."
+        },
+        "building_raw": {
+            "type": ["string", "null"],
+            "$comment": "Raw OSM building tag value. Preserved for audit."
+        },
+        "footprint_m2": {
+            "type": "number",
+            "minimum": 0
+        }
+      }
+    }
+  }
+}

@@ -218,3 +218,27 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+node_modules/
+**/node_modules/
+# --- Generated outputs (rebuilt on every run) ---
+bukit_jelutong/processed/business/scenarios/
+bukit_jelutong/processed/business/llm_runs/
+
+# --- Pipeline cache ---
+bukit_jelutong/processed/business/_pipeline_cache_*.pkl
+bukit_jelutong/processed/business/llm_run_cache.pkl
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+cache/
+
+# --- Environment ---
+.env
+.env.local
+
+legacy/

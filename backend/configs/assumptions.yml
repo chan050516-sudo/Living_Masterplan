@@ -1,0 +1,230 @@
+# Global assumptions. All Tier 3 unless noted.
+
+version: "0.2.0"
+
+population:
+  base_year: 2026
+  base_population: 8200
+  growth_rate:
+    low:    0.010
+    medium: 0.020
+    high:   0.035
+  household_size: 3.8
+
+demand:
+  residential_target_per_household: 1.0
+  facility_service_per_capita:
+    community_hall: 0.05
+    clinic:         0.02
+    library:        0.03
+
+supply:
+  committed_only: false
+  include_proposed: true
+
+environmental:
+  # Phase 11b: updated from ST Grid Emission Factor 2022-2024
+  # (Provisional), Suruhanjaya Tenaga. Was 0.58 (2017 CDM baseline).
+  emission_factor_energy: 0.769      # kgCO2e per kWh
+
+  # Phase 11b: fallback only. New code reads material_intensity_tco2e_m2
+  # and structural_lifespan_years from taxonomy.yml per subtype.
+  material_intensity: 0.45
+  material_intensity_new_build:   0.45
+  material_intensity_repurpose:   0.08
+  demolition_carbon_intensity:    0.05
+  structural_lifespan_years:      50
+  maintenance_carbon_rate:        0.015
+  energy_intensity_default: 120
+
+  solar_yield_kwh_per_kwp:            1350.0
+  solar_capacity_density_kwp_per_m2:  0.15
+  solar_usable_land_fraction:         0.60
+  solar_installation_carbon_tco2e_per_kwp: 0.05
+  hvac_canopy_relief_per_unit: 0.10
+  uhi_hard_surface_penalty_c:  8.0
+  uhi_canopy_cooling_c:        4.5
+
+  # Phase 11b — canopy growth model
+  # Urban tropical trees in Malaysia: mean annual DBH increment of
+  # 0.98 cm and height increment of 0.73 m per year (UPM urban forest
+  # study, Taman Rimba Alam, Putrajaya). Canopy area growth is
+  # proportional to DBH². Stabilisation occurs at 30-40 years in
+  # tropical zones.
+  canopy_growth_rate_annual:   0.025    # 2.5%/yr of remaining gap to ceiling
+  canopy_ceiling_ratio:        0.60    # township-scale upper bound
+  canopy_growth_start_year:    2026    # growth starts from the base year
+
+# Phase 11 — Energy sub-system split (industry benchmarks, tropical climate)
+energy_breakdown:
+  commercial:
+    hvac:               0.60
+    lighting_equipment: 0.25
+    base_load:          0.15
+  community_facility:
+    hvac:               0.55
+    lighting_equipment: 0.25
+    base_load:          0.20
+  residential:
+    hvac:               0.40
+    lighting_equipment: 0.35
+    base_load:          0.25
+  green_space:
+    hvac:               0.00
+    lighting_equipment: 0.40
+    base_load:          0.60
+  undeveloped_parcel:
+    hvac:               0.00
+    lighting_equipment: 0.00
+    base_load:          0.00
+
+time_to_impact_months:
+  repurpose:            8
+  retrofit:             6
+  green_corridor:       12
+  pedestrian_upgrade:   3
+  new_development:      36
+  delay_development:    0
+  interim_solar_farm:   6          # NEW
+
+# Phase 14 (2026-10-17):
+# every construction default now carries a capacity_ratio — the
+# fraction of the asset's physical capacity that remains operational
+# while construction is in progress.
+#
+# The construction phase of an intervention does NOT reduce
+# occupancy. Existing residents and tenants remain on record; they
+# may be temporarily displaced from part of the building, but the
+# fraction of people who still intend to use the asset is a property
+# of the people, not the physical shell.
+#
+# The model represents this as two independent fields:
+#   - occupancy_rate / utilisation_rate   — how many people use the asset
+#   - operational_capacity_ratio          — how much of the asset is usable
+#
+# Effective utilisation during construction is
+# min(occupancy, operational_capacity_ratio).
+#
+# The specific ratio per intervention type reflects:
+#   - repurpose / new_development: shell is fully rebuilt, 0% usable
+#   - retrofit: partial shutdown, ~60% usable
+#   - pedestrian_upgrade / green_corridor: acts on the network, the
+#     asset itself is fully usable
+construction_defaults:
+  repurpose:            { start_offset: 1, duration_months: 18, during_status: "unavailable", capacity_ratio: 0.00 }
+  retrofit:             { start_offset: 0, duration_months: 12, during_status: "partial",     capacity_ratio: 0.60 }
+  green_corridor:       { start_offset: 0, duration_months: 12, during_status: "operational", capacity_ratio: 1.00 }
+  pedestrian_upgrade:   { start_offset: 0, duration_months: 6,  during_status: "partial",     capacity_ratio: 1.00 }
+  new_development:      { start_offset: 0, duration_months: 36, during_status: "unavailable", capacity_ratio: 0.00 }
+  delay_development:    { start_offset: 0, duration_months: 0,  during_status: "operational", capacity_ratio: 1.00 }
+  interim_solar_farm:   { start_offset: 0, duration_months: 6,  during_status: "operational", capacity_ratio: 1.00 }
+
+accessibility:
+  walking_speed_m_per_min: 80
+  catchment_minutes: [5, 10, 15]
+  canopy_impedance_gamma: 0.30
+  falloff_threshold_m: 800
+
+huff:
+  alpha: 1.0
+  beta: 2.0
+
+  # Access-to-use conversion factor.
+  #
+  # When the walking network changes (a pedestrian_upgrade or
+  # green_corridor activates), the Huff model re-allocates demand
+  # across the subtype pool. But a change in accessibility does not
+  # translate 1:1 into a change in occupancy: being easier to reach
+  # does not mean a customer will actually change their behaviour.
+  #
+  # The published literature (Cervero 2002; Ewing & Cervero 2010,
+  # meta-analysis of built-environment effects on travel) consistently
+  # finds that a fractional change in accessibility converts to a much
+  # smaller fractional change in actual use. 0.25 is the mid-point of
+  # the meta-analytic range (15-35%).
+  #
+  # Interpretation: if Huff share rises 10% after a pedestrian
+  # upgrade, occupancy rises by 10% × 0.25 = 2.5%.
+  access_to_use_conversion: 0.25
+
+occupancy_dynamics:
+  lambda: 0.35
+  critical_threshold: 0.30
+  kappa: 0.50
+
+asset_aging:
+  alpha: 0.03
+
+# v0.3.0 — Deadspace thresholds
+# NOTE: `occupancy.lambda`, `deadspace.layer1.overall_score_below`, and
+# `deadspace_spillover` were removed — none of them were consumed by any
+# module.
+deadspace:
+  layer1:
+    occupancy_rate_below: 0.50
+    vacancy_duration_above_months: 12.0
+    utilisation_rate_below: 0.40
+    dsr_below: 0.80
+    demand_supply_gap_below: 0.0
+    # Phase 11 — stranded carbon diagnostic
+    stranded_carbon_ratio_above: 0.50
+    stranded_carbon_floor_tco2e: 100.0
+
+  layer2:
+    noi_below: 0.0
+    service_coverage_below: 0.60
+    maintenance_surge_ratio_above: 1.5
+    walking_coverage_10min_below: 0.30
+
+mode_networks:
+  walking:
+    allowed_edge_types:
+      - footway
+      - pedestrian
+      - path
+      - residential
+      - service
+      - living_street
+    speed_m_per_min: 80.0
+    canopy_adjusted: true
+    thresholds_min: [5, 10, 15]
+
+  driving:
+    allowed_edge_types:
+      - secondary
+      - tertiary
+      - residential
+      - service
+      - living_street
+    speed_kmh: 30.0
+    canopy_adjusted: false
+    thresholds_min: [5, 10, 15]
+
+# ----------------------------------------------------------------
+# Entry-point offset defaults (fallback when projection fails)
+# ----------------------------------------------------------------
+
+off_network_defaults:
+  commercial_default_m: 10.0
+  community_facility_default_m: 10.0
+  residential_default_m: 20.0
+  green_space_default_m: 5.0
+  undeveloped_parcel_default_m: 15.0
+
+# ----------------------------------------------------------------
+# Carbon sequestration — township-level green-space CO2 uptake
+# ----------------------------------------------------------------
+# Yearly rate (tCO2e/year), same temporal structure as
+# `carbon_operational_tco2e`. Reported by B4's
+# `_compute_township_metrics` alongside operational carbon so the
+# two can be compared year-by-year.
+#
+# Does NOT enter `carbon_operational_tco2e` — sequestration is a
+# physical removal process, not an emission stream. Mixing the two
+# would corrupt the primary carbon comparison.
+#
+# Rate source: IPCC 2006 Guidelines, tropical moist forest NPP,
+# reduced for urban soil / water limitation. Conservative.
+carbon_accounting:
+  sequestration:
+    canopy_uptake_tco2e_per_m2_year: 0.0015

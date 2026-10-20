@@ -1,0 +1,429 @@
+# Business taxonomy for Living Masterplan.
+#
+# Purpose: provide subtype-level benchmarks so that derived metrics, Huff
+# competition, carbon estimation, and 15-min coverage can be computed per
+# business category, not just per asset class.
+#
+# Energy intensity values are annual kWh per m² of GFA.
+# Carbon is NOT stored here; it is derived from energy intensity and the
+# grid emission factor defined in assumptions.yml.
+#
+# Sources: Malaysia Energy Commission (Suruhanjaya Tenaga) building energy
+# benchmarks 2023; BCA Green Mark regional reference; JLL/CBRE retail
+# reports; MOH clinic planning standards. Values marked "placeholder" are
+# unverified and should be replaced when project-level data is available.
+
+version: "0.4.0"
+
+# ---------------------------------------------------------------
+# Subtypes
+# ---------------------------------------------------------------
+
+subtypes:
+
+# ============ Commercial ============
+  convenience_retail:
+    asset_class: commercial
+    display_name: "Convenience retail"
+    target_area_m2: [50, 300]
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 280          # Malaysia retail (ST audit range)
+    material_intensity_tco2e_m2: 0.35          # light steel + masonry
+    structural_lifespan_years: 30
+    target_demographics: [all]
+    competition_radius_m: 500
+    demand_coefficient_m2_per_person: 0.05
+    is_core_amenity: true
+    source: "Malaysia retail property report 2024"
+
+  supermarket:
+    asset_class: commercial
+    display_name: "Supermarket"
+    target_area_m2: [1000, 5000]
+    occupancy_benchmark: 0.90
+    energy_intensity_kwh_m2_year: 420          # high HVAC + refrigeration load
+    material_intensity_tco2e_m2: 0.42          # large-span steel frame
+    structural_lifespan_years: 30
+    target_demographics: [all]
+    competition_radius_m: 3000
+    demand_coefficient_m2_per_person: 0.08
+    is_core_amenity: true
+    source: "Retail benchmark placeholder"
+
+  f_and_b:
+    asset_class: commercial
+    display_name: "Food and beverage"
+    target_area_m2: [50, 500]
+    occupancy_benchmark: 0.80
+    energy_intensity_kwh_m2_year: 380
+    material_intensity_tco2e_m2: 0.30
+    structural_lifespan_years: 25
+    target_demographics: [all, workers]
+    competition_radius_m: 800
+    demand_coefficient_m2_per_person: 0.10
+    is_core_amenity: false
+    source: "Retail benchmark placeholder"
+
+  restaurant:
+    asset_class: commercial
+    display_name: "Restaurant (sit-down dining)"
+    target_area_m2: [150, 800]
+    occupancy_benchmark: 0.75
+    energy_intensity_kwh_m2_year: 400
+    material_intensity_tco2e_m2: 0.32
+    structural_lifespan_years: 25
+    target_demographics: [all, workers, families]
+    competition_radius_m: 1500
+    demand_coefficient_m2_per_person: 0.10
+    is_core_amenity: false
+    source: "Malaysia F&B market — sit-down restaurant"
+
+  kopitiam:
+    asset_class: commercial
+    display_name: "Kopitiam / coffee shop (hawker-style)"
+    target_area_m2: [50, 300]
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 180
+    material_intensity_tco2e_m2: 0.28
+    structural_lifespan_years: 25
+    target_demographics: [all, workers]
+    competition_radius_m: 400
+    demand_coefficient_m2_per_person: 0.08
+    is_core_amenity: false
+    source: "Malaysia F&B market — neighbourhood kopitiam"
+
+  cafe:
+    asset_class: commercial
+    display_name: "Cafe / coffee shop (specialty)"
+    target_area_m2: [50, 200]
+    occupancy_benchmark: 0.70
+    energy_intensity_kwh_m2_year: 250
+    material_intensity_tco2e_m2: 0.30
+    structural_lifespan_years: 20
+    target_demographics: [young_adults, workers]
+    competition_radius_m: 800
+    demand_coefficient_m2_per_person: 0.06
+    is_core_amenity: false
+    source: "Malaysia F&B market — specialty cafe"
+
+  medical_retail:
+    asset_class: commercial
+    display_name: "Medical retail (pharmacy, clinic-as-business)"
+    target_area_m2: [80, 300]
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 220
+    material_intensity_tco2e_m2: 0.38
+    structural_lifespan_years: 40
+    target_demographics: [all, seniors]
+    competition_radius_m: 1500
+    demand_coefficient_m2_per_person: 0.03
+    is_core_amenity: true
+    source: "Healthcare retail placeholder"
+
+  office:
+    asset_class: commercial
+    display_name: "Office"
+    target_area_m2: [500, 20000]
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 210          # ST: typical Malaysian office
+    material_intensity_tco2e_m2: 0.48          # concrete frame + curtain wall
+    structural_lifespan_years: 50
+    target_demographics: [workers]
+    competition_radius_m: 2000
+    demand_coefficient_m2_per_person: 0.20
+    is_core_amenity: false
+    source: "Suruhanjaya Tenaga BEI average 210 kWh/m2/yr"
+
+  services:
+    asset_class: commercial
+    display_name: "Personal services (bank, salon, repair)"
+    target_area_m2: [50, 300]
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 180
+    material_intensity_tco2e_m2: 0.32
+    structural_lifespan_years: 30
+    target_demographics: [all]
+    competition_radius_m: 1000
+    demand_coefficient_m2_per_person: 0.05
+    is_core_amenity: false
+    source: "Retail benchmark placeholder"
+
+  entertainment:
+    asset_class: commercial
+    display_name: "Entertainment (cinema, karaoke)"
+    target_area_m2: [500, 5000]
+    occupancy_benchmark: 0.70
+    energy_intensity_kwh_m2_year: 400
+    material_intensity_tco2e_m2: 0.45
+    structural_lifespan_years: 30
+    target_demographics: [young_adults]
+    competition_radius_m: 5000
+    demand_coefficient_m2_per_person: 0.03
+    is_core_amenity: false
+    source: "Entertainment benchmark placeholder"
+
+  showroom:
+    asset_class: commercial
+    display_name: "Showroom (car, furniture)"
+    target_area_m2: [500, 3000]
+    occupancy_benchmark: 0.80
+    energy_intensity_kwh_m2_year: 150
+    material_intensity_tco2e_m2: 0.40
+    structural_lifespan_years: 30
+    target_demographics: [all]
+    competition_radius_m: 5000
+    demand_coefficient_m2_per_person: 0.02
+    is_core_amenity: false
+    source: "Retail benchmark placeholder"
+
+# ============ Community Facility ============
+  clinic:
+    asset_class: community_facility
+    display_name: "Public clinic"
+    target_area_m2: [200, 800]
+    utilisation_benchmark: 0.65
+    energy_intensity_kwh_m2_year: 250          # high HVAC + medical equipment
+    material_intensity_tco2e_m2: 0.55          # concrete frame + heavy M&E
+    structural_lifespan_years: 50
+    target_demographics: [all, seniors]
+    competition_radius_m: 1500
+    is_core_amenity: true
+    source: "MOH clinic planning standard"
+
+  community_hall:
+    asset_class: community_facility
+    display_name: "Community hall"
+    target_area_m2: [200, 1000]
+    utilisation_benchmark: 0.55
+    energy_intensity_kwh_m2_year: 120
+    material_intensity_tco2e_m2: 0.38          # light steel + masonry
+    structural_lifespan_years: 40
+    target_demographics: [all]
+    competition_radius_m: 1200
+    is_core_amenity: false
+    source: "Placeholder"
+
+  library:
+    asset_class: community_facility
+    display_name: "Public library"
+    target_area_m2: [300, 2000]
+    utilisation_benchmark: 0.60
+    energy_intensity_kwh_m2_year: 140
+    material_intensity_tco2e_m2: 0.45
+    structural_lifespan_years: 50
+    target_demographics: [all, students]
+    competition_radius_m: 2000
+    is_core_amenity: false
+    source: "Placeholder"
+
+  childcare:
+    asset_class: community_facility
+    display_name: "Childcare centre"
+    target_area_m2: [300, 1500]
+    utilisation_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 150
+    material_intensity_tco2e_m2: 0.40
+    structural_lifespan_years: 40
+    target_demographics: [young_families]
+    competition_radius_m: 1500
+    is_core_amenity: true
+    source: "Placeholder"
+
+  school:
+    asset_class: community_facility
+    display_name: "School"
+    target_area_m2: [3000, 20000]
+    utilisation_benchmark: 0.90
+    energy_intensity_kwh_m2_year: 100
+    material_intensity_tco2e_m2: 0.50          # concrete frame, large footprint
+    structural_lifespan_years: 50
+    target_demographics: [young_families, students]
+    competition_radius_m: 2000
+    is_core_amenity: true
+    source: "MOE standard"
+
+  sports_centre:
+    asset_class: community_facility
+    display_name: "Sports centre"
+    target_area_m2: [500, 5000]
+    utilisation_benchmark: 0.55
+    energy_intensity_kwh_m2_year: 280          # high ventilation load
+    material_intensity_tco2e_m2: 0.55          # steel long-span structure
+    structural_lifespan_years: 40
+    target_demographics: [all, young_adults]
+    competition_radius_m: 3000
+    is_core_amenity: false
+    source: "Placeholder"
+
+  place_of_worship:
+    asset_class: community_facility
+    display_name: "Place of worship"
+    target_area_m2: [200, 3000]
+    utilisation_benchmark: 0.30
+    energy_intensity_kwh_m2_year: 90
+    material_intensity_tco2e_m2: 0.42
+    structural_lifespan_years: 60
+    target_demographics: [all]
+    competition_radius_m: 1500
+    is_core_amenity: false
+    source: "Placeholder"
+
+  public_service:
+    asset_class: community_facility
+    display_name: "Public service (post, police)"
+    target_area_m2: [200, 1500]
+    utilisation_benchmark: 0.60
+    energy_intensity_kwh_m2_year: 160
+    material_intensity_tco2e_m2: 0.40
+    structural_lifespan_years: 50
+    target_demographics: [all]
+    competition_radius_m: 2000
+    is_core_amenity: false
+    source: "Placeholder"
+
+# ============ Residential ============
+  terrace:
+    asset_class: residential
+    display_name: "Terraced house"
+    target_area_m2: [80, 200]
+    avg_household_size: 4.0
+    occupancy_benchmark: 0.92
+    energy_intensity_kwh_m2_year: 65
+    material_intensity_tco2e_m2: 0.28          # brick masonry + RC frame
+    structural_lifespan_years: 60
+    target_demographics: [young_families, families]
+    source: "Malaysia residential energy benchmark"
+
+  semidetached:
+    asset_class: residential
+    display_name: "Semi-detached house"
+    target_area_m2: [150, 400]
+    avg_household_size: 4.2
+    occupancy_benchmark: 0.90
+    energy_intensity_kwh_m2_year: 75
+    material_intensity_tco2e_m2: 0.30
+    structural_lifespan_years: 60
+    target_demographics: [families]
+    source: "Malaysia residential energy benchmark"
+
+  detached:
+    asset_class: residential
+    display_name: "Detached house"
+    target_area_m2: [200, 800]
+    avg_household_size: 4.5
+    occupancy_benchmark: 0.88
+    energy_intensity_kwh_m2_year: 95
+    material_intensity_tco2e_m2: 0.32
+    structural_lifespan_years: 60
+    target_demographics: [families]
+    source: "Malaysia residential energy benchmark"
+
+  apartment_lowrise:
+    asset_class: residential
+    display_name: "Low-rise apartment (<6 floors)"
+    target_area_m2: [500, 5000]
+    avg_household_size: 3.5
+    occupancy_benchmark: 0.85
+    energy_intensity_kwh_m2_year: 100
+    material_intensity_tco2e_m2: 0.35
+    structural_lifespan_years: 50
+    target_demographics: [young_families, singles]
+    source: "Saidur (2009) - Malaysia residential energy benchmark"
+
+  apartment_highrise:
+    asset_class: residential
+    display_name: "High-rise apartment (>=6 floors)"
+    target_area_m2: [1000, 30000]
+    avg_household_size: 3.2
+    occupancy_benchmark: 0.80
+    energy_intensity_kwh_m2_year: 135          # vertical circulation + envelope losses
+    material_intensity_tco2e_m2: 0.45          # RC shear wall + curtain wall
+    structural_lifespan_years: 50
+    target_demographics: [young_families, singles, workers]
+    source: "Saidur (2009) - Malaysia residential energy benchmark"
+
+  affordable_housing:
+    asset_class: residential
+    display_name: "Affordable housing (PPR / RUMAWIP)"
+    target_area_m2: [50, 120]
+    avg_household_size: 4.5
+    occupancy_benchmark: 0.95
+    energy_intensity_kwh_m2_year: 75
+    material_intensity_tco2e_m2: 0.26          # prefab / IBS systems
+    structural_lifespan_years: 50
+    target_demographics: [families]
+    source: "Placeholder"
+
+# ============ Green Space ============
+  park:
+    asset_class: green_space
+    display_name: "Public park"
+    target_area_m2: [1000, 100000]
+    canopy_ratio_benchmark: 0.35
+    is_core_amenity: true
+    source: "Planning standard"
+
+  pocket_park:
+    asset_class: green_space
+    display_name: "Pocket park"
+    target_area_m2: [100, 1000]
+    canopy_ratio_benchmark: 0.30
+    is_core_amenity: false
+    source: "Planning standard"
+
+  green_corridor:
+    asset_class: green_space
+    display_name: "Green corridor / linear park"
+    target_area_m2: [500, 20000]
+    canopy_ratio_benchmark: 0.40
+    is_core_amenity: false
+    source: "Planning standard"
+
+  sports_field:
+    asset_class: green_space
+    display_name: "Sports field"
+    target_area_m2: [2000, 30000]
+    canopy_ratio_benchmark: 0.10
+    is_core_amenity: false
+    source: "Planning standard"
+
+  water_body:
+    asset_class: green_space
+    display_name: "Water body"
+    target_area_m2: [500, 100000]
+    canopy_ratio_benchmark: 0.00
+    is_core_amenity: false
+    source: "N/A"
+
+# ============ Undeveloped Parcel ============
+  vacant:
+    asset_class: undeveloped_parcel
+    display_name: "Vacant parcel"
+    target_area_m2: [100, 50000]
+    source: "N/A"
+
+  solar_farm:
+    asset_class: undeveloped_parcel
+    display_name: "Interim solar farm"
+    target_area_m2: [500, 50000]
+    source: "Placeholder — interim use model"
+
+# ---------------------------------------------------------------
+# Core amenities (used for 15-minute coverage computation)
+# ---------------------------------------------------------------
+
+core_amenities:
+  - clinic
+  - school
+  - childcare
+  - convenience_retail
+  - supermarket
+  - medical_retail
+  - park
+
+# ---------------------------------------------------------------
+# Transit stop amenity (special marker, treated like a facility)
+# ---------------------------------------------------------------
+
+transit_amenities:
+  - transit_stop

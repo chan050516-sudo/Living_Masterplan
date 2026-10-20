@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://living-masterplan.local/schemas/assets.schema.json",
+  "title": "assets.csv",
+  "description": "Row schema for assets.csv — one row per asset. Core table joined to geometry via asset_id. Empty CSV cells are read as NaN by pandas; validators must treat NaN as equivalent to null.",
+  "type": "object",
+  "required": [
+    "asset_id", "asset_type", "subtype",
+    "parcel_id", "asset_name", "land_use",
+    "development_phase", "status", "completion_year",
+    "floor_area_m2", "lettable_area_m2", "land_area_m2",
+    "capex_initial_rm", "opex_annual_rm", "maintenance_annual_rm",
+    "capacity", "data_completeness", "data_sources"
+  ],
+  "properties": {
+    "asset_id": { "type": "string" },
+    "asset_type": {
+      "enum": ["commercial", "community_facility", "green_space",
+               "undeveloped_parcel", "residential"],
+      "$comment": "mixed_use is deliberately excluded: the deriver / action-space / field-ownership tables have no entry for it, so such a row would be silently dropped by B3."
+    },
+    "subtype": {
+      "type": "string",
+      "$comment": "Must be a key in taxonomy.yml subtypes. The deriver falls back via default_subtype_for() when absent, but upstream should always supply it."
+    },
+    "parcel_id": { "type": ["string", "null"], "pattern": "^P-" },
+    "building_id": { "type": ["string", "null"], "pattern": "^BLD-" },
+    "asset_name": { "type": "string" },
+    "land_use": { "type": "string" },
+    "development_phase": { "type": ["integer", "null"] },
+    "status": { "enum": ["existing", "planned", "under_construction", "cancelled"] },
+    "completion_year": { "type": ["integer", "null"] },
+    "target_demographic": { "type": ["string", "null"] },
+    "floor_area_m2": { "type": ["number", "null"] },
+    "lettable_area_m2": { "type": ["number", "null"] },
+    "land_area_m2": { "type": ["number", "null"] },
+    "capex_initial_rm": { "type": ["number", "null"] },
+    "opex_annual_rm": { "type": ["number", "null"] },
+    "maintenance_annual_rm": { "type": ["number", "null"] },
+    "capacity": { "type": ["number", "null"] },
+    "data_completeness": { "type": "number", "minimum": 0, "maximum": 1 },
+    "data_sources": { "type": "string" }
+  }
+}
