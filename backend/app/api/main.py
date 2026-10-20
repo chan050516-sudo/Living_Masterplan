@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import geopandas as gpd
 import pandas as pd
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, HTTPException, Query, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response
@@ -34,24 +34,27 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-BASE_DIR = REPO_ROOT / "bukit_jelutong" / "processed"
+from app.config import load_paths
+
+REPO_ROOT = Path(__file__).resolve().parents[3]  # -> Living_Masterplan/
+_PATHS = load_paths()
+BASE_DIR = REPO_ROOT / _PATHS["base"]  # -> Living_Masterplan/bukit_jelutong/processed
 
 MAX_QUERY_LENGTH = 5000
 MAX_FILE_SIZE_MB = 10
 MAX_FILES = 3
 
 
-class AnalyzeRequest(BaseModel):
-    user_query: str = Field(..., max_length=MAX_QUERY_LENGTH, description="User's question")
-    selected_assets: str = Field(..., description="Comma-separated asset IDs")
+# class AnalyzeRequest(BaseModel):
+#     user_query: str = Field(..., max_length=MAX_QUERY_LENGTH, description="User's question")
+#     selected_assets: str = Field(..., description="Comma-separated asset IDs")
 
-    @field_validator('selected_assets')
-    @classmethod
-    def validate_assets(cls, v):
-        if not v.strip():
-            raise ValueError("selected_assets cannot be empty")
-        return v
+#     @field_validator('selected_assets')
+#     @classmethod
+#     def validate_assets(cls, v):
+#         if not v.strip():
+#             raise ValueError("selected_assets cannot be empty")
+#         return v
 
 
 # =====================================================================
@@ -59,12 +62,15 @@ class AnalyzeRequest(BaseModel):
 # =====================================================================
 @app.post("/api/analyze")
 async def analyze_township(
-    request: AnalyzeRequest,
+    user_query: str = Form(..., max_length=MAX_QUERY_LENGTH, description="User's question"),
+    selected_assets: str = Form(..., description="Comma-separated asset IDs"),
     files: Optional[List[UploadFile]] = File(None)
 ):
     try:
         # 1. Parse and validate asset IDs
-        asset_ids = [aid.strip() for aid in request.selected_assets.split(",") if aid.strip()]
+        asset_ids = [aid.strip() for aid in selected_assets.split(",") if aid.strip()]
+        if not asset_ids:
+            raise HTTPException(status_code=400, detail="selected_assets cannot be empty")
         
         ds = TownshipDataSource(REPO_ROOT, year=2026)
         valid_assets = set(ds.assets["asset_id"].astype(str))
@@ -85,7 +91,7 @@ async def analyze_township(
                     raise HTTPException(status_code=400, detail=f"File {file.filename} exceeds {MAX_FILE_SIZE_MB}MB limit.")
 
         # 3. Parse uploaded files (Handle PDFs and Text)
-        augmented_query = request.user_query
+        augmented_query = user_query
         attachments = []
         
         if files:
@@ -177,11 +183,16 @@ async def get_map_geometry(run_id: Optional[str] = Query(None, description="Opti
                 ds_dict[asset["asset_id"]] = "intervened"
 
     # 2. Load the three geometry layers
-    geom_dir = BASE_DIR / "geometry"
+    # paths.yml entries already include the "geometry/" folder,
+    # so join them onto BASE_DIR directly.
+    gdf_buildings = gpd.read_file(BASE_DIR / paths["geometry"]["buildings"])
+    asset_ids = set(pd.read_csv(BASE_DIR / paths["business"]["assets"])["asset_id"].astype(str))
+    gdf_buildings["building_id"] = gdf_buildings["building_id"].astype(str).str.replace("unlinked-", "")
+    gdf_buildings = gdf_buildings[gdf_buildings["building_id"].isin(asset_ids)].copy()
+    gdf_buildings["asset_id"] = gdf_buildings["building_id"]
     
-    gdf_buildings = gpd.read_file(geom_dir / paths["geometry"]["buildings"])
-    gdf_parcels = gpd.read_file(geom_dir / paths["geometry"]["parcels"])
-    gdf_green = gpd.read_file(geom_dir / paths["geometry"]["green_blue"])
+    gdf_parcels = gpd.read_file(BASE_DIR / paths["geometry"]["parcels"])
+    gdf_green = gpd.read_file(BASE_DIR / paths["geometry"]["green_blue"])
     
     # Filter parcels to only undeveloped land
     gdf_parcels = gdf_parcels[gdf_parcels["land_use"] == "undeveloped"].copy()
