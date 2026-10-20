@@ -14,7 +14,7 @@ import type { Feature, FeatureCollection, Geometry } from 'geojson'
 maplibregl.setWorkerUrl(workerUrl)
 
 const YEARS = [2026, 2027, 2028, 2030, 2033]
-const METRES_PER_FLOOR = 3.2
+const METRES_PER_FLOOR = 4.0
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 /** Average of a polygon's outer ring, or the point itself. */
@@ -162,16 +162,38 @@ export default function App() {
           if (!id) continue
           if (f.geometry.type === 'LineString' || f.geometry.type === 'MultiLineString') continue
 
-          const profile = profilesData[id] ?? null
+          const baseProfile = profilesData[id] ?? null
+          let finalProfile = baseProfile ? JSON.parse(JSON.stringify(baseProfile)) : null
           const mapStatus = String(p.map_status ?? 'healthy')
-          const height = heightOf(profile)
+
+          // Merge dynamic simulation metrics into the 2026 profile
+          if (finalProfile && p.metrics_json) {
+            try {
+              const metrics = JSON.parse(p.metrics_json as string)
+              if (metrics.occupancy !== undefined && metrics.occupancy !== null) {
+                finalProfile.social.occupancy_rate = metrics.occupancy
+                finalProfile.social.utilisation_rate = metrics.occupancy
+              }
+              if (metrics.noi_rm !== undefined && metrics.noi_rm !== null) {
+                finalProfile.financial.noi_rm = metrics.noi_rm
+              }
+              if (metrics.carbon_operational_tco2e !== undefined) {
+                finalProfile.environmental.carbon_operational_tco2e = metrics.carbon_operational_tco2e
+                finalProfile.environmental.carbon_stranded_tco2e = metrics.carbon_stranded_tco2e
+                finalProfile.environmental.stranded_carbon_ratio = metrics.stranded_carbon_ratio
+              }
+            } catch (e) {
+              console.warn('Failed to parse metrics_json', e)
+            }
+          }
+          const height = heightOf(finalProfile)
 
           // Reconstruct a dynamic diagnosis object using backend geometry metadata
           // so the DeadspaceList (sidebar) updates its flags and urgency dynamically.
           const backendFlags = (p.flags as string[]) || []
           const backendUrgency = Number(p.urgency_index ?? 0)
           
-          let dynamicDiagnosis = profile?.deadspace_diagnosis ?? null
+          let dynamicDiagnosis = finalProfile?.deadspace_diagnosis ?? null
           if (dynamicDiagnosis) {
             dynamicDiagnosis = {
               ...dynamicDiagnosis,
@@ -183,11 +205,11 @@ export default function App() {
 
           list.push({
             id,
-            name: profile?.identity.asset_name ?? id,
-            subtype: profile?.identity.subtype ?? null,
-            assetType: profile?.identity.asset_type ?? 'unknown',
+            name: finalProfile?.identity.asset_name ?? id,
+            subtype: finalProfile?.identity.subtype ?? null,
+            assetType: finalProfile?.identity.asset_type ?? 'unknown',
             mapStatus,
-            profile,
+            profile: finalProfile,
             diagnosis: dynamicDiagnosis,
             center: centroidOf(f.geometry),
             height,

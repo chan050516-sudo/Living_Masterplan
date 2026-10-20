@@ -171,6 +171,7 @@ async def get_map_geometry(
     ds_dict = {}
     flags_dict = {}
     urgency_dict = {}
+    metrics_dict = {}
     
     if year == 2026:
         # For 2026, use the authoritative B6 deadspace output
@@ -182,7 +183,6 @@ async def get_map_geometry(
                 flags_dict = {d["asset_id"]: d.get("flags", []) for d in ds_list}
                 urgency_dict = {d["asset_id"]: d.get("urgency_index", 0) for d in ds_list}
     else:
-        # For 2027+, read the B4 SC-CURRENT baseline simulation
         sc_path = BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
         if sc_path.exists():
             with open(sc_path, "r", encoding="utf-8") as f:
@@ -195,7 +195,6 @@ async def get_map_geometry(
                     occ = state.get("occupancy_rate")
                     util = state.get("utilisation_rate")
                     
-                    # Dynamic status inference for future years
                     status = "healthy"
                     flags = []
                     urgency = 0.0
@@ -212,6 +211,14 @@ async def get_map_geometry(
                     ds_dict[aid] = status
                     flags_dict[aid] = flags
                     urgency_dict[aid] = urgency
+                    
+                    metrics_dict[aid] = {
+                        "occupancy": occ if occ is not None else util,
+                        "noi_rm": state.get("noi_rm"),
+                        "carbon_operational_tco2e": state.get("carbon_operational_tco2e"),
+                        "carbon_stranded_tco2e": state.get("carbon_stranded_tco2e"),
+                        "stranded_carbon_ratio": state.get("stranded_carbon_ratio"),
+                    }
 
     # Overlay LLM intervention status if run_id is provided
     if run_id:
@@ -249,6 +256,7 @@ async def get_map_geometry(
     def _attach_metadata(df):
         df["flags"] = df["asset_id"].map(lambda x: flags_dict.get(x, []))
         df["urgency_index"] = df["asset_id"].map(lambda x: urgency_dict.get(x, 0.0))
+        df["metrics_json"] = df["asset_id"].map(lambda x: json.dumps(metrics_dict.get(x, {})))
         return df
 
     gdf_buildings = _attach_metadata(gdf_buildings)
@@ -256,7 +264,7 @@ async def get_map_geometry(
     gdf_parcels = _attach_metadata(gdf_parcels)
 
     # 5. Keep only necessary columns to reduce payload size
-    cols = ["asset_id", "map_status", "flags", "urgency_index", "height", "geometry"]
+    cols = ["asset_id", "map_status", "flags", "urgency_index", "metrics_json", "height", "geometry"]
     for df in [gdf_buildings, gdf_parcels, gdf_green]:
         for c in cols:
             if c not in df.columns:
