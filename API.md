@@ -18,7 +18,7 @@ This document outlines the RESTful APIs provided by the backend for the frontend
 | Field | Type | Required | Description |
 |---|---|---|---|
 | `user_query` | String | Yes | Max 5000 characters. The user's natural language question. |
-| `selected_assets` | String | Yes | Comma-separated asset IDs (e.g., `"BLD-0183,BLD-0151"`). Max 3 files allowed. |
+| `selected_assets` | String | Yes | Comma-separated asset IDs (e.g., `"BLD-0183,BLD-0151"`). |
 | `files` | File[] | No | Max 3 files, 10MB each. Supports `.txt`, `.csv`, `.pdf` (PDFs are sent directly to Gemini multimodal). |
 
 ### Response Schema (200 OK)
@@ -181,7 +181,7 @@ This document outlines the RESTful APIs provided by the backend for the frontend
 
 ## 3. Get Map Geometry (For MapLibre)
 **Endpoint:** `GET /api/map/geometry`
-**Purpose:** Retrieves a lightweight GeoJSON FeatureCollection combining Buildings, Undeveloped Parcels, and Green/Blue Spaces for rendering on MapLibre GL JS.
+**Purpose:** Retrieves a lightweight GeoJSON FeatureCollection combining Buildings, Amenities, Undeveloped Parcels, and Green/Blue Spaces for rendering on MapLibre GL JS.
 
 ### Query Parameters
 | Parameter | Type | Required | Description |
@@ -201,7 +201,8 @@ This document outlines the RESTful APIs provided by the backend for the frontend
       },
       "properties": {
         "asset_id": "BLD-0183",
-        "map_status": "intervened"
+        "map_status": "intervened",
+        "height_m": 14.0
       }
     }
   ]
@@ -216,6 +217,14 @@ This document outlines the RESTful APIs provided by the backend for the frontend
 | `intervened` | Asset is part of the selected LLM plan. | Blue (`#2196F3`) |
 | `vacant` | Undeveloped empty parcel. | Grey (`#9E9E9E`) |
 | `improvement_opportunity` | Usually Green spaces needing care. | Pink/Magenta (`#E91E63`) |
+| `underperforming_facility` | Community facility below its benchmark. | Orange (`#FF9800`) |
+| `development_risk` | Pipeline / parcel at risk. | Purple (`#AB47BC`) |
+| `monitor` | Underperforming but not actionable (e.g. third-party owned). | Amber (`#ECAA00`) |
+
+Other feature properties:
+- `asset_id` matches the keys of `GET /api/assets/profiles`. It is `null` for buildings that are not tracked assets.
+- `height_m` is an approximate building height (floors × 3.5 m) for 3D extrusion; `null` for non-buildings.
+- Geometry is mostly `Polygon`/`MultiPolygon`; some amenities are `Point` and some blue features are `LineString`.
 
 ### Frontend Interaction Guide
 1. **Cache Profiles**: On load, call `GET /api/assets/profiles` and store as `assetProfiles`.
