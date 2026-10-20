@@ -223,7 +223,9 @@ __marimo__/
 node_modules/
 **/node_modules/
 # --- Generated outputs (rebuilt on every run) ---
-bukit_jelutong/processed/business/scenarios/
+bukit_jelutong/processed/business/scenarios/SC-LLM-*
+bukit_jelutong/processed/business/scenarios/SC-DELAY.json
+bukit_jelutong/processed/business/scenarios/SC-REPURPOSE.json
 bukit_jelutong/processed/business/llm_runs/
 
 # --- Pipeline cache ---

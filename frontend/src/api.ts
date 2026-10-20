@@ -23,9 +23,11 @@ export function fetchProfiles() {
 }
 
 /** Buildings, parcels and green space as one FeatureCollection. */
-export function fetchGeometry(runId?: string) {
-  const q = runId ? `?run_id=${encodeURIComponent(runId)}` : ''
-  return request<FeatureCollection>(`/api/map/geometry${q}`)
+export function fetchGeometry(runId?: string, year: number = 2026) {
+  const params = new URLSearchParams()
+  if (runId) params.append('run_id', runId)
+  params.append('year', year.toString())
+  return request<FeatureCollection>(`/api/map/geometry?${params.toString()}`)
 }
 
 /** Runs the LLM pipeline over the selected assets. */
