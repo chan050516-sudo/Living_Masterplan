@@ -6,7 +6,7 @@ from typing import List, Optional
 
 import geopandas as gpd
 import pandas as pd
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import Response
@@ -34,7 +34,7 @@ app.add_middleware(
 )
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[3]
 BASE_DIR = REPO_ROOT / "bukit_jelutong" / "processed"
 
 MAX_QUERY_LENGTH = 5000
@@ -59,9 +59,11 @@ class AnalyzeRequest(BaseModel):
 # =====================================================================
 @app.post("/api/analyze")
 async def analyze_township(
-    request: AnalyzeRequest,
+    user_query: str = Form(..., max_length=MAX_QUERY_LENGTH),
+    selected_assets: str = Form(...),
     files: Optional[List[UploadFile]] = File(None)
 ):
+    request = AnalyzeRequest(user_query=user_query, selected_assets=selected_assets)
     try:
         # 1. Parse and validate asset IDs
         asset_ids = [aid.strip() for aid in request.selected_assets.split(",") if aid.strip()]
@@ -177,7 +179,7 @@ async def get_map_geometry(run_id: Optional[str] = Query(None, description="Opti
                 ds_dict[asset["asset_id"]] = "intervened"
 
     # 2. Load the three geometry layers
-    geom_dir = BASE_DIR / "geometry"
+    geom_dir = BASE_DIR
     
     gdf_buildings = gpd.read_file(geom_dir / paths["geometry"]["buildings"])
     gdf_parcels = gpd.read_file(geom_dir / paths["geometry"]["parcels"])
@@ -187,7 +189,12 @@ async def get_map_geometry(run_id: Optional[str] = Query(None, description="Opti
     gdf_parcels = gdf_parcels[gdf_parcels["land_use"] == "undeveloped"].copy()
     
     # 3. Assign map_status
+    gdf_buildings["asset_id"] = gdf_buildings["asset_id"].astype(str).str.replace(
+        r"^unlinked-", "", regex=True
+    )
+
     gdf_buildings["map_status"] = gdf_buildings["asset_id"].map(lambda x: ds_dict.get(x, "healthy"))
+
     gdf_parcels["map_status"] = "vacant"
     
     # Normalize green_blue asset_id and assign status
