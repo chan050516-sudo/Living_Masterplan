@@ -42,6 +42,26 @@ function heightOf(profile: AssetProfile | null): number {
   return Math.min(floors, 40) * METRES_PER_FLOOR
 }
 
+// Generate a smooth bezier curve between two coordinates
+function generateArc(start: [number, number], end: [number, number]): [number, number][] {
+  const midX = (start[0] + end[0]) / 2
+  const midY = (start[1] + end[1]) / 2
+  const dx = end[0] - start[0]
+  const dy = end[1] - start[1]
+  const dist = Math.sqrt(dx * dx + dy * dy)
+  const curvature = dist * 0.2
+  const ctrlX = midX - dy * (curvature / dist)
+  const ctrlY = midY + dx * (curvature / dist)
+
+  const points: [number, number][] = []
+  for (let t = 0; t <= 1; t += 0.05) {
+    const x = (1 - t) ** 2 * start[0] + 2 * (1 - t) * t * ctrlX + t ** 2 * end[0]
+    const y = (1 - t) ** 2 * start[1] + 2 * (1 - t) * t * ctrlY + t ** 2 * end[1]
+    points.push([x, y])
+  }
+  return points
+}
+
 const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'match', ['get', 'status'],
   'healthy', '#3fb27f',
@@ -89,10 +109,9 @@ export default function App() {
   const [showComparison, setShowComparison] = useState(false)
   const [mapReady, setMapReady] = useState(false)
 
-    const [hint, setHint] = useState(false)
+  const [hint, setHint] = useState(false)
   const hintTimer = useRef<number | undefined>(undefined)
 
-  /** Show the multi-select hint while the pointer is moving, then fade it out. */
   function pokeHint() {
     setHint(true)
     window.clearTimeout(hintTimer.current)
@@ -105,6 +124,16 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('lm_history', JSON.stringify(history.slice(0, 10)))
   }, [history])
+
+  // Sync selectedIds when activeRunId changes
+  useEffect(() => {
+    if (activeRunId) {
+      const item = history.find(h => h.id === activeRunId)
+      if (item) {
+        setSelectedIds(item.result.assets_analysis.map(a => a.asset_id))
+      }
+    }
+  }, [activeRunId, history])
 
   function reset() {
     setAnalysis(null); setAsked(''); setError(null)
@@ -150,13 +179,9 @@ export default function App() {
     }
   }
 
-  // Clear all history and reset map state
   const clearHistory = () => {
     if (window.confirm("Are you sure you want to clear all analysis history?")) {
-      setHistory([])
-      setActiveRunId(undefined)
-      setPreviewing(false)
-      localStorage.removeItem('lm_history')
+      setHistory([]); setActiveRunId(undefined); setPreviewing(false); localStorage.removeItem('lm_history')
     }
   }
 
@@ -172,7 +197,6 @@ export default function App() {
     fetchProfiles().then(setProfilesData).catch((e) => setError(e.message))
   }, [])
 
-  // Fetch Geometry and extract Intervention Points for the native layer
   useEffect(() => {
     if (Object.keys(profilesData).length === 0) return
 
@@ -182,7 +206,6 @@ export default function App() {
         const buildingFeatures: Feature[] = []
         const areaFeatures: Feature[] = []
         const pointFeatures: Feature[] = []
-        const interventionPoints: Feature[] = [] // Store intervention centers for native layer
 
         for (const f of geo.features) {
           const p = (f.properties ?? {}) as Record<string, unknown>
@@ -230,15 +253,6 @@ export default function App() {
           if (f.geometry.type === 'Point') pointFeatures.push(tagged)
           else if (finalHeight > 0) buildingFeatures.push(tagged)
           else areaFeatures.push(tagged)
-
-          // Extract intervention centers to render native MapLibre symbols
-          if (mapStatus === 'intervened' && center[0] !== 0) {
-            interventionPoints.push({
-              type: 'Feature',
-              geometry: { type: 'Point', coordinates: center },
-              properties: { title: 'INTERVENTION' }
-            })
-          }
         }
 
         buildingsRef.current = { type: 'FeatureCollection', features: buildingFeatures }
@@ -253,10 +267,6 @@ export default function App() {
           ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
           ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
           ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
-          
-          // Update native intervention layer
-          const intSource = map.getSource('interventions') as maplibregl.GeoJSONSource
-          if (intSource) intSource.setData({ type: 'FeatureCollection', features: interventionPoints })
         }
       })
       .catch((e) => setError(e.message))
@@ -283,7 +293,8 @@ export default function App() {
       map.addSource('assets', { type: 'geojson', data: EMPTY })
       map.addSource('area', { type: 'geojson', data: EMPTY })
       map.addSource('points', { type: 'geojson', data: EMPTY })
-      map.addSource('interventions', { type: 'geojson', data: EMPTY }) // 👈 Native Source
+      map.addSource('interventions-points', { type: 'geojson', data: EMPTY })
+      map.addSource('interventions-arcs', { type: 'geojson', data: EMPTY })
 
       map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': STATUS_PAINT as never, 'fill-opacity': 0.35 } })
       map.addLayer({
@@ -297,48 +308,75 @@ export default function App() {
       })
       map.addLayer({ id: 'points-dot', type: 'circle', source: 'points', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never, 'circle-color': STATUS_PAINT as never, 'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(0,0,0,.55)' } })
 
-      // 👈 Native Intervention Layer (Symbol + Pulse)
+      // Intervention Arc Layer
+      map.addLayer({
+        id: 'intervention-arcs-line',
+        type: 'line',
+        source: 'interventions-arcs',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': '#a855f7',
+          'line-width': 2,
+          'line-dasharray': [2, 2],
+          'line-opacity': 0.8,
+        }
+      })
+
+      // Intervention Point Layers
+      map.addLayer({
+        id: 'intervention-pulse-primary',
+        type: 'circle',
+        source: 'interventions-points',
+        filter: ['==', ['get', 'role'], 'primary'],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 8, 18, 24],
+          'circle-color': '#00d2ff',
+          'circle-opacity': 0.3,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#00d2ff',
+        }
+      })
+
+      map.addLayer({
+        id: 'intervention-pulse-catalytic',
+        type: 'circle',
+        source: 'interventions-points',
+        filter: ['==', ['get', 'role'], 'catalytic'],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 12, 8, 18, 24],
+          'circle-color': '#a855f7',
+          'circle-opacity': 0.3,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#a855f7',
+        }
+      })
+
       map.addLayer({
         id: 'intervention-labels',
         type: 'symbol',
-        source: 'interventions',
+        source: 'interventions-points',
         layout: {
-          'text-field': '🚧 INTERVENTION',
+          'text-field': ['get', 'label'],
           'text-size': 11,
           'text-offset': [0, -2.5],
           'text-anchor': 'bottom',
           'text-allow-overlap': true,
         },
         paint: {
-          'text-color': '#00d2ff',
+          'text-color': ['match', ['get', 'role'], 'catalytic', '#a855f7', '#00d2ff'],
           'text-halo-color': '#000',
           'text-halo-width': 1.5,
         }
       })
-      // Add a glowing circle at the base
-      map.addLayer({
-        id: 'intervention-pulse',
-        type: 'circle',
-        source: 'interventions',
-        paint: {
-          'circle-radius': 12,
-          'circle-color': '#00d2ff',
-          'circle-opacity': 0.4,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#00d2ff',
-        }
-      })
 
-      // Animate the pulse radius (breathing effect)
-      let radius = 12;
-      let growing = true;
+      let radius = 10; let growing = true;
       function animatePulse() {
-        if (!map.getLayer('intervention-pulse')) return;
-        radius += growing ? 0.1 : -0.1;
-        if (radius > 26) growing = false;
-        if (radius < 12) growing = true;
-        map.setPaintProperty('intervention-pulse', 'circle-radius', radius);
-        map.setPaintProperty('intervention-pulse', 'circle-opacity', 0.4 - (radius - 12) / 60);
+        if (!map.getLayer('intervention-pulse-primary')) return;
+        radius += growing ? 0.05 : -0.05;
+        if (radius > 20) growing = false;
+        if (radius < 10) growing = true;
+        map.setPaintProperty('intervention-pulse-primary', 'circle-radius', radius);
+        map.setPaintProperty('intervention-pulse-catalytic', 'circle-radius', radius);
         requestAnimationFrame(animatePulse);
       }
       animatePulse();
@@ -359,6 +397,59 @@ export default function App() {
     return () => map.remove()
   }, [])
 
+  // Effect to update ALL accepted and previewing interventions permanently
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const pointFeatures: Feature[] = []
+    const arcFeatures: Feature[] = []
+
+    // 1. Gather interventions from ALL accepted history + current active preview
+    const activeAndAccepted = history.filter(h => h.status === 'accepted' || h.id === activeRunId)
+    
+    activeAndAccepted.forEach(item => {
+      const interventions = (item.result as any)?.interventions || []
+      
+      interventions.forEach((intv: any) => {
+        const target = assets.find(x => x.id === intv.target_asset_id)
+        
+        // Mark the ACTUAL WORKING SITE
+        if (target && Number.isFinite(target.center[0]) && target.center[0] !== 0) {
+          const isCatalytic = intv.role === 'catalytic'
+          pointFeatures.push({
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: target.center },
+            properties: { 
+              role: intv.role, 
+              label: isCatalytic ? '✨ CATALYTIC WORKS' : '🚧 PRIMARY WORKS'
+            }
+          })
+        }
+
+        // Draw the ARC from Working Site to Beneficiary
+        if (intv.role === 'catalytic' && intv.beneficiary_asset_id) {
+          const beneficiary = assets.find(x => x.id === intv.beneficiary_asset_id)
+          if (target && beneficiary && target.center[0] !== 0 && beneficiary.center[0] !== 0) {
+            const arcCoords = generateArc(target.center, beneficiary.center)
+            arcFeatures.push({
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: arcCoords },
+              properties: {}
+            })
+          }
+        }
+      })
+    })
+
+    const pSource = map.getSource('interventions-points') as maplibregl.GeoJSONSource
+    if (pSource) pSource.setData({ type: 'FeatureCollection', features: pointFeatures })
+
+    const aSource = map.getSource('interventions-arcs') as maplibregl.GeoJSONSource
+    if (aSource) aSource.setData({ type: 'FeatureCollection', features: arcFeatures })
+    
+  }, [assets, selectedIds, activeRunId, mapReady, history])
+
   const fittedRef = useRef(false)
   useEffect(() => {
     const map = mapRef.current
@@ -369,7 +460,7 @@ export default function App() {
     }
     if (!bounds.isEmpty()) { map.fitBounds(bounds, { padding: 60, pitch: 55, bearing: -20, duration: 0 }); fittedRef.current = true }
   }, [assets])
-  // Selected assets turn blue, or intervention-blue while previewing.
+
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
@@ -389,7 +480,6 @@ export default function App() {
     map.setPaintProperty('points-dot', 'circle-color', expr as never)
   }, [selectedIds, previewing, assets, mapReady])
 
-  // A floating name tag above each selected asset.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
@@ -403,25 +493,13 @@ export default function App() {
       const el = document.createElement('div')
       el.style.cssText = 'pointer-events:none'
       el.innerHTML = `
-        <div style="
-          display:flex;flex-direction:column;align-items:center;
-          animation:popIn .3s cubic-bezier(.22,.8,.3,1) both">
-          <div style="
-            background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;
-            padding:7px 12px;color:#fff;font:600 11px/1 system-ui,sans-serif;
-            letter-spacing:.06em;white-space:nowrap;
-            box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
-            backdrop-filter:blur(4px)">${asset.name}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;animation:popIn .3s cubic-bezier(.22,.8,.3,1) both">
+          <div style="background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;padding:7px 12px;color:#fff;font:600 11px/1 system-ui,sans-serif;letter-spacing:.06em;white-space:nowrap;box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);backdrop-filter:blur(4px)">${asset.name}</div>
           <div style="width:0;height:26px;border-left:1px dashed rgba(255,255,255,.55)"></div>
-          <div style="width:9px;height:9px;border-radius:50%;background:#fff;
-            box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
+          <div style="width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
         </div>
       `
-      markersRef.current.push(
-        new maplibregl.Marker({ element: el, anchor: 'bottom' })
-          .setLngLat(asset.center)
-          .addTo(map),
-      )
+      markersRef.current.push(new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat(asset.center).addTo(map))
     })
 
     return () => {
@@ -435,27 +513,11 @@ export default function App() {
       <style>{`
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .bounce-marker { animation: bounce 1.5s infinite ease-in-out; }
-
-        /* Force custom scrollbar and hide arrows */
-        ::-webkit-scrollbar {
-          width: 6px !important;
-          height: 6px !important;
-        }
-        ::-webkit-scrollbar-button {
-          display: none !important;
-          height: 0 !important;
-          width: 0 !important;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: #3e333d !important;
-          border-radius: 4px !important;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: #5a4f59 !important;
-        }
-        ::-webkit-scrollbar-track {
-          background: transparent !important;
-        }
+        ::-webkit-scrollbar { width: 6px !important; height: 6px !important; }
+        ::-webkit-scrollbar-button { display: none !important; height: 0 !important; width: 0 !important; }
+        ::-webkit-scrollbar-thumb { background: #3e333d !important; border-radius: 4px !important; }
+        ::-webkit-scrollbar-thumb:hover { background: #5a4f59 !important; }
+        ::-webkit-scrollbar-track { background: transparent !important; }
       `}</style>
       <header style={{ height: 58, flex: 'none', padding: '0 22px', borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 14, background: '#241c23' }}>
         <strong style={{ fontSize: 14, letterSpacing: '.14em' }}>LIVING MASTERPLAN</strong>
@@ -489,10 +551,7 @@ export default function App() {
             transform: hint && selectedIds.length < 2 ? 'translateY(0)' : 'translateY(-6px)',
             transition: 'opacity .35s ease, transform .35s ease',
           }}>
-            <kbd style={{
-              ...mono, fontSize: 10.5, padding: '3px 7px', borderRadius: 4,
-              background: '#2b212a', border: `1px solid ${C.line}`, color: '#fff',
-            }}>Ctrl</kbd>
+            <kbd style={{ ...mono, fontSize: 10.5, padding: '3px 7px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#fff' }}>Ctrl</kbd>
             <span style={{ color: C.faint }}>+ click to select multiple assets</span>
           </div>
           <MapLegend preview={previewing} />
@@ -505,7 +564,12 @@ export default function App() {
               history={history} 
               onClose={() => setShowHistory(false)}
               onUpdateStatus={updateHistoryStatus}
-              onPreview={(id) => { setActiveRunId(id); setShowHistory(false); }}
+              onPreview={(id) => { 
+                setActiveRunId(id); 
+                setShowHistory(false);
+                const item = history.find(h => h.id === id);
+                if (item) setSelectedIds(item.result.assets_analysis.map(a => a.asset_id));
+              }}
               activeRunId={activeRunId}
               onSelectHistory={handleSelectHistory}
               onClear={clearHistory}
@@ -517,6 +581,7 @@ export default function App() {
               onPreview={() => { if (analysis) { setActiveRunId(analysis.run_id); setPreviewing(true); } }}
               onClearPreview={() => { setActiveRunId(undefined); setPreviewing(false); }} 
               onSimulate={() => analysis && setShowComparison(true)} onClose={closePanel}
+              history={history}
             />
           ) : (
             <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} />

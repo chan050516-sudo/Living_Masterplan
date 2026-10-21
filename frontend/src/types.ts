@@ -179,4 +179,12 @@ export type AnalyzeResult = {
     total_carbon_after_tco2e: number
     carbon_delta_pct: number
   }
+  project_schedule?: any[]
+
+  interventions?: Array<{
+    target_asset_id: string
+    type: string
+    role: 'primary' | 'catalytic'
+    beneficiary_asset_id?: string | null
+  }>
 }

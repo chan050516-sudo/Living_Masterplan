@@ -800,8 +800,6 @@ def _build_catalytic_evidence(candidates):
 def _build_frontend_payload(simulation, comparison, intent, final_decision):
     """
     Transforms the raw simulation output into a multi-asset, frontend-ready JSON.
-    Includes main metrics for cards, counterfactual comparisons (A vs A+B),
-    and per-subunit allocation ledgers.
     """
     if not simulation or simulation.get("error"):
         return {"error": simulation.get("error", "Simulation failed")}
@@ -814,15 +812,28 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
 
     # Collect all target assets and catalytic beneficiaries
     targets = set(comparison.get("per_asset", {}).keys())
+    
+    # NEW: Extract clean intervention list for map visualization
+    clean_interventions = []
     for intv in simulation.get("interventions", []):
         try:
             params = json.loads(intv.get("parameters_json", "{}"))
-            if "_catalytic" in params:
-                b_id = params["_catalytic"].get("beneficiary_asset_id")
-                if b_id:
-                    targets.add(b_id)
         except (json.JSONDecodeError, TypeError):
-            pass
+            params = {}
+            
+        role = params.get("_role", "primary")
+        catalytic = params.get("_catalytic", {})
+        
+        # Add beneficiary to targets so it gets rendered in frontend cards
+        if role == "catalytic" and catalytic.get("beneficiary_asset_id"):
+            targets.add(catalytic["beneficiary_asset_id"])
+            
+        clean_interventions.append({
+            "target_asset_id": intv.get("target_asset_id"),
+            "type": intv.get("intervention_type"),
+            "role": role,
+            "beneficiary_asset_id": catalytic.get("beneficiary_asset_id") if role == "catalytic" else None
+        })
 
     assets_payload = []
 
@@ -830,9 +841,6 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
         final_state = intervention_years.get(final_year, {}).get("assets", {}).get(aid, {})
         base_final_state = baseline_years.get(final_year, {}).get("assets", {}).get(aid, {})
 
-        # Bug Fix: If this asset is a new_development, its metrics 
-        # are stored under a virtual project ID (e.g., PRJ::INT-LLM-002).
-        # We need to fetch those metrics and apply them to the asset card.
         if not final_state or final_state.get("carbon_operational_tco2e", 0) == 0:
             for key, state in intervention_years.get(final_year, {}).get("assets", {}).items():
                 if key.startswith("PRJ::") and state.get("_project_target_asset_id") == aid:
@@ -860,11 +868,9 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             residential row. Explicit None check.
             """
             occ = _get(state, "occupancy_rate", default=None)
-            if occ is not None:
-                return occ
+            if occ is not None: return occ
             util = _get(state, "utilisation_rate", default=None)
-            if util is not None:
-                return util
+            if util is not None: return util
             return 0.0
 
         # --- 1. Counterfactual Calculation ---
@@ -880,9 +886,6 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             .get("after", 0.0)
         )
 
-        # P1-3 fix — see note in previous response. floor_area is
-        # carried by B4's metric_row (P1-3 fix) with a legacy
-        # fallback for older scenario files.
         floor_area = (
             _get(final_state, "floor_area_m2", 0.0)
             or _get(final_state, "_effective_lettable", 0.0) / 0.85
@@ -893,12 +896,6 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             if asset_intv else 0.0
         )
 
-        # Estimate: New Build Embodied = Repurpose Embodied + Avoided Embodied.
-        #
-        # P2-5 fix — reuse `MATERIAL_INTENSITY_REPURPOSE` from
-        # `derived.environmental` instead of a literal 0.08. The two
-        # had drifted in the past; a single import keeps them in
-        # lockstep.
         carbon_repurpose = (
             floor_area * MATERIAL_INTENSITY_REPURPOSE
             if floor_area > 0 else 0.0
@@ -908,10 +905,6 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             if avoided_embodied > 0 else 0.0
         )
 
-        # P2-5 fix — new-build CAPEX is derived from a named table
-        # rather than a hardcoded if/else. Same table used by mock
-        # preprocessing; see `_NEW_BUILD_CAPEX_RM_PER_M2` at the top
-        # of this module.
         _new_build_rate = _NEW_BUILD_CAPEX_RM_PER_M2.get(
             final_state.get("_effective_asset_type", "commercial"),
             _NEW_BUILD_CAPEX_RM_PER_M2["commercial"],
@@ -927,8 +920,7 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             try:
                 mix = json.loads(raw_mix)
                 total_mix_area = sum(float(v.get("area_m2", 0)) for v in mix.values())
-                if total_mix_area <= 0:
-                    total_mix_area = 1.0
+                if total_mix_area <= 0: total_mix_area = 1.0
                 
                 occ_by_subtype = json.loads(final_state.get("occupancy_by_subtype_calc_json", "{}"))
                 base_occ_by_subtype = json.loads(base_final_state.get("occupancy_by_subtype_calc_json", "{}"))
@@ -1041,6 +1033,7 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
     return {
         "run_id": final_decision.get("run_id"),
         "scenario_id": scenario_id,
+        "interventions": clean_interventions,
         "decision": {
             "selected_candidate": final_decision.get("selected_candidate_name"),
             "reasoning": final_decision.get("selection_reasoning", ""),

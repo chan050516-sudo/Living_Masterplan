@@ -77,5 +77,10 @@ export const MOCK_ANALYZE_RESULT: AnalyzeResult = {
     total_carbon_before_tco2e: 133495.8,
     total_carbon_after_tco2e: 133495.8,
     carbon_delta_pct: 0,
-  }
+  },
+
+  interventions: [
+    { target_asset_id: "BLD-0193", type: "repurpose", role: "primary" },
+    { target_asset_id: "BLD-0183", type: "green_corridor", role: "catalytic", beneficiary_asset_id: "BLD-0193" } 
+  ]
 }
