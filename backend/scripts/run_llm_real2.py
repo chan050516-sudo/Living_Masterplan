@@ -36,7 +36,7 @@ def _print_header(title):
     print(f"{'=' * 80}\n")
 
 
-def _print_results(result):
+def _print_results(result, mock_file_path):
     print(f"PIPELINE COMPLETE.\n")
     
     decision = result.get("decision", {})
@@ -51,7 +51,7 @@ def _print_results(result):
         tag = " 👑 [WINNER]" if is_winner else ""
         print(f"  [{c['name']}]{tag} -> {plan_summary}")
     
-    print("\n--- 3. Asset Summary Cards ---")
+    print("\n--- 3. Asset Summary Cards (From Simulation) ---")
     for asset in result.get("assets_analysis", []):
         aid = asset["asset_id"]
         card = asset["summary_card"]
@@ -86,7 +86,12 @@ def _print_results(result):
         if j.get(k):
             print(f"\n  [{k}]")
             print(f"  {j[k]}")
-            
+
+    print("\n" + "="*80)
+    print(f"✅ MOCK DATA EXPORTED to: {mock_file_path}")
+    print("   You can directly copy the contents of this file into your frontend 'mockData.ts'")
+    print("="*80 + "\n")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Golden Demo Scenarios")
@@ -104,13 +109,8 @@ def main():
     title = ""
 
     if args.scenario == 1:
-        # SCENARIO 1: Subunit Repurpose
-        # Find a mixed-use asset with dead subtypes, but don't force the model to fully repurpose it.
         title = "Scenario 1: Precision Medicine (Subunit Repurpose)"
         
-        # P1-6 fix — deadspace records do NOT carry `subtype_mix`.
-        # Walk the assets + metrics tables directly to find a
-        # commercial mixed-use asset with at least one dead subtype.
         mixed_assets = []
         for aid in ds.deadspace.keys():
             _a = ds._asset_row(aid) or {}
@@ -142,7 +142,7 @@ def main():
         if mixed_assets:
             target_ids = [mixed_assets[0]]
         else:
-            target_ids = ["BLD-0183"]  # fallback
+            target_ids = ["BLD-0183"]
             
         query = (
             f"We are looking at {target_ids[0]}. The aggregate occupancy might look okay, "
@@ -154,18 +154,15 @@ def main():
         )
 
     elif args.scenario == 2:
-        # SCENARIO 2: Catalytic Intervention
-        # Find a struggling asset that is near an undeveloped parcel
         title = "Scenario 2: The Catalyst (Spatial Synergy)"
-        
-        # Find a commercial target and an undeveloped parcel nearby
+        # (保持你原有的逻辑不变...)
         comm_targets = [aid for aid, r in ds.deadspace.items() if aid.startswith("BLD") and r.get("status") == "deadspace_candidate"]
         vacants = ds.assets[ds.assets["asset_type"] == "undeveloped_parcel"]["asset_id"].tolist()
         
         if comm_targets and vacants:
             target_ids = [comm_targets[0], vacants[0]]
         else:
-            target_ids = ["BLD-0193", "P-VAC-01"] # fallback
+            target_ids = ["BLD-0193", "P-VAC-01"]
             
         query = (
             f"{target_ids[0]} is suffering from low footfall and a thin catchment. "
@@ -176,13 +173,8 @@ def main():
         )
 
     elif args.scenario == 3:
-        # SCENARIO 3: Expert Reasoning
-        # Give it two assets: a residential with lease constraints, and a commercial with demographic mismatch.
         title = "Scenario 3: The Master Planner (Trajectory & Lease Awareness)"
-        
-        # P1-6 fix — "BLD-" prefix covers residential, commercial AND
-        # community_facility (all building-derived). Filter by
-        # asset_type instead of guessing from the id prefix.
+        # (保持你原有的逻辑不变...)
         res_pool, comm_pool = [], []
         for aid, r in ds.deadspace.items():
             if r.get("status") != "deadspace_candidate":
@@ -229,7 +221,24 @@ def main():
     elapsed = time.time() - t0
 
     print(f"\nPIPELINE FINISHED in {elapsed:.1f}s")
-    _print_results(result)
+
+    # --- NEW: Write the frontend payload directly to a JSON file ---
+    # Determine the path to the frontend source directory
+    frontend_dir = repo_root / "frontend" / "src"
+    mock_file = frontend_dir / f"mock_scenario_{args.scenario}.json"
+    
+    # Ensure directory exists just in case
+    if frontend_dir.exists():
+        with open(mock_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        _print_results(result, mock_file)
+    else:
+        # Fallback to current directory if frontend folder not found
+        fallback_file = repo_root / f"mock_scenario_{args.scenario}.json"
+        with open(fallback_file, "w", encoding="utf-8") as f:
+            json.dump(result, f, indent=2)
+        _print_results(result, fallback_file)
+
 
 if __name__ == "__main__":
     main()

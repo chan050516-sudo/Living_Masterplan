@@ -117,7 +117,7 @@ def orchestrate_and_simulate_batch(
     run_id = f"LLM-{uuid.uuid4().hex[:8]}"
 
     # ---- Stage 0: intent parsing ----
-    log.info("[%s] Stage 0 — intent parsing", run_id)
+    log.info("[%s] Stage 0 — Parsing user intent and constraints", run_id)
     intent = _parse_intent(
         user_query, selected_asset_ids, llm_client, base_year,
         attachments=attachments,
