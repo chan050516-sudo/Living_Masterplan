@@ -269,10 +269,49 @@ export default function App() {
           const finalHeight = !Number.isNaN(backendHeight) && backendHeight > 0 ? backendHeight : heightOf(finalProfile)
           const center = centroidOf(f.geometry)
 
+          let displayId = id;
+          if (id.startsWith('A-')) displayId = id.replace('A-', 'FAC-');
+          if (id.startsWith('G-')) displayId = id.replace('G-', 'GRN-');
+
+          let displaySubtype = finalProfile?.identity.subtype ?? null;
+          let displayName = finalProfile?.identity.asset_name ?? displayId;
+
+          const isMixedUse = 
+            (finalProfile?.subunits && finalProfile.subunits.length > 1) || 
+            (dynamicDiagnosis?.evidence && dynamicDiagnosis.evidence.some(e => e.includes('Subtype occupancy:')));
+
+          if (isMixedUse) {
+             displaySubtype = "Mixed-Use Commercial";
+             const lettable = finalProfile?.physical.lettable_area_m2 ?? 0;
+             if (lettable > 4000) {
+                displayName = `Mixed-Use Hub ${displayId}`;
+             } else if (lettable > 1000) {
+                displayName = `Shoplot Row ${displayId}`;
+             } else {
+                displayName = `Commercial Block ${displayId}`;
+             }
+          } else if (finalProfile?.identity.asset_type === 'residential') {
+             const sub = finalProfile.identity.subtype || 'residential';
+             const prettySub = sub.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+             displayName = `${prettySub} ${displayId}`;
+             displaySubtype = "Residential";
+          } else if (finalProfile?.identity.asset_type === 'community_facility') {
+             displaySubtype = finalProfile.identity.subtype ? 
+               finalProfile.identity.subtype.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+               "Community Facility";
+             displayName = `${displaySubtype} ${displayId}`;
+          }
+
           list.push({
-            id, name: finalProfile?.identity.asset_name ?? id, subtype: finalProfile?.identity.subtype ?? null,
-            assetType: finalProfile?.identity.asset_type ?? 'unknown', mapStatus,
-            profile: finalProfile, diagnosis: dynamicDiagnosis, center, height: finalHeight,
+            id, 
+            name: displayName, 
+            subtype: displaySubtype, 
+            assetType: finalProfile?.identity.asset_type ?? 'unknown', 
+            mapStatus,
+            profile: finalProfile, 
+            diagnosis: dynamicDiagnosis, 
+            center, 
+            height: finalHeight,
           })
 
           const tagged: Feature = { ...f, properties: { ...f.properties, id, status: mapStatus, height: finalHeight } }

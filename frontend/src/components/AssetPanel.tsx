@@ -111,12 +111,29 @@ export function AssetPanel(props: {
               
               <h2 className="fade" style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{asset.name}</h2>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                <span style={{ ...mono, fontSize: 12, color: C.faint }}>{asset.id}</span>
-                <span style={{ fontSize: 13, color: C.faint }}>· {asset.subtype ?? asset.assetType}</span>
+                <span style={{ ...mono, fontSize: 12, color: C.faint }}>
+                  {asset.id.startsWith('A-') ? asset.id.replace('A-', 'FAC-') : 
+                   asset.id.startsWith('G-') ? asset.id.replace('G-', 'GRN-') : 
+                   asset.id}
+                </span>
+                <span style={{ fontSize: 13, color: C.faint }}>
+                  · {asset.subtype ? asset.subtype.replace(/_/g, ' ') : asset.assetType}
+                </span>
               </div>
 
               <div className="fade" style={{ display: 'inline-block', fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: col, fontWeight: 700, marginTop: 12, border: `1px solid ${col}`, borderRadius: 4, padding: '3px 8px', background: `${col}15` }}>
                 {pretty(d?.status ?? asset.mapStatus)}
+
+                  {p?.authority && (
+                    <div style={{ 
+                      fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', 
+                      color: p.authority.level === 'full_control' ? '#3fb27f' : p.authority.level === 'shared' ? '#f7931d' : '#d71920', 
+                      fontWeight: 700, border: `1px solid currentColor`, borderRadius: 4, 
+                      padding: '3px 8px', background: 'rgba(255,255,255,0.05)' 
+                    }}>
+                      🔒 {p.authority.level.replace('_', ' ')}
+                    </div>
+                  )}
               </div>
 
               {/* 1. Key Figures */}
@@ -280,6 +297,46 @@ export function AssetPanel(props: {
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
                       {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
+                    {/* 渲染 Subunits 表格 */}
+                    {card.subunits && card.subunits.length > 0 && (
+                      <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.line}` }}>
+                        <div style={{ ...cap, fontSize: 10, color: C.accent, marginBottom: 8 }}>Subtype Breakdown</div>
+                        <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ borderBottom: `1px solid ${C.line}`, color: C.muted, textAlign: 'left' }}>
+                              <th style={{ paddingBottom: 4, fontWeight: 500 }}>Subtype</th>
+                              <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Area</th>
+                              <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Occ %</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {card.subunits.map((sub: any) => {
+                              const isDead = sub.occupancy_intervention === 0;
+                              return (
+                                <tr key={sub.subtype} style={{ borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
+                                  <td style={{ padding: '6px 0', textTransform: 'capitalize', color: isDead ? C.faint : C.text }}>
+                                    {sub.subtype.replace(/_/g, ' ')}
+                                  </td>
+                                  <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: C.muted }}>
+                                    {sub.area_m2} m²
+                                  </td>
+                                  <td style={{ padding: '6px 0', textAlign: 'right', ...mono }}>
+                                    <span style={{ color: isDead ? C.faint : C.text }}>{(sub.occupancy_baseline * 100).toFixed(0)}%</span>
+                                    <span style={{ color: C.faint, margin: '0 4px' }}>→</span>
+                                    <span style={{ 
+                                      color: isDead ? C.faint : (sub.occupancy_intervention > sub.occupancy_baseline ? '#3fb27f' : C.text), 
+                                      fontWeight: 600 
+                                    }}>
+                                      {isDead ? 'Removed' : `${(sub.occupancy_intervention * 100).toFixed(0)}%`}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                     </div>
                     {(saved !== undefined || averted !== undefined) && (
                       <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.line}`, display: 'flex', flexDirection: 'column', gap: 8 }}>

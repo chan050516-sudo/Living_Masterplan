@@ -406,6 +406,8 @@ def _generate_candidates(
     if candidate_feedback:
         user_content["candidate_feedback"] = candidate_feedback
 
+    print(f">>> STAGE 2 PROMPT SIZE: {len(prompt) + len(json.dumps(user_content, default=str, indent=2))} chars")
+
     t0 = time.time()
     try:
         result = llm_client.chat_structured(
@@ -1079,6 +1081,9 @@ def _select_and_justify(intent, candidates, llm_client):
         "constraints": intent.get("constraints"),
         "candidates": candidate_summaries,
     }
+
+    user_content_json = json.dumps(user_content, default=str, indent=2)
+    log.info("Stage 2.7: Sending %d chars to LLM for final decision", len(user_content_json))
 
     t0 = time.time()
     try:
