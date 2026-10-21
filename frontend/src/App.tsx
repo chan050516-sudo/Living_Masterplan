@@ -124,58 +124,6 @@ const BODY_PAINT = statusMatch((hex) => [
 ])
 const ROOF_PAINT = statusMatch((hex) => mix(hex, '#ffffff', 0.35))
 
-/**
- * Draws a small window-grid tile in the given colour and registers it with the
- * map, so buildings can carry a texture without losing their status colour.
- */
-function addFacadeTexture(map: maplibregl.Map, name: string, hex: string) {
-  const S = 64
-  const canvas = document.createElement('canvas')
-  canvas.width = S
-  canvas.height = S
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  ctx.fillStyle = hex
-  ctx.fillRect(0, 0, S, S)
-
-  ctx.fillStyle = 'rgba(255,255,255,.10)'
-  for (let y = 6; y < S; y += 16) {
-    for (let x = 6; x < S; x += 16) ctx.fillRect(x, y, 8, 9)
-  }
-  ctx.fillStyle = 'rgba(0,0,0,.16)'
-  for (let y = 0; y < S; y += 16) ctx.fillRect(0, y, S, 1)
-  for (let x = 0; x < S; x += 16) ctx.fillRect(x, 0, 1, S)
-
-  const data = ctx.getImageData(0, 0, S, S)
-  if (map.hasImage(name)) map.removeImage(name)
-  map.addImage(name, { width: S, height: S, data: new Uint8Array(data.data) })
-}
-
-const FACADES: Array<[string, string]> = [
-  ['tex-healthy', '#3fb27f'],
-  ['tex-monitor', '#f7931d'],
-  ['tex-risk', '#f15c22'],
-  ['tex-dead', '#d71920'],
-  ['tex-intervened', '#00d2ff'],
-  ['tex-vacant', '#9e9e9e'],
-  ['tex-unknown', '#5a4f59'],
-  ['tex-selected', '#2196f3'],
-]
-
-const PATTERN_PAINT: maplibregl.ExpressionSpecification = [
-  'match', ['get', 'status'],
-  'healthy', 'tex-healthy',
-  'monitor', 'tex-monitor',
-  'improvement_opportunity', 'tex-monitor',
-  'development_risk', 'tex-risk',
-  'deadspace_candidate', 'tex-dead',
-  'underperforming_facility', 'tex-dead',
-  'intervened', 'tex-intervened',
-  'vacant', 'tex-vacant',
-  'tex-unknown',
-]
-
 const ASSET_LAYERS = ['assets-3d', 'area-fill', 'points-dot']
 
 export default function App() {
@@ -691,7 +639,7 @@ export default function App() {
     window.addEventListener('pointerdown', arm)
     return () => { dead = true; window.removeEventListener('pointerdown', arm) }
   }, [])
-  
+
   const fittedRef = useRef(false)
   useEffect(() => {
     const map = mapRef.current
