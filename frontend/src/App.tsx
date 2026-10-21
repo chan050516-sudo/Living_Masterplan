@@ -60,6 +60,7 @@ const ASSET_LAYERS = ['assets-3d', 'area-fill', 'points-dot']
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
+  const markersRef = useRef<maplibregl.Marker[]>([])
   const assetsRef = useRef<Asset[]>([])
 
   const buildingsRef = useRef<FeatureCollection>(EMPTY)
@@ -358,6 +359,66 @@ export default function App() {
     }
     if (!bounds.isEmpty()) { map.fitBounds(bounds, { padding: 60, pitch: 55, bearing: -20, duration: 0 }); fittedRef.current = true }
   }, [assets])
+  // Selected assets turn blue, or intervention-blue while previewing.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    const selectedColour = previewing ? C.intervene : C.selected
+    const expr =
+      selectedIds.length === 0
+        ? STATUS_PAINT
+        : ([
+            'case',
+            ['in', ['get', 'id'], ['literal', selectedIds]], selectedColour,
+            STATUS_PAINT,
+          ] as never)
+
+    map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
+    map.setPaintProperty('area-fill', 'fill-color', expr as never)
+    map.setPaintProperty('points-dot', 'circle-color', expr as never)
+  }, [selectedIds, previewing, assets, mapReady])
+
+  // A floating name tag above each selected asset.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+
+    markersRef.current.forEach((m) => m.remove())
+    markersRef.current = []
+
+    selectedAssets.forEach((asset) => {
+      if (!Number.isFinite(asset.center[0]) || asset.center[0] === 0) return
+
+      const el = document.createElement('div')
+      el.style.cssText = 'pointer-events:none'
+      el.innerHTML = `
+        <div style="
+          display:flex;flex-direction:column;align-items:center;
+          animation:popIn .3s cubic-bezier(.22,.8,.3,1) both">
+          <div style="
+            background:rgba(26,20,26,.92);border:1px solid ${C.selected};border-radius:9px;
+            padding:7px 12px;color:#fff;font:600 11px/1 system-ui,sans-serif;
+            letter-spacing:.06em;white-space:nowrap;
+            box-shadow:0 0 18px rgba(33,150,243,.45),0 6px 16px rgba(0,0,0,.5);
+            backdrop-filter:blur(4px)">${asset.name}</div>
+          <div style="width:0;height:26px;border-left:1px dashed rgba(255,255,255,.55)"></div>
+          <div style="width:9px;height:9px;border-radius:50%;background:#fff;
+            box-shadow:0 0 0 4px rgba(33,150,243,.35)"></div>
+        </div>
+      `
+      markersRef.current.push(
+        new maplibregl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat(asset.center)
+          .addTo(map),
+      )
+    })
+
+    return () => {
+      markersRef.current.forEach((m) => m.remove())
+      markersRef.current = []
+    }
+  }, [selectedIds, assets, mapReady])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', background: C.bg, color: C.text, fontFamily: 'system-ui', overflow: 'hidden' }}>

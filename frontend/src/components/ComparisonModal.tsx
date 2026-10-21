@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { C, cap, mono } from '../theme'
 import type { AnalyzeResult, MainMetric } from '../types'
+import { LineChart } from './LineChart'
 
 function fmt(v: number | null | undefined, unit: string) {
   if (v === null || v === undefined || Number.isNaN(v)) return '—'
@@ -201,40 +202,48 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
 
         {timeline && Object.keys(timeline.metrics).length > 0 && (
           <div style={{ marginTop: 24, paddingTop: 18, borderTop: `1px solid ${C.line}` }}>
-            <div style={{ ...cap, fontSize: 10, marginBottom: 12 }}>Time series</div>
-            {Object.entries(timeline.metrics).map(([name, series]) => (
-              <div key={name} style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 12.5, color: '#cfc6cd', marginBottom: 8 }}>{pretty(name)}</div>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th style={{ ...cap, fontSize: 9.5, textAlign: 'left', padding: '0 8px 8px' }} />
-                      {timeline.years.map((y) => (
-                        <th key={y} style={{ ...cap, fontSize: 9.5, textAlign: 'right', padding: '0 8px 8px' }}>{y}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td style={{ fontSize: 12, color: C.faint, padding: '6px 8px' }}>Baseline</td>
-                      {series.baseline.map((v, i) => (
-                        <td key={i} style={{ ...mono, fontSize: 12, textAlign: 'right', padding: '6px 8px', color: C.faint }}>
-                          {fmt(v, name.endsWith('_rm') ? 'RM' : '')}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr>
-                      <td style={{ fontSize: 12, padding: '6px 8px' }}>Intervention</td>
-                      {series.intervention.map((v, i) => (
-                        <td key={i} style={{ ...mono, fontSize: 12, textAlign: 'right', padding: '6px 8px' }}>
-                          {fmt(v, name.endsWith('_rm') ? 'RM' : '')}
-                        </td>
-                      ))}
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+              <span style={{ ...cap, fontSize: 10 }}>Over time</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: C.faint }}>
+                <svg width="22" height="8" aria-hidden="true">
+                  <line x1="0" y1="4" x2="22" y2="4" stroke="#8d7f8a" strokeWidth="2" strokeDasharray="5 4" />
+                </svg>
+                Baseline
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: C.faint }}>
+                <svg width="22" height="8" aria-hidden="true">
+                  <line x1="0" y1="4" x2="22" y2="4" stroke={C.accent} strokeWidth="2" />
+                </svg>
+                Intervention
+              </span>
+            </div>
+
+            {Object.entries(timeline.metrics)
+              .filter(([, s]) =>
+                [...s.baseline, ...s.intervention].some((v) => Number.isFinite(v) && v !== 0),
+              )
+              .map(([name, series]) => {
+                const unit = /carbon|tco2e/i.test(name) ? 'tCO2e'
+                  : /_rm$|noi|capex|opex|income|rental/i.test(name) ? 'RM'
+                    : /ratio|rate|utilisation|utilization|occupancy|coverage/i.test(name) ? 'ratio'
+                      : ''
+                return (
+                <div key={name} style={{ marginBottom: 22 }}>
+                  <div style={{ fontSize: 12.5, color: '#cfc6cd', marginBottom: 4 }}>
+                    {pretty(name)}
+                    {unit && <span style={{ color: C.faint }}> ({unit === 'RM' ? 'RM' : unit === 'ratio' ? '%' : 'tCO₂e'})</span>}
+                  </div>
+                  <LineChart
+                    years={timeline.years}
+                    format={(v) => fmt(v, unit).replace('RM ', '')}
+                    series={[
+                      { label: 'Baseline', values: series.baseline, color: '#8d7f8a', dashed: true },
+                      { label: 'Intervention', values: series.intervention, color: C.accent },
+                    ]}
+                  />
+                </div>
+              )
+            })}
           </div>
         )}
 
