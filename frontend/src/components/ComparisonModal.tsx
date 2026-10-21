@@ -12,7 +12,27 @@ function fmt(v: number | null | undefined, unit: string) {
   return v.toLocaleString(undefined, { maximumFractionDigits: 2 })
 }
 
+/** Metric keys that shouldn't be title-cased mechanically. */
+const LABELS: Record<string, string> = {
+  noi_rm: 'NOI',
+  noi: 'NOI',
+  noi_yield: 'NOI yield',
+  dsr: 'DSR',
+  carbon_operational_tco2e: 'Operational Carbon',
+  carbon_stranded_tco2e: 'Stranded Carbon',
+  carbon_productive_tco2e: 'Productive Carbon',
+  occupancy_rate: 'Occupancy',
+  space_utilization: 'Space Utilization',
+  space_utilisation: 'Space Utilisation',
+  utilisation_rate: 'Utilisation',
+  effective_demand_m2: 'Effective demand',
+  coverage_ratio_15min_walk: '15-min walk coverage',
+  coverage_ratio_10min_walk: '10-min walk coverage',
+  coverage_ratio_5min_walk: '5-min walk coverage',
+}
+
 function pretty(s: string) {
+  if (LABELS[s]) return LABELS[s]
   const t = s.replace(/_tco2e$/, '').replace(/_rm$/, '').replace(/_m2$/, ' m²').replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
@@ -218,6 +238,7 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
               </span>
             </div>
 
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {Object.entries(timeline.metrics)
               .filter(([, s]) =>
                 [...s.baseline, ...s.intervention].some((v) => Number.isFinite(v) && v !== 0),
@@ -228,13 +249,46 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
                     : /ratio|rate|utilisation|utilization|occupancy|coverage/i.test(name) ? 'ratio'
                       : ''
                 return (
-                <div key={name} style={{ marginBottom: 22 }}>
-                  <div style={{ fontSize: 12.5, color: '#cfc6cd', marginBottom: 4 }}>
-                    {pretty(name)}
-                    {unit && <span style={{ color: C.faint }}> ({unit === 'RM' ? 'RM' : unit === 'ratio' ? '%' : 'tCO₂e'})</span>}
-                  </div>
+                <div key={name} style={{
+                  padding: '13px 14px 6px',
+                  background: C.card,
+                  border: `1px solid ${C.line}`,
+                  borderRadius: 8,
+                }}>
+                  {(() => {
+                    const b = series.baseline[series.baseline.length - 1]
+                    const p = series.intervention[series.intervention.length - 1]
+                    const lower = /carbon|stranded|vacancy|maintenance|temp/i.test(name)
+                    const moved = Number.isFinite(b) && Number.isFinite(p) && Math.abs(p - b) > 1e-9
+                    const better = moved ? (lower ? p < b : p > b) : null
+                    const pct = moved && b !== 0 ? ((p - b) / Math.abs(b)) * 100 : null
+
+                    return (
+                      <div style={{
+                        display: 'flex', alignItems: 'baseline', gap: 10,
+                        marginBottom: 4, flexWrap: 'wrap',
+                      }}>
+                        <span style={{ fontSize: 13, color: C.text }}>{pretty(name)}</span>
+                        <span style={{ fontSize: 11, color: C.faint }}>
+                          {unit === 'RM' ? 'RM' : unit === 'ratio' ? '%' : unit === 'tCO2e' ? 'tCO₂e' : ''}
+                        </span>
+                        {better !== null && (
+                          <span style={{
+                            ...mono, fontSize: 11, padding: '2px 8px', borderRadius: 999,
+                            color: better ? '#3fb27f' : '#d71920',
+                            background: better ? 'rgba(63,178,127,.12)' : 'rgba(215,25,32,.12)',
+                          }}>
+                            {pct !== null && Math.abs(pct) < 1000
+                              ? `${pct > 0 ? '+' : ''}${pct.toFixed(0)}% by ${timeline.years[timeline.years.length - 1]}`
+                              : `${better ? 'improves' : 'worsens'} by ${timeline.years[timeline.years.length - 1]}`}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })()}
                   <LineChart
                     years={timeline.years}
+                    lowerIsBetter={/carbon|stranded|vacancy|maintenance|temp/i.test(name)}
                     format={(v) => fmt(v, unit).replace('RM ', '')}
                     series={[
                       { label: 'Baseline', values: series.baseline, color: '#8d7f8a', dashed: true },
@@ -244,6 +298,7 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
                 </div>
               )
             })}
+            </div>
           </div>
         )}
 

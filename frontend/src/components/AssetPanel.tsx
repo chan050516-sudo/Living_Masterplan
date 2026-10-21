@@ -102,6 +102,21 @@ export function AssetPanel(props: {
         >×</button>
       </div>
 
+      {!multi && !analysis && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, marginTop: 12,
+          padding: '8px 11px', borderRadius: 7,
+          background: C.card, border: `1px solid ${C.line}`,
+          fontSize: 11.5, color: C.faint, lineHeight: 1.5,
+        }}>
+          <kbd style={{
+            ...mono, fontSize: 10, padding: '2px 6px', borderRadius: 4,
+            background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd',
+          }}>Ctrl</kbd>
+          click another asset to analyse them together
+        </div>
+      )}
+
       {/* Scrollable Content Area */}
       <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
         {assets.map((asset, idx) => {
@@ -307,7 +322,7 @@ export function AssetPanel(props: {
               })}
             </div>
 
-            <div style={{ padding: 16, background: 'rgba(255,255,255,0.03)', borderLeft: `3px solid ${C.accent}`, borderRadius: '0 8px 8px 0', marginBottom: 16 }}>
+            <div style={{ padding: 16, background: 'rgba(255,255,255,0.03)', border: `1px solid ${C.line}`, borderRadius: 8, marginBottom: 16 }}>
               <div style={{ ...cap, fontSize: 10, color: C.accent, marginBottom: 6 }}>Recommendation</div>
               <p style={{ margin: 0, fontSize: 13, lineHeight: 1.65, color: '#cfc6cd' }}>
                 {analysis.decision.justification.recommendation}

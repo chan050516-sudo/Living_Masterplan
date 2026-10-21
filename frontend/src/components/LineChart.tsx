@@ -3,20 +3,22 @@ import { C, mono } from '../theme'
 type Series = { label: string; values: number[]; color: string; dashed?: boolean }
 
 /**
- * A small two-line chart drawn as inline SVG: no chart library needed.
- * Baseline and intervention share one y-scale so they're directly comparable.
+ * Two-line comparison chart drawn as inline SVG.
+ * The shaded band between the lines is the effect of the intervention:
+ * green where it improves the metric, red where it worsens it.
  */
-export function LineChart({ years, series, format }: {
+export function LineChart({ years, series, format, lowerIsBetter = false }: {
   years: string[]
   series: Series[]
   format?: (v: number) => string
+  lowerIsBetter?: boolean
 }) {
   const W = 560
-  const H = 170
-  const padL = 62
-  const padR = 14
-  const padT = 14
-  const padB = 26
+  const H = 140
+  const padL = 60
+  const padR = 56
+  const padT = 12
+  const padB = 24
 
   const all = series.flatMap((s) => s.values).filter((v) => Number.isFinite(v))
   if (all.length === 0 || years.length === 0) return null
@@ -26,50 +28,70 @@ export function LineChart({ years, series, format }: {
   const allPositive = min >= 0
 
   if (min === max) {
-    // A flat line still needs a range to sit inside.
     const span = Math.abs(min) || 1
     min -= span * 0.5
     max += span * 0.5
   } else {
-    const pad = (max - min) * 0.1
+    const pad = (max - min) * 0.12
     max += pad
     min -= pad
   }
-
-  // Quantities that cannot go negative shouldn't show a negative axis.
   if (allPositive) min = Math.max(0, min)
   if (max < 0) max = 0
 
-  const x = (i: number) =>
-    padL + (i / Math.max(1, years.length - 1)) * (W - padL - padR)
-  const y = (v: number) =>
-    padT + (1 - (v - min) / (max - min)) * (H - padT - padB)
+  const x = (i: number) => padL + (i / Math.max(1, years.length - 1)) * (W - padL - padR)
+  const y = (v: number) => padT + (1 - (v - min) / (max - min)) * (H - padT - padB)
 
   const fmt = format ?? ((v: number) => v.toLocaleString(undefined, { maximumFractionDigits: 1 }))
 
-  // Horizontal guide lines at top, middle and bottom of the range.
+  const baseline = series[0]
+  const plan = series[1]
+
+  // Is the final state an improvement? Decides the band colour.
+  let bandColour: string | null = null
+  if (baseline && plan) {
+    const b = baseline.values[baseline.values.length - 1]
+    const p = plan.values[plan.values.length - 1]
+    if (Number.isFinite(b) && Number.isFinite(p) && Math.abs(p - b) > 1e-9) {
+      const better = lowerIsBetter ? p < b : p > b
+      bandColour = better ? '#3fb27f' : '#d71920'
+    }
+  }
+
+  // Closed path: forward along the plan, back along the baseline.
+  const band =
+    baseline && plan && baseline.values.length === plan.values.length
+      ? [
+          ...plan.values.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`),
+          ...baseline.values
+            .map((v, i) => ({ v, i }))
+            .reverse()
+            .map(({ v, i }) => `L${x(i)},${y(v)}`),
+          'Z',
+        ].join(' ')
+      : null
+
   const ticks = [max, (max + min) / 2, min]
-  const zeroY = min < 0 && max > 0 ? y(0) : null
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img"
       aria-label={series.map((s) => s.label).join(' versus ')}>
       {ticks.map((t, i) => (
         <g key={i}>
-          <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} stroke={C.line} strokeWidth="1" />
-          <text x={padL - 8} y={y(t) + 3.5} textAnchor="end" fontSize="9.5" fill={C.faint} style={mono}>
+          <line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)}
+            stroke="#ffffff" strokeOpacity="0.06" strokeWidth="1" />
+          <text x={padL - 8} y={y(t) + 3.5} textAnchor="end" fontSize="9" fill={C.faint} style={mono}>
             {fmt(t)}
           </text>
         </g>
       ))}
 
-      {zeroY !== null && (
-        <line x1={padL} x2={W - padR} y1={zeroY} y2={zeroY}
-          stroke="#6d5c6a" strokeWidth="1" strokeDasharray="3 3" />
+      {band && bandColour && (
+        <path d={band} fill={bandColour} fillOpacity="0.12" stroke="none" />
       )}
 
       {years.map((yr, i) => (
-        <text key={yr} x={x(i)} y={H - 7} textAnchor="middle" fontSize="9.5" fill={C.faint} style={mono}>
+        <text key={yr} x={x(i)} y={H - 6} textAnchor="middle" fontSize="9" fill={C.faint} style={mono}>
           {yr}
         </text>
       ))}
@@ -79,6 +101,7 @@ export function LineChart({ years, series, format }: {
           .map((v, i) => (Number.isFinite(v) ? `${x(i)},${y(v)}` : null))
           .filter(Boolean)
           .join(' ')
+        const last = s.values[s.values.length - 1]
         return (
           <g key={s.label}>
             <polyline
@@ -92,8 +115,19 @@ export function LineChart({ years, series, format }: {
             />
             {s.values.map((v, i) =>
               Number.isFinite(v) ? (
-                <circle key={i} cx={x(i)} cy={y(v)} r="3" fill={C.bg} stroke={s.color} strokeWidth="1.6" />
+                <circle key={i} cx={x(i)} cy={y(v)} r="2.6" fill={C.bg} stroke={s.color} strokeWidth="1.5" />
               ) : null,
+            )}
+            {Number.isFinite(last) && (
+              <text
+                x={W - padR + 7}
+                y={y(last) + 3.5}
+                fontSize="9.5"
+                fill={s.color}
+                style={mono}
+              >
+                {fmt(last)}
+              </text>
             )}
           </g>
         )

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
-import { C, cap, btn } from './theme'
+import { C, cap, btn, mono } from './theme'
 import { MapLegend, MapControls } from './components/ui'
 import { DeadspaceList } from './components/DeadspaceList'
 import { AssetPanel } from './components/AssetPanel'
@@ -88,6 +88,16 @@ export default function App() {
   const [previewing, setPreviewing] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
   const [mapReady, setMapReady] = useState(false)
+
+    const [hint, setHint] = useState(false)
+  const hintTimer = useRef<number | undefined>(undefined)
+
+  /** Show the multi-select hint while the pointer is moving, then fade it out. */
+  function pokeHint() {
+    setHint(true)
+    window.clearTimeout(hintTimer.current)
+    hintTimer.current = window.setTimeout(() => setHint(false), 1800)
+  }
 
   const selectedAssets = selectedIds.map((id) => assets.find((a) => a.id === id)).filter((a): a is Asset => !!a)
   const primary = selectedAssets[0] ?? null
@@ -465,8 +475,26 @@ export default function App() {
       {showComparison && analysis && <ComparisonModal data={analysis} onClose={() => setShowComparison(false)} />}
 
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <main style={{ position: 'relative', flex: 1 }}>
+        <main style={{ position: 'relative', flex: 1 }} onMouseMove={pokeHint}>
           <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
+
+          <div style={{
+            position: 'absolute', left: 20, top: 20, zIndex: 2,
+            display: 'flex', alignItems: 'center', gap: 9,
+            padding: '9px 14px', borderRadius: 999,
+            background: 'rgba(31,24,30,.92)', border: `1px solid ${C.line}`,
+            backdropFilter: 'blur(6px)', pointerEvents: 'none',
+            fontSize: 12, color: '#cfc6cd', whiteSpace: 'nowrap',
+            opacity: hint && selectedIds.length < 2 ? 1 : 0,
+            transform: hint && selectedIds.length < 2 ? 'translateY(0)' : 'translateY(-6px)',
+            transition: 'opacity .35s ease, transform .35s ease',
+          }}>
+            <kbd style={{
+              ...mono, fontSize: 10.5, padding: '3px 7px', borderRadius: 4,
+              background: '#2b212a', border: `1px solid ${C.line}`, color: '#fff',
+            }}>Ctrl</kbd>
+            <span style={{ color: C.faint }}>+ click to select multiple assets</span>
+          </div>
           <MapLegend preview={previewing} />
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
