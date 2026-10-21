@@ -20,7 +20,9 @@ function pretty(s: string) {
 }
 
 function fmt(v: number | null | undefined, unit: string) {
-  if (v === null || v === undefined || Number.isNaN(v)) return '—'
+  if (v === null || v === undefined || Number.isNaN(v) || String(v).toLowerCase() === 'nan') {
+    return '—'
+  }
   if (unit === 'ratio') return `${(v * 100).toFixed(1)}%`
   if (unit === 'RM') return `RM ${Math.round(v).toLocaleString()}`
   if (unit.startsWith('tCO2e')) return `${v.toLocaleString(undefined, { maximumFractionDigits: 1 })}`
@@ -201,7 +203,8 @@ export function AssetPanel(props: {
                       const isMultiLine = line.includes('\n')
                       if (splitIdx !== -1 && !isMultiLine) {
                         const label = line.slice(0, splitIdx).trim()
-                        const value = line.slice(splitIdx + 1).trim()
+                        let value = line.slice(splitIdx + 1).trim()
+                          value = value.replace(/nan/gi, '—')
                         return (
                           <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontSize: 12.5, padding: '10px 0', borderBottom: i === d.evidence.length - 1 ? 'none' : `1px dashed ${C.line}` }}>
                             <span style={{ color: C.muted, flex: 1, lineHeight: 1.4 }}>{label}</span>
@@ -209,6 +212,9 @@ export function AssetPanel(props: {
                           </div>
                         )
                       }
+                      
+                      let safeLine = splitIdx !== -1 ? line.slice(splitIdx + 1).trim() : line;
+                      safeLine = safeLine.replace(/nan/gi, '—');
                       return (
                         <div key={i} style={{ padding: '10px 0', borderBottom: i === d.evidence.length - 1 ? 'none' : `1px dashed ${C.line}` }}>
                           {splitIdx !== -1 && (
@@ -217,7 +223,7 @@ export function AssetPanel(props: {
                             </div>
                           )}
                           <div style={{ fontSize: 12.5, color: '#cfc6cd', whiteSpace: 'pre-wrap', lineHeight: 1.5, fontFamily: mono.fontFamily }}>
-                            {splitIdx !== -1 ? line.slice(splitIdx + 1).trim() : line}
+                            {safeLine}
                           </div>
                         </div>
                       )

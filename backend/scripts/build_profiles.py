@@ -136,6 +136,9 @@ def build_profiles(year=2026):
                 "energy_kwh_lighting": _safe_float(m.get("energy_kwh_lighting_equipment"), 0),
                 "energy_kwh_base_load": _safe_float(m.get("energy_kwh_base_load"), 0),
                 "surface_temp_delta_c": _safe_float(m.get("surface_temp_delta_c"), 1),
+                "green_coverage": _safe_float(m.get("green_coverage"), 3),
+                "canopy_coverage": _safe_float(m.get("canopy_coverage"), 3),
+                "green_per_capita_m2": _safe_float(m.get("green_per_capita_m2"), 1),
             },
             "trajectory": {
                 "class": m.get("trajectory_class"),

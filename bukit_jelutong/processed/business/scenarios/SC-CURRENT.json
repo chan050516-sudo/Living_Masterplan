@@ -77084,7 +77084,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 26.7,
@@ -77174,7 +77174,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999999724534164,
           "shade_proxy_score": 99.99999724534165,
           "accessibility_score": 0.0,
@@ -77264,7 +77264,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 25.33,
@@ -77354,7 +77354,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000000117406924,
           "shade_proxy_score": 60.00000117406924,
           "accessibility_score": 0.0,
@@ -77444,7 +77444,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 6.48,
@@ -77534,7 +77534,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 13.51,
@@ -77624,7 +77624,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 20.89,
@@ -77714,7 +77714,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999998039115882,
           "shade_proxy_score": 99.99998039115881,
           "accessibility_score": 0.0,
@@ -77804,7 +77804,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000001330402832,
           "shade_proxy_score": 60.00001330402832,
           "accessibility_score": 0.0,
@@ -77894,7 +77894,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 0.0,
@@ -77984,7 +77984,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000001693537653,
           "shade_proxy_score": 60.000016935376536,
           "accessibility_score": 30.72,
@@ -78074,7 +78074,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999995344927715,
           "shade_proxy_score": 99.99995344927714,
           "accessibility_score": 21.63,
@@ -78164,7 +78164,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999995653306559,
           "shade_proxy_score": 99.99995653306559,
           "accessibility_score": 18.17,
@@ -78254,7 +78254,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999997503646495,
           "shade_proxy_score": 99.99997503646495,
           "accessibility_score": 23.48,
@@ -78344,7 +78344,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 30.72,
@@ -78434,7 +78434,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 0.0,
@@ -78524,7 +78524,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999999472613126,
           "shade_proxy_score": 99.99999472613126,
           "accessibility_score": 12.26,
@@ -78614,7 +78614,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 21.63,
@@ -78704,7 +78704,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000004187102284,
           "shade_proxy_score": 60.00004187102284,
           "accessibility_score": 30.72,
@@ -78794,7 +78794,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999994509073648,
           "shade_proxy_score": 99.99994509073647,
           "accessibility_score": 28.92,
@@ -78884,7 +78884,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999994942271413,
           "shade_proxy_score": 99.99994942271412,
           "accessibility_score": 6.88,
@@ -78974,7 +78974,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000002010995686,
           "shade_proxy_score": 60.000020109956864,
           "accessibility_score": 25.33,
@@ -79064,7 +79064,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999998401535973,
           "shade_proxy_score": 99.99998401535973,
           "accessibility_score": 26.08,
@@ -79154,7 +79154,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999985173624988,
           "shade_proxy_score": 99.99985173624988,
           "accessibility_score": 30.72,
@@ -79244,7 +79244,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999998708713655,
           "shade_proxy_score": 99.99998708713656,
           "accessibility_score": 0.0,
@@ -79334,7 +79334,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000009271689727,
           "shade_proxy_score": 60.00009271689727,
           "accessibility_score": 32.12,
@@ -79424,7 +79424,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999996354993166,
           "shade_proxy_score": 99.99996354993166,
           "accessibility_score": 19.44,
@@ -79514,7 +79514,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000010239603772,
           "shade_proxy_score": 60.000102396037725,
           "accessibility_score": 20.89,
@@ -79604,7 +79604,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999997828939217,
           "shade_proxy_score": 99.99997828939216,
           "accessibility_score": 27.98,
@@ -79694,7 +79694,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.5999988460293687,
           "shade_proxy_score": 59.99988460293687,
           "accessibility_score": 0.0,
@@ -79784,7 +79784,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000006617341236,
           "shade_proxy_score": 60.00006617341236,
           "accessibility_score": 1.9,
@@ -79874,7 +79874,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 1.0,
           "shade_proxy_score": 100.0,
           "accessibility_score": 6.48,
@@ -79964,7 +79964,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999993639495793,
           "shade_proxy_score": 99.99993639495793,
           "accessibility_score": 19.44,
@@ -80054,7 +80054,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.999995399504765,
           "shade_proxy_score": 99.9995399504765,
           "accessibility_score": 0.0,
@@ -80144,7 +80144,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999996304132401,
           "shade_proxy_score": 99.99996304132401,
           "accessibility_score": 0.0,
@@ -80234,7 +80234,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000005778525089,
           "shade_proxy_score": 60.000057785250895,
           "accessibility_score": 2.42,
@@ -80324,7 +80324,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.6000041071606838,
           "shade_proxy_score": 60.00041071606837,
           "accessibility_score": 18.73,
@@ -80414,7 +80414,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -4.5,
           "canopy_coverage": 0.9999930465044378,
           "shade_proxy_score": 99.99930465044378,
           "accessibility_score": 0.0,
@@ -80504,7 +80504,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": 0.5999974444078675,
           "shade_proxy_score": 59.99974444078675,
           "accessibility_score": 35.37,
@@ -80594,7 +80594,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 30.72,
@@ -80684,7 +80684,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 6.48,
@@ -80774,7 +80774,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 6.48,
@@ -80864,7 +80864,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 27.37,
@@ -80954,7 +80954,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 12.26,
@@ -81044,7 +81044,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 0.0,
@@ -81134,7 +81134,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 21.63,
@@ -81224,7 +81224,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 21.63,
@@ -81314,7 +81314,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 6.48,
@@ -81404,7 +81404,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 4.44,
@@ -81494,7 +81494,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 0.0,
@@ -81584,7 +81584,7 @@
           "embodied_carbon_total_tco2e": null,
           "embodied_carbon_amortised_tco2e": null,
           "maintenance_carbon_tco2e": null,
-          "surface_temp_delta_c": null,
+          "surface_temp_delta_c": -2.7,
           "canopy_coverage": null,
           "shade_proxy_score": 0.0,
           "accessibility_score": 6.48,
@@ -490360,7 +490360,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490402,7 +490402,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490444,7 +490444,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490486,7 +490486,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -490528,7 +490528,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490570,7 +490570,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490612,7 +490612,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490654,7 +490654,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490696,7 +490696,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -490728,7 +490728,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490770,7 +490770,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -490812,7 +490812,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490854,7 +490854,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490896,7 +490896,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490938,7 +490938,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -490970,7 +490970,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491012,7 +491012,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491054,7 +491054,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491096,7 +491096,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491138,7 +491138,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491180,7 +491180,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491222,7 +491222,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491264,7 +491264,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491306,7 +491306,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491338,7 +491338,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491380,7 +491380,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491422,7 +491422,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491464,7 +491464,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491506,7 +491506,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491538,7 +491538,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491580,7 +491580,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491622,7 +491622,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491664,7 +491664,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491696,7 +491696,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491728,7 +491728,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491770,7 +491770,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491812,7 +491812,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491844,7 +491844,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -4.5,
           "after": -4.5,
           "unit": "Celsius"
         },
@@ -491886,7 +491886,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491928,7 +491928,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -491970,7 +491970,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492012,7 +492012,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492054,7 +492054,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492096,7 +492096,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492128,7 +492128,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492170,7 +492170,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492212,7 +492212,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492254,7 +492254,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492296,7 +492296,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492328,7 +492328,7 @@
           "unit": "count"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },
@@ -492370,7 +492370,7 @@
           "unit": "m"
         },
         "surface_temp_delta_c": {
-          "before": null,
+          "before": -2.7,
           "after": -2.7,
           "unit": "Celsius"
         },

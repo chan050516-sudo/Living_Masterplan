@@ -34522,10 +34522,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 6.94"
+      "Green space per capita (m2): 15.32"
     ],
     "model_version": "0.4.0"
   },
@@ -34569,7 +34569,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): 4.62"
@@ -34581,15 +34581,12 @@
     "year": 2026,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_green_per_capita"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": true,
@@ -34605,16 +34602,12 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
-        "factor": "low_green_per_capita",
-        "contribution": 0.5
-      },
-      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 0.5
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -34623,10 +34616,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 1.63"
+      "Green space per capita (m2): 4.69"
     ],
     "model_version": "0.4.0"
   },
@@ -34677,7 +34670,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
       "Green space per capita (m2): 1.57"
@@ -34689,15 +34682,12 @@
     "year": 2026,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_green_per_capita"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": true,
@@ -34713,16 +34703,12 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
-        "factor": "low_green_per_capita",
-        "contribution": 0.5
-      },
-      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 0.5
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -34731,10 +34717,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 1.1"
+      "Green space per capita (m2): 3.42"
     ],
     "model_version": "0.4.0"
   },
@@ -34743,15 +34729,12 @@
     "year": 2026,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_green_per_capita"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": true,
@@ -34767,16 +34750,12 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
-        "factor": "low_green_per_capita",
-        "contribution": 0.5
-      },
-      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 0.5
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -34785,10 +34764,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 1.06"
+      "Green space per capita (m2): 3.27"
     ],
     "model_version": "0.4.0"
   },
@@ -34797,15 +34776,12 @@
     "year": 2026,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_green_per_capita"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": true,
@@ -34821,16 +34797,12 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
-        "factor": "low_green_per_capita",
-        "contribution": 0.5
-      },
-      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 0.5
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -34839,10 +34811,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.9"
+      "Green space per capita (m2): 2.78"
     ],
     "model_version": "0.4.0"
   },
@@ -34893,7 +34865,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): 0.76"
@@ -34905,15 +34877,12 @@
     "year": 2026,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "low_green_per_capita"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": true,
@@ -34929,16 +34898,12 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
-        "factor": "low_green_per_capita",
-        "contribution": 0.5
-      },
-      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 0.5
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -34947,10 +34912,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.69"
+      "Green space per capita (m2): 11.63"
     ],
     "model_version": "0.4.0"
   },
@@ -34994,7 +34959,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): nan"
@@ -35040,10 +35005,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.46"
+      "Green space per capita (m2): 0.94"
     ],
     "model_version": "0.4.0"
   },
@@ -35094,10 +35059,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.36"
+      "Green space per capita (m2): 0.72"
     ],
     "model_version": "0.4.0"
   },
@@ -35148,10 +35113,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.3"
+      "Green space per capita (m2): 0.99"
     ],
     "model_version": "0.4.0"
   },
@@ -35202,10 +35167,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.3"
+      "Green space per capita (m2): 0.52"
     ],
     "model_version": "0.4.0"
   },
@@ -35248,10 +35213,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.27"
+      "Green space per capita (m2): 0.52"
     ],
     "model_version": "0.4.0"
   },
@@ -35295,7 +35260,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): nan"
@@ -35349,10 +35314,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.22"
+      "Green space per capita (m2): 0.68"
     ],
     "model_version": "0.4.0"
   },
@@ -35403,10 +35368,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.21"
+      "Green space per capita (m2): 0.51"
     ],
     "model_version": "0.4.0"
   },
@@ -35449,10 +35414,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.21"
+      "Green space per capita (m2): 0.43"
     ],
     "model_version": "0.4.0"
   },
@@ -35503,10 +35468,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.18"
+      "Green space per capita (m2): 0.46"
     ],
     "model_version": "0.4.0"
   },
@@ -35557,10 +35522,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.17"
+      "Green space per capita (m2): 0.38"
     ],
     "model_version": "0.4.0"
   },
@@ -35611,10 +35576,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.17"
+      "Green space per capita (m2): 0.36"
     ],
     "model_version": "0.4.0"
   },
@@ -35665,10 +35630,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.13"
+      "Green space per capita (m2): 0.27"
     ],
     "model_version": "0.4.0"
   },
@@ -35711,10 +35676,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.12"
+      "Green space per capita (m2): 0.19"
     ],
     "model_version": "0.4.0"
   },
@@ -35758,7 +35723,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): nan"
@@ -35804,10 +35769,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.11"
+      "Green space per capita (m2): 0.21"
     ],
     "model_version": "0.4.0"
   },
@@ -35858,10 +35823,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.1"
+      "Green space per capita (m2): 0.18"
     ],
     "model_version": "0.4.0"
   },
@@ -35912,10 +35877,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.09"
+      "Green space per capita (m2): 0.29"
     ],
     "model_version": "0.4.0"
   },
@@ -35966,10 +35931,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.09"
+      "Green space per capita (m2): 0.29"
     ],
     "model_version": "0.4.0"
   },
@@ -36013,7 +35978,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
       "Green space per capita (m2): nan"
@@ -36067,10 +36032,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.07"
+      "Green space per capita (m2): 0.29"
     ],
     "model_version": "0.4.0"
   },
@@ -36121,10 +36086,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.06"
+      "Green space per capita (m2): 0.19"
     ],
     "model_version": "0.4.0"
   },
@@ -36175,10 +36140,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
-      "Green space per capita (m2): 0.05"
+      "Green space per capita (m2): 0.1"
     ],
     "model_version": "0.4.0"
   },
@@ -36222,7 +36187,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): nan"
@@ -36269,7 +36234,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): nan"
@@ -36323,10 +36288,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.03"
+      "Green space per capita (m2): 0.32"
     ],
     "model_version": "0.4.0"
   },
@@ -36377,10 +36342,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.02"
+      "Green space per capita (m2): 0.05"
     ],
     "model_version": "0.4.0"
   },
@@ -36424,7 +36389,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -4.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 100.0%",
       "Green space per capita (m2): nan"
@@ -36470,10 +36435,10 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.01"
+      "Green space per capita (m2): 0.03"
     ],
     "model_version": "0.4.0"
   },
@@ -36516,7 +36481,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36570,7 +36535,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36624,7 +36589,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36678,7 +36643,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36732,7 +36697,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36779,7 +36744,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): nan"
@@ -36833,7 +36798,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36887,7 +36852,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36941,7 +36906,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -36995,7 +36960,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
@@ -37042,7 +37007,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): nan"
@@ -37096,7 +37061,7 @@
       "Stranded carbon (unused capacity): nan tCO2e/yr (nan%)",
       "Productive carbon (serving users): nan tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Cooling benefit vs open-field baseline: nan \u00b0C",
+      "Cooling benefit vs open-field baseline: -2.7 \u00b0C",
       "Green coverage: nan%",
       "Canopy coverage: nan%",
       "Green space per capita (m2): 0.0"
