@@ -1,4 +1,4 @@
-import { C, cap, mono } from '../theme'
+import { C, mono } from '../theme'
 import type { AnalyzeHistoryItem } from '../App'
 
 export function HistoryPanel({

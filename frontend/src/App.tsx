@@ -14,6 +14,26 @@ import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
 maplibregl.setWorkerUrl(workerUrl)
 
+// Flip to false to restore the original rendering exactly.
+const REALISTIC = true
+
+const SOUND = true
+
+// One decoded buffer, played on each selection. No network hit per click.
+let clickBuf: AudioBuffer | null = null
+let audioCtx: AudioContext | null = null
+
+function playClick() {
+  if (!SOUND || !clickBuf || !audioCtx) return
+  if (audioCtx.state === 'suspended') audioCtx.resume()
+  const src = audioCtx.createBufferSource()
+  const gain = audioCtx.createGain()
+  gain.gain.value = 0.35
+  src.buffer = clickBuf
+  src.connect(gain).connect(audioCtx.destination)
+  src.start()
+}
+
 const YEARS = [2026, 2027, 2028, 2030, 2033]
 const METRES_PER_FLOOR = 3.5
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
@@ -74,6 +94,35 @@ const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'vacant', '#9e9e9e',
   '#5a4f59',
 ]
+
+function mix(hex: string, toward: string, t: number): string {
+  const a = parseInt(hex.slice(1), 16), b = parseInt(toward.slice(1), 16)
+  const ch = (s: number) => Math.round(((a >> s) & 255) * (1 - t) + ((b >> s) & 255) * t)
+  return '#' + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0')
+}
+
+const STATUS_HEX: Record<string, string> = {
+  healthy: '#3fb27f', monitor: '#f7931d', improvement_opportunity: '#f7931d',
+  development_risk: '#f15c22', deadspace_candidate: '#d71920', underperforming_facility: '#d71920',
+  intervened: '#00d2ff', vacant: '#9e9e9e',
+}
+const STATUS_FALLBACK = '#5a4f59'
+const H = ['coalesce', ['get', 'height'], 8]
+
+const statusMatch = (fn: (hex: string) => unknown) =>
+  ['match', ['get', 'status'],
+    ...Object.entries(STATUS_HEX).flatMap(([k, hex]) => [k, fn(hex)]),
+    fn(STATUS_FALLBACK),
+  ] as never
+
+// Same hue per status, darker at ground level, slightly lighter for towers.
+const BODY_PAINT = statusMatch((hex) => [
+  'interpolate', ['linear'], H,
+  0, mix(hex, '#000000', 0.22),
+  20, hex,
+  60, mix(hex, '#ffffff', 0.10),
+])
+const ROOF_PAINT = statusMatch((hex) => mix(hex, '#ffffff', 0.35))
 
 const ASSET_LAYERS = ['assets-3d', 'area-fill', 'points-dot']
 
@@ -142,12 +191,43 @@ export default function App() {
 
   function selectOnly(id: string) {
     setSelectedIds([id]); setQuestion(''); reset()
+    playClick()
     const a = assetsRef.current.find((x) => x.id === id)
-    if (a) mapRef.current?.easeTo({ center: a.center, zoom: 17.5, pitch: 58, duration: 900 })
+    if (!a) return
+    const m = mapRef.current
+    if (!m) return
+        if (REALISTIC) {
+      // Swing the camera round to a 3/4 view of the building, and lift the
+      // target up the screen so the whole height sits in frame under pitch.
+      const tall = (a.height ?? 0) > 25
+
+      // Swing toward whichever side the building is already on, so the camera
+      // turns the short way round instead of always sweeping left.
+      const w = m.getCanvas().clientWidth
+      const sx = m.project(a.center).x
+      const off = (sx - w / 2) / (w / 2)          // -1 = far left, +1 = far right
+      const swing = Math.abs(off) < 0.12
+        ? 28                                      // already centred: pick a side
+        : Math.sign(off) * (18 + Math.abs(off) * 22)
+
+      m.flyTo({
+        center: a.center,
+        zoom: tall ? 17.2 : 17.8,
+        pitch: tall ? 62 : 56,
+        bearing: m.getBearing() + swing,
+        offset: [0, tall ? -110 : -55],
+        curve: 1.5,
+        speed: 0.7,
+        essential: true,
+      })
+    } else {
+      m.easeTo({ center: a.center, zoom: 17.5, pitch: 58, duration: 900 })
+    }
   }
 
   function toggleSelect(id: string) {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
+    playClick()
     reset()
   }
 
@@ -345,33 +425,97 @@ export default function App() {
       style: {
         version: 8,
         sources: { osm: { type: 'raster', tiles: ['https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}.png'], tileSize: 256 } },
-        layers: [{ id: 'osm', type: 'raster', source: 'osm' }],
+        layers: [{
+          id: 'osm', type: 'raster', source: 'osm',
+          ...(REALISTIC ? { paint: {
+            'raster-hue-rotate': 80,
+            'raster-saturation': -0.35,
+            'raster-brightness-max': 0.85,
+            'raster-contrast': 0.1,
+          } } : {}),
+        }],
       },
       center: [101.528, 3.112], zoom: 14, pitch: 55, bearing: -20, maxPitch: 80,
+      ...(REALISTIC ? { canvasContextAttributes: { antialias: true } } : {}),
     })
 
     mapRef.current = map
     map.on('rotate', () => setBearing(map.getBearing()))
     map.on('pitch', () => setTilted(map.getPitch() > 10))
-
     map.on('load', () => {
-      map.setSky({ 'sky-color': '#1a1320', 'horizon-color': '#4a3a48', 'sky-horizon-blend': 0.6 })
+      map.setSky(REALISTIC
+        ? {
+            'sky-color': '#1c141b',
+            'horizon-color': '#6b4652',
+            'sky-horizon-blend': 0.75,
+            'fog-color': '#2b212a',
+            'horizon-fog-blend': 0.5,
+          }
+        : { 'sky-color': '#1a1320', 'horizon-color': '#4a3a48', 'sky-horizon-blend': 0.6 })
       map.addSource('assets', { type: 'geojson', data: EMPTY })
       map.addSource('area', { type: 'geojson', data: EMPTY })
       map.addSource('points', { type: 'geojson', data: EMPTY })
       map.addSource('interventions-points', { type: 'geojson', data: EMPTY })
       map.addSource('interventions-arcs', { type: 'geojson', data: EMPTY })
 
+      // Directional light so faces shade differently by orientation.
+      map.setLight(REALISTIC
+        ? { anchor: 'map', color: '#f4f0ec', intensity: 0.4, position: [1.2, 240, 40] }
+        : { anchor: 'viewport', color: '#ffffff', intensity: 0.42, position: [1.4, 200, 28] })
+
       map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': STATUS_PAINT as never, 'fill-opacity': 0.35 } })
+      if (REALISTIC) {
+        map.addLayer({
+          id: 'assets-contact-shadow', type: 'line', source: 'assets',
+          paint: {
+            'line-color': '#000000',
+            'line-opacity': 0.45,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 14, 3, 18, 14] as never,
+            'line-blur': ['interpolate', ['linear'], ['zoom'], 14, 2, 18, 8] as never,
+          },
+        })
+      
+        // Fake cast shadows: footprint shifted away from the sun (light at 240°, so shadows point to 60°).
+        // Three height bands, so taller buildings throw longer shadows.
+        const SHADOW_BANDS: Array<[string, unknown, number[], number[]]> = [
+          ['assets-shadow-low',  ['<', H, 12],                           [0.4, -0.25], [6, -3.5]],
+          ['assets-shadow-mid',  ['all', ['>=', H, 12], ['<', H, 30]],   [0.9, -0.55], [15, -8.5]],
+          ['assets-shadow-tall', ['>=', H, 30],                          [1.8, -1.05], [29, -17]],
+        ]
+        for (const [id, filter, z14, z18] of SHADOW_BANDS) {
+          map.addLayer({
+            id, type: 'fill', source: 'assets', filter: filter as never,
+            paint: {
+              'fill-color': '#120c11',
+              'fill-opacity': 0.38,
+              'fill-translate-anchor': 'map',
+              'fill-translate': ['interpolate', ['exponential', 2], ['zoom'],
+                14, ['literal', z14], 18, ['literal', z18]] as never,
+            },
+          })
+        }
+      }
       map.addLayer({
         id: 'assets-3d', type: 'fill-extrusion', source: 'assets',
         paint: {
-          'fill-extrusion-color': STATUS_PAINT as never,
+          'fill-extrusion-color': (REALISTIC ? BODY_PAINT : STATUS_PAINT) as never,
           'fill-extrusion-height': ['coalesce', ['get', 'height'], 8] as never,
           'fill-extrusion-vertical-gradient': true,
-          'fill-extrusion-opacity': 0.92,
+          'fill-extrusion-opacity': REALISTIC ? 1 : 0.92,
         },
       })
+      if (REALISTIC) {
+        map.addLayer({
+          id: 'assets-roof', type: 'fill-extrusion', source: 'assets',
+          paint: {
+            'fill-extrusion-color': ROOF_PAINT,
+            'fill-extrusion-base': H as never,
+            'fill-extrusion-height': ['+', H, 0.8] as never,
+            'fill-extrusion-vertical-gradient': false,
+            'fill-extrusion-opacity': 1,
+          },
+        })
+      }
       map.addLayer({ id: 'points-dot', type: 'circle', source: 'points', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never, 'circle-color': STATUS_PAINT as never, 'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(0,0,0,.55)' } })
 
       // Intervention Arc Layer
@@ -516,6 +660,25 @@ export default function App() {
     
   }, [assets, selectedIds, activeRunId, mapReady, history])
 
+  // Load and decode the click sound once. Browsers block audio until the user
+  // interacts with the page, so the context is created on first click.
+  useEffect(() => {
+    if (!SOUND) return
+    let dead = false
+    const arm = async () => {
+      if (!audioCtx) audioCtx = new AudioContext()
+      if (audioCtx.state === 'suspended') await audioCtx.resume()
+      if (clickBuf || dead) return
+      try {
+        const buf = await (await fetch('/click.mp3')).arrayBuffer()
+        const decoded = await audioCtx.decodeAudioData(buf)
+        if (!dead) clickBuf = decoded
+      } catch { /* no sound is fine */ }
+    }
+    window.addEventListener('pointerdown', arm)
+    return () => { dead = true; window.removeEventListener('pointerdown', arm) }
+  }, [])
+
   const fittedRef = useRef(false)
   useEffect(() => {
     const map = mapRef.current
@@ -541,8 +704,14 @@ export default function App() {
             STATUS_PAINT,
           ] as never)
 
-    map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
-    map.setPaintProperty('area-fill', 'fill-color', expr as never)
+    const withSel = (base: unknown, sel: string) =>
+      selectedIds.length === 0 ? base : ['case', ['in', ['get', 'id'], ['literal', selectedIds]], sel, base]
+    if (REALISTIC) {
+      map.setPaintProperty('assets-3d', 'fill-extrusion-color', withSel(BODY_PAINT, selectedColour) as never)
+      map.setPaintProperty('assets-roof', 'fill-extrusion-color', withSel(ROOF_PAINT, mix(selectedColour, '#FCFBF4', 0.15)) as never)
+    } else {
+      map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
+    }    map.setPaintProperty('area-fill', 'fill-color', expr as never)
     map.setPaintProperty('points-dot', 'circle-color', expr as never)
   }, [selectedIds, previewing, assets, mapReady])
 
@@ -605,7 +774,7 @@ export default function App() {
       <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
         <main style={{ position: 'relative', flex: 1 }} onMouseMove={pokeHint}>
           <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
-
+          {REALISTIC && <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse at center, transparent 55%, rgba(20,14,19,.55) 100%)' }} />}
           <div style={{
             position: 'absolute', left: 20, top: 20, zIndex: 2,
             display: 'flex', alignItems: 'center', gap: 9,
