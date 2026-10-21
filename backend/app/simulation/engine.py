@@ -1645,6 +1645,37 @@ def simulate_scenario(
         assets_df, interventions_df, projects_df, scenario_id,
     )
 
+    # ---- Phase 4c — per-year deadspace diagnostics ----
+    # Writes `scenarios/deadspace_{scenario_id}_{year}.json` for
+    # every non-base simulated year. The base year is skipped
+    # because run_phase3.py already writes the authoritative
+    # business/deadspace_{base_year}.json, and the B4 state for the
+    # base year is a verbatim copy of B3 (rewriting would produce
+    # a subtly different file for no benefit).
+    deadspace_by_year = _build_deadspace_by_year(
+        state_by_year=state_by_year,
+        assets_df=assets_df,
+        base_derived=base_derived,
+        assumptions=assumptions,
+        years=years,
+    )
+
+    ds_dir = base / "business" / "scenarios"
+    ds_dir.mkdir(parents=True, exist_ok=True)
+    for ds_year, records in deadspace_by_year.items():
+        if ds_year == base_year:
+            continue
+        # Scenario id in the filename so SC-CURRENT, SC-REPURPOSE,
+        # and SC-DELAY do not overwrite each other. The frontend
+        # defaults to SC-CURRENT for the year selector.
+        ds_path = ds_dir / f"deadspace_{scenario_id}_{ds_year}.json"
+        with open(ds_path, "w", encoding="utf-8") as f:
+            json.dump(_json_safe(records), f, indent=2)
+        log.info(
+            "Wrote %d deadspace records for %s year %d -> %s",
+            len(records), scenario_id, ds_year, ds_path.name,
+        )
+
     return {
         "scenario_id": scenario_id,
         "scenario_name": _scenario_name(scenario_id),
@@ -2898,6 +2929,247 @@ def _json_safe(obj):
     if isinstance(obj, float) and math.isnan(obj):
         return None
     return obj
+
+
+# ------------------------------------------------------------------
+# Phase 4c — per-year deadspace diagnostics
+# ------------------------------------------------------------------
+
+
+def _compute_trajectories_from_state(state_by_year, upto_year):
+    """
+    Rebuild per-asset trajectory features from B4's simulated history.
+
+    B6's detector consumes `trajectory_class`, `peak_occupancy`,
+    `years_since_peak`, `occupancy_trend_3yr`, and
+    `years_below_benchmark`. B4 does not update these on simulated
+    years — the values carried forward from the base year are the
+    B3 classification of 2022-2026, not the trajectory of the
+    simulated window. Feeding them to B6 unchanged would emit a
+    2026-derived `rapid_decline` flag on a 2033 asset that is
+    actually stable.
+
+    Strategy:
+      - Base year (first entry in `state_by_year`): B4 copies B3's
+        base-year state verbatim, so `trajectory_class` is already
+        correct. Preserve it untouched.
+      - Later years: reclassify from the (base_year..upto_year)
+        occupancy sequence. Fewer years are available than B3 had,
+        so classes requiring a long history (e.g. `declining`
+        needs years_since_peak >= 2) may not fire until enough
+        simulated years have accumulated. This is a data-
+        availability limit, not a logic error.
+    """
+    from ..derived.engine import _classify_trajectory
+    from ..taxonomy import get_subtype_or_default
+    import numpy as np
+
+    result = {}
+    sorted_years = sorted(y for y in state_by_year if y <= upto_year)
+    if not sorted_years:
+        return result
+    base_year = sorted_years[0]
+
+    current_state = state_by_year.get(upto_year, {})
+    for aid in current_state:
+        if aid.startswith(PROJECT_ID_PREFIX):
+            continue
+
+        # Base year — B3's own classification is authoritative.
+        if upto_year == base_year:
+            st = current_state[aid]
+            result[aid] = {
+                "trajectory_class": st.get("trajectory_class"),
+                "peak_occupancy": st.get("peak_occupancy"),
+                "years_since_peak": st.get("years_since_peak"),
+                "occupancy_trend_3yr": st.get("occupancy_trend_3yr"),
+                "years_below_benchmark": st.get("years_below_benchmark"),
+            }
+            continue
+
+        occ_history = []
+        for y in sorted_years:
+            st = state_by_year[y].get(aid, {})
+            occ = st.get("occupancy_rate")
+            if occ is None:
+                occ = st.get("utilisation_rate")
+            if occ is None:
+                continue
+            try:
+                occ_history.append(float(occ))
+            except (TypeError, ValueError):
+                pass
+
+        if len(occ_history) < 2:
+            result[aid] = {"trajectory_class": "unknown"}
+            continue
+
+        peak = max(occ_history)
+        peak_idx = occ_history.index(peak)
+        years_since_peak = len(occ_history) - 1 - peak_idx
+
+        subtype = current_state[aid].get("subtype")
+        benchmark = None
+        if subtype:
+            defn = get_subtype_or_default(subtype)
+            benchmark = (
+                defn.get("occupancy_benchmark")
+                or defn.get("utilisation_benchmark")
+            )
+        try:
+            benchmark = float(benchmark) if benchmark is not None else 0.85
+        except (TypeError, ValueError):
+            benchmark = 0.85
+
+        below_count = 0
+        for o in reversed(occ_history):
+            if o < benchmark * 0.85:
+                below_count += 1
+            else:
+                break
+
+        tclass = _classify_trajectory(
+            occ_history, peak, years_since_peak, below_count, benchmark,
+        )
+
+        n = min(3, len(occ_history))
+        y_arr = np.array(occ_history[-n:], dtype=float)
+        x_arr = np.arange(n)
+        try:
+            trend = float(np.polyfit(x_arr, y_arr, 1)[0])
+        except Exception:
+            trend = None
+
+        result[aid] = {
+            "trajectory_class": tclass,
+            "peak_occupancy": peak,
+            "years_since_peak": years_since_peak,
+            "occupancy_trend_3yr": trend,
+            "years_below_benchmark": below_count,
+        }
+
+    return result
+
+
+def _build_deadspace_by_year(
+    state_by_year, assets_df, base_derived, assumptions, years,
+):
+    """
+    Run B6's deadspace detector against every simulated year.
+
+    Why this exists
+    ---------------
+    The frontend's year selector reads deadspace records per year.
+    Before this function, only 2026 had a full diagnosis (B3 -> B6,
+    written by run_phase3.py). Every later year fell back to a
+    placeholder branch in /api/map/geometry that only checked
+    occupancy < 0.50 and utilisation < 0.40. That collapsed a
+    200-plus flagged population on 2026 to fewer than 80 on 2027 —
+    semantically wrong (a thirty-flag detector becomes a two-flag
+    detector) and narratively backwards (the intended story is
+    "healthy today, at risk later"; the placeholder told the
+    opposite).
+
+    Field ownership
+    ---------------
+    B4's state carries most of B6's required fields (occupancy,
+    utilisation, NOI, carbon split, surface temp, service coverage,
+    green / canopy coverage, per-subtype occupancy). Three fields
+    need to be filled in here:
+
+      - trajectory_*: rebuilt from the simulated history via
+        _compute_trajectories_from_state.
+      - dsr: recomputed from effective_demand_m2 / _effective_lettable
+        when both are present; inherited from the base year otherwise.
+      - demographic_mismatch / neighborhood_diversity: static
+        attributes of the asset, copied from the base-year B3 record.
+
+    Asset identity
+    --------------
+    A repurpose or renovation changes asset_type / subtype. B6 must
+    diagnose the asset under its NEW class, not its original one.
+    `_effective_asset_type` and `subtype` from the B4 state override
+    the raw asset row.
+
+    Returns
+    -------
+    {year: [deadspace_record, ...]}
+    """
+    from ..deadspace.detector import detect_deadspace_for_asset
+    import pandas as pd
+
+    base_lookup = {}
+    for _, row in base_derived.iterrows():
+        base_lookup[row["asset_id"]] = row.to_dict()
+
+    assets_lookup = {r["asset_id"]: r for _, r in assets_df.iterrows()}
+    results = {}
+
+    for year in years:
+        year_state = state_by_year.get(year, {})
+        if not year_state:
+            continue
+
+        trajectories = _compute_trajectories_from_state(state_by_year, year)
+
+        records = []
+        for aid, st in year_state.items():
+            if aid.startswith(PROJECT_ID_PREFIX):
+                continue
+            if aid not in assets_lookup:
+                continue
+
+            asset_dict = dict(assets_lookup[aid])
+            if st.get("_effective_asset_type"):
+                asset_dict["asset_type"] = st["_effective_asset_type"]
+            if st.get("subtype"):
+                asset_dict["subtype"] = st["subtype"]
+
+            metrics_dict = dict(st)
+            metrics_dict["year"] = year
+            metrics_dict["asset_id"] = aid
+            metrics_dict.update(trajectories.get(aid, {}))
+
+            # DSR — recompute if the base-year value is stale
+            if metrics_dict.get("dsr") is None:
+                demand = metrics_dict.get("effective_demand_m2")
+                supply = (
+                    metrics_dict.get("_effective_lettable")
+                    or asset_dict.get("lettable_area_m2")
+                )
+                if demand is not None and supply:
+                    try:
+                        s = float(supply)
+                        if s > 0:
+                            metrics_dict["dsr"] = float(demand) / s
+                    except (TypeError, ValueError):
+                        pass
+
+            # Static fields — inherit from base-year B3
+            base = base_lookup.get(aid, {})
+            for static_field in (
+                "demographic_mismatch", "neighborhood_diversity",
+            ):
+                if metrics_dict.get(static_field) is None:
+                    v = base.get(static_field)
+                    if v is not None:
+                        metrics_dict[static_field] = v
+
+            try:
+                rec = detect_deadspace_for_asset(
+                    asset=pd.Series(asset_dict),
+                    metrics=pd.Series(metrics_dict),
+                    assumptions=assumptions,
+                )
+                records.append(rec)
+            except Exception as e:
+                log.warning(
+                    "B6 failed for %s year %d: %s", aid, year, e,
+                )
+
+        results[year] = records
+
+    return results
 
 
 def write_scenario_result(result: dict, repo_root: Path = None) -> Path:

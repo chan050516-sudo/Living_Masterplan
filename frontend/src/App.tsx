@@ -235,7 +235,34 @@ export default function App() {
           const backendUrgency = Number(p.urgency_index ?? 0)
           let dynamicDiagnosis = finalProfile?.deadspace_diagnosis ?? null
           if (dynamicDiagnosis) {
-            dynamicDiagnosis = { ...dynamicDiagnosis, status: mapStatus as any, flags: backendFlags, urgency_index: backendUrgency }
+            // Phase 4c — for every year (not just 2026), overlay the
+            // full B6 diagnostic payload from the map endpoint.
+            // evidence and contributing_factors are year-specific:
+            // a park that failed on green_per_capita in 2026 may be
+            // failing on canopy loss by 2033, and the AssetPanel
+            // must reflect that.
+            let dynamicEvidence = dynamicDiagnosis.evidence
+            let dynamicFactors = dynamicDiagnosis.contributing_factors
+            if (p.evidence_json) {
+              try {
+                const ev = JSON.parse(p.evidence_json as string)
+                if (Array.isArray(ev) && ev.length > 0) dynamicEvidence = ev
+              } catch { /* leave as 2026 value */ }
+            }
+            if (p.factors_json) {
+              try {
+                const fac = JSON.parse(p.factors_json as string)
+                if (Array.isArray(fac) && fac.length > 0) dynamicFactors = fac
+              } catch { /* leave as 2026 value */ }
+            }
+            dynamicDiagnosis = {
+              ...dynamicDiagnosis,
+              status: mapStatus as any,
+              flags: backendFlags,
+              urgency_index: backendUrgency,
+              evidence: dynamicEvidence,
+              contributing_factors: dynamicFactors,
+            }
           }
 
           const backendHeight = Number(p.height)

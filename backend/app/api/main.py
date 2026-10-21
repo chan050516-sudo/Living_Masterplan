@@ -164,61 +164,91 @@ async def get_map_geometry(
     """
     Returns a lightweight GeoJSON FeatureCollection.
     Supports dynamic map_status and diagnosis-based metadata for different simulation years.
+
+    Phase 4c — full diagnostic payload
+    ----------------------------------
+    Every year, not just 2026, carries the full B6 output (status,
+    flags, urgency, evidence, contributing factors). The previous
+    non-2026 branch wrote only two flags (low_occupancy,
+    low_utilisation), which collapsed a 200-plus flagged population
+    on 2026 to fewer than 80 on 2027 and told the opposite story
+    from the one the demo needs.
     """
     paths = load_paths()
-    
-    # 1. Load status dictionary based on the requested year
+
+    # ---- 1. Load the year's deadspace records ----
+    if year == 2026:
+        ds_path = BASE_DIR / "business" / "deadspace_2026.json"
+    else:
+        # The year selector defaults to the baseline scenario. A
+        # future scenario picker would pass scenario_id as a query
+        # parameter; the filename is already shaped for that.
+        ds_path = (
+            BASE_DIR / "business" / "scenarios"
+            / f"deadspace_SC-CURRENT_{year}.json"
+        )
+        if not ds_path.exists():
+            log.warning(
+                "No deadspace records for year %d at %s; falling back "
+                "to the 2026 baseline. Run run_phase4.py to generate.",
+                year, ds_path,
+            )
+            ds_path = BASE_DIR / "business" / "deadspace_2026.json"
+
     ds_dict = {}
     flags_dict = {}
     urgency_dict = {}
+    evidence_dict = {}
+    factors_dict = {}
+
+    if ds_path.exists():
+        with open(ds_path, "r", encoding="utf-8") as f:
+            ds_list = json.load(f)
+        ds_dict = {d["asset_id"]: d.get("status") for d in ds_list}
+        flags_dict = {d["asset_id"]: d.get("flags", []) for d in ds_list}
+        urgency_dict = {
+            d["asset_id"]: d.get("urgency_index", 0) for d in ds_list
+        }
+        evidence_dict = {d["asset_id"]: d.get("evidence", []) for d in ds_list}
+        factors_dict = {
+            d["asset_id"]: d.get("contributing_factors", [])
+            for d in ds_list
+        }
+
+    # ---- 1b. Metrics for non-2026 display (from B4's SC-CURRENT) ----
+    # Used by the frontend to override the 2026 profile values on the
+    # asset summary card.
     metrics_dict = {}
-    
-    if year == 2026:
-        # For 2026, use the authoritative B6 deadspace output
-        ds_path = BASE_DIR / "business" / "deadspace_2026.json"
-        if ds_path.exists():
-            with open(ds_path, "r", encoding="utf-8") as f:
-                ds_list = json.load(f)
-                ds_dict = {d["asset_id"]: d["status"] for d in ds_list}
-                flags_dict = {d["asset_id"]: d.get("flags", []) for d in ds_list}
-                urgency_dict = {d["asset_id"]: d.get("urgency_index", 0) for d in ds_list}
-    else:
-        sc_path = BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
+    if year != 2026:
+        sc_path = (
+            BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
+        )
         if sc_path.exists():
             with open(sc_path, "r", encoding="utf-8") as f:
                 sc_data = json.load(f)
-                year_assets = sc_data.get("years", {}).get(str(year), {}).get("assets", {})
-                for aid, state in year_assets.items():
-                    if aid.startswith("PRJ::"):
-                        continue
-                    
-                    occ = state.get("occupancy_rate")
-                    util = state.get("utilisation_rate")
-                    
-                    status = "healthy"
-                    flags = []
-                    urgency = 0.0
-                    
-                    if occ is not None and occ < 0.50:
-                        status = "deadspace_candidate"
-                        flags.append("low_occupancy")
-                        urgency = 2.0
-                    elif util is not None and util < 0.40:
-                        status = "underperforming_facility"
-                        flags.append("low_utilisation")
-                        urgency = 2.0
-                        
-                    ds_dict[aid] = status
-                    flags_dict[aid] = flags
-                    urgency_dict[aid] = urgency
-                    
-                    metrics_dict[aid] = {
-                        "occupancy": occ if occ is not None else util,
-                        "noi_rm": state.get("noi_rm"),
-                        "carbon_operational_tco2e": state.get("carbon_operational_tco2e"),
-                        "carbon_stranded_tco2e": state.get("carbon_stranded_tco2e"),
-                        "stranded_carbon_ratio": state.get("stranded_carbon_ratio"),
-                    }
+            year_assets = (
+                sc_data.get("years", {})
+                .get(str(year), {})
+                .get("assets", {})
+            )
+            for aid, state in year_assets.items():
+                if aid.startswith("PRJ::"):
+                    continue
+                occ = state.get("occupancy_rate")
+                util = state.get("utilisation_rate")
+                metrics_dict[aid] = {
+                    "occupancy": occ if occ is not None else util,
+                    "noi_rm": state.get("noi_rm"),
+                    "carbon_operational_tco2e": state.get(
+                        "carbon_operational_tco2e"
+                    ),
+                    "carbon_stranded_tco2e": state.get(
+                        "carbon_stranded_tco2e"
+                    ),
+                    "stranded_carbon_ratio": state.get(
+                        "stranded_carbon_ratio"
+                    ),
+                }
 
     # Overlay LLM intervention status if run_id is provided
     if run_id:
@@ -226,60 +256,103 @@ async def get_map_geometry(
         if run_path.exists():
             with open(run_path, "r", encoding="utf-8") as f:
                 run_data = json.load(f)
-            for asset in run_data.get("frontend", {}).get("assets_analysis", []):
+            for asset in (
+                run_data.get("frontend", {}).get("assets_analysis", [])
+            ):
                 ds_dict[asset["asset_id"]] = "intervened"
 
-    # 2. Load the geometry layers
+    # ---- 2. Load the geometry layers (unchanged) ----
     gdf_buildings = gpd.read_file(BASE_DIR / paths["geometry"]["buildings"])
-    asset_ids = set(pd.read_csv(BASE_DIR / paths["business"]["assets"])["asset_id"].astype(str))
-    gdf_buildings["building_id"] = gdf_buildings["building_id"].astype(str).str.replace("unlinked-", "")
-    # Calculate extrusion height based on floors (3.5m per floor)
-    gdf_buildings["height"] = gdf_buildings["floors"].fillna(1).clip(lower=1) * 3.5
-    gdf_buildings = gdf_buildings[gdf_buildings["building_id"].isin(asset_ids)].copy()
+    asset_ids = set(
+        pd.read_csv(BASE_DIR / paths["business"]["assets"])["asset_id"]
+        .astype(str)
+    )
+    gdf_buildings["building_id"] = (
+        gdf_buildings["building_id"]
+        .astype(str)
+        .str.replace("unlinked-", "")
+    )
+    gdf_buildings["height"] = (
+        gdf_buildings["floors"].fillna(1).clip(lower=1) * 3.5
+    )
+    gdf_buildings = gdf_buildings[
+        gdf_buildings["building_id"].isin(asset_ids)
+    ].copy()
     gdf_buildings["asset_id"] = gdf_buildings["building_id"]
-    
+
     gdf_parcels = gpd.read_file(BASE_DIR / paths["geometry"]["parcels"])
     gdf_green = gpd.read_file(BASE_DIR / paths["geometry"]["green_blue"])
-    
-    gdf_parcels = gdf_parcels[gdf_parcels["land_use"] == "undeveloped"].copy()
-    
-    # 3. Assign dynamic statuses
-    gdf_buildings["map_status"] = gdf_buildings["asset_id"].map(lambda x: ds_dict.get(x, "healthy"))
+
+    gdf_parcels = gdf_parcels[
+        gdf_parcels["land_use"] == "undeveloped"
+    ].copy()
+
+    # ---- 3. Assign dynamic statuses ----
+    gdf_buildings["map_status"] = gdf_buildings["asset_id"].map(
+        lambda x: ds_dict.get(x, "healthy")
+    )
     gdf_parcels["map_status"] = "vacant"
-    
-    green_id_col = "asset_id" if "asset_id" in gdf_green.columns else "green_id"
+
+    green_id_col = (
+        "asset_id" if "asset_id" in gdf_green.columns else "green_id"
+    )
     gdf_green["asset_id"] = gdf_green[green_id_col]
     gdf_green = gdf_green[gdf_green["asset_id"].isin(asset_ids)].copy()
-    gdf_green["map_status"] = gdf_green["asset_id"].map(lambda x: ds_dict.get(x, "healthy"))
+    gdf_green["map_status"] = gdf_green["asset_id"].map(
+        lambda x: ds_dict.get(x, "healthy")
+    )
 
-    # 4. Attach diagnostic metadata directly to geometry properties
+    # ---- 4. Attach diagnostic metadata to geometry properties ----
     def _attach_metadata(df):
-        df["flags"] = df["asset_id"].map(lambda x: flags_dict.get(x, []))
-        df["urgency_index"] = df["asset_id"].map(lambda x: urgency_dict.get(x, 0.0))
-        df["metrics_json"] = df["asset_id"].map(lambda x: json.dumps(metrics_dict.get(x, {})))
+        df["flags"] = df["asset_id"].map(
+            lambda x: flags_dict.get(x, [])
+        )
+        df["urgency_index"] = df["asset_id"].map(
+            lambda x: urgency_dict.get(x, 0.0)
+        )
+        df["metrics_json"] = df["asset_id"].map(
+            lambda x: json.dumps(metrics_dict.get(x, {}))
+        )
+        # Phase 4c — full diagnostic payload for the AssetPanel
+        df["evidence_json"] = df["asset_id"].map(
+            lambda x: json.dumps(evidence_dict.get(x, []))
+        )
+        df["factors_json"] = df["asset_id"].map(
+            lambda x: json.dumps(factors_dict.get(x, []))
+        )
         return df
 
     gdf_buildings = _attach_metadata(gdf_buildings)
     gdf_green = _attach_metadata(gdf_green)
     gdf_parcels = _attach_metadata(gdf_parcels)
 
-    # 5. Keep only necessary columns to reduce payload size
-    cols = ["asset_id", "map_status", "flags", "urgency_index", "metrics_json", "height", "geometry"]
+    # ---- 5. Keep only necessary columns to reduce payload size ----
+    cols = [
+        "asset_id", "map_status", "flags", "urgency_index",
+        "metrics_json", "evidence_json", "factors_json",
+        "height", "geometry",
+    ]
     for df in [gdf_buildings, gdf_parcels, gdf_green]:
         for c in cols:
             if c not in df.columns:
                 df[c] = None
 
-    # 6. Combine and convert to EPSG:4326
-    combined_gdf = pd.concat([
-        gdf_buildings[cols],
-        gdf_parcels[cols],
-        gdf_green[cols]
-    ], ignore_index=True)
-    
+    # ---- 6. Combine and convert to EPSG:4326 ----
+    combined_gdf = pd.concat(
+        [
+            gdf_buildings[cols],
+            gdf_parcels[cols],
+            gdf_green[cols],
+        ],
+        ignore_index=True,
+    )
+
     combined_gdf = combined_gdf.to_crs("EPSG:4326")
-    
-    return Response(content=combined_gdf.to_json(), media_type="application/json")
+
+    return Response(
+        content=combined_gdf.to_json(),
+        media_type="application/json",
+    )
 
 
 if __name__ == "__main__":
