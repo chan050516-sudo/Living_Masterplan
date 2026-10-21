@@ -2458,15 +2458,13 @@
     "status": "monitor",
     "flags": [
       "below_benchmark_occupancy",
-      "high_uhi_exposure",
       "chronic_stagnation"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
-        "high_uhi_exposure",
         "chronic_stagnation"
       ]
     },
@@ -2488,15 +2486,11 @@
     "contributing_factors": [
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.3333
-      },
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 0.3333
+        "contribution": 0.5
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.3333
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -2505,7 +2499,7 @@
       "Stranded carbon (unused capacity): 106.2 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 129.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,323 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -2876,16 +2870,12 @@
   {
     "asset_id": "BLD-0577",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -2894,26 +2884,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: detached",
       "Operational carbon: 495.5 tCO2e/yr",
       "Stranded carbon (unused capacity): 55.0 tCO2e/yr (11.1%)",
       "Productive carbon (serving users): 440.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,171 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.9 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.8%)"
     ],
     "model_version": "0.4.0"
@@ -8070,16 +8052,12 @@
   {
     "asset_id": "BLD-0275",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -8088,26 +8066,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: detached",
       "Operational carbon: 106.5 tCO2e/yr",
       "Stranded carbon (unused capacity): 20.2 tCO2e/yr (19.0%)",
       "Productive carbon (serving users): 86.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 467.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.7 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.3%)"
     ],
     "model_version": "0.4.0"
@@ -8942,7 +8912,7 @@
       "Stranded carbon (unused capacity): 15.4 tCO2e/yr (15.4%)",
       "Productive carbon (serving users): 84.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 440.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.6 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.5%)"
     ],
     "model_version": "0.4.0"
@@ -9016,16 +8986,12 @@
   {
     "asset_id": "BLD-0379",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -9034,26 +9000,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: detached",
       "Operational carbon: 99.8 tCO2e/yr",
       "Stranded carbon (unused capacity): 10.9 tCO2e/yr (10.9%)",
       "Productive carbon (serving users): 88.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 439.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.1 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.1%)"
     ],
     "model_version": "0.4.0"
@@ -10056,16 +10014,12 @@
   {
     "asset_id": "BLD-0399",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -10074,26 +10028,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: detached",
       "Operational carbon: 95.0 tCO2e/yr",
       "Stranded carbon (unused capacity): 17.6 tCO2e/yr (18.5%)",
       "Productive carbon (serving users): 77.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 417.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.5 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.3%)"
     ],
     "model_version": "0.4.0"
@@ -10252,16 +10198,12 @@
   {
     "asset_id": "BLD-0201",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -10270,26 +10212,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: terrace",
       "Operational carbon: 128.8 tCO2e/yr",
       "Stranded carbon (unused capacity): 12.5 tCO2e/yr (9.7%)",
       "Productive carbon (serving users): 116.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 722.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.2%)"
     ],
     "model_version": "0.4.0"
@@ -11135,16 +11069,12 @@
   {
     "asset_id": "BLD-0597",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -11153,26 +11083,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: terrace",
       "Operational carbon: 122.8 tCO2e/yr",
       "Stranded carbon (unused capacity): 16.5 tCO2e/yr (13.4%)",
       "Productive carbon (serving users): 106.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 688.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.9%)"
     ],
     "model_version": "0.4.0"
@@ -12766,16 +12688,12 @@
   {
     "asset_id": "BLD-0293",
     "year": 2026,
-    "status": "monitor",
-    "flags": [
-      "high_uhi_exposure"
-    ],
-    "urgency_index": 1.0,
+    "status": "healthy",
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
-      "triggered": true,
-      "reasons": [
-        "high_uhi_exposure"
-      ]
+      "triggered": false,
+      "reasons": []
     },
     "layer2": {
       "triggered": false,
@@ -12784,26 +12702,18 @@
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
-      "candidate_interventions": [
-        "retrofit",
-        "pedestrian_upgrade"
-      ],
-      "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 2 of 4 legal interventions based on fired flags"
+      "candidate_interventions": [],
+      "diagnosis_active": false,
+      "reason": "no layer triggered; no intervention is indicated regardless of legal action space"
     },
-    "contributing_factors": [
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 1.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: detached",
       "Operational carbon: 249.2 tCO2e/yr",
       "Stranded carbon (unused capacity): 26.4 tCO2e/yr (10.6%)",
       "Productive carbon (serving users): 222.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,093 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.5 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.4%)"
     ],
     "model_version": "0.4.0"
@@ -13105,15 +13015,13 @@
     "status": "monitor",
     "flags": [
       "below_benchmark_occupancy",
-      "high_uhi_exposure",
       "chronic_stagnation"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
-        "high_uhi_exposure",
         "chronic_stagnation"
       ]
     },
@@ -13135,15 +13043,11 @@
     "contributing_factors": [
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.3333
-      },
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 0.3333
+        "contribution": 0.5
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.3333
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -13152,7 +13056,7 @@
       "Stranded carbon (unused capacity): 73.6 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 90.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 717.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -14637,7 +14541,7 @@
       "Stranded carbon (unused capacity): 10.9 tCO2e/yr (14.6%)",
       "Productive carbon (serving users): 63.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 330.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.4 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.8%)"
     ],
     "model_version": "0.4.0"
@@ -29203,10 +29107,9 @@
       "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon_ratio_small_asset",
-      "high_uhi_exposure",
       "rapid_decline"
     ],
-    "urgency_index": 7.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -29215,7 +29118,6 @@
         "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon_ratio_small_asset",
-        "high_uhi_exposure",
         "rapid_decline"
       ]
     },
@@ -29238,31 +29140,27 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "rapid_decline",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1
+        "contribution": 0.1111
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1
+        "contribution": 0.1111
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1
-      },
-      {
-        "factor": "high_uhi_exposure",
-        "contribution": 0.1
+        "contribution": 0.1111
       }
     ],
     "evidence": [
@@ -29271,7 +29169,7 @@
       "Stranded carbon (unused capacity): 37.1 tCO2e/yr (92.1%)",
       "Productive carbon (serving users): 3.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 82.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +7.5 \u00b0C",
+      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
       "Occupancy: 7.9%",
       "Vacancy: 17 months",
       "NOI (RM, annual): 58,624",
@@ -32457,7 +32355,7 @@
       "Stranded carbon (unused capacity): 240.1 tCO2e/yr (12.5%)",
       "Productive carbon (serving users): 1,681 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 12,549 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.9 \u00b0C",
+      "Surface temperature delta (UHI proxy): +5.5 \u00b0C",
       "Utilisation: 87.5%",
       "Service coverage: 1.9%",
       "Cost per user (RM): 9.77",

@@ -27,7 +27,7 @@
       "Stranded carbon (unused capacity): 140.4 tCO2e/yr (13.6%)",
       "Productive carbon (serving users): 891.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 4,717 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.4%)"
     ],
     "model_version": "0.4.0"
@@ -60,7 +60,7 @@
       "Stranded carbon (unused capacity): 74.5 tCO2e/yr (19.0%)",
       "Productive carbon (serving users): 317.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,204 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.0%)"
     ],
     "model_version": "0.4.0"
@@ -93,7 +93,7 @@
       "Stranded carbon (unused capacity): 34.7 tCO2e/yr (12.2%)",
       "Productive carbon (serving users): 249.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,250 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.8%)"
     ],
     "model_version": "0.4.0"
@@ -126,7 +126,7 @@
       "Stranded carbon (unused capacity): 17.2 tCO2e/yr (4.9%)",
       "Productive carbon (serving users): 332.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,969 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.1%)"
     ],
     "model_version": "0.4.0"
@@ -159,7 +159,7 @@
       "Stranded carbon (unused capacity): 19.5 tCO2e/yr (5.6%)",
       "Productive carbon (serving users): 328.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,955 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.4%)"
     ],
     "model_version": "0.4.0"
@@ -192,7 +192,7 @@
       "Stranded carbon (unused capacity): 47.6 tCO2e/yr (14.2%)",
       "Productive carbon (serving users): 287.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,884 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.8%)"
     ],
     "model_version": "0.4.0"
@@ -225,7 +225,7 @@
       "Stranded carbon (unused capacity): 53.9 tCO2e/yr (16.1%)",
       "Productive carbon (serving users): 281.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,884 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.9%)"
     ],
     "model_version": "0.4.0"
@@ -258,7 +258,7 @@
       "Stranded carbon (unused capacity): 43.5 tCO2e/yr (13.1%)",
       "Productive carbon (serving users): 288.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,865 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.9%)"
     ],
     "model_version": "0.4.0"
@@ -389,7 +389,7 @@
       "Stranded carbon (unused capacity): 48.6 tCO2e/yr (14.7%)",
       "Productive carbon (serving users): 281.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,858 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.3%)"
     ],
     "model_version": "0.4.0"
@@ -422,7 +422,7 @@
       "Stranded carbon (unused capacity): 68.3 tCO2e/yr (21.1%)",
       "Productive carbon (serving users): 255.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,821 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 78.9%)"
     ],
     "model_version": "0.4.0"
@@ -455,7 +455,7 @@
       "Stranded carbon (unused capacity): 27.5 tCO2e/yr (8.5%)",
       "Productive carbon (serving users): 296.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,820 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.5%)"
     ],
     "model_version": "0.4.0"
@@ -488,7 +488,7 @@
       "Stranded carbon (unused capacity): 26.0 tCO2e/yr (8.1%)",
       "Productive carbon (serving users): 295.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,805 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.9%)"
     ],
     "model_version": "0.4.0"
@@ -546,7 +546,7 @@
       "Stranded carbon (unused capacity): 313.3 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,762 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -579,7 +579,7 @@
       "Stranded carbon (unused capacity): 48.0 tCO2e/yr (15.4%)",
       "Productive carbon (serving users): 263.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,751 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.6%)"
     ],
     "model_version": "0.4.0"
@@ -612,7 +612,7 @@
       "Stranded carbon (unused capacity): 40.0 tCO2e/yr (13.0%)",
       "Productive carbon (serving users): 267.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,730 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.0%)"
     ],
     "model_version": "0.4.0"
@@ -645,7 +645,7 @@
       "Stranded carbon (unused capacity): 20.0 tCO2e/yr (6.6%)",
       "Productive carbon (serving users): 283.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,706 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.4%)"
     ],
     "model_version": "0.4.0"
@@ -950,7 +950,7 @@
       "Stranded carbon (unused capacity): 12.7 tCO2e/yr (4.4%)",
       "Productive carbon (serving users): 275.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,622 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.6%)"
     ],
     "model_version": "0.4.0"
@@ -1041,7 +1041,7 @@
       "Stranded carbon (unused capacity): 286.8 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,613 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -1074,7 +1074,7 @@
       "Stranded carbon (unused capacity): 44.7 tCO2e/yr (15.6%)",
       "Productive carbon (serving users): 241.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,610 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.4%)"
     ],
     "model_version": "0.4.0"
@@ -1107,7 +1107,7 @@
       "Stranded carbon (unused capacity): 36.9 tCO2e/yr (12.9%)",
       "Productive carbon (serving users): 249.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,608 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.1%)"
     ],
     "model_version": "0.4.0"
@@ -1159,7 +1159,7 @@
       "Stranded carbon (unused capacity): 127.5 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 155.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,593 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -1192,7 +1192,7 @@
       "Stranded carbon (unused capacity): 13.0 tCO2e/yr (4.6%)",
       "Productive carbon (serving users): 270.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,592 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.4%)"
     ],
     "model_version": "0.4.0"
@@ -1414,7 +1414,7 @@
       "Stranded carbon (unused capacity): 17.1 tCO2e/yr (6.2%)",
       "Productive carbon (serving users): 259.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,554 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.8%)"
     ],
     "model_version": "0.4.0"
@@ -1447,7 +1447,7 @@
       "Stranded carbon (unused capacity): 37.8 tCO2e/yr (13.7%)",
       "Productive carbon (serving users): 237.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,550 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.3%)"
     ],
     "model_version": "0.4.0"
@@ -1480,7 +1480,7 @@
       "Stranded carbon (unused capacity): 24.5 tCO2e/yr (9.0%)",
       "Productive carbon (serving users): 247.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,532 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.0%)"
     ],
     "model_version": "0.4.0"
@@ -1513,7 +1513,7 @@
       "Stranded carbon (unused capacity): 14.3 tCO2e/yr (5.3%)",
       "Productive carbon (serving users): 255.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,517 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.7%)"
     ],
     "model_version": "0.4.0"
@@ -1546,7 +1546,7 @@
       "Stranded carbon (unused capacity): 22.3 tCO2e/yr (8.3%)",
       "Productive carbon (serving users): 246.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,514 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.7%)"
     ],
     "model_version": "0.4.0"
@@ -1579,7 +1579,7 @@
       "Stranded carbon (unused capacity): 26.6 tCO2e/yr (9.9%)",
       "Productive carbon (serving users): 241.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,509 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.1%)"
     ],
     "model_version": "0.4.0"
@@ -1664,7 +1664,7 @@
       "Stranded carbon (unused capacity): 120.5 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 147.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,506 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -1782,7 +1782,7 @@
       "Stranded carbon (unused capacity): 39.9 tCO2e/yr (15.1%)",
       "Productive carbon (serving users): 224.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,486 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.9%)"
     ],
     "model_version": "0.4.0"
@@ -1848,7 +1848,7 @@
       "Stranded carbon (unused capacity): 27.2 tCO2e/yr (10.5%)",
       "Productive carbon (serving users): 231.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,457 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.5%)"
     ],
     "model_version": "0.4.0"
@@ -1900,7 +1900,7 @@
       "Stranded carbon (unused capacity): 115.9 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 141.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,449 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -1999,7 +1999,7 @@
       "Stranded carbon (unused capacity): 9.9 tCO2e/yr (3.9%)",
       "Productive carbon (serving users): 243.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,426 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.1%)"
     ],
     "model_version": "0.4.0"
@@ -2032,7 +2032,7 @@
       "Stranded carbon (unused capacity): 44.8 tCO2e/yr (8.1%)",
       "Productive carbon (serving users): 508.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,432 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.9%)"
     ],
     "model_version": "0.4.0"
@@ -2098,7 +2098,7 @@
       "Stranded carbon (unused capacity): 126.3 tCO2e/yr (16.4%)",
       "Productive carbon (serving users): 643.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 3,519 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.6%)"
     ],
     "model_version": "0.4.0"
@@ -2131,7 +2131,7 @@
       "Stranded carbon (unused capacity): 21.4 tCO2e/yr (8.6%)",
       "Productive carbon (serving users): 227.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,400 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.4%)"
     ],
     "model_version": "0.4.0"
@@ -2164,7 +2164,7 @@
       "Stranded carbon (unused capacity): 9.2 tCO2e/yr (3.7%)",
       "Productive carbon (serving users): 238.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,391 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.3%)"
     ],
     "model_version": "0.4.0"
@@ -2230,7 +2230,7 @@
       "Stranded carbon (unused capacity): 49.0 tCO2e/yr (20.0%)",
       "Productive carbon (serving users): 196.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,378 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.0%)"
     ],
     "model_version": "0.4.0"
@@ -2263,7 +2263,7 @@
       "Stranded carbon (unused capacity): 15.2 tCO2e/yr (6.2%)",
       "Productive carbon (serving users): 229.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,377 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.8%)"
     ],
     "model_version": "0.4.0"
@@ -2296,7 +2296,7 @@
       "Stranded carbon (unused capacity): 25.4 tCO2e/yr (10.4%)",
       "Productive carbon (serving users): 218.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,371 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.6%)"
     ],
     "model_version": "0.4.0"
@@ -2362,7 +2362,7 @@
       "Stranded carbon (unused capacity): 26.1 tCO2e/yr (10.8%)",
       "Productive carbon (serving users): 215.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,358 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.2%)"
     ],
     "model_version": "0.4.0"
@@ -2428,7 +2428,7 @@
       "Stranded carbon (unused capacity): 7.7 tCO2e/yr (3.2%)",
       "Productive carbon (serving users): 232.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,351 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.8%)"
     ],
     "model_version": "0.4.0"
@@ -2461,7 +2461,7 @@
       "Stranded carbon (unused capacity): 90.8 tCO2e/yr (17.3%)",
       "Productive carbon (serving users): 434.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,309 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.7%)"
     ],
     "model_version": "0.4.0"
@@ -2513,7 +2513,7 @@
       "Stranded carbon (unused capacity): 105.8 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 129.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,323 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.6 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -2612,7 +2612,7 @@
       "Stranded carbon (unused capacity): 7.6 tCO2e/yr (3.3%)",
       "Productive carbon (serving users): 223.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,299 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.7%)"
     ],
     "model_version": "0.4.0"
@@ -2711,7 +2711,7 @@
       "Stranded carbon (unused capacity): 25.9 tCO2e/yr (11.3%)",
       "Productive carbon (serving users): 203.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,289 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.7%)"
     ],
     "model_version": "0.4.0"
@@ -2744,7 +2744,7 @@
       "Stranded carbon (unused capacity): 32.9 tCO2e/yr (14.4%)",
       "Productive carbon (serving users): 195.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,286 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.6%)"
     ],
     "model_version": "0.4.0"
@@ -2777,7 +2777,7 @@
       "Stranded carbon (unused capacity): 18.3 tCO2e/yr (8.0%)",
       "Productive carbon (serving users): 210.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,284 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.0%)"
     ],
     "model_version": "0.4.0"
@@ -2810,7 +2810,7 @@
       "Stranded carbon (unused capacity): 5.2 tCO2e/yr (2.3%)",
       "Productive carbon (serving users): 222.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,282 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 97.7%)"
     ],
     "model_version": "0.4.0"
@@ -2843,7 +2843,7 @@
       "Stranded carbon (unused capacity): 34.2 tCO2e/yr (15.0%)",
       "Productive carbon (serving users): 193.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,281 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.0%)"
     ],
     "model_version": "0.4.0"
@@ -2876,7 +2876,7 @@
       "Stranded carbon (unused capacity): 18.4 tCO2e/yr (8.1%)",
       "Productive carbon (serving users): 208.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,276 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.9%)"
     ],
     "model_version": "0.4.0"
@@ -2909,7 +2909,7 @@
       "Stranded carbon (unused capacity): 54.8 tCO2e/yr (11.1%)",
       "Productive carbon (serving users): 438.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,171 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.7 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.9%)"
     ],
     "model_version": "0.4.0"
@@ -2975,7 +2975,7 @@
       "Stranded carbon (unused capacity): 20.9 tCO2e/yr (9.3%)",
       "Productive carbon (serving users): 203.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,263 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.7%)"
     ],
     "model_version": "0.4.0"
@@ -3008,7 +3008,7 @@
       "Stranded carbon (unused capacity): 41.1 tCO2e/yr (18.3%)",
       "Productive carbon (serving users): 183.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,262 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.7%)"
     ],
     "model_version": "0.4.0"
@@ -3074,7 +3074,7 @@
       "Stranded carbon (unused capacity): 36.5 tCO2e/yr (16.3%)",
       "Productive carbon (serving users): 187.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,258 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.7%)"
     ],
     "model_version": "0.4.0"
@@ -3140,7 +3140,7 @@
       "Stranded carbon (unused capacity): 14.1 tCO2e/yr (8.7%)",
       "Productive carbon (serving users): 147.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 712.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.3%)"
     ],
     "model_version": "0.4.0"
@@ -3239,7 +3239,7 @@
       "Stranded carbon (unused capacity): 10.0 tCO2e/yr (4.6%)",
       "Productive carbon (serving users): 207.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,224 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.4%)"
     ],
     "model_version": "0.4.0"
@@ -3305,7 +3305,7 @@
       "Stranded carbon (unused capacity): 37.9 tCO2e/yr (17.6%)",
       "Productive carbon (serving users): 177.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,211 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.4%)"
     ],
     "model_version": "0.4.0"
@@ -3338,7 +3338,7 @@
       "Stranded carbon (unused capacity): 32.9 tCO2e/yr (15.3%)",
       "Productive carbon (serving users): 182.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,208 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.7%)"
     ],
     "model_version": "0.4.0"
@@ -3371,7 +3371,7 @@
       "Stranded carbon (unused capacity): 32.9 tCO2e/yr (15.3%)",
       "Productive carbon (serving users): 181.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,208 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.7%)"
     ],
     "model_version": "0.4.0"
@@ -3404,7 +3404,7 @@
       "Stranded carbon (unused capacity): 9.7 tCO2e/yr (4.5%)",
       "Productive carbon (serving users): 205.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,207 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.5%)"
     ],
     "model_version": "0.4.0"
@@ -3503,7 +3503,7 @@
       "Stranded carbon (unused capacity): 31.2 tCO2e/yr (14.6%)",
       "Productive carbon (serving users): 182.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,203 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.4%)"
     ],
     "model_version": "0.4.0"
@@ -3635,7 +3635,7 @@
       "Stranded carbon (unused capacity): 38.8 tCO2e/yr (18.3%)",
       "Productive carbon (serving users): 173.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,193 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.7%)"
     ],
     "model_version": "0.4.0"
@@ -3668,7 +3668,7 @@
       "Stranded carbon (unused capacity): 12.3 tCO2e/yr (5.8%)",
       "Productive carbon (serving users): 199.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,193 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.2%)"
     ],
     "model_version": "0.4.0"
@@ -3720,7 +3720,7 @@
       "Stranded carbon (unused capacity): 47.9 tCO2e/yr (22.7%)",
       "Productive carbon (serving users): 163.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,187 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -3811,7 +3811,7 @@
       "Stranded carbon (unused capacity): 40.2 tCO2e/yr (19.4%)",
       "Productive carbon (serving users): 167.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,166 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.6%)"
     ],
     "model_version": "0.4.0"
@@ -3943,7 +3943,7 @@
       "Stranded carbon (unused capacity): 5.3 tCO2e/yr (2.6%)",
       "Productive carbon (serving users): 199.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,154 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 97.4%)"
     ],
     "model_version": "0.4.0"
@@ -3976,7 +3976,7 @@
       "Stranded carbon (unused capacity): 4.1 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 199.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,143 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -4034,7 +4034,7 @@
       "Stranded carbon (unused capacity): 170.7 tCO2e/yr (84.2%)",
       "Productive carbon (serving users): 32.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,140 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -4086,7 +4086,7 @@
       "Stranded carbon (unused capacity): 90.9 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 111.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,136 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -4119,7 +4119,7 @@
       "Stranded carbon (unused capacity): 30.4 tCO2e/yr (10.3%)",
       "Productive carbon (serving users): 264.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,298 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.7%)"
     ],
     "model_version": "0.4.0"
@@ -4218,7 +4218,7 @@
       "Stranded carbon (unused capacity): 30.9 tCO2e/yr (15.4%)",
       "Productive carbon (serving users): 169.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,127 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.6%)"
     ],
     "model_version": "0.4.0"
@@ -4416,7 +4416,7 @@
       "Stranded carbon (unused capacity): 28.7 tCO2e/yr (14.7%)",
       "Productive carbon (serving users): 166.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,099 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.3%)"
     ],
     "model_version": "0.4.0"
@@ -4449,7 +4449,7 @@
       "Stranded carbon (unused capacity): 32.1 tCO2e/yr (16.5%)",
       "Productive carbon (serving users): 162.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,096 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.5%)"
     ],
     "model_version": "0.4.0"
@@ -4540,7 +4540,7 @@
       "Stranded carbon (unused capacity): 11.4 tCO2e/yr (5.9%)",
       "Productive carbon (serving users): 182.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,090 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.1%)"
     ],
     "model_version": "0.4.0"
@@ -4639,7 +4639,7 @@
       "Stranded carbon (unused capacity): 10.0 tCO2e/yr (5.2%)",
       "Productive carbon (serving users): 182.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,084 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.8%)"
     ],
     "model_version": "0.4.0"
@@ -4771,7 +4771,7 @@
       "Stranded carbon (unused capacity): 3.8 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 186.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,068 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -4804,7 +4804,7 @@
       "Stranded carbon (unused capacity): 33.8 tCO2e/yr (15.5%)",
       "Productive carbon (serving users): 184.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,138 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.5%)"
     ],
     "model_version": "0.4.0"
@@ -4870,7 +4870,7 @@
       "Stranded carbon (unused capacity): 23.8 tCO2e/yr (12.6%)",
       "Productive carbon (serving users): 164.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,061 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.4%)"
     ],
     "model_version": "0.4.0"
@@ -4903,7 +4903,7 @@
       "Stranded carbon (unused capacity): 44.7 tCO2e/yr (13.7%)",
       "Productive carbon (serving users): 281.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,704 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.7 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.3%)"
     ],
     "model_version": "0.4.0"
@@ -4969,7 +4969,7 @@
       "Stranded carbon (unused capacity): 8.3 tCO2e/yr (4.4%)",
       "Productive carbon (serving users): 179.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,057 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.6%)"
     ],
     "model_version": "0.4.0"
@@ -5087,7 +5087,7 @@
       "Stranded carbon (unused capacity): 83.0 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 101.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,038 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -5178,7 +5178,7 @@
       "Stranded carbon (unused capacity): 159.6 tCO2e/yr (86.7%)",
       "Productive carbon (serving users): 24.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,035 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -5211,7 +5211,7 @@
       "Stranded carbon (unused capacity): 16.7 tCO2e/yr (9.1%)",
       "Productive carbon (serving users): 166.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,032 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.7 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.9%)"
     ],
     "model_version": "0.4.0"
@@ -5244,7 +5244,7 @@
       "Stranded carbon (unused capacity): 44.3 tCO2e/yr (10.5%)",
       "Productive carbon (serving users): 378.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,930 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.5%)"
     ],
     "model_version": "0.4.0"
@@ -5310,7 +5310,7 @@
       "Stranded carbon (unused capacity): 3.6 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 178.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,023 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -5343,7 +5343,7 @@
       "Stranded carbon (unused capacity): 15.2 tCO2e/yr (8.4%)",
       "Productive carbon (serving users): 166.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,019 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.6%)"
     ],
     "model_version": "0.4.0"
@@ -5503,7 +5503,7 @@
       "Stranded carbon (unused capacity): 180.3 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,014 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -5536,7 +5536,7 @@
       "Stranded carbon (unused capacity): 30.9 tCO2e/yr (10.0%)",
       "Productive carbon (serving users): 278.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,616 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.0%)"
     ],
     "model_version": "0.4.0"
@@ -5594,7 +5594,7 @@
       "Stranded carbon (unused capacity): 149.4 tCO2e/yr (83.6%)",
       "Productive carbon (serving users): 29.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,005 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -5627,7 +5627,7 @@
       "Stranded carbon (unused capacity): 25.2 tCO2e/yr (14.2%)",
       "Productive carbon (serving users): 152.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1000.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.8%)"
     ],
     "model_version": "0.4.0"
@@ -5660,7 +5660,7 @@
       "Stranded carbon (unused capacity): 22.8 tCO2e/yr (12.8%)",
       "Productive carbon (serving users): 155.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1000.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.2%)"
     ],
     "model_version": "0.4.0"
@@ -5693,7 +5693,7 @@
       "Stranded carbon (unused capacity): 3.6 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 174.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 999.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -5858,7 +5858,7 @@
       "Stranded carbon (unused capacity): 8.2 tCO2e/yr (4.7%)",
       "Productive carbon (serving users): 166.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 981.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.7 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.3%)"
     ],
     "model_version": "0.4.0"
@@ -5916,7 +5916,7 @@
       "Stranded carbon (unused capacity): 174.5 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 981.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -5949,7 +5949,7 @@
       "Stranded carbon (unused capacity): 18.8 tCO2e/yr (10.8%)",
       "Productive carbon (serving users): 155.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 980.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.2%)"
     ],
     "model_version": "0.4.0"
@@ -6007,7 +6007,7 @@
       "Stranded carbon (unused capacity): 173.5 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 976.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -6040,7 +6040,7 @@
       "Stranded carbon (unused capacity): 30.9 tCO2e/yr (17.8%)",
       "Productive carbon (serving users): 142.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 976.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.2%)"
     ],
     "model_version": "0.4.0"
@@ -6073,7 +6073,7 @@
       "Stranded carbon (unused capacity): 10.1 tCO2e/yr (5.8%)",
       "Productive carbon (serving users): 163.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 975.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.2%)"
     ],
     "model_version": "0.4.0"
@@ -6139,7 +6139,7 @@
       "Stranded carbon (unused capacity): 9.4 tCO2e/yr (5.5%)",
       "Productive carbon (serving users): 161.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 959.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.5%)"
     ],
     "model_version": "0.4.0"
@@ -6172,7 +6172,7 @@
       "Stranded carbon (unused capacity): 22.6 tCO2e/yr (13.3%)",
       "Productive carbon (serving users): 147.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 954.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.7%)"
     ],
     "model_version": "0.4.0"
@@ -6238,7 +6238,7 @@
       "Stranded carbon (unused capacity): 30.7 tCO2e/yr (18.2%)",
       "Productive carbon (serving users): 138.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 950.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.8%)"
     ],
     "model_version": "0.4.0"
@@ -6271,7 +6271,7 @@
       "Stranded carbon (unused capacity): 9.8 tCO2e/yr (5.8%)",
       "Productive carbon (serving users): 158.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 947.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.2%)"
     ],
     "model_version": "0.4.0"
@@ -6304,7 +6304,7 @@
       "Stranded carbon (unused capacity): 8.1 tCO2e/yr (4.8%)",
       "Productive carbon (serving users): 159.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 945.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.2%)"
     ],
     "model_version": "0.4.0"
@@ -6403,7 +6403,7 @@
       "Stranded carbon (unused capacity): 8.2 tCO2e/yr (4.9%)",
       "Productive carbon (serving users): 158.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 936.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.1%)"
     ],
     "model_version": "0.4.0"
@@ -6494,7 +6494,7 @@
       "Stranded carbon (unused capacity): 152.8 tCO2e/yr (93.2%)",
       "Productive carbon (serving users): 11.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 922.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -6546,7 +6546,7 @@
       "Stranded carbon (unused capacity): 73.7 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 90.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 921.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -6579,7 +6579,7 @@
       "Stranded carbon (unused capacity): 4.9 tCO2e/yr (3.0%)",
       "Productive carbon (serving users): 158.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 919.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 97.0%)"
     ],
     "model_version": "0.4.0"
@@ -6612,7 +6612,7 @@
       "Stranded carbon (unused capacity): 14.0 tCO2e/yr (8.6%)",
       "Productive carbon (serving users): 149.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 917.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.4%)"
     ],
     "model_version": "0.4.0"
@@ -6678,7 +6678,7 @@
       "Stranded carbon (unused capacity): 52.6 tCO2e/yr (10.6%)",
       "Productive carbon (serving users): 443.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,267 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.4%)"
     ],
     "model_version": "0.4.0"
@@ -6711,7 +6711,7 @@
       "Stranded carbon (unused capacity): 22.1 tCO2e/yr (13.8%)",
       "Productive carbon (serving users): 138.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 902.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.2%)"
     ],
     "model_version": "0.4.0"
@@ -6744,7 +6744,7 @@
       "Stranded carbon (unused capacity): 5.9 tCO2e/yr (3.7%)",
       "Productive carbon (serving users): 154.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 900.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.3%)"
     ],
     "model_version": "0.4.0"
@@ -6810,7 +6810,7 @@
       "Stranded carbon (unused capacity): 7.5 tCO2e/yr (4.7%)",
       "Productive carbon (serving users): 152.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 899.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.3%)"
     ],
     "model_version": "0.4.0"
@@ -6876,7 +6876,7 @@
       "Stranded carbon (unused capacity): 3.5 tCO2e/yr (2.2%)",
       "Productive carbon (serving users): 155.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 893.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 97.8%)"
     ],
     "model_version": "0.4.0"
@@ -6942,7 +6942,7 @@
       "Stranded carbon (unused capacity): 20.6 tCO2e/yr (13.0%)",
       "Productive carbon (serving users): 137.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 890.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.0%)"
     ],
     "model_version": "0.4.0"
@@ -7041,7 +7041,7 @@
       "Stranded carbon (unused capacity): 37.9 tCO2e/yr (16.8%)",
       "Productive carbon (serving users): 187.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 992.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.2%)"
     ],
     "model_version": "0.4.0"
@@ -7074,7 +7074,7 @@
       "Stranded carbon (unused capacity): 12.1 tCO2e/yr (7.9%)",
       "Productive carbon (serving users): 141.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 864.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.1%)"
     ],
     "model_version": "0.4.0"
@@ -7140,7 +7140,7 @@
       "Stranded carbon (unused capacity): 37.2 tCO2e/yr (21.0%)",
       "Productive carbon (serving users): 139.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 925.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 79.0%)"
     ],
     "model_version": "0.4.0"
@@ -7305,7 +7305,7 @@
       "Stranded carbon (unused capacity): 8.8 tCO2e/yr (5.8%)",
       "Productive carbon (serving users): 142.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 852.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.2%)"
     ],
     "model_version": "0.4.0"
@@ -7390,7 +7390,7 @@
       "Stranded carbon (unused capacity): 68.0 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 83.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 850.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -7423,7 +7423,7 @@
       "Stranded carbon (unused capacity): 7.8 tCO2e/yr (5.2%)",
       "Productive carbon (serving users): 142.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 847.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.8%)"
     ],
     "model_version": "0.4.0"
@@ -7822,7 +7822,7 @@
       "Stranded carbon (unused capacity): 7.5 tCO2e/yr (5.1%)",
       "Productive carbon (serving users): 140.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 830.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.9%)"
     ],
     "model_version": "0.4.0"
@@ -7888,7 +7888,7 @@
       "Stranded carbon (unused capacity): 28.0 tCO2e/yr (16.5%)",
       "Productive carbon (serving users): 141.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 886.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.5%)"
     ],
     "model_version": "0.4.0"
@@ -7921,7 +7921,7 @@
       "Stranded carbon (unused capacity): 17.7 tCO2e/yr (12.1%)",
       "Productive carbon (serving users): 128.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 824.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.9%)"
     ],
     "model_version": "0.4.0"
@@ -7987,7 +7987,7 @@
       "Stranded carbon (unused capacity): 5.4 tCO2e/yr (3.7%)",
       "Productive carbon (serving users): 140.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 821.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.3%)"
     ],
     "model_version": "0.4.0"
@@ -8111,7 +8111,7 @@
       "Stranded carbon (unused capacity): 20.2 tCO2e/yr (19.0%)",
       "Productive carbon (serving users): 86.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 467.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.5 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.0%)"
     ],
     "model_version": "0.4.0"
@@ -8243,7 +8243,7 @@
       "Stranded carbon (unused capacity): 10.4 tCO2e/yr (7.3%)",
       "Productive carbon (serving users): 132.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 801.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.7%)"
     ],
     "model_version": "0.4.0"
@@ -8474,7 +8474,7 @@
       "Stranded carbon (unused capacity): 39.3 tCO2e/yr (12.8%)",
       "Productive carbon (serving users): 267.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,349 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.2%)"
     ],
     "model_version": "0.4.0"
@@ -8768,7 +8768,7 @@
       "Stranded carbon (unused capacity): 12.2 tCO2e/yr (8.9%)",
       "Productive carbon (serving users): 125.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 772.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.1%)"
     ],
     "model_version": "0.4.0"
@@ -8801,7 +8801,7 @@
       "Stranded carbon (unused capacity): 20.6 tCO2e/yr (15.0%)",
       "Productive carbon (serving users): 116.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 772.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.0%)"
     ],
     "model_version": "0.4.0"
@@ -8886,7 +8886,7 @@
       "Stranded carbon (unused capacity): 18.2 tCO2e/yr (13.3%)",
       "Productive carbon (serving users): 118.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 771.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.7%)"
     ],
     "model_version": "0.4.0"
@@ -8919,7 +8919,7 @@
       "Stranded carbon (unused capacity): 115.4 tCO2e/yr (21.9%)",
       "Productive carbon (serving users): 411.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,407 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 78.1%)"
     ],
     "model_version": "0.4.0"
@@ -8952,7 +8952,7 @@
       "Stranded carbon (unused capacity): 15.4 tCO2e/yr (15.4%)",
       "Productive carbon (serving users): 84.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 440.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +5.6 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.6%)"
     ],
     "model_version": "0.4.0"
@@ -9018,7 +9018,7 @@
       "Stranded carbon (unused capacity): 5.7 tCO2e/yr (4.2%)",
       "Productive carbon (serving users): 131.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 769.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.8%)"
     ],
     "model_version": "0.4.0"
@@ -9051,7 +9051,7 @@
       "Stranded carbon (unused capacity): 10.8 tCO2e/yr (10.9%)",
       "Productive carbon (serving users): 88.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 439.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.0 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.1%)"
     ],
     "model_version": "0.4.0"
@@ -9084,7 +9084,7 @@
       "Stranded carbon (unused capacity): 13.9 tCO2e/yr (10.2%)",
       "Productive carbon (serving users): 122.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 765.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.8%)"
     ],
     "model_version": "0.4.0"
@@ -9183,7 +9183,7 @@
       "Stranded carbon (unused capacity): 12.7 tCO2e/yr (9.4%)",
       "Productive carbon (serving users): 122.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 761.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.6%)"
     ],
     "model_version": "0.4.0"
@@ -9249,7 +9249,7 @@
       "Stranded carbon (unused capacity): 43.5 tCO2e/yr (10.5%)",
       "Productive carbon (serving users): 371.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,894 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.5%)"
     ],
     "model_version": "0.4.0"
@@ -9348,7 +9348,7 @@
       "Stranded carbon (unused capacity): 23.2 tCO2e/yr (17.3%)",
       "Productive carbon (serving users): 110.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 753.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.7%)"
     ],
     "model_version": "0.4.0"
@@ -9381,7 +9381,7 @@
       "Stranded carbon (unused capacity): 31.3 tCO2e/yr (13.6%)",
       "Productive carbon (serving users): 199.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,203 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.4%)"
     ],
     "model_version": "0.4.0"
@@ -9513,7 +9513,7 @@
       "Stranded carbon (unused capacity): 7.7 tCO2e/yr (5.8%)",
       "Productive carbon (serving users): 124.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 746.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.2%)"
     ],
     "model_version": "0.4.0"
@@ -9617,7 +9617,7 @@
       "Stranded carbon (unused capacity): 59.4 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 72.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 743.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -9716,7 +9716,7 @@
       "Stranded carbon (unused capacity): 28.4 tCO2e/yr (14.8%)",
       "Productive carbon (serving users): 163.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 845.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.2%)"
     ],
     "model_version": "0.4.0"
@@ -9749,7 +9749,7 @@
       "Stranded carbon (unused capacity): 9.9 tCO2e/yr (7.6%)",
       "Productive carbon (serving users): 120.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 735.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.4%)"
     ],
     "model_version": "0.4.0"
@@ -9782,7 +9782,7 @@
       "Stranded carbon (unused capacity): 2.6 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 128.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 735.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -9881,7 +9881,7 @@
       "Stranded carbon (unused capacity): 19.8 tCO2e/yr (8.8%)",
       "Productive carbon (serving users): 205.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,177 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.2%)"
     ],
     "model_version": "0.4.0"
@@ -9980,7 +9980,7 @@
       "Stranded carbon (unused capacity): 15.3 tCO2e/yr (6.8%)",
       "Productive carbon (serving users): 209.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,175 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.2%)"
     ],
     "model_version": "0.4.0"
@@ -10079,7 +10079,7 @@
       "Stranded carbon (unused capacity): 17.5 tCO2e/yr (18.5%)",
       "Productive carbon (serving users): 77.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 417.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.4 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.5%)"
     ],
     "model_version": "0.4.0"
@@ -10112,7 +10112,7 @@
       "Stranded carbon (unused capacity): 12.9 tCO2e/yr (10.0%)",
       "Productive carbon (serving users): 116.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 728.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.0%)"
     ],
     "model_version": "0.4.0"
@@ -10263,7 +10263,7 @@
       "Stranded carbon (unused capacity): 12.4 tCO2e/yr (9.7%)",
       "Productive carbon (serving users): 115.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 722.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.6 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.3%)"
     ],
     "model_version": "0.4.0"
@@ -10329,7 +10329,7 @@
       "Stranded carbon (unused capacity): 16.8 tCO2e/yr (13.1%)",
       "Productive carbon (serving users): 111.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 721.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.9%)"
     ],
     "model_version": "0.4.0"
@@ -10494,7 +10494,7 @@
       "Stranded carbon (unused capacity): 26.9 tCO2e/yr (14.5%)",
       "Productive carbon (serving users): 158.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 816.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.5%)"
     ],
     "model_version": "0.4.0"
@@ -10593,7 +10593,7 @@
       "Stranded carbon (unused capacity): 58.4 tCO2e/yr (21.1%)",
       "Productive carbon (serving users): 218.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,217 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 78.9%)"
     ],
     "model_version": "0.4.0"
@@ -11015,7 +11015,7 @@
       "Stranded carbon (unused capacity): 100.7 tCO2e/yr (81.7%)",
       "Productive carbon (serving users): 22.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 693.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -11147,7 +11147,7 @@
       "Stranded carbon (unused capacity): 16.4 tCO2e/yr (13.4%)",
       "Productive carbon (serving users): 106.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 688.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.6 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.6%)"
     ],
     "model_version": "0.4.0"
@@ -11213,7 +11213,7 @@
       "Stranded carbon (unused capacity): 13.7 tCO2e/yr (11.2%)",
       "Productive carbon (serving users): 108.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 688.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.8%)"
     ],
     "model_version": "0.4.0"
@@ -11742,7 +11742,7 @@
       "Stranded carbon (unused capacity): 32.7 tCO2e/yr (15.8%)",
       "Productive carbon (serving users): 174.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,080 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.2%)"
     ],
     "model_version": "0.4.0"
@@ -11775,7 +11775,7 @@
       "Stranded carbon (unused capacity): 14.2 tCO2e/yr (16.3%)",
       "Productive carbon (serving users): 72.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 382.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.7%)"
     ],
     "model_version": "0.4.0"
@@ -11833,7 +11833,7 @@
       "Stranded carbon (unused capacity): 86.8 tCO2e/yr (100.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 382.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -11899,7 +11899,7 @@
       "Stranded carbon (unused capacity): 16.6 tCO2e/yr (6.4%)",
       "Productive carbon (serving users): 242.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,141 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.6%)"
     ],
     "model_version": "0.4.0"
@@ -11932,7 +11932,7 @@
       "Stranded carbon (unused capacity): 20.5 tCO2e/yr (17.4%)",
       "Productive carbon (serving users): 97.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 663.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.6%)"
     ],
     "model_version": "0.4.0"
@@ -11965,7 +11965,7 @@
       "Stranded carbon (unused capacity): 15.8 tCO2e/yr (13.4%)",
       "Productive carbon (serving users): 101.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 662.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.6%)"
     ],
     "model_version": "0.4.0"
@@ -12356,7 +12356,7 @@
       "Stranded carbon (unused capacity): 9.9 tCO2e/yr (11.7%)",
       "Productive carbon (serving users): 74.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 372.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.7 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.3%)"
     ],
     "model_version": "0.4.0"
@@ -12532,7 +12532,7 @@
       "Stranded carbon (unused capacity): 37.9 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 46.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 371.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -12664,7 +12664,7 @@
       "Stranded carbon (unused capacity): 26.0 tCO2e/yr (15.5%)",
       "Productive carbon (serving users): 141.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 737.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.5%)"
     ],
     "model_version": "0.4.0"
@@ -12697,7 +12697,7 @@
       "Stranded carbon (unused capacity): 31.0 tCO2e/yr (12.4%)",
       "Productive carbon (serving users): 219.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,101 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.6%)"
     ],
     "model_version": "0.4.0"
@@ -12730,7 +12730,7 @@
       "Stranded carbon (unused capacity): 10.9 tCO2e/yr (8.3%)",
       "Productive carbon (serving users): 120.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 687.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.7%)"
     ],
     "model_version": "0.4.0"
@@ -12763,7 +12763,7 @@
       "Stranded carbon (unused capacity): 9.2 tCO2e/yr (8.1%)",
       "Productive carbon (serving users): 104.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 640.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.9%)"
     ],
     "model_version": "0.4.0"
@@ -12796,7 +12796,7 @@
       "Stranded carbon (unused capacity): 26.3 tCO2e/yr (10.6%)",
       "Productive carbon (serving users): 222.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,093 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.4 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.4%)"
     ],
     "model_version": "0.4.0"
@@ -12829,7 +12829,7 @@
       "Stranded carbon (unused capacity): 26.6 tCO2e/yr (10.7%)",
       "Productive carbon (serving users): 221.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,092 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.3%)"
     ],
     "model_version": "0.4.0"
@@ -13137,7 +13137,7 @@
       "Stranded carbon (unused capacity): 73.3 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 89.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 717.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.6 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -13544,7 +13544,7 @@
       "Stranded carbon (unused capacity): 95.3 tCO2e/yr (22.6%)",
       "Productive carbon (serving users): 326.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,927 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 77.4%)"
     ],
     "model_version": "0.4.0"
@@ -13710,7 +13710,7 @@
       "Stranded carbon (unused capacity): 44.7 tCO2e/yr (19.0%)",
       "Productive carbon (serving users): 190.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,034 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.0%)"
     ],
     "model_version": "0.4.0"
@@ -13842,7 +13842,7 @@
       "Stranded carbon (unused capacity): 6.9 tCO2e/yr (4.5%)",
       "Productive carbon (serving users): 147.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 679.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.5%)"
     ],
     "model_version": "0.4.0"
@@ -14362,7 +14362,7 @@
       "Stranded carbon (unused capacity): 12.7 tCO2e/yr (16.7%)",
       "Productive carbon (serving users): 63.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 334.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.3%)"
     ],
     "model_version": "0.4.0"
@@ -14662,7 +14662,7 @@
       "Stranded carbon (unused capacity): 10.9 tCO2e/yr (14.6%)",
       "Productive carbon (serving users): 63.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 330.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +5.5 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.4%)"
     ],
     "model_version": "0.4.0"
@@ -14695,7 +14695,7 @@
       "Stranded carbon (unused capacity): 6.9 tCO2e/yr (9.2%)",
       "Productive carbon (serving users): 67.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 329.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.8%)"
     ],
     "model_version": "0.4.0"
@@ -14728,7 +14728,7 @@
       "Stranded carbon (unused capacity): 13.6 tCO2e/yr (13.4%)",
       "Productive carbon (serving users): 88.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 572.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.6%)"
     ],
     "model_version": "0.4.0"
@@ -15038,7 +15038,7 @@
       "Stranded carbon (unused capacity): 12.3 tCO2e/yr (16.8%)",
       "Productive carbon (serving users): 60.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 322.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.2%)"
     ],
     "model_version": "0.4.0"
@@ -15104,7 +15104,7 @@
       "Stranded carbon (unused capacity): 18.0 tCO2e/yr (12.3%)",
       "Productive carbon (serving users): 128.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 643.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.7%)"
     ],
     "model_version": "0.4.0"
@@ -15321,7 +15321,7 @@
       "Stranded carbon (unused capacity): 43.1 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 52.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 538.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -15453,7 +15453,7 @@
       "Stranded carbon (unused capacity): 27.1 tCO2e/yr (19.5%)",
       "Productive carbon (serving users): 111.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 610.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.5%)"
     ],
     "model_version": "0.4.0"
@@ -15745,7 +15745,7 @@
       "Stranded carbon (unused capacity): 65.6 tCO2e/yr (22.8%)",
       "Productive carbon (serving users): 222.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,316 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 77.2%)"
     ],
     "model_version": "0.4.0"
@@ -15778,7 +15778,7 @@
       "Stranded carbon (unused capacity): 9.3 tCO2e/yr (10.0%)",
       "Productive carbon (serving users): 83.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 521.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.0%)"
     ],
     "model_version": "0.4.0"
@@ -15877,7 +15877,7 @@
       "Stranded carbon (unused capacity): 45.2 tCO2e/yr (22.5%)",
       "Productive carbon (serving users): 155.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 884.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 77.5%)"
     ],
     "model_version": "0.4.0"
@@ -15910,7 +15910,7 @@
       "Stranded carbon (unused capacity): 19.1 tCO2e/yr (14.4%)",
       "Productive carbon (serving users): 113.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 583.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.6%)"
     ],
     "model_version": "0.4.0"
@@ -15943,7 +15943,7 @@
       "Stranded carbon (unused capacity): 25.4 tCO2e/yr (12.8%)",
       "Productive carbon (serving users): 172.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 872.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.2%)"
     ],
     "model_version": "0.4.0"
@@ -15976,7 +15976,7 @@
       "Stranded carbon (unused capacity): 38.8 tCO2e/yr (19.7%)",
       "Productive carbon (serving users): 158.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 866.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.3%)"
     ],
     "model_version": "0.4.0"
@@ -16009,7 +16009,7 @@
       "Stranded carbon (unused capacity): 12.7 tCO2e/yr (19.4%)",
       "Productive carbon (serving users): 52.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 289.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.6%)"
     ],
     "model_version": "0.4.0"
@@ -16185,7 +16185,7 @@
       "Stranded carbon (unused capacity): 9.7 tCO2e/yr (10.9%)",
       "Productive carbon (serving users): 79.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 501.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.1%)"
     ],
     "model_version": "0.4.0"
@@ -16387,7 +16387,7 @@
       "Stranded carbon (unused capacity): 23.7 tCO2e/yr (11.6%)",
       "Productive carbon (serving users): 180.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 932.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.4%)"
     ],
     "model_version": "0.4.0"
@@ -16640,7 +16640,7 @@
       "Stranded carbon (unused capacity): 17.9 tCO2e/yr (20.4%)",
       "Productive carbon (serving users): 70.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 494.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 79.6%)"
     ],
     "model_version": "0.4.0"
@@ -16776,7 +16776,7 @@
       "Stranded carbon (unused capacity): 5.5 tCO2e/yr (6.4%)",
       "Productive carbon (serving users): 81.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 487.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.6%)"
     ],
     "model_version": "0.4.0"
@@ -16842,7 +16842,7 @@
       "Stranded carbon (unused capacity): 12.0 tCO2e/yr (13.9%)",
       "Productive carbon (serving users): 74.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 486.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.1%)"
     ],
     "model_version": "0.4.0"
@@ -17007,7 +17007,7 @@
       "Stranded carbon (unused capacity): 8.6 tCO2e/yr (10.0%)",
       "Productive carbon (serving users): 77.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 482.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.0%)"
     ],
     "model_version": "0.4.0"
@@ -17106,7 +17106,7 @@
       "Stranded carbon (unused capacity): 69.0 tCO2e/yr (21.1%)",
       "Productive carbon (serving users): 258.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,495 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 78.9%)"
     ],
     "model_version": "0.4.0"
@@ -17588,7 +17588,7 @@
       "Stranded carbon (unused capacity): 55.2 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 67.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 539.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -17706,7 +17706,7 @@
       "Stranded carbon (unused capacity): 26.8 tCO2e/yr (22.1%)",
       "Productive carbon (serving users): 94.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 533.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 77.9%)"
     ],
     "model_version": "0.4.0"
@@ -18282,7 +18282,7 @@
       "Stranded carbon (unused capacity): 23.2 tCO2e/yr (19.6%)",
       "Productive carbon (serving users): 95.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 521.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.4%)"
     ],
     "model_version": "0.4.0"
@@ -19571,7 +19571,7 @@
       "Stranded carbon (unused capacity): 11.9 tCO2e/yr (22.1%)",
       "Productive carbon (serving users): 41.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 236.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 77.9%)"
     ],
     "model_version": "0.4.0"
@@ -20382,7 +20382,7 @@
       "Stranded carbon (unused capacity): 93.0 tCO2e/yr (92.6%)",
       "Productive carbon (serving users): 7.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 442.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -22245,7 +22245,7 @@
       "Stranded carbon (unused capacity): 7.3 tCO2e/yr (17.3%)",
       "Productive carbon (serving users): 34.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 186.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.7%)"
     ],
     "model_version": "0.4.0"
@@ -22443,7 +22443,7 @@
       "Stranded carbon (unused capacity): 5.2 tCO2e/yr (13.3%)",
       "Productive carbon (serving users): 33.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 172.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.7%)"
     ],
     "model_version": "0.4.0"
@@ -22542,7 +22542,7 @@
       "Stranded carbon (unused capacity): 12.3 tCO2e/yr (16.6%)",
       "Productive carbon (serving users): 61.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 327.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.4%)"
     ],
     "model_version": "0.4.0"
@@ -22608,7 +22608,7 @@
       "Stranded carbon (unused capacity): 19.8 tCO2e/yr (18.3%)",
       "Productive carbon (serving users): 88.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 477.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.7%)"
     ],
     "model_version": "0.4.0"
@@ -22674,7 +22674,7 @@
       "Stranded carbon (unused capacity): 19.0 tCO2e/yr (18.6%)",
       "Productive carbon (serving users): 83.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 449.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.4%)"
     ],
     "model_version": "0.4.0"
@@ -22740,7 +22740,7 @@
       "Stranded carbon (unused capacity): 18.9 tCO2e/yr (19.4%)",
       "Productive carbon (serving users): 78.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 427.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.6%)"
     ],
     "model_version": "0.4.0"
@@ -22842,7 +22842,7 @@
       "Stranded carbon (unused capacity): 7.1 tCO2e/yr (14.0%)",
       "Productive carbon (serving users): 43.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 265.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.0%)"
     ],
     "model_version": "0.4.0"
@@ -22875,7 +22875,7 @@
       "Stranded carbon (unused capacity): 12.2 tCO2e/yr (13.0%)",
       "Productive carbon (serving users): 81.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 413.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.0%)"
     ],
     "model_version": "0.4.0"
@@ -22908,7 +22908,7 @@
       "Stranded carbon (unused capacity): 10.7 tCO2e/yr (11.4%)",
       "Productive carbon (serving users): 83.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 412.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.6%)"
     ],
     "model_version": "0.4.0"
@@ -22974,7 +22974,7 @@
       "Stranded carbon (unused capacity): 6.1 tCO2e/yr (9.9%)",
       "Productive carbon (serving users): 55.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 272.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.1%)"
     ],
     "model_version": "0.4.0"
@@ -23007,7 +23007,7 @@
       "Stranded carbon (unused capacity): 10.3 tCO2e/yr (16.7%)",
       "Productive carbon (serving users): 51.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 271.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 83.3%)"
     ],
     "model_version": "0.4.0"
@@ -23040,7 +23040,7 @@
       "Stranded carbon (unused capacity): 5.3 tCO2e/yr (8.6%)",
       "Productive carbon (serving users): 56.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 270.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.4%)"
     ],
     "model_version": "0.4.0"
@@ -23186,7 +23186,7 @@
       "Stranded carbon (unused capacity): 39.8 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 48.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 389.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -23219,7 +23219,7 @@
       "Stranded carbon (unused capacity): 5.9 tCO2e/yr (20.2%)",
       "Productive carbon (serving users): 23.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 129.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 79.8%)"
     ],
     "model_version": "0.4.0"
@@ -23252,7 +23252,7 @@
       "Stranded carbon (unused capacity): 14.2 tCO2e/yr (20.7%)",
       "Productive carbon (serving users): 54.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 359.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 79.3%)"
     ],
     "model_version": "0.4.0"
@@ -23285,7 +23285,7 @@
       "Stranded carbon (unused capacity): 4.3 tCO2e/yr (6.4%)",
       "Productive carbon (serving users): 63.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 354.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.6%)"
     ],
     "model_version": "0.4.0"
@@ -23318,7 +23318,7 @@
       "Stranded carbon (unused capacity): 13.0 tCO2e/yr (19.3%)",
       "Productive carbon (serving users): 54.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 351.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.7%)"
     ],
     "model_version": "0.4.0"
@@ -23351,7 +23351,7 @@
       "Stranded carbon (unused capacity): 2.1 tCO2e/yr (4.8%)",
       "Productive carbon (serving users): 42.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 231.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.2%)"
     ],
     "model_version": "0.4.0"
@@ -23384,7 +23384,7 @@
       "Stranded carbon (unused capacity): 5.8 tCO2e/yr (8.7%)",
       "Productive carbon (serving users): 60.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 345.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.3%)"
     ],
     "model_version": "0.4.0"
@@ -23417,7 +23417,7 @@
       "Stranded carbon (unused capacity): 6.6 tCO2e/yr (15.1%)",
       "Productive carbon (serving users): 37.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 229.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.9%)"
     ],
     "model_version": "0.4.0"
@@ -23450,7 +23450,7 @@
       "Stranded carbon (unused capacity): 9.4 tCO2e/yr (14.3%)",
       "Productive carbon (serving users): 56.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 343.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.7%)"
     ],
     "model_version": "0.4.0"
@@ -23483,7 +23483,7 @@
       "Stranded carbon (unused capacity): 2.1 tCO2e/yr (4.7%)",
       "Productive carbon (serving users): 41.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 229.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.3%)"
     ],
     "model_version": "0.4.0"
@@ -23516,7 +23516,7 @@
       "Stranded carbon (unused capacity): 3.7 tCO2e/yr (8.4%)",
       "Productive carbon (serving users): 40.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 228.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.6%)"
     ],
     "model_version": "0.4.0"
@@ -23549,7 +23549,7 @@
       "Stranded carbon (unused capacity): 0.9 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 41.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 223.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -23582,7 +23582,7 @@
       "Stranded carbon (unused capacity): 3.1 tCO2e/yr (4.8%)",
       "Productive carbon (serving users): 60.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 333.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.2%)"
     ],
     "model_version": "0.4.0"
@@ -23615,7 +23615,7 @@
       "Stranded carbon (unused capacity): 4.2 tCO2e/yr (9.9%)",
       "Productive carbon (serving users): 38.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 221.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.1%)"
     ],
     "model_version": "0.4.0"
@@ -23648,7 +23648,7 @@
       "Stranded carbon (unused capacity): 5.0 tCO2e/yr (11.8%)",
       "Productive carbon (serving users): 37.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 221.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.2%)"
     ],
     "model_version": "0.4.0"
@@ -23681,7 +23681,7 @@
       "Stranded carbon (unused capacity): 4.4 tCO2e/yr (10.5%)",
       "Productive carbon (serving users): 37.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 221.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.5%)"
     ],
     "model_version": "0.4.0"
@@ -23714,7 +23714,7 @@
       "Stranded carbon (unused capacity): 3.5 tCO2e/yr (8.3%)",
       "Productive carbon (serving users): 38.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 221.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.7%)"
     ],
     "model_version": "0.4.0"
@@ -23747,7 +23747,7 @@
       "Stranded carbon (unused capacity): 3.4 tCO2e/yr (9.3%)",
       "Productive carbon (serving users): 32.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 203.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.7%)"
     ],
     "model_version": "0.4.0"
@@ -23799,7 +23799,7 @@
       "Stranded carbon (unused capacity): 28.0 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 34.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 325.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -23832,7 +23832,7 @@
       "Stranded carbon (unused capacity): 2.0 tCO2e/yr (4.8%)",
       "Productive carbon (serving users): 39.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 215.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.2%)"
     ],
     "model_version": "0.4.0"
@@ -23865,7 +23865,7 @@
       "Stranded carbon (unused capacity): 4.2 tCO2e/yr (11.8%)",
       "Productive carbon (serving users): 31.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 201.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.2%)"
     ],
     "model_version": "0.4.0"
@@ -23898,7 +23898,7 @@
       "Stranded carbon (unused capacity): 14.4 tCO2e/yr (23.4%)",
       "Productive carbon (serving users): 47.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 321.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 76.6%)"
     ],
     "model_version": "0.4.0"
@@ -23931,7 +23931,7 @@
       "Stranded carbon (unused capacity): 4.5 tCO2e/yr (11.1%)",
       "Productive carbon (serving users): 36.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 213.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.9%)"
     ],
     "model_version": "0.4.0"
@@ -23997,7 +23997,7 @@
       "Stranded carbon (unused capacity): 2.1 tCO2e/yr (6.0%)",
       "Productive carbon (serving users): 33.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 198.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.0%)"
     ],
     "model_version": "0.4.0"
@@ -24030,7 +24030,7 @@
       "Stranded carbon (unused capacity): 8.7 tCO2e/yr (14.4%)",
       "Productive carbon (serving users): 51.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 316.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.6%)"
     ],
     "model_version": "0.4.0"
@@ -24063,7 +24063,7 @@
       "Stranded carbon (unused capacity): 4.8 tCO2e/yr (8.0%)",
       "Productive carbon (serving users): 55.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 315.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.0%)"
     ],
     "model_version": "0.4.0"
@@ -24096,7 +24096,7 @@
       "Stranded carbon (unused capacity): 3.9 tCO2e/yr (9.8%)",
       "Productive carbon (serving users): 36.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 209.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.2%)"
     ],
     "model_version": "0.4.0"
@@ -24129,7 +24129,7 @@
       "Stranded carbon (unused capacity): 5.9 tCO2e/yr (14.7%)",
       "Productive carbon (serving users): 34.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 208.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.3%)"
     ],
     "model_version": "0.4.0"
@@ -24162,7 +24162,7 @@
       "Stranded carbon (unused capacity): 3.0 tCO2e/yr (7.5%)",
       "Productive carbon (serving users): 36.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 207.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.5%)"
     ],
     "model_version": "0.4.0"
@@ -24228,7 +24228,7 @@
       "Stranded carbon (unused capacity): 4.4 tCO2e/yr (12.8%)",
       "Productive carbon (serving users): 29.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 193.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.2%)"
     ],
     "model_version": "0.4.0"
@@ -24261,7 +24261,7 @@
       "Stranded carbon (unused capacity): 2.2 tCO2e/yr (5.6%)",
       "Productive carbon (serving users): 37.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 207.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.4%)"
     ],
     "model_version": "0.4.0"
@@ -24294,7 +24294,7 @@
       "Stranded carbon (unused capacity): 7.9 tCO2e/yr (13.4%)",
       "Productive carbon (serving users): 51.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 309.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.6%)"
     ],
     "model_version": "0.4.0"
@@ -24327,7 +24327,7 @@
       "Stranded carbon (unused capacity): 6.9 tCO2e/yr (17.5%)",
       "Productive carbon (serving users): 32.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 206.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.5%)"
     ],
     "model_version": "0.4.0"
@@ -24360,7 +24360,7 @@
       "Stranded carbon (unused capacity): 0.8 tCO2e/yr (2.0%)",
       "Productive carbon (serving users): 38.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 206.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 98.0%)"
     ],
     "model_version": "0.4.0"
@@ -24393,7 +24393,7 @@
       "Stranded carbon (unused capacity): 4.9 tCO2e/yr (14.4%)",
       "Productive carbon (serving users): 29.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 192.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.6%)"
     ],
     "model_version": "0.4.0"
@@ -24459,7 +24459,7 @@
       "Stranded carbon (unused capacity): 3.9 tCO2e/yr (6.6%)",
       "Productive carbon (serving users): 54.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 307.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.4%)"
     ],
     "model_version": "0.4.0"
@@ -24492,7 +24492,7 @@
       "Stranded carbon (unused capacity): 5.3 tCO2e/yr (9.0%)",
       "Productive carbon (serving users): 53.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 305.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.0%)"
     ],
     "model_version": "0.4.0"
@@ -24525,7 +24525,7 @@
       "Stranded carbon (unused capacity): 2.6 tCO2e/yr (4.5%)",
       "Productive carbon (serving users): 55.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 304.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.5%)"
     ],
     "model_version": "0.4.0"
@@ -24558,7 +24558,7 @@
       "Stranded carbon (unused capacity): 4.1 tCO2e/yr (7.0%)",
       "Productive carbon (serving users): 53.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 302.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.0%)"
     ],
     "model_version": "0.4.0"
@@ -24610,7 +24610,7 @@
       "Stranded carbon (unused capacity): 17.3 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 21.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 201.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -24643,7 +24643,7 @@
       "Stranded carbon (unused capacity): 11.0 tCO2e/yr (19.1%)",
       "Productive carbon (serving users): 46.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 301.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.9%)"
     ],
     "model_version": "0.4.0"
@@ -24709,7 +24709,7 @@
       "Stranded carbon (unused capacity): 2.9 tCO2e/yr (7.6%)",
       "Productive carbon (serving users): 35.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 198.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.4%)"
     ],
     "model_version": "0.4.0"
@@ -24742,7 +24742,7 @@
       "Stranded carbon (unused capacity): 4.4 tCO2e/yr (7.8%)",
       "Productive carbon (serving users): 52.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 296.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.2%)"
     ],
     "model_version": "0.4.0"
@@ -24808,7 +24808,7 @@
       "Stranded carbon (unused capacity): 5.0 tCO2e/yr (13.2%)",
       "Productive carbon (serving users): 32.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 197.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.8%)"
     ],
     "model_version": "0.4.0"
@@ -24841,7 +24841,7 @@
       "Stranded carbon (unused capacity): 7.6 tCO2e/yr (13.5%)",
       "Productive carbon (serving users): 48.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 295.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.5%)"
     ],
     "model_version": "0.4.0"
@@ -24874,7 +24874,7 @@
       "Stranded carbon (unused capacity): 2.3 tCO2e/yr (6.3%)",
       "Productive carbon (serving users): 34.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 194.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.7%)"
     ],
     "model_version": "0.4.0"
@@ -24907,7 +24907,7 @@
       "Stranded carbon (unused capacity): 5.2 tCO2e/yr (9.5%)",
       "Productive carbon (serving users): 49.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 288.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.5%)"
     ],
     "model_version": "0.4.0"
@@ -24973,7 +24973,7 @@
       "Stranded carbon (unused capacity): 8.7 tCO2e/yr (15.9%)",
       "Productive carbon (serving users): 46.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 287.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.1%)"
     ],
     "model_version": "0.4.0"
@@ -25006,7 +25006,7 @@
       "Stranded carbon (unused capacity): 5.3 tCO2e/yr (9.8%)",
       "Productive carbon (serving users): 49.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 285.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.2%)"
     ],
     "model_version": "0.4.0"
@@ -25039,7 +25039,7 @@
       "Stranded carbon (unused capacity): 7.5 tCO2e/yr (13.7%)",
       "Productive carbon (serving users): 47.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 285.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.3%)"
     ],
     "model_version": "0.4.0"
@@ -25072,7 +25072,7 @@
       "Stranded carbon (unused capacity): 1.3 tCO2e/yr (3.7%)",
       "Productive carbon (serving users): 35.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 190.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.3%)"
     ],
     "model_version": "0.4.0"
@@ -25105,7 +25105,7 @@
       "Stranded carbon (unused capacity): 7.3 tCO2e/yr (13.3%)",
       "Productive carbon (serving users): 47.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 285.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.7%)"
     ],
     "model_version": "0.4.0"
@@ -25138,7 +25138,7 @@
       "Stranded carbon (unused capacity): 5.0 tCO2e/yr (9.1%)",
       "Productive carbon (serving users): 49.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 285.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.9%)"
     ],
     "model_version": "0.4.0"
@@ -25171,7 +25171,7 @@
       "Stranded carbon (unused capacity): 8.3 tCO2e/yr (15.2%)",
       "Productive carbon (serving users): 46.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 285.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.8%)"
     ],
     "model_version": "0.4.0"
@@ -25204,7 +25204,7 @@
       "Stranded carbon (unused capacity): 2.4 tCO2e/yr (6.7%)",
       "Productive carbon (serving users): 33.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 189.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.3%)"
     ],
     "model_version": "0.4.0"
@@ -25237,7 +25237,7 @@
       "Stranded carbon (unused capacity): 4.5 tCO2e/yr (8.3%)",
       "Productive carbon (serving users): 49.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 282.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.7%)"
     ],
     "model_version": "0.4.0"
@@ -25270,7 +25270,7 @@
       "Stranded carbon (unused capacity): 3.2 tCO2e/yr (8.9%)",
       "Productive carbon (serving users): 32.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 187.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.1%)"
     ],
     "model_version": "0.4.0"
@@ -25303,7 +25303,7 @@
       "Stranded carbon (unused capacity): 6.3 tCO2e/yr (11.8%)",
       "Productive carbon (serving users): 47.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 279.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.2%)"
     ],
     "model_version": "0.4.0"
@@ -25336,7 +25336,7 @@
       "Stranded carbon (unused capacity): 7.5 tCO2e/yr (14.0%)",
       "Productive carbon (serving users): 46.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 279.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.0%)"
     ],
     "model_version": "0.4.0"
@@ -25369,7 +25369,7 @@
       "Stranded carbon (unused capacity): 5.5 tCO2e/yr (18.0%)",
       "Productive carbon (serving users): 25.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 173.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.0%)"
     ],
     "model_version": "0.4.0"
@@ -25421,7 +25421,7 @@
       "Stranded carbon (unused capacity): 23.9 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 29.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 277.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -25586,7 +25586,7 @@
       "Stranded carbon (unused capacity): 4.2 tCO2e/yr (14.1%)",
       "Productive carbon (serving users): 25.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 167.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.9%)"
     ],
     "model_version": "0.4.0"
@@ -25619,7 +25619,7 @@
       "Stranded carbon (unused capacity): 3.1 tCO2e/yr (9.1%)",
       "Productive carbon (serving users): 31.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 179.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.9%)"
     ],
     "model_version": "0.4.0"
@@ -25652,7 +25652,7 @@
       "Stranded carbon (unused capacity): 1.3 tCO2e/yr (4.3%)",
       "Productive carbon (serving users): 28.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 167.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 95.7%)"
     ],
     "model_version": "0.4.0"
@@ -25704,7 +25704,7 @@
       "Stranded carbon (unused capacity): 23.0 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 28.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 267.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -25737,7 +25737,7 @@
       "Stranded carbon (unused capacity): 5.9 tCO2e/yr (17.4%)",
       "Productive carbon (serving users): 28.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 178.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 82.6%)"
     ],
     "model_version": "0.4.0"
@@ -25770,7 +25770,7 @@
       "Stranded carbon (unused capacity): 9.3 tCO2e/yr (18.3%)",
       "Productive carbon (serving users): 41.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 266.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.7%)"
     ],
     "model_version": "0.4.0"
@@ -25836,7 +25836,7 @@
       "Stranded carbon (unused capacity): 5.5 tCO2e/yr (11.0%)",
       "Productive carbon (serving users): 44.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 262.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.0%)"
     ],
     "model_version": "0.4.0"
@@ -25902,7 +25902,7 @@
       "Stranded carbon (unused capacity): 3.7 tCO2e/yr (11.0%)",
       "Productive carbon (serving users): 29.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 173.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.0%)"
     ],
     "model_version": "0.4.0"
@@ -25968,7 +25968,7 @@
       "Stranded carbon (unused capacity): 6.5 tCO2e/yr (13.1%)",
       "Productive carbon (serving users): 43.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 260.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.9%)"
     ],
     "model_version": "0.4.0"
@@ -26034,7 +26034,7 @@
       "Stranded carbon (unused capacity): 4.3 tCO2e/yr (8.8%)",
       "Productive carbon (serving users): 44.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 257.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.2%)"
     ],
     "model_version": "0.4.0"
@@ -26100,7 +26100,7 @@
       "Stranded carbon (unused capacity): 5.2 tCO2e/yr (15.9%)",
       "Productive carbon (serving users): 27.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 170.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.1%)"
     ],
     "model_version": "0.4.0"
@@ -26412,7 +26412,7 @@
       "Stranded carbon (unused capacity): 2.4 tCO2e/yr (7.8%)",
       "Productive carbon (serving users): 28.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 162.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.2%)"
     ],
     "model_version": "0.4.0"
@@ -26445,7 +26445,7 @@
       "Stranded carbon (unused capacity): 6.9 tCO2e/yr (14.8%)",
       "Productive carbon (serving users): 39.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 243.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.2%)"
     ],
     "model_version": "0.4.0"
@@ -26478,7 +26478,7 @@
       "Stranded carbon (unused capacity): 2.7 tCO2e/yr (10.1%)",
       "Productive carbon (serving users): 23.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 150.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 89.9%)"
     ],
     "model_version": "0.4.0"
@@ -26544,7 +26544,7 @@
       "Stranded carbon (unused capacity): 3.6 tCO2e/yr (11.7%)",
       "Productive carbon (serving users): 26.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 159.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 88.3%)"
     ],
     "model_version": "0.4.0"
@@ -26577,7 +26577,7 @@
       "Stranded carbon (unused capacity): 1.8 tCO2e/yr (6.7%)",
       "Productive carbon (serving users): 24.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 147.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.3%)"
     ],
     "model_version": "0.4.0"
@@ -26825,7 +26825,7 @@
       "Stranded carbon (unused capacity): 1.6 tCO2e/yr (6.5%)",
       "Productive carbon (serving users): 23.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 139.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.5%)"
     ],
     "model_version": "0.4.0"
@@ -26946,7 +26946,7 @@
       "Stranded carbon (unused capacity): 5.1 tCO2e/yr (19.2%)",
       "Productive carbon (serving users): 21.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 138.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.8%)"
     ],
     "model_version": "0.4.0"
@@ -27012,7 +27012,7 @@
       "Stranded carbon (unused capacity): 4.8 tCO2e/yr (21.2%)",
       "Productive carbon (serving users): 17.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 127.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 78.8%)"
     ],
     "model_version": "0.4.0"
@@ -27045,7 +27045,7 @@
       "Stranded carbon (unused capacity): 1.6 tCO2e/yr (6.9%)",
       "Productive carbon (serving users): 21.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 127.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 93.1%)"
     ],
     "model_version": "0.4.0"
@@ -27078,7 +27078,7 @@
       "Stranded carbon (unused capacity): 3.3 tCO2e/yr (14.9%)",
       "Productive carbon (serving users): 18.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 125.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 85.1%)"
     ],
     "model_version": "0.4.0"
@@ -27235,7 +27235,7 @@
       "Stranded carbon (unused capacity): 3.0 tCO2e/yr (8.0%)",
       "Productive carbon (serving users): 34.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 196.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 92.0%)"
     ],
     "model_version": "0.4.0"
@@ -27268,7 +27268,7 @@
       "Stranded carbon (unused capacity): 3.1 tCO2e/yr (12.5%)",
       "Productive carbon (serving users): 21.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 130.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 87.5%)"
     ],
     "model_version": "0.4.0"
@@ -27334,7 +27334,7 @@
       "Stranded carbon (unused capacity): 0.6 tCO2e/yr (2.3%)",
       "Productive carbon (serving users): 23.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 128.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 97.7%)"
     ],
     "model_version": "0.4.0"
@@ -27367,7 +27367,7 @@
       "Stranded carbon (unused capacity): 0.8 tCO2e/yr (3.7%)",
       "Productive carbon (serving users): 20.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 119.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 96.3%)"
     ],
     "model_version": "0.4.0"
@@ -27629,7 +27629,7 @@
       "Stranded carbon (unused capacity): 6.0 tCO2e/yr (18.1%)",
       "Productive carbon (serving users): 27.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 174.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 81.9%)"
     ],
     "model_version": "0.4.0"
@@ -27662,7 +27662,7 @@
       "Stranded carbon (unused capacity): 1.7 tCO2e/yr (9.0%)",
       "Productive carbon (serving users): 17.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 106.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 91.0%)"
     ],
     "model_version": "0.4.0"
@@ -27761,7 +27761,7 @@
       "Stranded carbon (unused capacity): 2.9 tCO2e/yr (13.8%)",
       "Productive carbon (serving users): 18.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 110.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 86.2%)"
     ],
     "model_version": "0.4.0"
@@ -27846,7 +27846,7 @@
       "Stranded carbon (unused capacity): 13.8 tCO2e/yr (45.0%)",
       "Productive carbon (serving users): 16.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 160.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: chronic low (5 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -28157,7 +28157,7 @@
       "Stranded carbon (unused capacity): 1.6 tCO2e/yr (9.1%)",
       "Productive carbon (serving users): 15.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 98.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 90.9%)"
     ],
     "model_version": "0.4.0"
@@ -28325,7 +28325,7 @@
       "Stranded carbon (unused capacity): 1.6 tCO2e/yr (5.3%)",
       "Productive carbon (serving users): 27.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 154.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.7%)"
     ],
     "model_version": "0.4.0"
@@ -28664,7 +28664,7 @@
       "Stranded carbon (unused capacity): 0.9 tCO2e/yr (5.6%)",
       "Productive carbon (serving users): 15.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 92.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 94.4%)"
     ],
     "model_version": "0.4.0"
@@ -28730,7 +28730,7 @@
       "Stranded carbon (unused capacity): 4.4 tCO2e/yr (15.6%)",
       "Productive carbon (serving users): 23.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 146.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.4%)"
     ],
     "model_version": "0.4.0"
@@ -29461,7 +29461,7 @@
       "Stranded carbon (unused capacity): 3.2 tCO2e/yr (20.0%)",
       "Productive carbon (serving users): 12.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 84.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 80.0%)"
     ],
     "model_version": "0.4.0"
@@ -29527,7 +29527,7 @@
       "Stranded carbon (unused capacity): 2.1 tCO2e/yr (15.1%)",
       "Productive carbon (serving users): 11.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 78.0 tCO2e",
-      "Surface temperature delta (UHI proxy): +6.8 \u00b0C",
+      "Surface temperature delta (UHI proxy): +4.9 \u00b0C",
       "Trajectory: stable (5-yr peak 84.9%)"
     ],
     "model_version": "0.4.0"

@@ -445,21 +445,18 @@ def effective_canopy_for_uhi(raw_canopy, asset_type: str) -> float:
     township-typical canopy for the asset class. When the raw value
     is a positive number we trust it.
     """
+    fallback = {
+        "residential": 0.25, "community_facility": 0.20,
+        "commercial": 0.10, "green_space": 0.60, "undeveloped_parcel": 0.05,
+    }.get(asset_type, 0.10)
+
     if raw_canopy is not None:
         try:
             r = float(raw_canopy)
-            if r > 0.01:
-                return min(1.0, r)
+            return max(fallback, min(1.0, r))
         except (TypeError, ValueError):
             pass
-
-    return {
-        "residential":         0.25,
-        "community_facility":  0.20,
-        "commercial":          0.10,
-        "green_space":         0.60,
-        "undeveloped_parcel":  0.05,
-    }.get(asset_type, 0.10)
+    return fallback
 
 
 # ----------------------------------------------------------------
