@@ -164,7 +164,6 @@ class VertexGeminiClient:
         log.info("Stage 2: sending structured-via-prompt request "
                  "(%d messages)", len(messages))
         t0 = _time.time()
-        print(f"[DEBUG] >>> 准备向 Vertex AI 发送请求，模型: {self.model}, Schema字符数: {len(schema_text)}", flush=True)
         
         try:
             response = self.client.models.generate_content(
@@ -172,9 +171,7 @@ class VertexGeminiClient:
                 contents=contents,
                 config=config,
             )
-            print("[DEBUG] <<< 收到 Vertex AI 响应！", flush=True)
         except Exception as e:
-            print(f"[DEBUG] !!! 请求抛出异常: {e}", flush=True)
             raise
 
         log.info("Stage 2: returned in %.2fs", _time.time() - t0)

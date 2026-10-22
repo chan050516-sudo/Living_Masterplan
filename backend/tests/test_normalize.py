@@ -2,7 +2,7 @@
 
 import math
 import pytest
-from app.derived.normalize import s_benefit, s_cost, s_target, hard_gate, geometric_mean
+from legacy.normalize import s_benefit, s_cost, s_target, hard_gate, geometric_mean
 
 
 def test_s_benefit_basic():

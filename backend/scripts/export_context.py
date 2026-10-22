@@ -52,7 +52,6 @@ def main():
         "deadspace": deadspace,
     }
 
-    # 2. 提取准备送给 LLM 的上下文
     log.info(f"Building context pack for {target_id}...")
     fake_intent = {
         "target_asset_ids": [target_id],
