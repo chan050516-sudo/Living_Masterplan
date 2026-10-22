@@ -210,14 +210,16 @@ export default function App() {
         ? 28                                      // already centred: pick a side
         : Math.sign(off) * (18 + Math.abs(off) * 22)
 
+      const baseZoom = tall ? 15.6 : 16.0 
+      
       m.flyTo({
         center: a.center,
-        zoom: tall ? 17.2 : 17.8,
-        pitch: tall ? 62 : 56,
+        zoom: baseZoom,
+        pitch: tall ? 60 : 55,
         bearing: m.getBearing() + swing,
-        offset: [0, tall ? -110 : -55],
+        offset: [0, tall ? -80 : -40],
         curve: 1.5,
-        speed: 0.7,
+        speed: 0.5,
         essential: true,
       })
     } else {
@@ -233,12 +235,13 @@ export default function App() {
 
   function closePanel() { setSelectedIds([]); setQuestion(''); reset() }
 
-  async function ask() {
+  async function ask(files: File[] = []) { // 1. Add files parameter
     if (selectedAssets.length === 0) return
     const q = question.trim() || 'What should we do with these assets?'
     setLoading(true); setError(null); setAsked(q)
     try {
-      const res = await runAnalysis(q, selectedIds)
+      // 2. Pass files to runAnalysis
+      const res = await runAnalysis(q, selectedIds, files)
       setAnalysis(res)
       setQuestion('')
       

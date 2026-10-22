@@ -1,9 +1,10 @@
 import type { AssetProfile, AnalyzeResult } from './types'
 import type { FeatureCollection } from 'geojson'
-import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3 } from './mockData'
+
+import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3, MOCK_SCENARIO_4 } from '../../legacy/mockData'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-const USE_MOCK_LLM = true 
+const USE_MOCK_LLM = false
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, init)
@@ -39,19 +40,23 @@ export function runAnalysis(userQuery: string, selectedAssets: string[], files: 
     console.log("🚀 [MOCK MODE] Routing to correct scenario based on inputs...");
     return new Promise<AnalyzeResult>((resolve) => {
       setTimeout(() => {
-        // 逻辑：如果是 Scenario 1 的 query 或选中的是 BLD-0183，返回 Scenario 1
+        // Scenario 1
         if (userQuery.includes('feasibility') || userQuery.includes('BLD-0183') || selectedAssets.includes('BLD-0183')) {
           resolve(MOCK_SCENARIO_1)
         } 
-        // 逻辑：如果是多资产 (长度 > 1)，返回 Scenario 3
+        // Scenario 4
+        else if (userQuery.includes('blueprint') || userQuery.includes('P-VAC-08') || selectedAssets.includes('P-VAC-08')) {
+          resolve(MOCK_SCENARIO_4)
+        }
+        // Scenario 3
         else if (selectedAssets.length > 1) {
           resolve(MOCK_SCENARIO_3)
         } 
-        // 默认返回 Scenario 2（催化干预）
+        // Scenario 2
         else {
           resolve(MOCK_SCENARIO_2)
         }
-      }, 5000); // 假装思考 1.5 秒
+      }, 2000); 
     });
   }
   

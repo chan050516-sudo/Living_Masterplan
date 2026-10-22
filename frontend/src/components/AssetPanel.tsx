@@ -1,3 +1,4 @@
+import { useState, useRef } from 'react'
 import { C, cap, mono, btn } from '../theme'
 import { Bar } from './ui'
 import type { Asset, AnalyzeResult, MainMetric } from '../types'
@@ -55,6 +56,7 @@ function MetricLine({ m, lowerIsBetter }: { m: MainMetric; lowerIsBetter?: boole
   )
 }
 
+// 2. Update the props definition of the component
 export function AssetPanel(props: {
   assets: Asset[]
   question: string
@@ -63,20 +65,109 @@ export function AssetPanel(props: {
   analysis: AnalyzeResult | null
   loading: boolean
   error: string | null
-  onAsk: () => void
+  onAsk: (files: File[]) => void // UPDATE: now accepts files
   previewing: boolean
   onPreview: () => void
   onClearPreview: () => void
   onSimulate: () => void
   onClose: () => void
-  history: AnalyzeHistoryItem[] // Add history prop
+  history: AnalyzeHistoryItem[]
 }) {
   const { assets, analysis, asked, error, previewing, history } = props
   const multi = assets.length > 1
 
+  // 3. Add file upload state
+  const [files, setFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 🆕 ADDED: State to hold the current PDF preview URL
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files)
+      setFiles((prev) => [...prev, ...newFiles].slice(0, 3))
+    }
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const removeFile = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent triggering the preview modal
+    setFiles((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  // 🆕 ADDED: Open the PDF preview
+  const handlePreviewFile = (file: File) => {
+    if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
+      const url = URL.createObjectURL(file)
+      setPreviewUrl(url)
+    } else {
+      // Optional: Handle non-PDF previews or just alert
+      alert("Preview is currently optimized for PDF files.")
+    }
+  }
+
+  // 🆕 ADDED: Close and cleanup memory
+  const handleClosePreview = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+      setPreviewUrl(null)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      
+      {/* 🆕 ADDED: A4 PDF Preview Modal Overlay */}
+      {previewUrl && (
+        <div 
+          onClick={handleClosePreview}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: 'rgba(20, 14, 19, 0.25)', backdropFilter: 'blur(1px)',
+            padding: 40
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the A4 page
+            className="pop"
+            style={{
+              position: 'relative',
+              background: '#fff', // Standard A4 paper color
+              width: '100%', maxWidth: '650px', // A4 ratio approx
+              aspectRatio: '1 / 1.414', // Perfect A4 proportion
+              maxHeight: '90vh',
+              borderRadius: 4,
+              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+              overflow: 'hidden',
+              display: 'flex', flexDirection: 'column'
+            }}
+          >
+            {/* Top Control Bar for the Preview */}
+            <div style={{ 
+              background: '#241c23', color: '#fff', padding: '10px 16px', 
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              borderBottom: '1px solid #3d3140'
+            }}>
+              <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.05em' }}>📄 Document Preview</span>
+              <button 
+                onClick={handleClosePreview}
+                style={{ background: 'none', border: 0, color: '#cfc6cd', fontSize: 20, cursor: 'pointer' }}
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Native Browser PDF Renderer */}
+            <iframe 
+              src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`} 
+              style={{ flex: 1, border: 'none', width: '100%', height: '100%' }} 
+              title="PDF Preview"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="fade" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
         <span style={{ ...cap, fontSize: 10 }}>
           {multi ? `${assets.length} assets selected` : 'Selected asset'}
@@ -297,7 +388,7 @@ export function AssetPanel(props: {
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
                       {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
-                    {/* 渲染 Subunits 表格 */}
+    
                     {card.subunits && card.subunits.length > 0 && (
                       <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.line}` }}>
                         <div style={{ ...cap, fontSize: 10, color: C.accent, marginBottom: 8 }}>Subtype Breakdown</div>
@@ -377,13 +468,75 @@ export function AssetPanel(props: {
         )}
       </div>
 
+      {/* Bottom Input Area (With File Chips) */}
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.line}` }}>
         <label htmlFor="q" style={{ ...cap, fontSize: 10, display: 'block', marginBottom: 10, color: C.faint }}>
           {analysis ? 'Ask a follow-up question' : multi ? `Ask about these ${assets.length} assets` : `Ask about ${assets[0].name}`}
         </label>
+        
+        {files.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
+            {files.map((f, i) => (
+              <div 
+                key={i} 
+                onClick={() => handlePreviewFile(f)} // 🆕 ADDED: Click to preview
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: 6, 
+                  background: 'rgba(247,147,29,.15)', border: '1px solid rgba(247,147,29,.3)',
+                  padding: '4px 8px', borderRadius: 6, fontSize: 11, color: C.accent,
+                  cursor: 'pointer', transition: 'background 0.2s'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.background = 'rgba(247,147,29,.25)'}
+                onMouseOut={(e) => e.currentTarget.style.background = 'rgba(247,147,29,.15)'}
+                title="Click to preview document"
+              >
+                📎 {f.name}
+                <button 
+                  onClick={(e) => removeFile(i, e)} 
+                  style={{ background: 'none', border: 0, color: C.accent, cursor: 'pointer', padding: 0, fontSize: 14, lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
         <div style={{ display: 'flex', gap: 8 }}>
-          <input id="q" className="inp" value={props.question} onChange={(e) => props.setQuestion(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') props.onAsk() }} placeholder={analysis ? 'What if we prioritise environmental return?' : 'What should we do with these assets?'} style={{ flex: 1, minWidth: 0, font: 'inherit', fontSize: 13, padding: '12px 14px', borderRadius: 8, border: `1px solid ${C.line}`, background: '#241c23', color: C.text }} />
-          <button className={`btn primary${props.loading ? ' thinking' : ''}`} onClick={props.onAsk} disabled={props.loading} style={{ ...btn(true), padding: '0 20px' }}>
+          <input 
+            type="file" 
+            multiple 
+            accept=".pdf" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            style={{ display: 'none' }} 
+          />
+          
+          <button 
+            className="btn" 
+            onClick={() => fileInputRef.current?.click()}
+            title="Attach PDF Document"
+            style={{ ...btn(), padding: '0 14px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}
+          >
+            📎
+          </button>
+
+          <input 
+            id="q" 
+            className="inp" 
+            value={props.question} 
+            onChange={(e) => props.setQuestion(e.target.value)} 
+            onKeyDown={(e) => { if (e.key === 'Enter') props.onAsk(files) }}
+            placeholder={analysis ? 'What if we prioritise environmental return?' : 'What should we do with these assets?'} 
+            style={{ flex: 1, minWidth: 0, font: 'inherit', fontSize: 13, padding: '12px 14px', borderRadius: 8, border: `1px solid ${C.line}`, background: '#241c23', color: C.text }} 
+          />
+          
+          <button 
+            className={`btn primary${props.loading ? ' thinking' : ''}`} 
+            onClick={() => props.onAsk(files)} 
+            disabled={props.loading} 
+            style={{ ...btn(true), padding: '0 20px' }}
+          >
             {props.loading ? 'Thinking…' : 'Ask'}
           </button>
         </div>
