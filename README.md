@@ -1,39 +1,48 @@
 # Living Masterplan
 
-Living Masterplan is a Python prototype for assessing township assets and exploring how planning decisions may affect them over time. It combines spatial data, business assumptions, deterministic analysis and simulation, and an optional language model reasoning layer.
+Living Masterplan is a geospatial decision-support prototype for understanding township assets and exploring how interventions may affect them over time. It combines a Python analysis and simulation backend, a FastAPI service, and a React/TypeScript map dashboard.
 
-The project is built around three questions:
+The project supports three connected tasks:
 
-1. **Where are assets underperforming?** Derive asset metrics and flag potential deadspace.
-2. **What could be changed?** Represent interventions such as repurposing, retrofits, pedestrian upgrades, and delayed or new development.
-3. **What might happen next?** Compare scenario outcomes across assets and at township level.
+1. **Diagnose:** derive asset, accessibility, environmental, and financial metrics, then identify assets that may need attention.
+2. **Explore options:** generate and validate candidate intervention plans, including repurposing, retrofits, and development changes.
+3. **Compare outcomes:** simulate selected plans over time and review asset-level and township-level changes.
 
-This checkout contains a small mock dataset for the Elmina West area. Results are demonstrations driven by the supplied mock records and model assumptions; they are not measured forecasts or planning advice. There is no web frontend or HTTP API in this repository.
+The configured backend dataset is Bukit Jelutong. The repository also includes Elmina geometry and frontend demonstration fixtures. Model outputs depend on supplied data and assumptions and should be reviewed before informing real development decisions.
 
-## What is included
+## Architecture
 
-- **Spatial analysis:** Walking and driving network accessibility, catchments, canopy effects, demand and supply, Huff competition, demographic mismatch, neighborhood diversity, and asset-level environmental and business metrics.
-- **Deadspace analysis:** Evidence-based flags, status, contributing factors, and urgency estimates for assets.
-- **Scenario simulation:** Multi-year population, demand, supply, intervention timing, construction periods, carbon, accessibility, and before/after comparisons.
-- **LLM reasoning prototype:** A tool-based workflow that gathers project evidence, proposes an intervention plan, validates it, runs the deterministic simulator, and prepares a written explanation. The included command uses a stub client and does not call an external model.
-- **Data contracts:** JSON Schemas and documentation for spatial, business, deadspace, and scenario data.
+```text
+React + MapLibre dashboard
+          │ profiles, geometry, analysis
+          ▼
+FastAPI service (backend/app/api)
+          │
+          ├── Geospatial metrics and deadspace analysis
+          ├── Multi-year intervention simulation
+          └── LLM proposal, validation, candidate selection, and explanation
+```
+
+The LLM layer proposes and explains options. Deterministic validation and simulation calculate the reported scenario results.
 
 ## Requirements
 
 - Python 3.10 or later
-- Pip
+- Node.js `^20.19.0` or `>=22.12.0`, and npm (for the frontend)
+- Google Cloud credentials and a project ID only when using real Gemini analysis
 
-Python packages are listed in [`backend/requirements.txt`](backend/requirements.txt). The analysis uses GeoPandas and Shapely for spatial operations, NetworkX for network graphs, pandas and NumPy for tabular calculations, and PyYAML and jsonschema for configuration and data contracts.
+The checked-in Python requirements files cover the geospatial and analysis packages. The API also imports packages that are not listed there, so install the API dependencies separately as shown below.
 
 ## Setup
 
-Run these commands from the repository root:
+From the repository root, create a Python environment and install the backend and API packages:
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -r backend/requirements.txt
+python -m pip install -r requirements.txt -r backend/requirements.txt
+python -m pip install fastapi "uvicorn[standard]" python-multipart python-dotenv google-genai
 ```
 
 On macOS or Linux, activate the environment with:
@@ -42,123 +51,144 @@ On macOS or Linux, activate the environment with:
 source .venv/bin/activate
 ```
 
-## Run the analysis
+Install frontend packages:
 
-Run the available workflows from the repository root:
+```bash
+cd frontend
+npm ci
+```
+
+## Prepare or refresh the analysis data
+
+The configured base directory is `bukit_jelutong/processed`, set in [`backend/configs/paths.yml`](backend/configs/paths.yml). From the repository root, the main data workflow is:
 
 ```bash
 python backend/scripts/run_phase1.py
 python backend/scripts/run_phase3.py
-python backend/scripts/run_phase4.py
+python backend/scripts/build_profiles.py
+python backend/scripts/run_phase4.py --current-only
 ```
 
-The scripts use the checked-in 2026 mock data and configuration. Phase 3 expects the enriched metrics produced by Phase 1, so run Phase 1 first. Phase 4 simulates the scenarios defined in the intervention data.
-
-| Command | Purpose | Main output |
+| Script | Purpose | Main output |
 | --- | --- | --- |
-| `run_phase1.py` | Derive 2026 asset metrics and merge them with the existing metric table | `mock/business/asset_metrics_enriched.csv` |
-| `run_phase3.py` | Classify deadspace using the enriched metrics | `mock/business/deadspace_2026.json` |
-| `run_phase4.py` | Simulate `SC-CURRENT`, `SC-REPURPOSE`, and `SC-DELAY` | `mock/business/scenarios/SC-*.json` |
+| `run_phase1.py` | Derive metrics for 2022–2026 and write the enriched asset metrics | `bukit_jelutong/processed/business/asset_metrics_enriched.csv` |
+| `run_phase3.py` | Produce 2026 deadspace diagnoses | `bukit_jelutong/processed/business/deadspace_2026.json` |
+| `build_profiles.py` | Build the baseline asset profiles served by the API | `bukit_jelutong/processed/business/asset_profiles_2026.json` |
+| `run_phase4.py` | Simulate intervention scenarios and write scenario results | `bukit_jelutong/processed/business/scenarios/` |
 
-Each workflow prints a summary to the terminal. Rerunning a workflow replaces its corresponding generated output. The simulation writes scenario result JSON files using the same IDs and paths as the checked-in scenario files.
+Phase 3 and profile generation use the enriched metrics, so run Phase 1 first. The profile build also uses the Phase 3 deadspace output. The checked-in processed dataset already includes these artifacts; rerun the scripts when you change their source data.
 
-### LLM demo
+`run_phase4.py` runs `SC-CURRENT`, `SC-REPURPOSE`, and `SC-DELAY` by default. Use `--current-only` to run the baseline across the configured years, or `--quick` to run only the baseline for 2026 and 2033. Reruns replace the corresponding generated outputs.
+
+## Start the backend API
+
+After installing the Python packages, start the API from the `backend` directory:
 
 ```bash
-python backend/scripts/run_llm_demo.py
+cd backend
+python -m uvicorn app.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-This exercises intent parsing, evidence gathering, proposal validation, simulation, and justification with a deterministic stub client. It does not require a model API key. **It appends generated intervention rows to `mock/business/interventions.csv`.** Restore that file from version control or a backup if you want to remove demo runs.
+The interactive API documentation is available at <http://localhost:8000/docs>. The API currently provides:
 
-The repository also contains a Vertex AI Gemini client adapter in `backend/app/llm/clients/vertex_client.py`. Using a real provider requires the `google-genai` package, Google Cloud Application Default Credentials, and a project ID (for example, via `GOOGLE_CLOUD_PROJECT`). The included demo script selects the stub client; it does not switch to Vertex AI through a command-line option.
+| Method and path | Purpose |
+| --- | --- |
+| `POST /api/analyze` | Analyze selected asset IDs, optionally with up to three `.txt`, `.csv`, or `.pdf` files (10 MB each). |
+| `GET /api/assets/profiles` | Return the 2026 asset profile dictionary. |
+| `GET /api/map/geometry?year=2026` | Return map geometry with status and diagnostic properties; supports a `run_id` overlay. |
+
+See [`API.md`](API.md) for request fields, response shapes, and map integration details.
+
+## Start the frontend
+
+In another terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+Vite prints the local dashboard URL. The frontend uses MapLibre GL for the map and reads profile and map geometry data from the backend. Set `VITE_API_URL` in a frontend `.env` file if the API is hosted somewhere other than the default `http://localhost:8000`.
+
+The analysis button is currently in mock mode: `USE_MOCK_LLM` is set to `true` in [`frontend/src/api.ts`](frontend/src/api.ts), so it returns local demonstration scenarios instead of calling `POST /api/analyze`. Set it to `false` to send analysis requests to the backend.
+
+Frontend checks and production build:
+
+```bash
+cd frontend
+npm run lint
+npm run build
+```
+
+## Use real Gemini analysis
+
+The API and real-model scripts use the Vertex AI Gemini client. Install the API dependencies above, authenticate with Google Cloud, and set a project ID before sending real analysis requests:
+
+```bash
+gcloud auth application-default login
+```
+
+PowerShell:
+
+```powershell
+$env:GOOGLE_CLOUD_PROJECT = "your-project-id"
+```
+
+macOS or Linux:
+
+```bash
+export GOOGLE_CLOUD_PROJECT="your-project-id"
+```
+
+The location can optionally be set with `GOOGLE_CLOUD_LOCATION`; the client defaults to `global`. The frontend must also be switched out of mock mode to use the real API analysis route.
+
+For command-line demos, run `python backend/scripts/run_llm_real2.py --scenario 1`, `--scenario 2`, or `--scenario 3`. The stub-backed `python backend/scripts/run_llm_demo.py` exercises the reasoning flow without calling Gemini. LLM runs append intervention records to the configured processed business data, so preserve or restore that file if you want to discard demo changes.
+
+## Data
+
+The active data paths are defined in `backend/configs/paths.yml`:
+
+- `bukit_jelutong/raw/geometry/` contains the raw Bukit Jelutong geometry layers.
+- `bukit_jelutong/processed/geometry/` contains the geometry layers used by the analysis.
+- `bukit_jelutong/processed/business/` contains assets, metrics, leases, projects, candidates, interventions, profiles, diagnoses, and scenario results.
+- `elmina/geometry/` contains a separate Elmina geometry set; it is not selected by the current default path configuration.
+- `frontend/public/data/` and `frontend/src/mockData.ts` contain frontend demonstration data. [`frontend/MOCK_DATA.md`](frontend/MOCK_DATA.md) describes known mock fields and caveats.
+
+The configured spatial layers are parcels, buildings, network edges, green/blue features, amenities, and population. Business tables join to spatial features using stable IDs. Geometry is analyzed in EPSG:32647 and returned to EPSG:4326 where needed for map display.
+
+Review `backend/configs/assumptions.yml`, `taxonomy.yml`, `peer_benchmarks.yml`, and `field_metadata.yml` alongside the data. These settings affect accessibility, demand, carbon, benchmarks, and deadspace results. JSON data contracts are in [`contracts/schemas/`](contracts/schemas/).
 
 ## Tests
 
-The tests use imports rooted at `backend/app`. After installing the requirements, run them from the `backend` directory:
+Run the Python suite from the `backend` directory:
 
 ```bash
 cd backend
 python -m pytest
 ```
 
-The suite covers derived metrics, accessibility, deadspace rules, taxonomy, and scenario simulation.
-
 ## Repository layout
 
 ```text
 backend/
-  app/
-    derived/       Spatial accessibility and asset metric calculations
-    deadspace/     Deadspace flags, status, evidence, and urgency
-    simulation/    Multi-year scenario and intervention engine
-    llm/           Tool service, validation, prompts, and orchestration
-    loaders/       GeoJSON and CSV loading
-  configs/         Paths, assumptions, taxonomy, benchmarks, field metadata
-  scripts/         Analysis, simulation, mock-data, and LLM demo commands
-  tests/           Python test suite
-contracts/
-  schemas/         JSON Schema contracts
-  docs/            Schema and data conventions
-mock/
-  geometry/        GeoJSON layers for the sample township
-  business/        Asset tables, interventions, and scenario data/results
-Living_Masterplan.md  Full technical design document
+  app/api/          FastAPI routes
+  app/derived/      Spatial and asset metric calculations
+  app/deadspace/    Deadspace diagnoses and urgency
+  app/simulation/   Multi-year scenario engine
+  app/llm/          Context assembly, prompts, validation, and orchestration
+  configs/          Active data paths and model assumptions
+  scripts/          Analysis, profile, scenario, and LLM commands
+  tests/            Python tests
+contracts/schemas/  JSON Schema contracts
+bukit_jelutong/     Active raw and processed township data
+elmina/             Alternate geometry data
+frontend/           React, TypeScript, Vite, and MapLibre dashboard
+API.md              API endpoint reference
+Living_Masterplan.md  Product and technical design document
 ```
-
-## Data and configuration
-
-The paths in [`backend/configs/paths.yml`](backend/configs/paths.yml) point to the active dataset under `mock/`.
-
-### Spatial layers
-
-All layers are GeoJSON in `mock/geometry/`:
-
-| File | Contents |
-| --- | --- |
-| `parcels.geojson` | Parcel boundaries and land-use attributes |
-| `buildings.geojson` | Building footprints and asset relationships |
-| `network.geojson` | Network edges used for walking and driving analyses |
-| `green_blue.geojson` | Green and blue features, including canopy information |
-| `amenities.geojson` | Amenity locations and types |
-| `population.geojson` | Population and demographic demand locations |
-
-GeoJSON is stored in **EPSG:4326**. The loaders reproject features to **EPSG:32647** for distance and area analysis.
-
-### Business tables and scenarios
-
-The `mock/business/` directory contains:
-
-- `assets.csv`: one row per asset, including asset type and links to parcel/building IDs.
-- `asset_metrics.csv`: base metric rows by asset and year.
-- `development_projects.csv` and `development_candidates.csv`: committed projects and candidate development options.
-- `interventions.csv`: scenario actions, parameters, timing, and cost changes.
-- `asset_metrics_enriched.csv`, `deadspace_2026.json`, and `scores_2026.json`: derived or example analysis artifacts.
-- `scenarios/`: scenario result JSON files.
-
-Stable IDs join business records to spatial features. The schema documentation describes table grain, units, IDs, CRS, and provenance conventions.
-
-### Model settings
-
-- [`assumptions.yml`](backend/configs/assumptions.yml): population growth, demand, carbon factors, accessibility speeds and thresholds, construction timing, and deadspace thresholds.
-- [`taxonomy.yml`](backend/configs/taxonomy.yml): asset subtypes and subtype-specific model values.
-- [`peer_benchmarks.yml`](backend/configs/peer_benchmarks.yml): comparison benchmarks.
-- [`field_metadata.yml`](backend/configs/field_metadata.yml): field units, sources, and confidence tiers.
-
-These settings materially affect the results. Review them alongside any output used for analysis.
-
-## Data contracts
-
-The JSON Schemas are in [`contracts/schemas/`](contracts/schemas/), with conventions documented in [`contracts/docs/SCHEMA.md`](contracts/docs/SCHEMA.md). The contracts cover geometry, assets, metrics, interventions, development options, deadspace, and simulation results.
-
-For new datasets, preserve the stable IDs and CSV/GeoJSON separation, match the configured file paths, and maintain the documented units and coordinate reference systems. Update the schemas and field metadata when adding or changing fields.
-
-## Current implementation notes
-
-- The current runnable analysis commands are metric derivation, deadspace analysis, simulation, and the stub-backed LLM demo.
-- A score schema and example score artifact are present, but this checkout does not include a standalone scoring engine or scoring command. The current deadspace workflow reads `asset_metrics_enriched.csv` directly.
-- The mock assumptions and data are intended for demonstration. Replace them with reviewed local data and calibrated assumptions before using results to support a real development decision.
 
 ## Further documentation
 
-- [`Living_Masterplan.md`](Living_Masterplan.md) — product and technical design, data model, algorithms, simulation, LLM boundaries, and planned interface.
-- [`contracts/docs/SCHEMA.md`](contracts/docs/SCHEMA.md) — field, ID, unit, CRS, and versioning conventions.
+- [`API.md`](API.md) — REST endpoints and frontend integration.
+- [`Living_Masterplan.md`](Living_Masterplan.md) — product goals, data model, algorithms, simulation, and system design.
+- [`frontend/MOCK_DATA.md`](frontend/MOCK_DATA.md) — notes on frontend fixtures and assumptions.
