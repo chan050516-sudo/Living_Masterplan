@@ -20,7 +20,7 @@
             "type": "object",
             "required": ["type", "coordinates"],
             "properties": {
-              "type": { "enum": ["Point", "Polygon"] },
+              "type": { "enum": ["Point", "Polygon", "LineString"] },
               "coordinates": { "type": "array" }
             }
           },
@@ -36,8 +36,20 @@
       "properties": {
         "amenity_id": { "type": "string", "pattern": "^A-" },
         "amenity_type": {
-          "enum": ["transit_station", "bus_stop", "school", "clinic",
-                   "hospital", "place_of_worship", "community_centre", "other"]
+          "enum": [
+            "transit_station", "bus_stop",
+            "school", "library",
+            "clinic", "hospital",
+            "place_of_worship", "community_centre",
+            "food_beverage", "finance", "retail",
+            "fuel", "parking",
+            "other"
+          ],
+          "$comment": "Normalised vocabulary. The raw OSM value is preserved in amenity_type_raw."
+        },
+        "amenity_type_raw": {
+          "type": ["string", "null"],
+          "$comment": "Raw OSM amenity tag value (e.g. restaurant, pharmacy, kindergarten). Preserved for audit."
         },
         "capacity": { "type": ["number", "null"], "minimum": 0 }
       }

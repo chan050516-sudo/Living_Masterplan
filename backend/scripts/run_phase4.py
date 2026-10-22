@@ -11,8 +11,15 @@ SC-CURRENT baseline.
 """
 
 import math
+import argparse
 import sys
 from pathlib import Path
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -43,15 +50,38 @@ SCENARIOS = ["SC-CURRENT", "SC-REPURPOSE", "SC-DELAY"]
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--current-only", action="store_true",
+                        help="Run only SC-CURRENT across all years. "
+                             "Use this when preparing the demo — "
+                             "the other scenarios are not read by "
+                             "the year selector.")
+    args = parser.parse_args()
     repo_root = Path(__file__).resolve().parents[2]
 
-    print("\nRunning Phase 4 (B4) — Simulation")
-    results = {}
+    if args.quick:
+        scenarios = ["SC-CURRENT"]
+        years = [2026, 2033]
+    elif args.current_only:
+        scenarios = ["SC-CURRENT"]
+        years = None            # uses DEFAULT_YEARS = [2026,2027,2028,2030,2033]
+    else:
+        scenarios = ["SC-CURRENT", "SC-REPURPOSE", "SC-DELAY"]
+        years = None
+        print("\nRunning Phase 4 (B4) — Simulation")
 
-    for scenario_id in SCENARIOS:
+    results = {}
+    shared_cache = {}
+
+    for scenario_id in scenarios:
         print(f"\n  Simulating {scenario_id} ...")
         try:
-            result = simulate_scenario(scenario_id, repo_root=repo_root)
+            result = simulate_scenario(
+                scenario_id, repo_root=repo_root,
+                years=years,
+                _shared_cache=shared_cache,
+            )
             results[scenario_id] = result
             out = write_scenario_result(result, repo_root=repo_root)
             print(f"    → wrote {out.name}")
@@ -146,7 +176,10 @@ def main():
             print("    (no changes)")
 
     print("\n" + "=" * 72)
-    print(f"  Scenario results in: {repo_root / 'mock' / 'business' / 'scenarios'}/")
+    from app.config import load_paths
+    _paths = load_paths()
+    _base = repo_root / _paths["base"] / "business" / "scenarios"
+    print(f"  Scenario results in: {_base}/")
     print("=" * 72 + "\n")
 
 

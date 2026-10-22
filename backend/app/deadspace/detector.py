@@ -33,9 +33,34 @@ def detect_deadspace_for_asset(
 
     layer1 = layer1_eval(atype, metrics.to_dict(), thresholds=l1_t)
     layer2 = layer2_eval(atype, asset.to_dict(), metrics.to_dict(), thresholds=l2_t)
-    layer3 = layer3_eval(atype)
+    # Phase 16 — layer3 now receives the l1/l2 verdict so its
+    # `candidate_interventions` reflects the diagnosed state, not
+    # just the asset type's legal action space.
+    layer3 = layer3_eval(atype, layer1=layer1, layer2=layer2)
 
-    status = decide_status(atype, layer1, layer2, layer3)
+    # Phase 15 — pass authority into the classification. Developer-
+    # held unsold residential can be a deadspace candidate; sold
+    # residential cannot.
+    authority = asset.get("authority") if hasattr(asset, "get") else None
+
+    # Ramp-up exemption needs completion_year and base_year so a
+    # newly delivered asset (age < grace window) can be held at
+    # "monitor" rather than escalated to deadspace_candidate while
+    # tenants / residents are still arriving.
+    completion_year = (
+        asset.get("completion_year") if hasattr(asset, "get") else None
+    )
+    try:
+        base_year = int(metrics["year"])
+    except (KeyError, TypeError, ValueError):
+        base_year = 2026
+
+    status = decide_status(
+        atype, layer1, layer2, layer3,
+        authority=authority,
+        completion_year=completion_year,
+        base_year=base_year,
+    )
 
     # Collect all flags into one list for urgency computation
     all_flags = (

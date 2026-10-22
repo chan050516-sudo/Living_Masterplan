@@ -1,0 +1,17 @@
+{
+  "B-03": {
+    "rows": [
+      { "label": "CAPEX", "current": "—", "a": "RM 1.2m", "b": "RM 0.8m", "c": "RM 0.1m", "best": "c" },
+      { "label": "Projected utilisation", "current": "35%", "a": "78%", "b": "60%", "c": "35%", "best": "a" },
+      { "label": "Financial (NPV)", "current": "—", "a": "RM 2.1m", "b": "RM 1.8m", "c": "RM 0.3m", "best": "a" },
+      { "label": "Environmental", "current": "45", "a": "72", "b": "68", "c": "50", "best": "a" },
+      { "label": "Social", "current": "62", "a": "81", "b": "70", "c": "62", "best": "a" },
+      { "label": "Performance score", "current": "28", "a": "74", "b": "66", "c": "31", "best": "a", "key": true },
+      { "label": "Change in score", "current": "—", "a": "+46", "b": "+38", "c": "+3", "delta": true },
+      { "label": "Avoided embodied carbon", "current": "—", "a": "1,840 tCO₂e", "b": "420 tCO₂e", "c": "0 tCO₂e", "best": "a" },
+      { "label": "Time to impact", "current": "—", "a": "8 months", "b": "6 months", "c": "0 months", "best": "b" }
+    ],
+    "recommended": "Option A — Repurpose",
+    "reason": "Highest performance improvement at moderate CAPEX, with the largest avoided-construction saving. Reuses 1,840 m² instead of building new."
+  }
+}

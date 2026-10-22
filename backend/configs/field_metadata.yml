@@ -85,6 +85,29 @@ asset_metrics:
 
   # Environment
   carbon_operational_tco2e:         { tier: 2, source: derived, unit: tCO2e }
+  embodied_carbon_total_tco2e:
+    tier: 2
+    source: derived
+    unit: tCO2e
+    is_synthetic: true
+    calibration_note: >
+      Derived from taxonomy.yml material_intensity_tco2e_m2 × floor area.
+      NOT computed from a building-level BOM. Every building of the
+      same subtype receives the same intensity, so per-building
+      life-cycle ranking is invalid. Use only for township-scale
+      order-of-magnitude comparison.
+  sequestration_by_year_tco2e_year:
+    tier: 2
+    source: derived
+    unit: tCO2e/yr
+  sequestration_cumulative_tco2e:
+    tier: 2
+    source: derived
+    unit: tCO2e
+  net_carbon_by_year_tco2e_year:
+    tier: 2
+    source: derived
+    unit: tCO2e/yr
 
   # Green
   green_coverage:                   { tier: 2, source: derived, unit: ratio }

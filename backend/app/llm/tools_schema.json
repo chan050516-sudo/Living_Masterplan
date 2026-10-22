@@ -124,6 +124,24 @@
         "properties": {"asset_type": {"type": "string"}},
         "required": ["asset_type"]
       }
+    },
+    {
+      "name": "get_lease_schedule",
+      "description": "Return the commercial asset's lease schedule: total leases, next expiry year, anchor lease details, and a per-year expiry calendar. Use this to time a structural intervention (repurpose, retrofit that closes the asset) for after anchor lease expiry.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_id": {"type": "string"}},
+        "required": ["asset_id"]
+      }
+    },
+    {
+      "name": "get_asset_trajectory",
+      "description": "Return the asset's five-year trajectory classification and supporting features (peak occupancy, years since peak, occupancy trend). Use this to distinguish a stable low from a rapid decline from a recovery.",
+      "parameters": {
+        "type": "object",
+        "properties": {"asset_id": {"type": "string"}},
+        "required": ["asset_id"]
+      }
     }
   ]
 }

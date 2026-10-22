@@ -24,7 +24,11 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from ..taxonomy import get_subtype
-from ..deadspace.layer3 import ACTION_SPACE
+from ..deadspace.layer3 import (
+    ACTION_SPACE,
+    HARD_ACTIONS,
+    default_authority_for,
+)
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +54,9 @@ _CAPEX_RATE_BY_SUBTYPE = {
     "convenience_retail": 180.0,
     "supermarket":        220.0,
     "f_and_b":            250.0,
+    "restaurant":         300.0,
+    "kopitiam":           180.0,
+    "cafe":               250.0,
     "medical_retail":     320.0,
     "office":             200.0,
     "services":           180.0,
@@ -98,6 +105,8 @@ _CAPEX_FLOOR = {
     "pedestrian_upgrade": 180_000.0,
     "new_development":    500_000.0,
     "delay_development":        0.0,
+    # Phase 11 — interim solar farm on an undeveloped parcel
+    "interim_solar_farm":  80_000.0,
 }
 
 # Retrofit upgrades systems and finishes rather than reconstructing
@@ -118,6 +127,83 @@ _OPEX_DELTA_BY_TARGET_CLASS = {
     "undeveloped_parcel":  0.0,
 }
 _RETROFIT_OPEX_SAVING_FRACTION = -0.10  # 10% reduction
+
+# ------------------------------------------------------------------
+# Retrofit measures — allowed vocabulary
+# ------------------------------------------------------------------
+# The LLM must declare which physical measures a retrofit applies.
+# The engine currently ignores the list (it only reads the aggregate
+# `energy_efficiency_gain`), but the vocabulary is enforced so that
+# the justification and the user-facing report stay auditable.
+RETROFIT_MEASURES = {
+    "hvac_upgrade",
+    "led_lighting",
+    "building_envelope",
+    "cool_roof",
+    "bms_controls",
+    "water_efficiency",
+}
+
+
+# Phase 15 — catalytic intervention vocabulary
+CATALYTIC_MECHANISMS = {
+    "walkability_improvement",
+    "catchment_growth",
+    "competition_relief",
+    "complementary_use",
+    "footfall_injection",
+}
+
+# Which verification levels each mechanism is allowed to claim.
+#
+# "verified" means the simulation's delta rests on a physically
+# measured quantity: a walk coverage ratio (walkability_improvement)
+# or a resident count within the walking catchment (catchment_growth).
+#
+# "partially_verified" is the cap for mechanisms whose delta depends
+# on the Huff gravity allocation. The Huff model carries several
+# un-calibrated assumptions — attractiveness proxied by lettable
+# area, distance exponent beta = 2.0, hardcoded competition radii,
+# and a zero-sum demand pool. A visible delta under those assumptions
+# is real *inside* the model but not guaranteed in reality, so the
+# mechanism cannot be labelled fully verified.
+#
+# "claimed" is the cap for mechanisms the simulation cannot measure
+# at all (cross-subtype consumption, footfall-to-revenue conversion).
+_MAX_VERIFICATION_LEVEL = {
+    "walkability_improvement": "verified",
+    "catchment_growth":        "verified",        # ceiling; downgraded
+                                                  # if only Huff moves
+    "competition_relief":      "partially_verified",
+    "complementary_use":       "claimed",
+    "footfall_injection":      "claimed",
+}
+
+_VERIFICATION_ORDER = {"verified": 2, "partially_verified": 1, "claimed": 0}
+
+# Plausible ranges for per-measure detail. These are advisory — the
+# validator warns, it does not reject.
+_MEASURE_ENERGY_GAIN_RANGE = {
+    "hvac_upgrade":      (0.10, 0.35),
+    "led_lighting":      (0.05, 0.20),
+    "building_envelope": (0.05, 0.15),
+    "cool_roof":         (0.03, 0.15),
+    "bms_controls":      (0.03, 0.12),
+    "water_efficiency":  (0.00, 0.05),
+}
+
+_MEASURE_CAPEX_RANGE_RM = {
+    "hvac_upgrade":      (150_000, 2_500_000),
+    "led_lighting":      (30_000, 800_000),
+    "building_envelope": (50_000, 1_500_000),
+    "cool_roof":         (20_000, 400_000),
+    "bms_controls":      (30_000, 500_000),
+    "water_efficiency":  (10_000, 200_000),
+}
+
+_MEASURE_AFFECTED_SUBSYSTEMS = {
+    "hvac", "lighting_equipment", "base_load",
+}
 
 
 # ------------------------------------------------------------------
@@ -150,12 +236,14 @@ class ValidationResult:
 # assumptions.yml: construction_defaults. Used when the LLM does not
 # specify timing.
 DEFAULT_TIMING = {
-    "repurpose":         {"start_offset": 1, "duration_months": 18, "during": "unavailable"},
-    "retrofit":          {"start_offset": 0, "duration_months": 12, "during": "partial"},
-    "green_corridor":    {"start_offset": 0, "duration_months": 12, "during": "operational"},
-    "pedestrian_upgrade":{"start_offset": 0, "duration_months": 6,  "during": "partial"},
-    "new_development":   {"start_offset": 0, "duration_months": 36, "during": "unavailable"},
-    "delay_development": {"start_offset": 0, "duration_months": 0,  "during": "operational"},
+    "repurpose":          {"start_offset": 1, "duration_months": 18, "during": "unavailable", "capacity_ratio": 0.00},
+    "renovation":         {"start_offset": 0, "duration_months": 6, "during": "partial", "capacity_ratio": 0.70},
+    "retrofit":           {"start_offset": 0, "duration_months": 12, "during": "partial",     "capacity_ratio": 0.60},
+    "green_corridor":     {"start_offset": 0, "duration_months": 12, "during": "operational", "capacity_ratio": 1.00},
+    "pedestrian_upgrade": {"start_offset": 0, "duration_months": 6,  "during": "partial",     "capacity_ratio": 1.00},
+    "new_development":    {"start_offset": 0, "duration_months": 36, "during": "unavailable", "capacity_ratio": 0.00},
+    "delay_development":  {"start_offset": 0, "duration_months": 0,  "during": "operational", "capacity_ratio": 1.00},
+    "interim_solar_farm": {"start_offset": 0, "duration_months": 6,  "during": "operational", "capacity_ratio": 1.00},
 }
 
 
@@ -266,34 +354,397 @@ class ProposalValidator:
             )
             return errors, warnings, None
 
-        # Repurpose: subtype must exist and not equal current subtype
+        # Repurpose: full repurpose requires to_subtype; partial repurpose
+        # (subtype_changes) does NOT — it converts individual subtypes
+        # in place, and the aggregate subtype is recomputed by the engine.
+        #
+        # P1-1 fix: prior code rejected every partial repurpose because it
+        # unconditionally required to_subtype. Now:
+        #   - has_changes = True  → to_subtype is optional; subtype_changes
+        #                            is validated later by
+        #                            _validate_subtype_changes
+        #   - has_changes = False → to_subtype is required (original path)
         to_subtype = params.get("to_subtype")
+        has_changes = bool(params.get("subtype_changes"))
         if itype == "repurpose":
+            if not to_subtype and not has_changes:
+                errors.append(
+                    f"{asset_id}: repurpose requires either "
+                    f"parameters.to_subtype or parameters.subtype_changes"
+                )
+                return errors, warnings, None
+            if not has_changes:
+                defn = get_subtype(to_subtype)
+                if defn is None:
+                    errors.append(
+                        f"{asset_id}: subtype '{to_subtype}' not in taxonomy. "
+                        f"Call get_available_subtypes first."
+                    )
+                    return errors, warnings, None
+                current_subtype = asset_row.get("subtype")
+                if to_subtype == current_subtype:
+                    warnings.append(
+                        f"{asset_id}: repurpose target equals current subtype "
+                        f"'{to_subtype}' — no-op."
+                    )
+
+        if itype == "renovation":
+            to_subtype = params.get("to_subtype")
             if not to_subtype:
-                errors.append(f"{asset_id}: repurpose requires parameters.to_subtype")
+                errors.append(
+                    f"{asset_id}: renovation requires "
+                    f"parameters.to_subtype"
+                )
                 return errors, warnings, None
             defn = get_subtype(to_subtype)
             if defn is None:
                 errors.append(
-                    f"{asset_id}: subtype '{to_subtype}' not in taxonomy. "
-                    f"Call get_available_subtypes first."
+                    f"{asset_id}: renovation target '{to_subtype}' "
+                    f"not in taxonomy."
+                )
+                return errors, warnings, None
+            current_class = asset_row.get("asset_type")
+            target_class = defn.get("asset_class")
+            if target_class != current_class:
+                errors.append(
+                    f"{asset_id}: renovation target '{to_subtype}' is "
+                    f"in asset_class '{target_class}', current is "
+                    f"'{current_class}'. Use repurpose for cross-class "
+                    f"changes."
                 )
                 return errors, warnings, None
             current_subtype = asset_row.get("subtype")
             if to_subtype == current_subtype:
                 warnings.append(
-                    f"{asset_id}: repurpose target equals current subtype "
-                    f"'{to_subtype}' — no-op."
+                    f"{asset_id}: renovation target equals current "
+                    f"subtype '{to_subtype}' — no-op."
                 )
 
-        # Budget hints
-        capex = self._estimate_capex(itype, asset_row, params)
-        opex_delta = self._estimate_opex_delta(itype, asset_row, params)
+        # Phase 14 — authority check.
+        # Hard actions on a shared or advisory asset are not directly
+        # executable by the developer. This is not a legality error
+        # (the intervention is architecturally legal), but it is a
+        # feasibility constraint the plan must acknowledge.
+        authority = self._authority_for(asset_row)
+        if itype in HARD_ACTIONS and authority != "full_control":
+            if authority == "shared":
+                warnings.append(
+                    f"{asset_id}: '{itype}' on a strata-titled asset "
+                    f"requires owners corporation (JMB / MC) approval. "
+                    f"The plan is marked as 'requires_approval'; the "
+                    f"rationale should state this precondition."
+                )
+            else:  # advisory
+                warnings.append(
+                    f"{asset_id}: '{itype}' cannot be executed by this "
+                    f"actor — the asset is under advisory authority. "
+                    f"The plan is marked as 'recommendation_only'; the "
+                    f"rationale should be phrased as a recommendation "
+                    f"to the responsible authority."
+                )
+
+        # NEW — Phase A.1: mixed-ownership check.
+        # A repurpose (or new_development) on a multi-unit asset where
+        # some units are already sold is not actually under full
+        # developer control, even if the `authority` column says
+        # "full_control". The `developer_held_units` field records the
+        # split. Surface it so the LLM's rationale acknowledges the
+        # boundary.
+        if itype in HARD_ACTIONS:
+            unit_count = asset_row.get("unit_count")
+            held = asset_row.get("developer_held_units")
+            try:
+                uc = int(unit_count) if unit_count is not None else 1
+                h = int(held) if held is not None else 0
+            except (TypeError, ValueError):
+                uc, h = 1, 0
+            if uc > 1 and 0 < h < uc:
+                sold = uc - h
+                warnings.append(
+                    f"{asset_id}: '{itype}' targets a multi-unit asset with "
+                    f"{h}/{uc} units developer-held and {sold} units sold. "
+                    f"The sold units are governed by SPA / strata "
+                    f"arrangements; repurpose requires owner consent "
+                    f"(if strata-titled) or a master-title redevelopment "
+                    f"agreement. The plan remains valid but the rationale "
+                    f"must state the precondition."
+                )
+
+        # ---- Catalytic link validation (Phase 15) ----
+        role = item.get("role") or "primary"
+        catalytic_link = item.get("catalytic_link")
+
+        if role == "catalytic":
+            if not isinstance(catalytic_link, dict):
+                errors.append(
+                    f"{asset_id}: role='catalytic' requires a "
+                    f"catalytic_link object."
+                )
+                return errors, warnings, None
+
+            acting_on = catalytic_link.get("acting_on_asset_id")
+            if not acting_on:
+                errors.append(
+                    f"{asset_id}: catalytic_link.acting_on_asset_id is "
+                    f"required."
+                )
+                return errors, warnings, None
+            if acting_on != asset_id:
+                errors.append(
+                    f"{asset_id}: catalytic_link.acting_on_asset_id "
+                    f"({acting_on}) must match the item's asset_id."
+                )
+                return errors, warnings, None
+
+            beneficiary = catalytic_link.get("beneficiary_asset_id")
+            if not beneficiary:
+                errors.append(
+                    f"{asset_id}: catalytic_link.beneficiary_asset_id "
+                    f"is required."
+                )
+                return errors, warnings, None
+            if beneficiary == asset_id:
+                errors.append(
+                    f"{asset_id}: catalytic_link.beneficiary_asset_id "
+                    f"must differ from the acting asset."
+                )
+                return errors, warnings, None
+
+            mechanism = catalytic_link.get("mechanism")
+            if mechanism not in CATALYTIC_MECHANISMS:
+                errors.append(
+                    f"{asset_id}: mechanism '{mechanism}' is not one "
+                    f"of {sorted(CATALYTIC_MECHANISMS)}."
+                )
+                return errors, warnings, None
+
+            vlevel = catalytic_link.get("verification_level", "claimed")
+            max_level = _MAX_VERIFICATION_LEVEL.get(mechanism, "claimed")
+            if _VERIFICATION_ORDER.get(vlevel, 0) > _VERIFICATION_ORDER.get(
+                max_level, 0
+            ):
+                # Downgrade silently — the plan is still valid, but
+                # the claim is capped at what the simulation can
+                # support.
+                warnings.append(
+                    f"{asset_id}: mechanism '{mechanism}' cannot be "
+                    f"claimed as '{vlevel}'. Simulation only supports "
+                    f"'{max_level}'. Downgraded."
+                )
+                catalytic_link = dict(catalytic_link)
+                catalytic_link["verification_level"] = max_level
+
+            explanation = catalytic_link.get("explanation")
+            if not explanation or not str(explanation).strip():
+                errors.append(
+                    f"{asset_id}: catalytic_link.explanation is "
+                    f"required."
+                )
+                return errors, warnings, None
+
+            # Mechanism ↔ intervention-type coherence. When the
+            # delivering intervention cannot physically produce the
+            # claimed effect, the verification level is downgraded
+            # to a specific target level.
+            #
+            # Downgrade targets:
+            #   walkability_improvement delivered by a non-spatial
+            #     intervention → partially_verified (claim is
+            #     implausible; Huff may still move)
+            #   catchment_growth delivered by a non-development
+            #     intervention → partially_verified (no residents
+            #     are added; only Huff allocation could shift)
+            #   competition_relief delivered by a non-removing
+            #     intervention → claimed (competitor stays in the
+            #     subtype pool, so no Huff delta is physically
+            #     possible)
+            def _coherence_downgrade(target_level, reason):
+                level = catalytic_link.get("verification_level", "claimed")
+                if _VERIFICATION_ORDER.get(level, 0) > \
+                   _VERIFICATION_ORDER.get(target_level, 0):
+                    new_link = dict(catalytic_link)
+                    new_link["verification_level"] = target_level
+                    warnings.append(
+                        f"{asset_id}: {reason} — verification "
+                        f"downgraded to '{target_level}'."
+                    )
+                    return new_link
+                return catalytic_link
+
+            if mechanism == "walkability_improvement" and itype not in (
+                "pedestrian_upgrade", "green_corridor",
+            ):
+                warnings.append(
+                    f"{asset_id}: mechanism 'walkability_improvement' "
+                    f"but intervention type is '{itype}'. Usually this "
+                    f"mechanism is delivered by a spatial intervention."
+                )
+                catalytic_link = _coherence_downgrade(
+                    "partially_verified",
+                    f"mechanism 'walkability_improvement' delivered by "
+                    f"'{itype}' cannot raise the beneficiary's walk "
+                    f"coverage",
+                )
+
+            if mechanism == "catchment_growth" and itype != "new_development":
+                warnings.append(
+                    f"{asset_id}: mechanism 'catchment_growth' usually "
+                    f"requires a 'new_development' intervention."
+                )
+                catalytic_link = _coherence_downgrade(
+                    "partially_verified",
+                    f"mechanism 'catchment_growth' delivered by "
+                    f"'{itype}' cannot add residents to the catchment",
+                )
+
+            if mechanism == "competition_relief" and itype not in (
+                "repurpose", "delay_development",
+                "cancel_development", "new_development",
+            ):
+                warnings.append(
+                    f"{asset_id}: mechanism 'competition_relief' "
+                    f"delivered by '{itype}' does not remove a "
+                    f"competitor from the subtype pool."
+                )
+                catalytic_link = _coherence_downgrade(
+                    "claimed",
+                    f"mechanism 'competition_relief' delivered by "
+                    f"'{itype}' leaves the competitor's subtype "
+                    f"unchanged, so the Huff pool does not shift",
+                )
+                
+        elif role == "primary" and catalytic_link:
+            warnings.append(
+                f"{asset_id}: catalytic_link provided but role='primary'. "
+                f"catalytic_link is ignored."
+            )
+            catalytic_link = None
+
+        # Retrofit: measures must be declared and legal.
+        if itype == "retrofit":
+            measures = params.get("measures")
+            if not measures or not isinstance(measures, list):
+                errors.append(
+                    f"{asset_id}: retrofit requires parameters.measures "
+                    f"(a list of 2-4 measures from {sorted(RETROFIT_MEASURES)})."
+                )
+                return errors, warnings, None
+
+            if len(measures) < 1 or len(measures) > 5:
+                warnings.append(
+                    f"{asset_id}: retrofit measures list has "
+                    f"{len(measures)} entries; expected 2-4."
+                )
+
+            illegal = [m for m in measures if m not in RETROFIT_MEASURES]
+            if illegal:
+                errors.append(
+                    f"{asset_id}: unknown retrofit measures {illegal}. "
+                    f"Valid: {sorted(RETROFIT_MEASURES)}"
+                )
+                return errors, warnings, None
+
+            gain = params.get("energy_efficiency_gain")
+            if gain is None:
+                errors.append(
+                    f"{asset_id}: retrofit requires "
+                    f"parameters.energy_efficiency_gain."
+                )
+                return errors, warnings, None
+            try:
+                gain_f = float(gain)
+            except (TypeError, ValueError):
+                errors.append(
+                    f"{asset_id}: energy_efficiency_gain must be a number."
+                )
+                return errors, warnings, None
+            if not (0.0 <= gain_f <= 0.60):
+                warnings.append(
+                    f"{asset_id}: energy_efficiency_gain={gain_f} is "
+                    f"outside the typical 0.15-0.50 range; verify."
+                )
+                        # Optional detailed breakdown (P1)
+            breakdown = params.get("measure_breakdown")
+            if breakdown is not None:
+                if not isinstance(breakdown, list):
+                    warnings.append(
+                        f"{asset_id}: measure_breakdown must be a list."
+                    )
+                else:
+                    _validate_measure_breakdown(
+                        asset_id, measures, breakdown, warnings,
+                        declared_capex=params.get("capex_delta_rm"),
+                    )
+
+        # ------------------------------------------------------------------
+        # Partial repurpose via subtype_changes (Phase B.2c)
+        # ------------------------------------------------------------------
+        # A mixed-use asset (mall, shoplot cluster) can have only
+        # some of its subtypes failing. A full repurpose would
+        # destroy the healthy ones. subtype_changes converts only
+        # the dead portion, in place, without changing the asset's
+        # overall class.
+        if params.get("subtype_changes") is not None:
+            if itype != "repurpose":
+                errors.append(
+                    f"{asset_id}: subtype_changes is only valid on "
+                    f"a 'repurpose' intervention."
+                )
+                return errors, warnings, None
+            _validate_subtype_changes(
+                asset_id, asset_row, params["subtype_changes"],
+                self.ds.subtypes_config, errors, warnings,
+            )
+            if errors:
+                return errors, warnings, None        
+
+        # Budget hints.
+        # Pass the target subtype for every subtype-changing
+        # intervention (repurpose and new_development), so the
+        # estimator hits the subtype-specific rate table instead of
+        # falling back to the asset's current class.
+        to_subtype = (
+            params.get("to_subtype")
+            if itype in ("repurpose", "new_development")
+            else None
+        )
+        capex = self._estimate_capex(
+            itype, asset_row, params, target_subtype=to_subtype,
+        )
+        opex_delta = self._estimate_opex_delta(
+            itype, asset_row, params, target_subtype=to_subtype,
+        )
 
         # Timing
         timing = DEFAULT_TIMING.get(itype, {
             "start_offset": 0, "duration_months": 0, "during": "operational",
         })
+        
+        # --- NEW: Partial repurpose (subtype_changes) should NOT halt the whole asset ---
+        # If the conversion area is small relative to the whole asset,
+        # treat it like a light renovation: 6 months, partial capacity.
+        if itype == "repurpose" and params.get("subtype_changes"):
+            mix = _parse_unit_mix_from_asset(asset_row)
+            total_area = sum(float(i.get("area_m2") or 0) for i in mix.values())
+            
+            converted_area = 0.0
+            for ch in params["subtype_changes"]:
+                if "area_m2" in ch:
+                    converted_area += float(ch["area_m2"])
+                else:
+                    # If area omitted, assume the whole from_subtype is converted
+                    from_st = ch.get("from_subtype")
+                    converted_area += float(mix.get(from_st, {}).get("area_m2", 0.0))
+                    
+            # If less than 50% of the asset is being touched, don't close the whole thing
+            if total_area > 0 and (converted_area / total_area) < 0.50:
+                timing = {
+                    "start_offset": 0, 
+                    "duration_months": 6, 
+                    "during": "partial", 
+                    "capacity_ratio": 0.80,  # 80% of the mall keeps operating
+                }
+        
         start_year = self.base_year + timing["start_offset"]
         duration = timing["duration_months"]
         activation_year = start_year + (duration + 11) // 12  # ceil months -> years
@@ -310,6 +761,38 @@ class ProposalValidator:
                 f"is before base year {self.base_year}"
             )
             return errors, warnings, None
+        # Phase E — lease-aware timing warning.
+        # A structural intervention on a commercial asset whose
+        # anchor lease has not yet expired will be physically
+        # constrained. The simulation still runs (the lease ceiling
+        # in B4 caps occupancy), but the LLM should be told the
+        # timing is suboptimal. This is a soft warning; the plan
+        # remains valid.
+        if itype in HARD_ACTIONS and asset_type == "commercial":
+            leases_attr = getattr(self.ds, "leases", None)
+            if leases_attr is not None and not leases_attr.empty:
+                a_leases = leases_attr[
+                    (leases_attr["asset_id"] == asset_id)
+                    & (leases_attr["tenant_type"] == "anchor")
+                    & (leases_attr["lease_status"] == "active")
+                ]
+                if not a_leases.empty:
+                    ends = a_leases["lease_end_year"].dropna()
+                    if not ends.empty:
+                        try:
+                            anchor_end = int(ends.max())
+                        except (TypeError, ValueError):
+                            anchor_end = None
+                        if anchor_end is not None and start_year < anchor_end:
+                            warnings.append(
+                                f"{asset_id}: anchor lease is active "
+                                f"through {anchor_end}. Starting "
+                                f"construction in {start_year} will be "
+                                f"physically constrained by the "
+                                f"existing tenancy. Consider "
+                                f"construction_start_year >= "
+                                f"{anchor_end}."
+                            )
         if "activation_year" in params:
             try:
                 activation_year = int(params["activation_year"])
@@ -320,15 +803,31 @@ class ProposalValidator:
         expected = item.get("expected_effects") or {}
         expected_json = self._normalise_expected(expected)
 
+        # Phase 14 — derive the execution status from authority +
+        # intervention type.
+        if itype not in HARD_ACTIONS:
+            execution_status = "executable"
+        elif authority == "full_control":
+            execution_status = "executable"
+        elif authority == "shared":
+            execution_status = "requires_approval"
+        else:
+            execution_status = "recommendation_only"
+
         normalised_item = {
             "asset_id": asset_id,
             "intervention_type": itype,
+            "role": role,
+            "catalytic_link": catalytic_link if role == "catalytic" else None,
             "parameters": params,
             "expected_derived_json": expected_json,
             "construction_start_year": start_year,
             "construction_duration_months": duration,
             "activation_year": activation_year,
             "during_construction_status": timing["during"],
+            "capacity_ratio": timing.get("capacity_ratio", 1.0),
+            "execution_status": execution_status,
+            "authority": authority,
             "capex_delta_rm": capex,
             "opex_delta_rm": opex_delta,
         }
@@ -440,7 +939,58 @@ class ProposalValidator:
         floor = _CAPEX_FLOOR.get(itype, 0.0)
         floor_area = _as_positive_float(asset_row.get("floor_area_m2"))
 
-        if itype in ("repurpose", "new_development"):
+        if itype == "new_development":
+            # New development is measured by the target GFA the LLM
+            # specified, not by the current floor area of the vacant
+            # parcel (which is typically zero). Using the parcel's own
+            # area would always fall back to the floor value and let
+            # any sized development pass the budget check.
+            gfa = _as_positive_float(params.get("target_gfa_m2"))
+            rate = None
+            if target_subtype:
+                rate = _CAPEX_RATE_BY_SUBTYPE.get(target_subtype)
+            if rate is None:
+                rate = _CAPEX_RATE_BY_CLASS.get("commercial", 200.0)
+            if gfa > 0:
+                return max(floor, gfa * rate)
+            return floor
+
+        # Partial repurpose: only the converted area pays CAPEX.
+        if itype == "repurpose" and params.get("subtype_changes"):
+            mix = _parse_unit_mix_from_asset(asset_row)
+            total = 0.0
+            for ch in params["subtype_changes"]:
+                if not isinstance(ch, dict):
+                    continue
+                from_st = ch.get("from_subtype")
+                to_st = ch.get("to_subtype")
+                if not from_st or not to_st:
+                    continue
+                from_area = float(
+                    (mix.get(from_st) or {}).get("area_m2") or 0.0
+                )
+                requested = ch.get("area_m2")
+                if requested is not None:
+                    try:
+                        req = float(requested)
+                        converted = min(req, from_area) if from_area else req
+                    except (TypeError, ValueError):
+                        converted = from_area
+                else:
+                    converted = from_area
+                if converted <= 0:
+                    continue
+                rate = _CAPEX_RATE_BY_SUBTYPE.get(to_st)
+                if rate is None:
+                    rate = _CAPEX_RATE_BY_CLASS.get(
+                        asset_row.get("asset_type"), 200.0,
+                    )
+                total += converted * rate
+            if total > 0:
+                return max(_CAPEX_FLOOR.get("repurpose", 0.0), total)
+            return _CAPEX_FLOOR.get("repurpose", 0.0)
+
+        if itype == "repurpose":
             rate = None
             if target_subtype:
                 rate = _CAPEX_RATE_BY_SUBTYPE.get(target_subtype)
@@ -451,6 +1001,18 @@ class ProposalValidator:
             if floor_area > 0:
                 return max(floor, floor_area * rate)
             return floor
+
+        if itype == "renovation":
+            rate = _CAPEX_RATE_BY_SUBTYPE.get(
+                target_subtype, _CAPEX_RATE_BY_CLASS.get(
+                    asset_row.get("asset_type"), 200.0,
+                )
+            )
+            if floor_area > 0:
+                # Renovation costs ~50% of a full repurpose because
+                # there is no structural change.
+                return max(40_000.0, floor_area * rate * 0.5)
+            return 40_000.0
 
         # 3. Retrofit: fraction of the current-class rate
         if itype == "retrofit":
@@ -584,6 +1146,35 @@ class ProposalValidator:
                 results.append({"asset_id": row["asset_id"], "distance_m": round(d, 1)})
         return results
 
+    def _authority_for(self, asset_row: dict) -> str:
+        """
+        Look up an asset's execution authority.
+
+        Resolution order:
+        1. `authority` column (explicit).
+        2. `ownership_status` column (mapped).
+        3. Asset type default.
+        4. "advisory" fallback.
+        """
+        if not isinstance(asset_row, dict):
+            return "advisory"
+
+        explicit = asset_row.get("authority")
+        if isinstance(explicit, str) and explicit.strip():
+            return explicit.strip()
+
+        ownership = asset_row.get("ownership_status")
+        if isinstance(ownership, str) and ownership.strip():
+            from ..deadspace.layer3 import _AUTHORITY_BY_OWNERSHIP
+            mapped = _AUTHORITY_BY_OWNERSHIP.get(ownership.strip())
+            if mapped:
+                return mapped
+
+        atype = asset_row.get("asset_type")
+        if isinstance(atype, str):
+            return default_authority_for(atype)
+        return "advisory"
+
 # ------------------------------------------------------------------
 # Utilities
 # ------------------------------------------------------------------
@@ -598,3 +1189,230 @@ def _as_positive_float(v) -> float:
     if math.isnan(f) or f < 0:
         return 0.0
     return f
+
+
+def _validate_measure_breakdown(asset_id, measures, breakdown, warnings,
+                                 declared_capex=None):
+    """
+    Warn on implausible measure_breakdown entries. Never blocks.
+    """
+    names_in_breakdown = set()
+    total_capex = 0.0
+    for m in breakdown:
+        if not isinstance(m, dict):
+            warnings.append(f"{asset_id}: measure_breakdown entry is not an object.")
+            continue
+        name = m.get("name")
+        names_in_breakdown.add(name)
+
+        capex = m.get("capex_rm")
+        gain = m.get("energy_gain")
+        affected = m.get("affected") or []
+
+        if name in _MEASURE_CAPEX_RANGE_RM and capex is not None:
+            lo, hi = _MEASURE_CAPEX_RANGE_RM[name]
+            try:
+                c = float(capex)
+                total_capex += c
+                if not (lo <= c <= hi):
+                    warnings.append(
+                        f"{asset_id}: '{name}' capex RM {c:,.0f} is "
+                        f"outside the typical RM {lo:,.0f}-{hi:,.0f}."
+                    )
+            except (TypeError, ValueError):
+                warnings.append(f"{asset_id}: '{name}' capex is not numeric.")
+
+        if name in _MEASURE_ENERGY_GAIN_RANGE and gain is not None:
+            lo, hi = _MEASURE_ENERGY_GAIN_RANGE[name]
+            try:
+                g = float(gain)
+                if not (lo <= g <= hi):
+                    warnings.append(
+                        f"{asset_id}: '{name}' energy_gain {g} is "
+                        f"outside the typical {lo}-{hi}."
+                    )
+            except (TypeError, ValueError):
+                warnings.append(f"{asset_id}: '{name}' energy_gain is not numeric.")
+
+        for s in affected:
+            if s not in _MEASURE_AFFECTED_SUBSYSTEMS:
+                warnings.append(
+                    f"{asset_id}: '{name}' affects unknown subsystem '{s}'. "
+                    f"Valid: {sorted(_MEASURE_AFFECTED_SUBSYSTEMS)}."
+                )
+
+    declared_measures = set(measures)
+    if names_in_breakdown != declared_measures:
+        warnings.append(
+            f"{asset_id}: measure_breakdown names {sorted(names_in_breakdown)} "
+            f"do not match measures {sorted(declared_measures)}."
+        )
+
+    if declared_capex is not None and total_capex > 0:
+        try:
+            dc = float(declared_capex)
+            if abs(dc - total_capex) > max(10.0, dc * 0.02):
+                warnings.append(
+                    f"{asset_id}: sum of measure_breakdown capex "
+                    f"RM {total_capex:,.0f} does not match declared "
+                    f"capex_delta_rm RM {dc:,.0f}."
+                )
+        except (TypeError, ValueError):
+            pass
+
+def _parse_unit_mix_from_asset(asset_row):
+    """Parse asset_row['unit_mix_json'] into a dict; {} on failure."""
+    import json as _json
+    raw = asset_row.get("unit_mix_json")
+    if not raw:
+        return {}
+    try:
+        if isinstance(raw, float) and math.isnan(raw):
+            return {}
+    except (TypeError, ValueError):
+        pass
+    try:
+        mix = _json.loads(raw) if isinstance(raw, str) else raw
+    except (_json.JSONDecodeError, TypeError):
+        return {}
+    if not isinstance(mix, dict):
+        return {}
+    return mix
+
+
+def _validate_subtype_changes(asset_id, asset_row, changes,
+                               subtypes_config, errors, warnings):
+    """
+    Validate a partial-repurpose subtype_changes block.
+
+    Rules:
+      1. Asset must have a unit_mix_json (mixed-use).
+      2. Each change must reference an existing from_subtype.
+      3. to_subtype must be in the SAME asset_class as from_subtype.
+      4. area_m2, if given, must be positive and <= current area.
+      5. After applying all changes, the primary (largest) subtype
+         must remain in the original asset_class so the asset's
+         `asset_type` does not flip (this is the middle-ground
+         limitation — cross-class changes must use a full repurpose).
+    """
+    if not isinstance(changes, list) or not changes:
+        errors.append(
+            f"{asset_id}: subtype_changes must be a non-empty list."
+        )
+        return
+
+    mix = _parse_unit_mix_from_asset(asset_row)
+    if not mix:
+        errors.append(
+            f"{asset_id}: subtype_changes requires an asset with a "
+            f"unit_mix_json. This asset is single-subtype; use a "
+            f"full repurpose instead."
+        )
+        return
+
+    current_class = asset_row.get("asset_type")
+
+    # Working state: {subtype: current area}
+    simulated = {}
+    for st, info in mix.items():
+        if not isinstance(info, dict):
+            continue
+        simulated[st] = float(info.get("area_m2") or 0.0)
+
+    for i, ch in enumerate(changes):
+        if not isinstance(ch, dict):
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}] is not an object."
+            )
+            continue
+
+        from_st = ch.get("from_subtype")
+        to_st = ch.get("to_subtype")
+
+        if not from_st or not to_st:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}] requires both "
+                f"from_subtype and to_subtype."
+            )
+            continue
+        if from_st not in mix:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}].from_subtype "
+                f"'{from_st}' not found in unit_mix "
+                f"({sorted(mix.keys())})."
+            )
+            continue
+
+        from_class = (subtypes_config.get(from_st) or {}).get(
+            "asset_class",
+        )
+        to_class = (subtypes_config.get(to_st) or {}).get(
+            "asset_class",
+        )
+        if to_class is None:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}].to_subtype "
+                f"'{to_st}' not in taxonomy."
+            )
+            continue
+        if from_class != to_class:
+            errors.append(
+                f"{asset_id}: subtype_changes[{i}] crosses asset "
+                f"class ({from_class} -> {to_class}). Use a full "
+                f"repurpose for cross-class changes."
+            )
+            continue
+
+        current_area = simulated.get(from_st, 0.0)
+        if current_area <= 0:
+            warnings.append(
+                f"{asset_id}: subtype_changes[{i}].from_subtype "
+                f"'{from_st}' already has 0 area — no-op."
+            )
+            continue
+
+        requested = ch.get("area_m2")
+        if requested is None:
+            converted = current_area
+        else:
+            try:
+                req = float(requested)
+            except (TypeError, ValueError):
+                errors.append(
+                    f"{asset_id}: subtype_changes[{i}].area_m2 "
+                    f"is not numeric."
+                )
+                continue
+            if req <= 0:
+                errors.append(
+                    f"{asset_id}: subtype_changes[{i}].area_m2 "
+                    f"must be positive."
+                )
+                continue
+            if req > current_area + 0.5:  # 0.5 m² tolerance
+                errors.append(
+                    f"{asset_id}: subtype_changes[{i}].area_m2 "
+                    f"({req}) exceeds current area of '{from_st}' "
+                    f"({current_area})."
+                )
+                continue
+            converted = req
+
+        simulated[from_st] = current_area - converted
+        simulated[to_st] = simulated.get(to_st, 0.0) + converted
+
+    # Sanity: resulting primary subtype must remain in current_class.
+    simulated = {k: v for k, v in simulated.items() if v > 0}
+    if simulated:
+        primary = max(simulated, key=lambda k: simulated[k])
+        primary_class = (subtypes_config.get(primary) or {}).get(
+            "asset_class",
+        )
+        if primary_class != current_class:
+            errors.append(
+                f"{asset_id}: after subtype_changes, the largest "
+                f"remaining subtype '{primary}' belongs to "
+                f"'{primary_class}', not '{current_class}'. A "
+                f"partial repurpose cannot change the asset's "
+                f"class — use a full repurpose instead."
+            )

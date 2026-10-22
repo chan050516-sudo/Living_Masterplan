@@ -19,7 +19,7 @@ class DerivationContext:
     assumptions: dict
     accessibility_score: Optional[float]
     huff_effective_demand: Optional[float]           # persons (legacy)
-    huff_effective_demand_m2: Optional[float]        # m² (Phase 2, per-subtype)
+    huff_effective_demand_m2: Optional[float]        # m² (total across subtypes)
     graph: nx.Graph
     year: int
     canopy_coverage: Optional[float] = None
@@ -30,3 +30,10 @@ class DerivationContext:
     # Phase 2 additions
     catchment_population_profile: Optional[dict] = None   # age structure
     neighborhood_diversity: Optional[float] = None
+
+    # Phase B.1 — per-subtype Huff demand.
+    # A commercial asset with a unit_mix has one demand figure per
+    # subtype; a commercial asset without one carries a single-entry
+    # dict keyed by its own subtype. huff_effective_demand_m2 is the
+    # sum of this dict for backwards compatibility.
+    huff_by_subtype: Optional[dict] = None

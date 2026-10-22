@@ -1,4 +1,8 @@
-"""Run Phase 1 — compute derived metrics for the mock township."""
+"""Run Phase 1 — compute derived metrics for the mock township.
+
+Phase B.1 — computes metrics for the full 5-year history
+(2022-2026) rather than a single snapshot year.
+"""
 
 import math
 import sys
@@ -58,6 +62,9 @@ FIELDS_COMMERCIAL = [
     ("Drive 5-min (people)", "catchment_population_5min_drive"),
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
     ("Carbon (tCO2e)", "carbon_operational_tco2e"),
+    ("Trajectory class", "trajectory_class"),
+    ("Peak occupancy (5yr)", "peak_occupancy"),
+    ("Years since peak", "years_since_peak"),
 ]
 
 FIELDS_FACILITY = [
@@ -71,6 +78,7 @@ FIELDS_FACILITY = [
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
     ("Demographic mismatch", "demographic_mismatch"),
     ("Carbon (tCO2e)", "carbon_operational_tco2e"),
+    ("Trajectory class", "trajectory_class"),
 ]
 
 FIELDS_GREEN = [
@@ -97,10 +105,16 @@ FIELDS_PARCEL = [
 FIELDS_RESIDENTIAL = [
     ("Subtype", "subtype"),
     ("Occupancy rate", "occupancy_rate"),
+    ("Unit count", "unit_count"),
+    ("Developer-held units", "developer_held_units"),
+    ("Occupied units", "occupied_units"),
     ("Energy intensity (kWh/m2)", "energy_intensity_kwh_m2"),
     ("NOI (RM)", "noi_rm"),
     ("Walk 10-min coverage", "coverage_ratio_10min_walk"),
     ("Drive 10-min coverage", "coverage_ratio_10min_drive"),
+    ("Trajectory class", "trajectory_class"),
+    ("Peak occupancy (5yr)", "peak_occupancy"),
+    ("Years since peak", "years_since_peak"),
 ]
 
 FIELDS_BY_TYPE = {
@@ -114,35 +128,55 @@ FIELDS_BY_TYPE = {
 
 def main():
     repo_root = Path(__file__).resolve().parents[2]
-    year = 2026
+    base_year = 2026
+    history_years = [
+        base_year - 4, base_year - 3, base_year - 2,
+        base_year - 1, base_year,
+    ]
 
-    print(f"\nRunning Phase 1 (B3) for year {year}...")
-    derived = compute_derived_metrics(repo_root=repo_root, year=year)
+    print(f"\nRunning Phase 1 (B3) for years {history_years}...")
+    derived = compute_derived_metrics(
+        repo_root=repo_root, year=base_year, years=history_years,
+    )
+    print(f"  derived rows: {len(derived)}  "
+          f"(expected {len(history_years)} × assets)")
 
     order = ["commercial", "community_facility", "green_space",
              "undeveloped_parcel", "residential"]
 
-    assets_path = repo_root / "mock" / "business" / "assets.csv"
+    from app.config import load_paths
+    paths = load_paths()
+    base_dir = repo_root / paths["base"] / "business"
+
+    assets_path = base_dir / "assets.csv"
     assets_df = pd.read_csv(assets_path)
     type_map = dict(zip(assets_df["asset_id"], assets_df["asset_type"]))
 
+    # Print only the current year — the history is checked separately.
+    current = derived[derived["year"] == base_year]
+
     for atype in order:
-        rows = derived[derived["asset_id"].map(type_map) == atype]
+        rows = current[current["asset_id"].map(type_map) == atype]
         if rows.empty:
             continue
-        _section(f"{atype.upper()}")
+        _section(f"{atype.upper()} — {base_year}")
         for _, row in rows.iterrows():
             _print_asset(row, FIELDS_BY_TYPE.get(atype, []))
 
-    metrics_path = repo_root / "mock" / "business" / "asset_metrics.csv"
+    metrics_path = base_dir / "asset_metrics.csv"
     existing = pd.read_csv(metrics_path)
-    merged = merge_into_asset_metrics(derived, existing, year=year)
+    merged = merge_into_asset_metrics(
+        derived, existing, years=history_years,
+    )
 
-    out_path = repo_root / "mock" / "business" / "asset_metrics_enriched.csv"
+    out_path = base_dir / "asset_metrics_enriched.csv"
     merged.to_csv(out_path, index=False)
 
     print("\n" + "=" * 72)
     print(f"  Wrote enriched metrics to: {out_path}")
+    print(f"  Rows: {len(merged)}  "
+          f"({len(assets_df)} assets × {len(history_years)} years)")
+    print(f"  Years: {sorted(merged['year'].unique())}")
     print("=" * 72 + "\n")
 
 

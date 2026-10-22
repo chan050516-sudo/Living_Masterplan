@@ -57,7 +57,27 @@
     "cost_per_user_rm": { "type": ["number", "null"] },
 
     "effective_demand": { "type": ["number", "null"] },
-    "effective_demand_m2": { "type": ["number", "null"] },
+        "effective_demand_m2": { "type": ["number", "null"] },
+    "effective_demand_by_subtype_json": {
+      "type": ["string", "null"],
+      "$comment": "Phase B.1 — per-subtype Huff demand, e.g. {\"supermarket\": 3000.0, \"f_and_b\": 800.0}."
+    },
+    "dsr_by_subtype_json": {
+      "type": ["string", "null"],
+      "$comment": "Phase B.2 — per-subtype DSR. Each subtype divides its own Huff demand by its own area."
+    },
+    "occupancy_by_subtype_calc_json": {
+      "type": ["string", "null"],
+      "$comment": "Phase B.2 — per-subtype occupancy computed by B3. Preferred over the observed occupancy_by_subtype_json when both are present."
+    },
+    "energy_by_subtype_json": {
+      "type": ["string", "null"],
+      "$comment": "Phase B.2 — per-subtype raw energy (kWh) before breakdown. Scale factor converts lettable area to floor area."
+    },
+    "carbon_by_subtype_json": {
+      "type": ["string", "null"],
+      "$comment": "Phase B.2 — per-subtype operational carbon (tCO2e). Sum equals carbon_operational_tco2e."
+    },
     "effective_supply": { "type": ["number", "null"] },
     "dsr": { "type": ["number", "null"] },
 
@@ -78,6 +98,79 @@
 
     "demographic_mismatch": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
     "neighborhood_diversity": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+
+    "occupancy_trend_3yr": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — linear slope of occupancy over the last 3 years. Negative = declining."
+    },
+    "noi_trend_3yr": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — linear slope of NOI over the last 3 years. Negative = worsening."
+    },
+    "years_below_benchmark": {
+      "type": ["integer", "null"],
+      "$comment": "Phase B.1 — consecutive years below (benchmark * 0.85)."
+    },
+    "peak_occupancy": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — historical peak occupancy in the 5-year window."
+    },
+    "years_since_peak": {
+      "type": ["integer", "null"],
+      "$comment": "Phase B.1 — years elapsed since the peak occupancy was recorded."
+    },
+    "vacancy_streak_months": {
+      "type": ["number", "null"],
+      "$comment": "Phase B.1 — latest vacancy_duration_months in the observed series."
+    },
+    "trajectory_class": {
+      "type": ["string", "null"],
+      "enum": [
+        "stable", "declining", "rapid_decline", "chronic_low",
+        "recovering", "never_alive", "recent_failure", "unknown", null
+      ],
+      "$comment": "Phase B.1 — coarse trajectory classification from the 5-year history."
+    },
+
+    "energy_kwh_hvac": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — HVAC sub-system energy."
+    },
+    "energy_kwh_lighting_equipment": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — lighting and tenant equipment energy."
+    },
+    "energy_kwh_base_load": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — base load (elevators, pumps, standby)."
+    },
+    "carbon_productive_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — operational carbon proportional to occupancy/utilisation."
+    },
+    "carbon_stranded_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — operational carbon wasted on unused capacity."
+    },
+    "stranded_carbon_ratio": {
+      "type": ["number", "null"], "minimum": 0, "maximum": 1
+    },
+    "embodied_carbon_total_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — life-cycle carbon locked into the structure."
+    },
+    "embodied_carbon_amortised_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — annual amortised share of embodied carbon."
+    },
+    "maintenance_carbon_tco2e": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — annual carbon from maintenance activities."
+    },
+    "surface_temp_delta_c": {
+      "type": ["number", "null"],
+      "$comment": "Phase 11 — UHI proxy. Positive = warmer, negative = cooler."
+    },
 
     "financial_score":     { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0. Kept for CSV column alignment. Do not consume." },
     "environmental_score": { "type": ["number", "null"], "deprecated": true, "$comment": "Removed in v0.4.0." },

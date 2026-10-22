@@ -1,6 +1,0 @@
-candidate_id,parcel_id,development_type,target_gfa_m2,target_units,target_demographic,expected_capex_rm,expected_completion_year,expected_demand_coverage,expected_utilisation,expected_carbon_tco2e,expected_accessibility_delta,feasibility_status,constraint_notes
-CAND-P05-01,P-05,childcare,1200,1,young_families,1800000,2029,0.72,0.78,145,0.08,feasible,Complies with land use plan
-CAND-P05-02,P-05,community_hall,900,1,all_residents,1200000,2029,0.68,0.72,110,0.1,feasible,Complies with land use plan
-CAND-P05-03,P-05,convenience_retail,4200,0,general,3800000,2031,0.31,0.42,420,0.05,constraint_flagged,Surrounding commercial supply already saturated
-CAND-P05-04,P-05,affordable_housing,6800,60,young_families,5200000,2031,0.55,0.8,580,0.06,feasible,Aligns with housing policy
-CAND-P05-05,P-05,park,3600,0,public,400000,2027,1.0,0.85,15,0.15,feasible,Low CAPEX ecological upgrade

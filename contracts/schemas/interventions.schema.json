@@ -14,7 +14,9 @@
     "intervention_type": {
       "enum": [
         "repurpose", "retrofit", "green_corridor",
-        "pedestrian_upgrade", "new_development", "delay_development", "no_op"
+        "pedestrian_upgrade", "new_development",
+        "delay_development", "no_op",
+        "interim_solar_farm"
       ]
     },
     "parameters_json": {

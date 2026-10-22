@@ -47,12 +47,32 @@
     },
     "layer3": {
       "type": "object",
-      "required": ["actionable", "candidate_interventions"],
+      "required": [
+        "has_legal_actions", "candidate_interventions",
+        "diagnosis_active", "reason"
+      ],
       "properties": {
-        "actionable": { "type": "boolean" },
+        "has_legal_actions": {
+          "type": "boolean",
+          "$comment": "True when the asset TYPE has any legal intervention. Type property, not asset state."
+        },
+        "actionable": {
+          "type": "boolean",
+          "deprecated": true,
+          "$comment": "Phase 16 — legacy alias for has_legal_actions. Kept for schema compatibility with status.py. Do not consume."
+        },
+        "diagnosis_active": {
+          "type": "boolean",
+          "$comment": "True when layer1 or layer2 fired. Only then is candidate_interventions populated."
+        },
         "candidate_interventions": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": { "type": "string" },
+          "$comment": "Interventions indicated by the asset's diagnosis. Empty when no layer fired."
+        },
+        "reason": {
+          "type": "string",
+          "$comment": "Human-readable explanation of why candidate_interventions is empty or populated."
         }
       }
     },
