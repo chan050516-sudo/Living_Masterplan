@@ -8,19 +8,29 @@ The project supports three connected tasks:
 2. **Explore options:** generate and validate candidate intervention plans, including repurposing, retrofits, and development changes.
 3. **Compare outcomes:** simulate selected plans over time and review asset-level and township-level changes.
 
+*Supports multi-modal evidence ingestion (accepts PDF/CSV/TXT reports) and zero-shot spatial reasoning via Gemini on Google Cloud Vertex AI.*
+
+## Live Demo
+
+- **Frontend Dashboard:** [https://living-masterplan-beta.vercel.app](https://living-masterplan-beta.vercel.app)
+- **Production API:** `https://living-masterplan-api-1071997994154.asia-southeast1.run.app`
+- **Interactive API Docs:** [https://living-masterplan-api-1071997994154.asia-southeast1.run.app/docs](https://living-masterplan-api-1071997994154.asia-southeast1.run.app/docs)
+
+The configured backend dataset is Bukit Jelutong. The repository also includes Elmina geometry and frontend demonstration fixtures. Model outputs depend on supplied data and assumptions and should be reviewed before informing real development decisions.
+
 The configured backend dataset is Bukit Jelutong. The repository also includes Elmina geometry and frontend demonstration fixtures. Model outputs depend on supplied data and assumptions and should be reviewed before informing real development decisions.
 
 ## Architecture
 
 ```text
-React + MapLibre dashboard
-          │ profiles, geometry, analysis
+React + MapLibre Dashboard (Deployed on Vercel)
+          │ profiles, geometry, analysis (HTTPS / CORS)
           ▼
-FastAPI service (backend/app/api)
+FastAPI Backend (Containerized on Google Cloud Run)
           │
-          ├── Geospatial metrics and deadspace analysis
-          ├── Multi-year intervention simulation
-          └── LLM proposal, validation, candidate selection, and explanation
+          ├── Geospatial Metrics & Deadspace Diagnostics
+          ├── Multi-Year Scenario Simulation Engine (2026–2033)
+          └── Vertex AI Gemini Client (Multi-Modal Asset Analysis & Reasoning)
 ```
 
 The LLM layer proposes and explains options. Deterministic validation and simulation calculate the reported scenario results.
@@ -108,7 +118,17 @@ cd frontend
 npm run dev
 ```
 
-Vite prints the local dashboard URL. The frontend uses MapLibre GL for the map and reads profile and map geometry data from the backend. Set `VITE_API_URL` in a frontend `.env` file if the API is hosted somewhere other than the default `http://localhost:8000`.
+Vite prints the local dashboard URL. The frontend uses MapLibre GL for the map and reads profile and map geometry data from the backend. 
+
+### Environment Variables & Base Maps
+
+By default, the frontend is configured to point to the production API. If you are developing locally and want to connect to a different API, create a `.env` file in the `frontend` directory:
+
+```env
+VITE_API_URL=[https://living-masterplan-api-1071997994154.asia-southeast1.run.app](https://living-masterplan-api-1071997994154.asia-southeast1.run.app)
+```
+
+> **Base Map Authentication:** The default map layer uses Stadia Maps raster tiles (`alidade_smooth_dark`). When deploying to new custom domains or production environments on Vercel, ensure your deployment domain (e.g., `living-masterplan-beta.vercel.app`) is added to your Stadia Maps Allowed Domains list to prevent `401 Unauthorized` map loading errors.
 
 The analysis button is currently in live mode: `USE_MOCK_LLM` is set to `false` in `frontend/src/api.ts`, so it sends analysis requests to the backend. Set it to `true` to return local demonstration scenarios instead of calling `POST /api/analyze`.
 
