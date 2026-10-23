@@ -277,8 +277,17 @@ export default function App() {
   }
 
   useEffect(() => {
-    fetchProfiles().then(setProfilesData).catch((e) => setError(e.message))
-  }, [])
+    console.log("👉 [DEBUG] App loaded, now trigger fetchProfiles...");
+    fetchProfiles()
+      .then((data) => {
+        console.log("👉 [DEBUG] fetchProfiles return successfully:", Object.keys(data).length);
+        setProfilesData(data);
+      })
+      .catch((e) => {
+        console.error("👉 [DEBUG] fetchProfiles failed:", e);
+        setError(e.message);
+      });
+  }, []);
 
   useEffect(() => {
     if (Object.keys(profilesData).length === 0) return
