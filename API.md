@@ -26,59 +26,41 @@ This document outlines the RESTful APIs provided by the backend for the frontend
 {
   "run_id": "LLM-da8ac14f",
   "scenario_id": "SC-LLM-da8ac14f-C1",
+  "interventions": [
+    {
+      "target_asset_id": "BLD-0183",
+      "type": "repurpose",
+      "role": "catalytic",
+      "beneficiary_asset_id": "BLD-0151"
+    }
+  ],
   "decision": {
     "selected_candidate": "Catalytic Family Anchor & Commercial Efficiency",
-    "reasoning": "Selected as the sole viable intervention...",
-    "key_trade_offs": [
-      "Accepts a 1.86% township carbon increase to activate underutilized land."
-    ],
-    "justification": {
-      "summary": "We propose a balanced dual intervention...",
-      "why_this_plan": "Standalone retrofitting would leave the catchment unaddressed...",
-      "what_simulation_shows": "Effective commercial demand expands from 3125.9 m² to 3825.3 m²...",
-      "beyond_the_model": "Childcare facilities generate non-discretionary twice-daily footfall...",
-      "recommendation": "Proceed subject to securing an accredited childcare operator."
-    }
+    "reasoning": "Selected as the sole viable intervention..."
   },
   "assets_analysis": [
     {
       "asset_id": "BLD-0183",
-      "summary_card": {
-        "financial": {
-          "main_metric": { "label": "Annual NOI", "baseline": -2669929.55, "intervention": -2269450.75, "unit": "RM" },
-          "counterfactual": { "capex_if_new_build_rm": 6500000, "capex_if_repurpose_rm": 2150280, "capex_saved_rm": 4349720 }
-        },
-        "social": {
-          "main_metric": { "label": "Space Utilization", "baseline": 0.632, "intervention": 0.632, "unit": "ratio" },
-          "metrics": {
-            "coverage_ratio_15min_walk": { "baseline": 0.65, "intervention": 0.72 },
-            "effective_demand_m2": { "baseline": 3125.9, "intervention": 3825.3 }
-          }
-        },
-        "environmental": {
-          "main_metrics": [
-            { "label": "Operational Carbon", "baseline": 1660.45, "intervention": 1360.54, "unit": "tCO2e/yr" },
-            { "label": "Stranded Carbon", "baseline": 249.06, "intervention": 501.1, "unit": "tCO2e/yr" }
-          ],
-          "counterfactual": { "embodied_if_new_build_tco2e": 2150.5, "embodied_if_repurpose_tco2e": 220.5, "net_carbon_averted_tco2e": 1930.0 }
-        },
-        "subunits": [
-          { "subtype": "f_and_b", "area_m2": 400, "occupancy_baseline": 0.05, "occupancy_intervention": 0.85, "allocated_carbon_tco2e": 150.2, "allocated_noi_rm": -250000 }
-        ]
-      },
-      "timeline": {
-        "years": ["2026", "2027", "2028", "2030", "2033"],
-        "metrics": {
-          "noi_rm": { "baseline": [ -2669929, -2700000, -2800000, -2600000, -2669929 ], "intervention": [ -2669929, -2500000, -2200000, -2100000, -2269450 ] }
-        }
-      }
+      "summary_card": { ... }
     }
   ],
   "township_metrics": {
     "total_carbon_before_tco2e": 130922.25,
     "total_carbon_after_tco2e": 133355.00,
     "carbon_delta_pct": 0.0186
-  }
+  },
+  "candidates_summary": [
+    {
+      "name": "Catalytic Family Anchor & Commercial Efficiency",
+      "strategy_summary": "Repurpose the dead F&B floor to childcare to drive footfall.",
+      "plan": [
+        {
+          "asset_id": "BLD-0183",
+          "type": "repurpose"
+        }
+      ]
+    }
+  ]
 }
 ```
 

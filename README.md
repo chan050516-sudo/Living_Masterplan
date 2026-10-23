@@ -110,7 +110,7 @@ npm run dev
 
 Vite prints the local dashboard URL. The frontend uses MapLibre GL for the map and reads profile and map geometry data from the backend. Set `VITE_API_URL` in a frontend `.env` file if the API is hosted somewhere other than the default `http://localhost:8000`.
 
-The analysis button is currently in mock mode: `USE_MOCK_LLM` is set to `true` in [`frontend/src/api.ts`](frontend/src/api.ts), so it returns local demonstration scenarios instead of calling `POST /api/analyze`. Set it to `false` to send analysis requests to the backend.
+The analysis button is currently in live mode: `USE_MOCK_LLM` is set to `false` in `frontend/src/api.ts`, so it sends analysis requests to the backend. Set it to `true` to return local demonstration scenarios instead of calling `POST /api/analyze`.
 
 Frontend checks and production build:
 

@@ -1,4 +1,4 @@
-# Living Masterplan — Complete Technical Design Document v3.0
+# Living Masterplan — Product Positioning & System Design Document v3.0
 
 > **Version**: v3.0 (Code-Aligned Architecture & Pitch Strategy)
 > **Track**: Planet (Circular Economy & Climate Resilience)
@@ -9,14 +9,35 @@
 
 # Part 1: Problem Statement & Planet Narrative
 
-## 1.1 The Problem: The Static Masterplan Trap
-Townships are built on static planning assumptions. When reality shifts (demographics, retail habits, climate), physical assets become **Deadspace**—capital that has been spent (Financial, Environmental, Social) but is no longer returning value. Developers currently lack the tools to quantify this stranded capital or simulate whether to rebuild, retrofit, or repurpose.
+## 1.1 The Macro Context & Problem: The Static Masterplan Trap
+Townships are planned on static multi-year assumptions. When reality shifts—whether driven by changing demographics, evolving retail habits, or climate pressures—physical assets freeze into **Deadspace**: capital that has been spent across three dimensions but is no longer returning value:
+*   **Financial**: Negative NOI, rental losses, and maintenance compounding on idle square footage.
+*   **Environmental**: Stranded operational carbon heating/lighting empty floors, plus thousands of tonnes of locked-in embodied carbon.
+*   **Social**: Multi-month vacancy streaks (averaging 14+ months) and underused capacity that disconnects residents from essential 15-minute amenities.
 
-## 1.2 The Planet Narrative: Avoided Construction
-Our pitch is anchored in the **Circular Economy** and **Climate Resilience**.
-*   **The Enemy is Rebuilding**: Demolishing an existing 5,000 m² structure emits thousands of tonnes of embodied carbon before the new foundation is even poured.
-*   **The Lever is Reuse**: By preserving the already-spent carbon and repurposing/retrofitting the shell, we achieve massive **Avoided Embodied Carbon**.
-*   **The Mechanism**: `AUDIT → DIAGNOSE → GENERATE → SIMULATE → DECIDE`.
+**The Industry Blind Spot**:
+According to the *Global Status Report for Buildings and Construction*, buildings and construction account for **37% of global energy-related CO₂ emissions** and nearly **50% of global material extraction**. Yet, developers lack quantitative spatial decision engines to audit stranded capital, habitually defaulting to demolition and new construction.
+
+## 1.2 Target Users & Threefold Value Creation
+Living Masterplan delivers one decision engine with three distinct layers of value:
+1.  **Primary Users (Developers & Master Planners)**:
+    *   *Challenge*: High-risk CAPEX commitments, lack of counterfactual simulation tools to compare adaptive reuse against new builds.
+    *   *Benefit*: High-confidence, de-risked portfolio decisions before committing capital.
+2.  **Beneficiaries (Residents & Local Businesses)**:
+    *   *Challenge*: Mismatched local amenities, decaying shoplots, and inaccessible community services.
+    *   *Benefit*: Adaptive, demand-driven spaces and restored pedestrian vibrancy within walking catchments.
+3.  **Beneficiaries (The Planet & Climate Resilience)**:
+    *   *Challenge*: Excessive embodied carbon from new builds and worsening urban heat island (UHI) microclimates.
+    *   *Benefit*: Drastic reduction in material extraction, preserved embodied carbon, and cooler urban canopy networks.
+
+## 1.3 The Planet Narrative: Avoided Construction
+Our strategy is rooted in the **Circular Economy** and **Climate Resilience**:
+*   **The Enemy is Unnecessary Rebuilding**: Demolishing an existing structure emits substantial embodied carbon and wastes prior investments before a new foundation is even poured.
+*   **The Lever is Adaptive Reuse**: By preserving the existing structural shell and retrofitting/repurposing targeted zones, we deliver massive **Avoided Embodied Carbon** and lower CAPEX.
+*   **Core Guiding Insights**:
+    > *"A 15-minute city isn't about building everything closer. It's about using what already exists better."*  
+    > *"Reuse, improve, or build? Ask before adding carbon."*
+*   **The Execution Loop**: `AUDIT → DIAGNOSE → GENERATE → SIMULATE → DECIDE`.
 
 ---
 
@@ -138,7 +159,7 @@ To give the LLM "God's eye view" without prompt explosion, we use:
 
 ## 6.3 Catalytic Interventions & Verification
 The LLM can act on Asset A to benefit Asset B.
-*   **Mechanisms**: `walkability_improvement`, `catchment_growth`, `competition_relief`, `complementary_use`.
+*   **Mechanisms**: `walkability_improvement`, `catchment_growth`, `competition_relief`, `complementary_use`, `footfall_injection`.
 *   **Anti-Hallucination**: If the LLM claims a catalytic link is `verified`, `_verify_catalytic_links()` checks the simulation. If the Huff demand or reachable population didn't move, the system **automatically downgrades** the claim to `partially_verified` or `claimed`.
 
 ---
@@ -154,6 +175,7 @@ The LLM must propose plans using this strict vocabulary:
 4.  **`new_development`**: New build on a vacant parcel (P-VAC).
 5.  **`pedestrian_upgrade` / `green_corridor`**: Spatial network interventions. Modifies the walking graph, improving accessibility.
 6.  **`delay_development`**: Postpones a pipeline project to 2033.
+7.  **`interim_solar_farm`**: Interim use for undeveloped parcels to generate negative carbon offsets.
 
 ---
 
@@ -167,16 +189,23 @@ We use a 3-API Composite Architecture to feed MapLibre and React/Vue.
 
 ---
 
-# Part 9: The 3-Minute Pitch Script
+# Part 9: Implementation & Scalability Roadmap
 
-1.  **Opening (0:00)**: "Masterplans are static. Townships are not. When demand shifts, we are left with Deadspace—capital spent, returning nothing. Our system changes this."
-2.  **Diagnosis (0:45)**: Show MapLibre. Click `BLD-0183`. "It's a medical retail with a dying F&B floor. Our B6 engine detects it via `subtype_mix_dead`."
-3.  **Action (1:15)**: "We have RM 2M. What do we do?" Trigger the LLM.
-4.  **The Planet Pitch (1:45)**: LLM proposes 2 plans. Show the Comparison.
-    *   *Plan A*: Demolish and rebuild. CAPEX RM 6.5M, Embodied Carbon: 2,150 tCO2e.
-    *   *Plan B*: Repurpose the dead floor. CAPEX RM 2.1M, Embodied Carbon: 220 tCO2e.
-    *   **"By choosing Plan B, we save RM 4.4M and avoid 1,930 tonnes of embodied carbon. That is the Circular Economy."**
-5.  **Conclusion (2:30)**: Toggle the map. Blue turns to green. "Living Masterplan: Build less unnecessarily. Reuse more. Adapt earlier."
+1. **Month 0–3: Pilot & Calibrate**
+   * Ingest mature township data (Bukit Jelutong) to calibrate the physics engine (Huff gravity parameters, occupancy benchmarks). Validate detection accuracy with SDP asset managers.
+   * *Success metric*: Diagnostics and baseline metrics match real operational history.
+
+2. **Month 3–6: Portfolio Optimization (Decide)**
+   * Deploy on active township pipelines (e.g., Elmina). Compare the cost and carbon of reusing underperforming spaces versus building new.
+   * *Success metric*: Massive CAPEX and embodied carbon savings identified before ground is broken.
+
+3. **Month 6–18: First Catalytic Zone**
+   * Execute a cluster of coordinated interventions (e.g., an anchor repurpose paired with walking upgrades). Track verified footfall and demand spillover across the neighbourhood.
+   * *Success metric*: Targeted precinct vitality revives as simulated; deadspace eliminated.
+
+4. **Year 2+: Portfolio Scale**
+   * Plug in standardized databases from any SDP development (Bukit Raja, Serenia City, and beyond) to automatically maintain climate-resilient, circular living masterplans.
+   * *Success metric*: Zero stranded assets across the portfolio.
 
 ---
 *End of Technical Document v3.0*
