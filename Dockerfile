@@ -6,20 +6,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace
+WORKDIR /app
 
 COPY requirements.txt ./
 COPY backend/requirements.txt ./backend_requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt -r backend_requirements.txt && \
-    pip install --no-cache-dir fastapi "uvicorn[standard]" python-multipart python-dotenv google-genai
+    pip install --no-cache-dir scipy pyyaml networkx fastapi "uvicorn[standard]" python-multipart python-dotenv google-genai
 
 COPY backend/ ./backend/
 COPY bukit_jelutong/ ./bukit_jelutong/
 
-WORKDIR /workspace/backend
-
+ENV PYTHONPATH="/app/backend:/app"
 ENV PORT=8080
 EXPOSE 8080
 
-CMD exec uvicorn app.api.main:app --host 0.0.0.0 --port ${PORT}
+CMD exec uvicorn backend.app.api.main:app --host 0.0.0.0 --port ${PORT}

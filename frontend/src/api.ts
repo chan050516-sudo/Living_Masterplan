@@ -1,10 +1,10 @@
 import type { AssetProfile, AnalyzeResult } from './types'
 import type { FeatureCollection } from 'geojson'
 
-import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3, MOCK_SCENARIO_4 } from '../../legacy/mockData'
+// import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3, MOCK_SCENARIO_4 } from '../../legacy/mockData'
 
 const BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
-const USE_MOCK_LLM = false
+// const USE_MOCK_LLM = false
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, init)
@@ -36,6 +36,7 @@ export function fetchGeometry(runId?: string, year: number = 2026) {
 /** Runs the LLM pipeline over the selected assets. */
 export function runAnalysis(userQuery: string, selectedAssets: string[], files: File[] = []) {
   
+  /*
   if (USE_MOCK_LLM) {
     console.log("🚀 [MOCK MODE] Routing to correct scenario based on inputs...");
     return new Promise<AnalyzeResult>((resolve) => {
@@ -59,6 +60,7 @@ export function runAnalysis(userQuery: string, selectedAssets: string[], files: 
       }, 2000); 
     });
   }
+  */
   
   const form = new FormData()
   form.append('user_query', userQuery)

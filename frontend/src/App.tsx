@@ -361,7 +361,7 @@ export default function App() {
 
           const isMixedUse = 
             (finalProfile?.subunits && finalProfile.subunits.length > 1) || 
-            (dynamicDiagnosis?.evidence && dynamicDiagnosis.evidence.some(e => e.includes('Subtype occupancy:')));
+            (dynamicDiagnosis?.evidence && dynamicDiagnosis.evidence.some((e: any) => e.includes('Subtype occupancy:')));
 
           if (isMixedUse) {
              displaySubtype = "Mixed-Use Commercial";
@@ -375,12 +375,12 @@ export default function App() {
              }
           } else if (finalProfile?.identity.asset_type === 'residential') {
              const sub = finalProfile.identity.subtype || 'residential';
-             const prettySub = sub.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+             const prettySub = sub.replace(/_/g, ' ').replace(/\b\w/g, (l: any) => l.toUpperCase());
              displayName = `${prettySub} ${displayId}`;
              displaySubtype = "Residential";
           } else if (finalProfile?.identity.asset_type === 'community_facility') {
              displaySubtype = finalProfile.identity.subtype ? 
-               finalProfile.identity.subtype.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 
+               finalProfile.identity.subtype.replace(/_/g, ' ').replace(/\b\w/g, (l: any) => l.toUpperCase()) : 
                "Community Facility";
              displayName = `${displaySubtype} ${displayId}`;
           }
