@@ -9,6 +9,7 @@ import { AssetPanel } from './components/AssetPanel'
 import { ComparisonModal } from './components/ComparisonModal'
 import { HistoryPanel } from './components/HistoryPanel'
 import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
+import { createThreeLayer } from './threeLayer'
 import type { Asset, AssetProfile, AnalyzeResult } from './types'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
@@ -136,6 +137,7 @@ export default function App() {
   const areaRef = useRef<FeatureCollection>(EMPTY)
   const pointsRef = useRef<FeatureCollection>(EMPTY)
 
+  const threeRef = useRef<ReturnType<typeof createThreeLayer> | null>(null)
   const [assets, setAssets] = useState<Asset[]>([])
   const [profilesData, setProfilesData] = useState<Record<string, AssetProfile>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
@@ -425,6 +427,7 @@ export default function App() {
           ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
           ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
           ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
+          threeRef.current?.setBuildings(buildingsRef.current)       
         }
       })
       .catch((e) => setError(e.message))
@@ -513,8 +516,8 @@ export default function App() {
           'fill-extrusion-color': (REALISTIC ? BODY_PAINT : STATUS_PAINT) as never,
           'fill-extrusion-height': ['coalesce', ['get', 'height'], 8] as never,
           'fill-extrusion-vertical-gradient': true,
-          'fill-extrusion-opacity': REALISTIC ? 1 : 0.92,
-        },
+          'fill-extrusion-opacity': REALISTIC ? 0 : 0.92,
+                },
       })
       if (REALISTIC) {
         map.addLayer({
@@ -524,9 +527,13 @@ export default function App() {
             'fill-extrusion-base': H as never,
             'fill-extrusion-height': ['+', H, 0.8] as never,
             'fill-extrusion-vertical-gradient': false,
-            'fill-extrusion-opacity': 1,
+            'fill-extrusion-opacity': 0,
           },
         })
+      }
+      if (REALISTIC) {
+        threeRef.current = createThreeLayer([101.528, 3.112])
+        map.addLayer(threeRef.current.layer)
       }
       map.addLayer({ id: 'points-dot', type: 'circle', source: 'points', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never, 'circle-color': STATUS_PAINT as never, 'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(0,0,0,.55)' } })
 
@@ -721,6 +728,7 @@ export default function App() {
     if (REALISTIC) {
       map.setPaintProperty('assets-3d', 'fill-extrusion-color', withSel(BODY_PAINT, selectedColour) as never)
       map.setPaintProperty('assets-roof', 'fill-extrusion-color', withSel(ROOF_PAINT, mix(selectedColour, '#FCFBF4', 0.15)) as never)
+      threeRef.current?.setSelection(selectedIds, selectedColour)
     } else {
       map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
     }    map.setPaintProperty('area-fill', 'fill-color', expr as never)
