@@ -18,7 +18,7 @@ Phase 16 (Gemini review fix):
   - high_stranded_carbon split into two severity tiers. The
     absolute 100 tCO2e floor remains for the severe tier but no
     longer silently exempts a fully-dead small asset.
-  - high_uhi_exposure: surface temperature proxy now participates
+  - high_uhi_exposure: observed parcel temperature above township baseline
     in diagnosis instead of being a zombie field.
 """
 
@@ -339,15 +339,13 @@ def _check_trajectory(reasons: list, metrics: dict, t: dict) -> None:
 
 def _check_uhi(reasons: list, metrics: dict, asset_type: str, t: dict) -> None:
     """
-    Flag assets whose surface temperature proxy shows severe heat
-    exposure. Buildings only; green space legitimately produces a
-    cooling benefit and is excluded.
+    Flag assets whose observed surface temperature is well above the
+    township asset-footprint baseline. Buildings only; lower values
+    are valid observations and are not anomalies.
 
-    The threshold defaults to 7.0°C, which under the current UHI
-    model corresponds to effective canopy < 0.075 — essentially no
-    shade. Using 6.0 would fire on every commercial asset whose
-    canopy falls back to the township-typical 0.10, defeating the
-    purpose of the flag.
+    The threshold defaults to a 7.0°C observed difference from the
+    township baseline. This threshold is intentionally reserved for
+    large local surface-temperature outliers.
     """
     if asset_type not in (
         "commercial", "residential", "community_facility",

@@ -252,6 +252,21 @@ export function AssetPanel(props: {
                       <span style={{ color: C.muted }}>Walk Coverage</span>
                       <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.coverage_ratio_10min_walk, 'ratio')}</span>
                     </div>
+                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
+                      <span style={{ color: C.muted }}>Observed surface temp</span>
+                      <span style={{ ...mono, marginLeft: 'auto', textAlign: 'right' }}>
+                        {fmt(p.environmental.t_asset_c, 'number')} °C parcel · {fmt(p.environmental.t_township_c, 'number')} °C township · Δ {fmt(p.environmental.surface_temp_delta_c, 'number')} °C
+                      </span>
+                    </div>
+                    <div style={{ gridColumn: '1 / -1', color: C.faint, fontSize: 10.5, marginTop: -6 }}>
+                      {p.environmental.surface_temp_provenance ?? 'No Landsat observation available'}
+                      {p.environmental.surface_temp_source_catalog
+                        ? ` · ${p.environmental.surface_temp_source_catalog}`
+                        : ''}
+                      {p.environmental.surface_temp_period_start && p.environmental.surface_temp_period_end
+                        ? ` · ${p.environmental.surface_temp_period_start} to ${p.environmental.surface_temp_period_end}`
+                        : ''}
+                    </div>
                   </div>
                 </>
               )}
@@ -309,7 +324,8 @@ export function AssetPanel(props: {
                     {d.evidence.map((line, i) => {
                       const splitIdx = line.indexOf(':')
                       const isMultiLine = line.includes('\n')
-                      if (splitIdx !== -1 && !isMultiLine) {
+                      const isThermalEvidence = line.startsWith('Observed land surface temperature')
+                      if (splitIdx !== -1 && !isMultiLine && !isThermalEvidence) {
                         const label = line.slice(0, splitIdx).trim()
                         let value = line.slice(splitIdx + 1).trim()
                           value = value.replace(/nan/gi, '—')
@@ -330,7 +346,15 @@ export function AssetPanel(props: {
                               {line.slice(0, splitIdx).trim()}
                             </div>
                           )}
-                          <div style={{ fontSize: 12.5, color: '#cfc6cd', whiteSpace: 'pre-wrap', lineHeight: 1.5, fontFamily: mono.fontFamily }}>
+                          <div style={{
+                            fontSize: 12.5,
+                            color: '#cfc6cd',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            lineHeight: 1.5,
+                            fontFamily: mono.fontFamily,
+                          }}>
                             {safeLine}
                           </div>
                         </div>

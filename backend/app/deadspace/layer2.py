@@ -10,9 +10,6 @@ Phase 16 (Gemini review fix):
     never reached deadspace_candidate, regardless of how completely
     it failed to house anyone. This was the single largest dead
     path in the detection pipeline.
-  - uhi_data_anomaly: a building whose UHI proxy is negative has a
-    sign-error or canopy-overlay failure. Flagging it surfaces the
-    problem instead of accepting it silently.
 """
 
 DEFAULTS = {
@@ -86,27 +83,4 @@ def evaluate(asset_type: str, asset: dict, metrics: dict,
         ):
             reasons.append("built_value_not_realized")
 
-    # Universal UHI anomaly check — any asset type that carries a
-    # surface temperature delta.
-    _check_uhi_anomaly(reasons, metrics, asset_type)
-
     return {"triggered": len(reasons) > 0, "reasons": reasons}
-
-
-def _check_uhi_anomaly(reasons: list, metrics: dict,
-                       asset_type: str) -> None:
-    """
-    A building whose UHI proxy is negative cannot be more heavily
-    vegetated than a park. Flag it as a data anomaly. Green space
-    legitimately produces a cooling benefit and is excluded.
-    """
-    if asset_type == "green_space":
-        return
-    uhi = metrics.get("surface_temp_delta_c")
-    if uhi is None:
-        return
-    try:
-        if float(uhi) < 0:
-            reasons.append("uhi_data_anomaly")
-    except (TypeError, ValueError):
-        return

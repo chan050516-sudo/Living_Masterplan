@@ -1,10 +1,13 @@
 import json
 import pandas as pd
 import math
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BASE_DIR = REPO_ROOT / "bukit_jelutong" / "processed" / "business"
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+from app.derived.thermal import empty_thermal_metrics, load_thermal_observations
 
 def _safe_float(val, decimals=2):
     """Clean NaN for JSON serialization"""
@@ -34,6 +37,10 @@ def build_profiles(year=2026):
     with open(BASE_DIR / f"deadspace_{year}.json") as f:
         deadspace_list = json.load(f)
     deadspace_dict = {d["asset_id"]: d for d in deadspace_list}
+
+    thermal_observations = load_thermal_observations(
+        BASE_DIR / "thermal_observations.csv"
+    )
     
     profiles = {}
     
@@ -46,6 +53,29 @@ def build_profiles(year=2026):
         
         # Get deadspace diagnosis
         ds = deadspace_dict.get(aid, {})
+        thermal = (
+            thermal_observations.get(aid, empty_thermal_metrics())
+            if year == 2026
+            else empty_thermal_metrics()
+        )
+        evidence = [
+            line for line in ds.get("evidence", [])
+            if "UHI proxy" not in str(line)
+            and "open-field baseline" not in str(line)
+        ]
+        if all(
+            thermal.get(key) is not None
+            for key in ("t_asset_c", "t_township_c", "surface_temp_delta_c")
+        ):
+            delta = thermal["surface_temp_delta_c"]
+            sign = "+" if delta > 0 else ("-" if delta < 0 else "")
+            evidence.append(
+                "Observed land surface temperature "
+                f"({thermal['surface_temp_provenance']}): parcel "
+                f"{thermal['t_asset_c']:.1f} °C; township baseline "
+                f"{thermal['t_township_c']:.1f} °C; "
+                f"T = Tasset − Ttownship = {sign}{abs(delta):.1f} °C"
+            )
         
         # Get lease info
         asset_leases = leases[leases["asset_id"] == aid] if not leases.empty else pd.DataFrame()
@@ -135,7 +165,17 @@ def build_profiles(year=2026):
                 "energy_kwh_hvac": _safe_float(m.get("energy_kwh_hvac"), 0),
                 "energy_kwh_lighting": _safe_float(m.get("energy_kwh_lighting_equipment"), 0),
                 "energy_kwh_base_load": _safe_float(m.get("energy_kwh_base_load"), 0),
-                "surface_temp_delta_c": _safe_float(m.get("surface_temp_delta_c"), 1),
+                "t_asset_c": _safe_float(thermal.get("t_asset_c"), 2),
+                "t_township_c": _safe_float(thermal.get("t_township_c"), 2),
+                "surface_temp_delta_c": _safe_float(thermal.get("surface_temp_delta_c"), 2),
+                "surface_temp_provenance": thermal.get("surface_temp_provenance"),
+                "surface_temp_collection_id": thermal.get("surface_temp_collection_id"),
+                "surface_temp_band": thermal.get("surface_temp_band"),
+                "surface_temp_source_catalog": thermal.get("surface_temp_source_catalog"),
+                "surface_temp_valid_pixel_count": thermal.get("surface_temp_valid_pixel_count"),
+                "surface_temp_period_start": thermal.get("surface_temp_period_start"),
+                "surface_temp_period_end": thermal.get("surface_temp_period_end"),
+                "surface_temp_source_image_count": thermal.get("surface_temp_source_image_count"),
                 "green_coverage": _safe_float(m.get("green_coverage"), 3),
                 "canopy_coverage": _safe_float(m.get("canopy_coverage"), 3),
                 "green_per_capita_m2": _safe_float(m.get("green_per_capita_m2"), 1),
@@ -149,10 +189,13 @@ def build_profiles(year=2026):
             },
             "deadspace_diagnosis": {
                 "status": ds.get("status", "healthy"),
-                "flags": ds.get("flags", []),
+                "flags": [
+                    flag for flag in ds.get("flags", [])
+                    if flag not in ("high_uhi_exposure", "uhi_data_anomaly")
+                ],
                 "urgency_index": _safe_float(ds.get("urgency_index"), 1),
                 "contributing_factors": ds.get("contributing_factors", []),
-                "evidence": ds.get("evidence", [])
+                "evidence": evidence
             },
             "leases": {
                 "anchor_lease": anchor_lease

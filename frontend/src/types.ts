@@ -95,7 +95,17 @@ export type AssetProfile = {
     energy_kwh_hvac: number | null
     energy_kwh_lighting: number | null
     energy_kwh_base_load: number | null
+    t_asset_c: number | null
+    t_township_c: number | null
     surface_temp_delta_c: number | null
+    surface_temp_provenance: string | null
+    surface_temp_collection_id: string | null
+    surface_temp_band: string | null
+    surface_temp_source_catalog: string | null
+    surface_temp_valid_pixel_count: number | null
+    surface_temp_period_start: string | null
+    surface_temp_period_end: string | null
+    surface_temp_source_image_count: number | null
   }
   trajectory: {
     class: string | null

@@ -150,7 +150,11 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "green_coverage": derived.get("green_coverage"),
             "canopy_coverage": derived.get("canopy_coverage"),
             "green_per_capita_m2": derived.get("green_per_capita_m2"),
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
             "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
     elif asset_type == "community_facility":
         key_metrics = {
@@ -163,6 +167,19 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "occupancy_rate": observed.get("occupancy_rate"),
             "noi_rm": derived.get("noi_rm"),
             "effective_demand_m2": derived.get("effective_demand_m2"),
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
+        }
+    elif asset_type in ("residential", "community_facility"):
+        key_metrics = {
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
 
     return {

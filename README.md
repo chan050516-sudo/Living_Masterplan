@@ -86,6 +86,13 @@ python backend/scripts/run_phase4.py --current-only
 | `build_profiles.py` | Build the baseline asset profiles served by the API | `bukit_jelutong/processed/business/asset_profiles_2026.json` |
 | `run_phase4.py` | Simulate intervention scenarios and write scenario results | `bukit_jelutong/processed/business/scenarios/` |
 
+### Refresh observed surface temperature
+
+The thermal workflow uses Landsat 8 Collection 2 Level-2 `ST_B10` and keeps
+uncovered parcels null. See [`docs/landsat_lst_pipeline.md`](docs/landsat_lst_pipeline.md)
+for Earth Engine setup, the cloud mask, date-window defaults, output files, and
+the profile regeneration sequence.
+
 Phase 3 and profile generation use the enriched metrics, so run Phase 1 first. The profile build also uses the Phase 3 deadspace output. The checked-in processed dataset already includes these artifacts; rerun the scripts when you change their source data.
 
 `run_phase4.py` runs `SC-CURRENT`, `SC-REPURPOSE`, and `SC-DELAY` by default. Use `--current-only` to run the baseline across the configured years, or `--quick` to run only the baseline for 2026 and 2033. Reruns replace the corresponding generated outputs.

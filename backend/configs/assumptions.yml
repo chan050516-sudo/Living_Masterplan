@@ -42,9 +42,6 @@ environmental:
   solar_usable_land_fraction:         0.60
   solar_installation_carbon_tco2e_per_kwp: 0.05
   hvac_canopy_relief_per_unit: 0.10
-  uhi_hard_surface_penalty_c:  8.0
-  uhi_canopy_cooling_c:        4.5
-
   # Phase 11b — canopy growth model
   # Urban tropical trees in Malaysia: mean annual DBH increment of
   # 0.98 cm and height increment of 0.73 m per year (UPM urban forest

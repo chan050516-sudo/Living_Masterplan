@@ -124,7 +124,17 @@ This document outlines the RESTful APIs provided by the backend for the frontend
       "energy_kwh_hvac": 1295460.0,
       "energy_kwh_lighting": 539775.0,
       "energy_kwh_base_load": 323865.0,
-      "surface_temp_delta_c": 6.8
+      "t_asset_c": null,
+      "t_township_c": null,
+      "surface_temp_delta_c": null,
+      "surface_temp_provenance": null,
+      "surface_temp_collection_id": null,
+      "surface_temp_band": null,
+      "surface_temp_source_catalog": null,
+      "surface_temp_valid_pixel_count": null,
+      "surface_temp_period_start": null,
+      "surface_temp_period_end": null,
+      "surface_temp_source_image_count": null
     },
     "trajectory": {
       "class": "declining",
@@ -158,6 +168,13 @@ This document outlines the RESTful APIs provided by the backend for the frontend
   }
 }
 ```
+
+Surface-temperature fields are populated from `LANDSAT/LC08/C02/T1_L2` when
+`backend/scripts/landsat_lst_pipeline.py` has produced the configured thermal
+observations file. The API labels valid values `Observed (Landsat 8 L2)` and
+defines `surface_temp_delta_c = t_asset_c - t_township_c`. Missing clear pixels
+remain `null`; the previous canopy-based temperature proxy is not used as a
+fallback.
 
 ---
 

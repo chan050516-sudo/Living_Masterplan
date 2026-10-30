@@ -33,17 +33,15 @@ Phase 9 changes:
 
 Phase 10 (Circular & Planet fixes):
   - Integrates Avoided Embodied Carbon into the comparison block.
-  - Adds UHI surface temp proxy (surface_temp_delta_c).
+  - Carries observed Landsat 8 Level-2 surface temperatures into scenarios.
   - Supports interim_solar_farm for generating clean energy offsets.
 
 Phase 11 (2026-10-16):
   - Productive vs stranded carbon split in every year's state row.
   - Energy sub-system breakdown (HVAC / lighting / base load) with
     canopy-based HVAC relief.
-  - UHI proxy pulled from the B3-derived canopy field, evaluated
-    BEFORE metric_row is constructed (metric_row is only created
-    after the environmental block, so accessing it earlier raises
-    UnboundLocalError).
+  - Parcel temperatures remain tied to the Landsat observation
+    baseline; canopy changes do not manufacture temperature values.
   - _add_project_state records embodied carbon for new construction.
 """
 
@@ -74,8 +72,6 @@ from ..derived.environmental import (
     productive_stranded_carbon,
     embodied_amortised,
     maintenance_carbon_annual,
-    calculate_surface_temp_delta,
-    effective_canopy_for_uhi,          # P2-2 fix
     interim_solar_generation,
     canopy_growth,
     embodied_carbon_for_subtype,
@@ -83,6 +79,7 @@ from ..derived.environmental import (
     MATERIAL_INTENSITY_REPURPOSE,
     DEMOLITION_CARBON_INTENSITY,
 )
+from ..derived.thermal import THERMAL_METRIC_FIELDS
 from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
@@ -1421,25 +1418,6 @@ def simulate_scenario(
                     "carbon_stranded_tco2e": None,
                     "stranded_carbon_ratio": None,
                 }
-            # Phase 11 — UHI proxy.
-            #
-            # P2-2 fix — delegate to B3's `effective_canopy_for_uhi`
-            # so both layers use the same fallback table
-            # (residential=0.25, community_facility=0.20,
-            # commercial=0.10, green_space=0.60,
-            # undeveloped_parcel=0.05). The previous hand-rolled
-            # branch collapsed community_facility and
-            # undeveloped_parcel into the commercial default,
-            # which made an un-intervened community facility's UHI
-            # jump between 2026 (B3) and 2027+ (B4).
-            canopy_for_uhi = effective_canopy_for_uhi(
-                canopy_from_b3, effective_type,
-            )
-            uhi = calculate_surface_temp_delta(
-                canopy_coverage_ratio=canopy_for_uhi,
-                is_hard_surface=(effective_type != "green_space"),
-            )
-
             # ---- Build metric row ----
             prev_metrics = _get_prev_metrics(state_by_year[years[year_idx - 1]], aid)
             metric_row = dict(prev_metrics)
@@ -1450,6 +1428,28 @@ def simulate_scenario(
             _owned = _TYPE_EXCLUSIVE_FIELDS.get(effective_type, frozenset())
             for _field in _ALL_TYPE_EXCLUSIVE_FIELDS - _owned:
                 metric_row[_field] = None
+
+            # These values describe the observed footprint and township
+            # baseline. They are carried unchanged into scenarios and are
+            # not recalculated from simulated canopy growth.
+            _thermal_rows = base_derived[base_derived["asset_id"] == aid]
+            for _field in THERMAL_METRIC_FIELDS:
+                if _thermal_rows.empty or _field not in _thermal_rows.columns:
+                    metric_row[_field] = None
+                else:
+                    _value = _thermal_rows.iloc[0].get(_field)
+                    if _value is None or pd.isna(_value):
+                        metric_row[_field] = None
+                    elif _field in (
+                        "surface_temp_provenance",
+                        "surface_temp_period_start",
+                        "surface_temp_period_end",
+                    ):
+                        metric_row[_field] = str(_value)
+                    elif _is_valid_number(_value):
+                        metric_row[_field] = float(_value)
+                    else:
+                        metric_row[_field] = None
 
             # ---- Spatial refresh ----
             if not _yr_canopy_match.empty:
@@ -1588,7 +1588,6 @@ def simulate_scenario(
             metric_row["carbon_productive_tco2e"] = split["carbon_productive_tco2e"]
             metric_row["carbon_stranded_tco2e"] = split["carbon_stranded_tco2e"]
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
-            metric_row["surface_temp_delta_c"] = uhi
             metric_row["canopy_coverage"] = canopy_from_b3
             metric_row["operational_capacity_ratio"] = capacity_ratio
             metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
@@ -1744,11 +1743,6 @@ def _add_project_state(year_state, proj, year, emission_factor):
 
     maintenance_carbon = maintenance_carbon_annual(embodied_total)
 
-    uhi = calculate_surface_temp_delta(
-        canopy_coverage_ratio=0.05,
-        is_hard_surface=True,
-    )
-
     # ---- P1-5: derive occupancy / utilisation / NOI from subtype ----
     # A delivered project is a real asset from the moment it activates.
     # Its headline metrics (space utilisation, annual NOI) must be
@@ -1795,7 +1789,14 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "embodied_carbon_total_tco2e": embodied_total,
         "embodied_carbon_amortised_tco2e": embodied_amortised,
         "maintenance_carbon_tco2e": maintenance_carbon,
-        "surface_temp_delta_c": uhi,
+        "t_asset_c": None,
+        "t_township_c": None,
+        "surface_temp_delta_c": None,
+        "surface_temp_provenance": None,
+        "surface_temp_valid_pixel_count": None,
+        "surface_temp_period_start": None,
+        "surface_temp_period_end": None,
+        "surface_temp_source_image_count": None,
         "energy_kwh": energy,
         "metric_source": "simulated",
         "model_version": __version__,

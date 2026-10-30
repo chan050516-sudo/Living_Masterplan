@@ -39,6 +39,7 @@ from .facility import derive_facility
 from .green import derive_green
 from .parcel import derive_parcel
 from .residential import derive_residential
+from .thermal import empty_thermal_metrics, load_thermal_observations
 
 log = logging.getLogger(__name__)
 
@@ -94,6 +95,14 @@ def compute_derived_metrics(
 
     geometry = load_geometry(repo_root, paths)
     business = load_business(repo_root, paths)
+    thermal_path = (
+        repo_root
+        / paths["base"]
+        / paths.get("thermal", {}).get(
+            "observations", "business/thermal_observations.csv"
+        )
+    )
+    thermal_observations = load_thermal_observations(thermal_path)
 
     green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
 
@@ -265,6 +274,15 @@ def compute_derived_metrics(
             )
 
             base_row = deriver(ctx)
+            # Temperature comes only from the audited Landsat observation
+            # table. Missing or uncovered parcels stay null; the canopy
+            # calculation is retained only as a separate shade indicator.
+            thermal_metrics = (
+                thermal_observations.get(str(aid), empty_thermal_metrics())
+                if y == year
+                else empty_thermal_metrics()
+            )
+            base_row.update(thermal_metrics)
             base_row = _flatten_profiles(
                 base_row, walking_profile, driving_profile,
             )
