@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { SyntheticEvent } from 'react'
+import type { CSSProperties } from 'react'
 import type { Scene3D } from './township3d'
 import './landing.css'
 
@@ -118,8 +118,42 @@ const REFERENCES = [
   },
 ]
 
-// The logo stays hidden until the official file is added.
-const hideLogo = (e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none' }
+// Plays once per page load, so coming back from the demo does not repeat it.
+let introPlayed = false
+const INTRO_MS = 3000
+const INTRO_BLOCKS = [46, 92, 34, 70, 128, 58, 30, 84, 52]
+
+function Intro() {
+  const [phase, setPhase] = useState<'play' | 'open' | 'done'>(() => (
+    introPlayed || window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'done' : 'play'
+  ))
+  const playing = useRef(false)
+  useEffect(() => {
+    if (introPlayed && !playing.current) return
+    playing.current = true
+    introPlayed = true
+    const open = setTimeout(() => setPhase('open'), INTRO_MS - 800)
+    const done = setTimeout(() => setPhase('done'), INTRO_MS)
+    return () => { clearTimeout(open); clearTimeout(done) }
+  }, [])
+  if (phase === 'done') return null
+  return (
+    <div className={`lp-intro ${phase}`} aria-hidden="true" onClick={() => setPhase('done')}>
+      <i className="lp-curtain top" />
+      <i className="lp-curtain bottom" />
+      <div className="lp-intro-mark">
+        <div className="lp-tile">
+          {INTRO_BLOCKS.map((h, i) => (
+            <div key={i} className={`lp-block${i === 4 ? ' dead' : ''}`} style={{ '--h': `${h}px`, '--d': `${i * 90}ms` } as CSSProperties}>
+              <b className="t" /><b className="n" /><b className="e" /><b className="s" /><b className="w" />
+            </div>
+          ))}
+        </div>
+        <p>LIVING MASTERPLAN</p>
+      </div>
+    </div>
+  )
+}
 
 function CountUp({ value }: { value: string }) {
   const [shown, setShown] = useState(value)
@@ -159,8 +193,8 @@ function useScene() {
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const light = window.innerWidth < 960
     // Loaded on demand. If it fails, the flat map stays on screen.
-    // Wait a moment so the headline paints before the 3D work starts.
-    new Promise((done) => setTimeout(done, 300))
+    // Start behind the opening animation so the buildings rise as it opens.
+    new Promise((done) => setTimeout(done, Math.max(300, INTRO_MS - 900 - performance.now())))
       .then(() => import('./township3d'))
       .then(({ startTownship }) => startTownship(el, { still, light }))
       .then((s) => {
@@ -184,10 +218,7 @@ export function Landing() {
   useEffect(() => {
     const el = root.current
     if (!el) return
-    const onScroll = () => {
-      scene.current?.setScroll(Math.min(window.scrollY / window.innerHeight, 1))
-      el.style.setProperty('--sy', String(window.scrollY))
-    }
+    const onScroll = () => scene.current?.setScroll(Math.min(window.scrollY / window.innerHeight, 1))
     window.addEventListener('scroll', onScroll, { passive: true })
 
     const reveal = new IntersectionObserver((list) => {
@@ -213,11 +244,10 @@ export function Landing() {
 
   return (
     <div className={`lp${ready ? ' lp-3d' : ''}`} ref={root}>
-      <div className="lp-curves" aria-hidden="true"><i /><i /><i /><i /></div>
+      <Intro />
       <canvas className="lp-canvas" ref={canvas} aria-hidden="true" />
       <nav className="lp-nav" aria-label="Main">
         <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
-        <img className="lp-logo" src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={hideLogo} />
         <div className="lp-links">
           <a href="#how">How it works</a>
           <a href="#concepts">Concepts</a>
@@ -240,7 +270,7 @@ export function Landing() {
           </div>
         </div>
         <figure className="lp-hero-map">
-          <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of the example township, Bukit Jelutong, with deadspace candidates shown in dark and assets to watch in peach." />
+          <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of the example township, Bukit Jelutong, with deadspace candidates highlighted in orange and assets to watch in pale grey." />
         </figure>
         <p className="lp-legend">
           <span><i className="ok" />Healthy</span>
@@ -376,7 +406,7 @@ export function Landing() {
 
       <footer className="lp-footer">
         <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
-        <img className="lp-logo" src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={hideLogo} />
+        <img src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={(e) => { e.currentTarget.style.display = 'none' }} />
         <p>© 2026 Living Masterplan</p>
       </footer>
 

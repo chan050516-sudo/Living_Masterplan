@@ -1,4 +1,7 @@
 import * as THREE from 'three'
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
 
 type Building = { p: number[]; h: number; s: number; t?: number }
 
@@ -7,7 +10,7 @@ export type Scene3D = { setStep: (step: number) => void; setScroll: (t: number) 
 // One camera and colour state per story beat. -1 is the hero.
 type Beat = { radius: number; polar: number; azimuth: number; focus: number; dead: number; fixed: number; shift: number; spin: number }
 const BEATS: Record<number, Beat> = {
-  [-1]: { radius: 3300, polar: 0.98, azimuth: 0.5, focus: 0, dead: 1, fixed: 0, shift: -0.22, spin: 0.05 },
+  [-1]: { radius: 3300, polar: 0.98, azimuth: 0.5, focus: 0, dead: 1, fixed: 0, shift: -0.2, spin: 0.05 },
   0: { radius: 3300, polar: 0.62, azimuth: 1.1, focus: 0, dead: 0, fixed: 0, shift: 0.2, spin: 0.02 },
   1: { radius: 2800, polar: 0.82, azimuth: 1.7, focus: 0, dead: 1, fixed: 0, shift: 0.2, spin: 0.02 },
   2: { radius: 950, polar: 1.0, azimuth: 2.3, focus: 1, dead: 0.35, fixed: 0, shift: 0.2, spin: 0.04 },
@@ -33,20 +36,20 @@ const buildingFragment = /* glsl */ `
   uniform float uDead, uFocus, uFixed, uTime;
   varying vec3 vNormal; varying float vStatus, vTarget, vTop, vWorldY;
   void main() {
-    float light = 0.62 + 0.38 * max(dot(normalize(vNormal), normalize(vec3(0.5, 0.8, 0.3))), 0.0);
-    vec3 base = vec3(0.98, 0.94, 0.91);
-    if (vStatus > 0.5 && vStatus < 1.5) base = vec3(1.0, 0.76, 0.62);
-    if (vStatus > 2.5) base = vec3(0.62, 0.84, 0.62);
+    float light = 0.5 + 0.5 * max(dot(normalize(vNormal), normalize(vec3(0.5, 0.8, 0.3))), 0.0);
+    vec3 base = vec3(0.15, 0.125, 0.17);
+    if (vStatus > 0.5 && vStatus < 1.5) base = vec3(0.23, 0.20, 0.26);
+    if (vStatus > 2.5) base = vec3(0.05, 0.13, 0.09);
     vec3 color = base * light;
-    color *= 0.86 + 0.14 * vTop;
+    color += vec3(0.05, 0.04, 0.07) * vTop;
 
     float isDead = step(1.5, vStatus) * step(vStatus, 2.5);
     float pulse = 0.82 + 0.18 * sin(uTime * 2.2 + vWorldY * 0.2);
-    vec3 glow = mix(vec3(0.17, 0.09, 0.11), vec3(0.32, 0.12, 0.14), pulse - 0.64) * (0.8 + 0.5 * vTop);
+    vec3 glow = vec3(1.0, 0.4, 0.05) * (0.75 + 0.5 * vTop) * pulse;
     color = mix(color, glow, isDead * uDead);
 
-    color = mix(color, vec3(0.96, 0.5, 0.4) * (0.7 + 0.3 * light), 0.72 * uFocus * (1.0 - vTarget));
-    vec3 focused = mix(vec3(0.17, 0.09, 0.11), vec3(0.1, 0.72, 0.42), uFixed) * (0.85 + 0.2 * vTop);
+    color *= mix(1.0, 0.32, uFocus * (1.0 - vTarget));
+    vec3 focused = mix(vec3(1.0, 0.42, 0.05), vec3(0.15, 0.85, 0.48), uFixed) * (0.62 + 0.3 * vTop);
     color = mix(color, focused, vTarget * uFocus);
     gl_FragColor = vec4(color, 1.0);
   }
@@ -74,7 +77,7 @@ const smokeFragment = /* glsl */ `
   varying float vAlpha;
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    gl_FragColor = vec4(0.17, 0.09, 0.11, smoothstep(0.5, 0.05, d) * vAlpha * 0.5);
+    gl_FragColor = vec4(1.0, 0.6, 0.2, smoothstep(0.5, 0.05, d) * vAlpha * 0.55);
   }
 `
 
@@ -139,6 +142,8 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, opts.light ? 1.25 : 2))
 
   const scene = new THREE.Scene()
+  scene.background = new THREE.Color(0x1c161b)
+  scene.fog = new THREE.Fog(0x1c161b, 3000, 6500)
   const camera = new THREE.PerspectiveCamera(32, 1, 10, 9000)
 
   const shared = {
@@ -151,14 +156,12 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
 
   const smoke = new THREE.Points(buildSmoke(data.b, opts.light ? 3 : 7), new THREE.ShaderMaterial({
     vertexShader: smokeVertex, fragmentShader: smokeFragment, uniforms: shared,
-    transparent: true, depthWrite: false,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
   }))
   scene.add(smoke)
 
-  const grid = new THREE.GridHelper(9000, 90, 0xffffff, 0xffffff)
+  const grid = new THREE.GridHelper(9000, 90, 0x4a3d4a, 0x352b35)
   grid.position.y = -1
-  ;(grid.material as THREE.LineBasicMaterial).transparent = true
-  ;(grid.material as THREE.LineBasicMaterial).opacity = 0.1
   scene.add(grid)
 
   // Expanding rings mark the simulated years around the focus building.
@@ -167,7 +170,7 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
   for (let i = 0; i < focusB.p.length; i += 2) { fx += focusB.p[i]; fz += focusB.p[i + 1] }
   const focusPoint = new THREE.Vector3(fx / (focusB.p.length / 2), 12, fz / (focusB.p.length / 2))
   const rings = Array.from({ length: 5 }, (_, i) => {
-    const m = new THREE.Mesh(new THREE.RingGeometry(0.97, 1, 72), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false }))
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.97, 1, 72), new THREE.MeshBasicMaterial({ color: 0xf7931d, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }))
     m.rotation.x = -Math.PI / 2
     m.position.set(focusPoint.x, 2, focusPoint.z)
     m.userData.offset = i / 5
@@ -175,9 +178,16 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
     return m
   })
 
+  let composer = opts.light ? null : new EffectComposer(renderer)
+  if (composer) {
+    composer.addPass(new RenderPass(scene, camera))
+    composer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.7, 0.6, 0.5))
+  }
+
   const size = () => {
     const w = window.innerWidth, h = window.innerHeight
     renderer.setSize(w, h, false)
+    composer?.setSize(w, h)
     camera.aspect = w / h
     camera.updateProjectionMatrix()
   }
@@ -193,7 +203,7 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
   window.addEventListener('pointermove', onMove, { passive: true })
 
   let step = -1, heroScroll = 0, spin = 0, active = true, raf = 0, last = performance.now(), time = 0
-  let slowFrames = 0, countedFrames = 0, reduced = false
+  let slowFrames = 0, countedFrames = 0
 
   const draw = () => {
     const rad = Math.PI / 180
@@ -214,7 +224,8 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
       r.scale.setScalar(30 + p * 300)
       ;(r.material as THREE.MeshBasicMaterial).opacity = (step === 3 ? 1 : 0) * (1 - p) * 0.8
     })
-    renderer.render(scene, camera)
+    if (composer) composer.render()
+    else renderer.render(scene, camera)
   }
 
   const frame = (t: number) => {
@@ -223,12 +234,13 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
     const raw = (t - last) / 1000
     const dt = Math.min(raw, 0.05)
     last = t
-    // Slow machine: lower the resolution once, so scrolling stays smooth.
-    if (!reduced && ++countedFrames > 20) {
+    // Slow machine: drop the glow pass and resolution once, so scrolling stays smooth.
+    if (composer && ++countedFrames > 20) {
       if (raw > 0.04) slowFrames++
       if (countedFrames > 110) {
         if (slowFrames > 45) {
-          reduced = true
+          composer.dispose()
+          composer = null
           renderer.setPixelRatio(1)
           size()
         }
@@ -290,6 +302,7 @@ export async function startTownship(canvas: HTMLCanvasElement, opts: { still: bo
         const mat = m.material as THREE.Material | undefined
         mat?.dispose?.()
       })
+      composer?.dispose()
       renderer.dispose()
     },
   }
