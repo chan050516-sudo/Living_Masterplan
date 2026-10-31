@@ -86,6 +86,12 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
   const t = data.township_metrics
   const j = data.decision.justification
 
+  // The backend emits `carbon_delta_pct: null` whenever the before-state
+  // carbon total is zero or unreachable (e.g. a plan whose targets are
+  // all green space, or a selected set with no reported operational
+  // carbon). Multiplying null by 100 throws and blanks the whole modal.
+  const carbonDeltaPct = t.carbon_delta_pct ?? 0
+
   // Totals across every asset in the plan.
   let capexSaved = 0
   let carbonAverted = 0
@@ -156,9 +162,9 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
           />
           <Headline
             label="Township carbon"
-            value={`${(t.carbon_delta_pct * 100).toFixed(2)}%`}
-            unit={t.carbon_delta_pct < 0 ? 'reduction' : 'increase'}
-            good={t.carbon_delta_pct < 0}
+            value={`${(carbonDeltaPct * 100).toFixed(2)}%`}
+            unit={carbonDeltaPct < 0 ? 'reduction' : 'increase'}
+            good={carbonDeltaPct < 0}
           />
         </div>
 

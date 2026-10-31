@@ -95,24 +95,17 @@ def build_profiles(year=2026):
             if year == 2026
             else empty_thermal_metrics()
         )
+        # Thermal evidence is injected ONCE at API time (main.py).
+        # Do not write it into the profile here — doing so produced
+        # three identical "Observed land surface temperature" lines
+        # in the AssetPanel evidence block (one from B6's evidence
+        # builder, one from this builder, one from main.py).
         evidence = [
             line for line in ds.get("evidence", [])
             if "UHI proxy" not in str(line)
             and "open-field baseline" not in str(line)
+            and "Observed land surface temperature" not in str(line)
         ]
-        if all(
-            thermal.get(key) is not None
-            for key in ("t_asset_c", "t_township_c", "surface_temp_delta_c")
-        ):
-            delta = thermal["surface_temp_delta_c"]
-            sign = "+" if delta > 0 else ("-" if delta < 0 else "")
-            evidence.append(
-                "Observed land surface temperature "
-                f"({thermal['surface_temp_provenance']}): parcel "
-                f"{thermal['t_asset_c']:.1f} °C; township baseline "
-                f"{thermal['t_township_c']:.1f} °C; "
-                f"T = Tasset − Ttownship = {sign}{abs(delta):.1f} °C"
-            )
         
         # Get lease info
         asset_leases = leases[leases["asset_id"] == aid] if not leases.empty else pd.DataFrame()

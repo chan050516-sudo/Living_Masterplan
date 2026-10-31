@@ -16,7 +16,11 @@ from pydantic import BaseModel, Field, field_validator
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.config import load_paths
-from app.derived.thermal import empty_thermal_metrics, load_thermal_observations
+from app.derived.thermal import (
+    empty_thermal_metrics,
+    format_thermal_evidence_line,
+    load_thermal_observations,
+)
 from app.llm.orchestrator import orchestrate_and_simulate_batch
 from app.llm.vertex_client import VertexGeminiClient
 from app.llm.file_parser import parse_uploaded_file
@@ -162,10 +166,14 @@ async def get_asset_profiles():
         environmental = profile.setdefault("environmental", {})
         environmental.update(observed)
         diagnosis = profile.get("deadspace_diagnosis") or {}
+        # Drop every thermal evidence line already present (they may
+        # have been written by B6's evidence builder or by the offline
+        # profile builder) and inject exactly one at this layer.
         diagnosis["evidence"] = [
             line for line in diagnosis.get("evidence", [])
             if "UHI proxy" not in str(line)
             and "open-field baseline" not in str(line)
+            and "Observed land surface temperature" not in str(line)
         ]
         line = _thermal_evidence_line(observed)
         if line:
@@ -175,18 +183,8 @@ async def get_asset_profiles():
 
 
 def _thermal_evidence_line(metrics: dict) -> Optional[str]:
-    t_asset = metrics.get("t_asset_c")
-    t_township = metrics.get("t_township_c")
-    delta = metrics.get("surface_temp_delta_c")
-    if t_asset is None or t_township is None or delta is None:
-        return None
-    sign = "+" if delta > 0 else ("-" if delta < 0 else "")
-    return (
-        "Observed land surface temperature "
-        f"({metrics.get('surface_temp_provenance') or 'Landsat 8 L2'}): "
-        f"parcel {t_asset:.1f} °C; township baseline {t_township:.1f} °C; "
-        f"T = Tasset − Ttownship = {sign}{abs(delta):.1f} °C"
-    )
+    """Thin wrapper — single source of truth lives in thermal.py."""
+    return format_thermal_evidence_line(metrics)
 
 
 # =====================================================================
@@ -257,6 +255,7 @@ async def get_map_geometry(
                 line for line in d.get("evidence", [])
                 if "UHI proxy" not in str(line)
                 and "open-field baseline" not in str(line)
+                and "Observed land surface temperature" not in str(line)
             ]
             for d in ds_list
         }

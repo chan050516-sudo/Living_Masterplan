@@ -2,6 +2,7 @@
 
 import math
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 
@@ -104,3 +105,25 @@ def _optional_str(value):
         return None
     text = str(value).strip()
     return text or None
+
+def format_thermal_evidence_line(metrics: dict) -> Optional[str]:
+    """Human-readable evidence string for a Landsat observation.
+
+    Centralised here because three call sites used to format this line
+    independently (B6 evidence builder, offline profile builder, API
+    server). The API layer now injects it exactly once, so all three
+    must share the same formatting.
+    """
+    t_asset = metrics.get("t_asset_c")
+    t_township = metrics.get("t_township_c")
+    delta = metrics.get("surface_temp_delta_c")
+    if t_asset is None or t_township is None or delta is None:
+        return None
+    provenance = metrics.get("surface_temp_provenance")
+    sign = "+" if delta > 0 else ("-" if delta < 0 else "")
+    return (
+        "Observed land surface temperature "
+        f"({provenance or 'Landsat 8 L2'}): "
+        f"parcel {t_asset:.1f} °C; township baseline {t_township:.1f} °C; "
+        f"T = Tasset − Ttownship = {sign}{abs(delta):.1f} °C"
+    )

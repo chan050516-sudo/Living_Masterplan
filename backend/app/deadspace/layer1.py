@@ -46,9 +46,11 @@ DEFAULTS = {
     # [occupancy_rate_below, benchmark * 0.85) signals early decline.
     "below_benchmark_factor": 0.85,
     # Phase 16 — severe UHI exposure threshold (°C above baseline).
-    # 7.0 corresponds to effective canopy < 0.075, i.e. essentially
-    # no shade. Below that, the fallback canopy is at least nominally
-    # shading the footprint.
+    # 3.0 is calibrated to the Landsat 8 L2 observed ΔT distribution
+    # on the Bukit Jelutong dataset (P90 = +2.77 °C, P95 = +3.37 °C;
+    # maximum observed ΔT is 4.36 °C). See docs/UHI.md §4: an earlier
+    # 7.0 °C threshold was inherited from the retired synthetic canopy
+    # proxy model and could never fire on real observations.
     "uhi_exposure_above_c": 3.0,
     # Phase B.2 — per-subtype death thresholds
     "subtype_dead_occupancy_below": 0.10,

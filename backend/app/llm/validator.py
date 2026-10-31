@@ -100,6 +100,7 @@ _CAPEX_RATE_BY_CLASS = {
 # least this much to execute the intervention.
 _CAPEX_FLOOR = {
     "repurpose":          100_000.0,
+    "renovation":          40_000.0,
     "retrofit":            50_000.0,
     "green_corridor":     250_000.0,
     "pedestrian_upgrade": 180_000.0,
@@ -1011,8 +1012,8 @@ class ProposalValidator:
             if floor_area > 0:
                 # Renovation costs ~50% of a full repurpose because
                 # there is no structural change.
-                return max(40_000.0, floor_area * rate * 0.5)
-            return 40_000.0
+                return max(_CAPEX_FLOOR["renovation"], floor_area * rate * 0.5)
+            return _CAPEX_FLOOR["renovation"]
 
         # 3. Retrofit: fraction of the current-class rate
         if itype == "retrofit":

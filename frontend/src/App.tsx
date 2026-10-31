@@ -124,7 +124,14 @@ const BODY_PAINT = statusMatch((hex) => [
 ])
 const ROOF_PAINT = statusMatch((hex) => mix(hex, '#ffffff', 0.35))
 
-const ASSET_LAYERS = ['assets-3d', 'area-fill', 'points-dot']
+// `assets-roof` only exists when REALISTIC=true (the extra
+// 0.8m cap that visually closes the extrusion). Without it in the
+// click set, clicking the top of any building hits an unregistered
+// layer and the selection is silently dropped — roughly 50% of the
+// visible footprint becomes unclickable.
+const ASSET_LAYERS = REALISTIC
+  ? ['assets-3d', 'assets-roof', 'area-fill', 'points-dot']
+  : ['assets-3d', 'area-fill', 'points-dot']
 
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -171,7 +178,16 @@ export default function App() {
   const primary = selectedAssets[0] ?? null
 
   useEffect(() => {
-    localStorage.setItem('lm_history', JSON.stringify(history.slice(0, 10)))
+    try {
+      localStorage.setItem('lm_history', JSON.stringify(history.slice(0, 10)))
+    } catch {
+      // localStorage can throw QuotaExceededError if the AnalyzeResult
+      // payloads push past the ~5 MB origin quota, or if storage is
+      // unavailable (private browsing, blocked cookies). The in-memory
+      // history stays intact — only persistence for this update is
+      // skipped. Without this guard the throw propagates out of
+      // useEffect and crashes the whole App.
+    }
   }, [history])
 
   // Sync selectedIds when activeRunId changes

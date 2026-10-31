@@ -110,15 +110,31 @@ def _lst_to_apparent_temp(lst_celsius, asset_type, wind_speed_ms=1.5):
     return round(at, 2)
 
 
-def _get_baseline_lst(repo_root: Path) -> float:
-    """Dynamically read the true township baseline LST from the thermal obs file."""
+def _get_baseline_lst(repo_root: Path = None) -> float:
+    """Dynamically read the true township baseline LST from the thermal obs file.
+
+    `repo_root` is optional so that `_build_frontend_payload` can call
+    this without threading the root through — it falls back to the
+    repository root, and the data path is resolved through paths.yml
+    so switching datasets (Bukit Jelutong → Elmina) works without a
+    code change.
+    """
     default_baseline = 39.33
     try:
-        base_dir = Path(__file__).resolve().parents[3] / "bukit_jelutong" / "processed" / "business"
-        thermal_path = base_dir / "thermal_observations.csv"
+        from ..config import load_paths
+
+        paths = load_paths()
+        root = repo_root or Path(__file__).resolve().parents[3]
+        base_dir = root / paths["base"]
+        thermal_path = base_dir / paths.get("thermal", {}).get(
+            "observations", "business/thermal_observations.csv",
+        )
         if thermal_path.exists():
             df = pd.read_csv(thermal_path)
-            if "t_township_c" in df.columns and not df["t_township_c"].dropna().empty:
+            if (
+                "t_township_c" in df.columns
+                and not df["t_township_c"].dropna().empty
+            ):
                 return float(df["t_township_c"].dropna().iloc[0])
     except Exception:
         pass
@@ -441,13 +457,6 @@ def _generate_candidates(
     import time
 
     prompt = _load_prompt("candidate_generator.md")
-
-    user_content = {
-        "context_pack": context_pack,
-        "attempt": attempt,
-    }
-    if candidate_feedback:
-        user_content["candidate_feedback"] = candidate_feedback
 
     user_content = {
         "context_pack": context_pack,
