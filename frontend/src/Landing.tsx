@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { SyntheticEvent } from 'react'
 import type { Scene3D } from './township3d'
 import './landing.css'
 
@@ -117,6 +118,9 @@ const REFERENCES = [
   },
 ]
 
+// The logo stays hidden until the official file is added.
+const hideLogo = (e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none' }
+
 function CountUp({ value }: { value: string }) {
   const [shown, setShown] = useState(value)
   const ref = useRef<HTMLElement>(null)
@@ -180,7 +184,10 @@ export function Landing() {
   useEffect(() => {
     const el = root.current
     if (!el) return
-    const onScroll = () => scene.current?.setScroll(Math.min(window.scrollY / window.innerHeight, 1))
+    const onScroll = () => {
+      scene.current?.setScroll(Math.min(window.scrollY / window.innerHeight, 1))
+      el.style.setProperty('--sy', String(window.scrollY))
+    }
     window.addEventListener('scroll', onScroll, { passive: true })
 
     const reveal = new IntersectionObserver((list) => {
@@ -206,9 +213,11 @@ export function Landing() {
 
   return (
     <div className={`lp${ready ? ' lp-3d' : ''}`} ref={root}>
+      <div className="lp-curves" aria-hidden="true"><i /><i /><i /><i /></div>
       <canvas className="lp-canvas" ref={canvas} aria-hidden="true" />
       <nav className="lp-nav" aria-label="Main">
         <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
+        <img className="lp-logo" src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={hideLogo} />
         <div className="lp-links">
           <a href="#how">How it works</a>
           <a href="#concepts">Concepts</a>
@@ -231,7 +240,7 @@ export function Landing() {
           </div>
         </div>
         <figure className="lp-hero-map">
-          <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of the example township, Bukit Jelutong, with deadspace candidates highlighted in orange and assets to watch in pale grey." />
+          <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of the example township, Bukit Jelutong, with deadspace candidates shown in dark and assets to watch in peach." />
         </figure>
         <p className="lp-legend">
           <span><i className="ok" />Healthy</span>
@@ -366,14 +375,9 @@ export function Landing() {
       </main>
 
       <footer className="lp-footer">
-        <div>
-          <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
-          <p>Any township. Your data. Build only what the future still needs.</p>
-        </div>
-        <div className="lp-host">
-          <img src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={(e) => { e.currentTarget.style.display = 'none' }} />
-          <p>Built for the Sime Darby Property<br />Township of Tomorrow Hackathon 2026</p>
-        </div>
+        <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
+        <img className="lp-logo" src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={hideLogo} />
+        <p>© 2026 Living Masterplan</p>
       </footer>
 
     </div>
