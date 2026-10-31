@@ -84,6 +84,17 @@ asset_metrics:
   dsr:                              { tier: 2, source: derived, unit: ratio }
 
   # Environment
+  t_asset_c:                        { tier: 1, source: observed, unit: degC }
+  t_township_c:                     { tier: 1, source: observed, unit: degC }
+  surface_temp_delta_c:             { tier: 1, source: observed, unit: degC }
+  surface_temp_provenance:          { tier: null, source: observed, unit: null }
+  surface_temp_collection_id:       { tier: null, source: observed, unit: null }
+  surface_temp_band:                { tier: null, source: observed, unit: null }
+  surface_temp_source_catalog:      { tier: null, source: observed, unit: null }
+  surface_temp_valid_pixel_count:   { tier: null, source: observed, unit: pixel }
+  surface_temp_period_start:        { tier: null, source: observed, unit: date }
+  surface_temp_period_end:          { tier: null, source: observed, unit: date }
+  surface_temp_source_image_count:  { tier: null, source: observed, unit: count }
   carbon_operational_tco2e:         { tier: 2, source: derived, unit: tCO2e }
   embodied_carbon_total_tco2e:
     tier: 2
@@ -96,6 +107,18 @@ asset_metrics:
       same subtype receives the same intensity, so per-building
       life-cycle ranking is invalid. Use only for township-scale
       order-of-magnitude comparison.
+  sequestration_by_year_tco2e_year:
+    tier: 2
+    source: derived
+    unit: tCO2e/yr
+  sequestration_cumulative_tco2e:
+    tier: 2
+    source: derived
+    unit: tCO2e
+  net_carbon_by_year_tco2e_year:
+    tier: 2
+    source: derived
+    unit: tCO2e/yr
 
   # Green
   green_coverage:                   { tier: 2, source: derived, unit: ratio }

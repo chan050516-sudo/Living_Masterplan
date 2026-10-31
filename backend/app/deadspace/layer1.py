@@ -18,7 +18,7 @@ Phase 16 (Gemini review fix):
   - high_stranded_carbon split into two severity tiers. The
     absolute 100 tCO2e floor remains for the severe tier but no
     longer silently exempts a fully-dead small asset.
-  - high_uhi_exposure: surface temperature proxy now participates
+  - high_uhi_exposure: observed parcel temperature above township baseline
     in diagnosis instead of being a zombie field.
 """
 
@@ -46,14 +46,39 @@ DEFAULTS = {
     # [occupancy_rate_below, benchmark * 0.85) signals early decline.
     "below_benchmark_factor": 0.85,
     # Phase 16 — severe UHI exposure threshold (°C above baseline).
-    # 7.0 corresponds to effective canopy < 0.075, i.e. essentially
-    # no shade. Below that, the fallback canopy is at least nominally
-    # shading the footprint.
-    "uhi_exposure_above_c": 7.0,
+    # 3.0 is calibrated to the Landsat 8 L2 observed ΔT distribution
+    # on the Bukit Jelutong dataset (P90 = +2.77 °C, P95 = +3.37 °C;
+    # maximum observed ΔT is 4.36 °C). See docs/UHI.md §4: an earlier
+    # 7.0 °C threshold was inherited from the retired synthetic canopy
+    # proxy model and could never fire on real observations.
+    "uhi_exposure_above_c": 3.0,
     # Phase B.2 — per-subtype death thresholds
     "subtype_dead_occupancy_below": 0.10,
     "subtype_low_occupancy_below": 0.40,
 }
+
+
+# ------------------------------------------------------------------
+# M8 — accessibility relevance by subtype
+# ------------------------------------------------------------------
+# Not every commercial asset fails by being unreachable on foot.
+# A showroom, a supermarket with a 3 km competition radius, or an
+# office tower is driven to; judging it against 5-minute walking
+# coverage penalises a business model that never wanted footfall.
+#
+# These tables say: for this subtype, which accessibility metric
+# actually matters for its commercial viability?
+WALKING_CRITICAL_SUBTYPES = frozenset({
+    "convenience_retail", "kopitiam", "cafe",
+    "f_and_b", "medical_retail", "services",
+    "clinic", "childcare",
+    "community_hall", "library",
+})
+
+DRIVING_CRITICAL_SUBTYPES = frozenset({
+    "supermarket", "office", "showroom", "entertainment",
+    "sports_centre", "school", "restaurant",
+})
 
 
 def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
@@ -74,13 +99,19 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
         if dsr is not None and dsr < t["dsr_below"]:
             reasons.append("dsr_below_threshold")
 
-        wcov = metrics.get("coverage_ratio_5min_walk")
-        if wcov is not None and wcov < t["walking_coverage_5min_below"]:
-            reasons.append("walking_accessibility_deficit")
-
-        dcov = metrics.get("coverage_ratio_10min_drive")
-        if dcov is not None and dcov < t["driving_coverage_10min_below"]:
-            reasons.append("driving_accessibility_deficit")
+        # M8 — walking / driving accessibility is judged only for
+        # subtypes whose business model actually depends on it. A
+        # showroom's 5-min walk coverage is irrelevant to whether
+        # it is deadspace; a café's is central.
+        subtype = metrics.get("subtype") or ""
+        if subtype in WALKING_CRITICAL_SUBTYPES:
+            wcov = metrics.get("coverage_ratio_5min_walk")
+            if wcov is not None and wcov < t["walking_coverage_5min_below"]:
+                reasons.append("walking_accessibility_deficit")
+        if subtype in DRIVING_CRITICAL_SUBTYPES:
+            dcov = metrics.get("coverage_ratio_10min_drive")
+            if dcov is not None and dcov < t["driving_coverage_10min_below"]:
+                reasons.append("driving_accessibility_deficit")
 
         mismatch = metrics.get("demographic_mismatch")
         if mismatch is not None and mismatch > t["demographic_mismatch_above"]:
@@ -310,15 +341,13 @@ def _check_trajectory(reasons: list, metrics: dict, t: dict) -> None:
 
 def _check_uhi(reasons: list, metrics: dict, asset_type: str, t: dict) -> None:
     """
-    Flag assets whose surface temperature proxy shows severe heat
-    exposure. Buildings only; green space legitimately produces a
-    cooling benefit and is excluded.
+    Flag assets whose observed surface temperature is well above the
+    township asset-footprint baseline. Buildings only; lower values
+    are valid observations and are not anomalies.
 
-    The threshold defaults to 7.0°C, which under the current UHI
-    model corresponds to effective canopy < 0.075 — essentially no
-    shade. Using 6.0 would fire on every commercial asset whose
-    canopy falls back to the township-typical 0.10, defeating the
-    purpose of the flag.
+    The threshold defaults to a 7.0°C observed difference from the
+    township baseline. This threshold is intentionally reserved for
+    large local surface-temperature outliers.
     """
     if asset_type not in (
         "commercial", "residential", "community_facility",

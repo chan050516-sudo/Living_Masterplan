@@ -1,0 +1,68 @@
+{
+  "provenance": "Observed (Landsat 8 L2)",
+  "collection_id": "LANDSAT/LC08/C02/T1_L2",
+  "source_catalog": "Google Earth Engine",
+  "collection_tier": "Tier 1",
+  "processing_level": "L2SP",
+  "band": "ST_B10",
+  "unit": "degrees Celsius",
+  "conversion": "(DN * 0.00341802 + 149.0) - 273.15",
+  "cloud_mask": {
+    "qa_band": "QA_PIXEL",
+    "masked_bits": [
+      "fill",
+      "dilated_cloud",
+      "cirrus",
+      "cloud",
+      "cloud_shadow",
+      "snow"
+    ],
+    "scene_cloud_cover_max_pct": 20.0
+  },
+  "composite": "per-pixel median of QA-masked clear LST observations",
+  "period_start_inclusive": "2026-10-19",
+  "period_end_exclusive": "2026-10-20",
+  "spatial_resolution_m": 30,
+  "raster_crs": "EPSG:32647",
+  "zonal_statistic": "mean of valid 30m pixels intersecting each asset footprint (all_touched=true)",
+  "township_baseline_scope": "union of all asset footprints; overlaps counted once",
+  "township_mean_c": 39.3318,
+  "township_valid_pixel_count": 2552,
+  "asset_count": 916,
+  "asset_count_with_valid_pixels": 679,
+  "asset_count_without_valid_pixels": 237,
+  "source_geometry": {
+    "parcels": "bukit_jelutong\\processed\\geometry\\parcels_bj.geojson",
+    "buildings": "bukit_jelutong\\processed\\geometry\\buildings_bj.geojson",
+    "green_blue": "bukit_jelutong\\processed\\geometry\\green_blue_bj.geojson"
+  },
+  "footprint_source_counts": {
+    "building": 854,
+    "green_blue": 51,
+    "parcel": 11
+  },
+  "source_assets_table": "bukit_jelutong\\processed\\business\\assets.csv",
+  "raster_path": "bukit_jelutong\\processed\\thermal\\landsat8_lst_composite_2026-10-19_2026-10-20.tif",
+  "observations_path": "bukit_jelutong\\processed\\business\\thermal_observations.csv",
+  "raster_grid": {
+    "width": 76,
+    "height": 74,
+    "transform": [
+      30.0,
+      0.0,
+      779790.0,
+      0.0,
+      -30.0,
+      345060.0
+    ]
+  },
+  "source_scenes": [
+    {
+      "system_index": "LC08_127058_20261019",
+      "acquired_utc": "2026-10-19T03:28:37.198000+00:00",
+      "scene_cloud_cover_pct": 15.24
+    }
+  ],
+  "created_at_utc": "2026-10-30T15:59:58.930038+00:00",
+  "data_provider_credit": "Landsat 8 Collection 2 Level-2, courtesy of the U.S. Geological Survey."
+}

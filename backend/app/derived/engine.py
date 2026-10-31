@@ -9,6 +9,7 @@ Phase 2 changes:
 
 import json
 import logging
+import pickle
 from pathlib import Path
 
 import geopandas as gpd
@@ -25,6 +26,7 @@ from .network_graph import (
     build_graph_by_mode,
     find_entry_point,
     insert_all_entries,
+    extract_nodes,
 )
 from .accessibility import (
     compute_distance_matrix,
@@ -39,6 +41,7 @@ from .facility import derive_facility
 from .green import derive_green
 from .parcel import derive_parcel
 from .residential import derive_residential
+from .thermal import empty_thermal_metrics, load_thermal_observations
 
 log = logging.getLogger(__name__)
 
@@ -62,6 +65,8 @@ def compute_derived_metrics(
     year: int = 2026,
     years: list = None,
     network_override=None,
+    _shared_cache: dict = None,
+    _cache_key: str = None,
 ) -> pd.DataFrame:
     """
     Compute derived metrics for every asset at every requested year.
@@ -94,6 +99,21 @@ def compute_derived_metrics(
 
     geometry = load_geometry(repo_root, paths)
     business = load_business(repo_root, paths)
+    thermal_path = (
+        repo_root
+        / paths["base"]
+        / paths.get("thermal", {}).get(
+            "observations", "business/thermal_observations.csv"
+        )
+    )
+    thermal_observations = load_thermal_observations(thermal_path)
+
+    # Load WRI Canopy Observation Data
+    wri_canopy_lookup = {}
+    wri_path = repo_root / paths["base"] / "business" / "wri_canopy_observations.csv"
+    if wri_path.exists():
+        wri_df = pd.read_csv(wri_path)
+        wri_canopy_lookup = dict(zip(wri_df["asset_id"], wri_df["wri_treecover_fraction"]))
 
     green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
 
@@ -101,6 +121,14 @@ def compute_derived_metrics(
     asset_canopy = {}
     for _, asset in business["assets"].iterrows():
         aid = asset["asset_id"]
+        
+        # Priortise WRI Data
+        wri_val = wri_canopy_lookup.get(aid)
+        if wri_val is not None and not pd.isna(wri_val):
+            asset_canopy[aid] = float(wri_val)
+            continue
+            
+        # Fallback: Only if WRI null，use OSM algorithm
         parcels = geometry["parcels"]["analysis"]
         match = parcels[parcels["asset_id"] == aid]
         if match.empty:
@@ -119,36 +147,93 @@ def compute_derived_metrics(
     walking_cfg = mode_configs.get("walking", {})
     driving_cfg = mode_configs.get("driving", {})
 
-    # Walking may use an override network (e.g. after a spatial
-    # intervention). Driving always uses the original layer.
     base_network = geometry["network"]["analysis"]
     walking_network = network_override if network_override is not None else base_network
 
-    walking_pipeline = _prepare_mode_pipeline(
-        mode="walking",
-        network_gdf=walking_network,
-        assets_df=business["assets"],
-        parcels_gdf=geometry["parcels"]["analysis"],
-        pop_gdf=pop_analysis,
-        gamma=assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3),
-        cfg=walking_cfg,
+    # Phase A: Pipeline caching.
+    # B3 computes the full walking graph + all-pairs Dijkstra once per
+    # network version. B4 reads this cache directly, eliminating the
+    # 10-15s duplicate graph build / Dijkstra run.
+    walk_key = f"{_cache_key or 'base'}_walking"
+    drv_key = "base_driving"  # Driving network never changes.
+
+    pipelines = (
+        _shared_cache.setdefault("pipelines", {})
+        if _shared_cache is not None else {}
     )
-    driving_pipeline = _prepare_mode_pipeline(
-        mode="driving",
-        network_gdf=base_network,
-        assets_df=business["assets"],
-        parcels_gdf=geometry["parcels"]["analysis"],
-        pop_gdf=pop_analysis,
-        gamma=0.0,
-        cfg=driving_cfg,
-    )
+
+    # Fast path: load baked pickle from disk if available.
+    cache_dir = repo_root / paths["base"] / "cache"
+    walk_pkl = cache_dir / "walking_pipeline_base.pkl"
+    drive_pkl = cache_dir / "driving_pipeline_base.pkl"
+
+    if walk_key in pipelines:
+        log.info("B3: Reusing in-memory pipeline for %s", walk_key)
+        walking_pipeline = pipelines[walk_key]
+        supply_nodes_huff = walking_pipeline["supply_nodes"]
+        demand_nodes_huff = walking_pipeline["demand_nodes"]
+    elif walk_key == "base_walking" and walk_pkl.exists():
+        log.info("B3: Loading baked walking pipeline from %s", walk_pkl)
+        with open(walk_pkl, "rb") as f:
+            walking_pipeline = pickle.load(f)
+        supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
+        demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
+        walking_pipeline["supply_nodes"] = supply_nodes_huff
+        walking_pipeline["demand_nodes"] = demand_nodes_huff
+        if _shared_cache is not None:
+            pipelines[walk_key] = walking_pipeline
+    else:
+        log.info("B3: Building walking pipeline for %s (first run)", walk_key)
+        walking_pipeline = _prepare_mode_pipeline(
+            mode="walking",
+            network_gdf=walking_network,
+            assets_df=business["assets"],
+            parcels_gdf=geometry["parcels"]["analysis"],
+            pop_gdf=pop_analysis,
+            gamma=assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3),
+            cfg=walking_cfg,
+        )
+        # Get the base year metrics
+        base_year_metrics = business["asset_metrics"]
+        if "year" in base_year_metrics.columns:
+            base_year_metrics = base_year_metrics[base_year_metrics["year"] == year]
+            
+        supply_nodes_huff = _build_huff_supply_nodes(
+            business["assets"], walking_pipeline, base_year_metrics
+        )
+        demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
+        
+        # Enrich the pipeline with fields B4 expects.
+        walking_pipeline["supply_nodes"] = supply_nodes_huff
+        walking_pipeline["demand_nodes"] = demand_nodes_huff
+        walking_pipeline["nodes_gdf"] = extract_nodes(walking_network)
+        
+        if _shared_cache is not None:
+            pipelines[walk_key] = walking_pipeline
+
+    if drv_key in pipelines:
+        driving_pipeline = pipelines[drv_key]
+    elif drive_pkl.exists():
+        log.info("B3: Loading baked driving pipeline from %s", drive_pkl)
+        with open(drive_pkl, "rb") as f:
+            driving_pipeline = pickle.load(f)
+        if _shared_cache is not None:
+            pipelines[drv_key] = driving_pipeline
+    else:
+        log.info("B3: Building driving pipeline (first run)")
+        driving_pipeline = _prepare_mode_pipeline(
+            mode="driving",
+            network_gdf=base_network,
+            assets_df=business["assets"],
+            parcels_gdf=geometry["parcels"]["analysis"],
+            pop_gdf=pop_analysis,
+            gamma=0.0,
+            cfg=driving_cfg,
+        )
+        if _shared_cache is not None:
+            pipelines[drv_key] = driving_pipeline
 
     # --- Huff per subtype (computed once, reused across all years) ---
-    supply_nodes_huff = _build_huff_supply_nodes(
-        business["assets"], walking_pipeline,
-    )
-    demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
-
     huff_by_asset_subtype = huff_by_subtype_per_asset(
         walking_pipeline["distance_matrix"],
         demand_nodes_huff,
@@ -167,6 +252,25 @@ def compute_derived_metrics(
             continue
 
         aid = asset["asset_id"]
+
+        # M7a — resolve subtype BEFORE computing the demographic
+        # catchment, so that catchment can use the subtype's own
+        # competition_radius_m instead of a fixed 1200 m.
+        #
+        # Rationale: a café's demographic catchment is a 400 m walk;
+        # a supermarket's is a 3 km drive. Using the same 1200 m
+        # for both aggregated the whole township into every
+        # catchment, which made `demographic_mismatch` permanently
+        # zero because every asset's catchment looked like the
+        # township average.
+        subtype = asset.get("subtype") or default_subtype_for(atype)
+        subtype_cfg = subtypes_config.get(subtype, {})
+
+        _demographic_radius = subtype_cfg.get("competition_radius_m")
+        try:
+            _demographic_radius = float(_demographic_radius)
+        except (TypeError, ValueError):
+            _demographic_radius = 800.0  # township-typical fallback
 
         walking_profile = _compute_asset_profile(
             asset_entry=walking_pipeline["asset_entries"].get(aid),
@@ -191,7 +295,7 @@ def compute_derived_metrics(
             demand_entries=walking_pipeline["demand_entries_with_age"],
             distance_matrix=walking_pipeline["distance_matrix"],
             asset_entry=walking_pipeline["asset_entries"].get(aid),
-            max_distance_m=1200.0,
+            max_distance_m=_demographic_radius,   # M7a
         )
 
         asset_vn = walking_pipeline["asset_entries"].get(aid, {}).get("virtual_node")
@@ -203,9 +307,6 @@ def compute_derived_metrics(
             radius_m=DIVERSITY_RADIUS_M,
         )
 
-        subtype = asset.get("subtype") or default_subtype_for(atype)
-
-        subtype_cfg = subtypes_config.get(subtype, {})
         coeff = subtype_cfg.get("demand_coefficient_m2_per_person", 0.05) or 0.05
 
         # Per-subtype Huff demand for this asset.
@@ -249,6 +350,15 @@ def compute_derived_metrics(
             )
 
             base_row = deriver(ctx)
+            # Temperature comes only from the audited Landsat observation
+            # table. Missing or uncovered parcels stay null; the canopy
+            # calculation is retained only as a separate shade indicator.
+            thermal_metrics = (
+                thermal_observations.get(str(aid), empty_thermal_metrics())
+                if y == year
+                else empty_thermal_metrics()
+            )
+            base_row.update(thermal_metrics)
             base_row = _flatten_profiles(
                 base_row, walking_profile, driving_profile,
             )
@@ -407,23 +517,19 @@ def _build_huff_demand_nodes(walking_pipeline) -> list:
     return nodes
 
 
-def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
+def _build_huff_supply_nodes(assets_df, walking_pipeline, asset_metrics_df=None) -> list:
     """
     Supply nodes expand per-subtype for mixed-use commercial assets.
-
-    A mall with a unit_mix {"supermarket": ..., "f_and_b": ...}
-    enters each subtype's Huff pool with that subtype's own area as
-    attractiveness. A single-subtype shop enters one pool with its
-    whole lettable area.
-
-    Phase B.2 fix — previously every commercial asset entered
-    exactly one pool keyed by its primary subtype. A mall's F&B
-    floor competed as if it were medical_retail; its supermarket as
-    if it were the primary subtype. The per-subtype DSR and per-
-    subtype demand that B.2 emits could therefore only ever show
-    one subtype. Fixing the supply-node builder makes the whole
-    per-subtype pipeline coherent.
+    Introduces a 'dead supply discount' for highly vacant assets.
     """
+    # Build occupancy lookup map
+    occ_map = {}
+    if asset_metrics_df is not None and not asset_metrics_df.empty:
+        for _, row in asset_metrics_df.iterrows():
+            occ = row.get("occupancy_rate")
+            if pd.notna(occ):
+                occ_map[str(row["asset_id"])] = float(occ)
+                
     nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
@@ -432,6 +538,10 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
         entry = walking_pipeline["asset_entries"].get(aid)
         if entry is None:
             continue
+        
+        # Apply discount: 0% occupancy = 10% attractiveness, 100% = 100%
+        occ = occ_map.get(aid, 0.85) 
+        vitality = max(0.1, min(1.0, occ))
 
         mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
         if mix:
@@ -442,17 +552,15 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
                 nodes.append({
                     "asset_id": aid,
                     "node": entry["virtual_node"],
-                    "attractiveness": area,
+                    "attractiveness": area * vitality,
                     "subtype": st,
                 })
         else:
-            subtype = asset.get("subtype") or default_subtype_for(
-                asset.get("asset_type"),
-            )
+            subtype = asset.get("subtype") or default_subtype_for(asset.get("asset_type"))
             nodes.append({
                 "asset_id": aid,
                 "node": entry["virtual_node"],
-                "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+                "attractiveness": float(asset.get("lettable_area_m2") or 0.0) * vitality,
                 "subtype": subtype,
             })
     return nodes

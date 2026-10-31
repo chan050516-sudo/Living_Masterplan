@@ -1610,6 +1610,23 @@ def _target_final_occupancy(aid, asset):
     Benchmarks are the taxonomy occupancy_benchmark values, inlined
     here so the mock generator does not depend on the taxonomy module
     (build_mock_data runs standalone, outside the backend package).
+
+    M1 — the previous `max(0.50, ...)` floor for commercial subtypes
+    ruled out every "half-alive" asset: occupancy was either healthy
+    (>= 0.50) or vacant (0). A struggling café / shoplot in a
+    mid-development township realistically sits at 30-55%. The floor
+    is now 0.30 and the downward noise band is wider for
+    competition-driven subtypes (café / restaurant / F&B /
+    entertainment). This makes B6's `low_occupancy` fire on a small,
+    realistic cohort of "struggling but alive" assets instead of
+    only on vacant inventory.
+
+    M3 — community facilities now ramp up with age. A facility
+    delivered in the last 3 years realistically sits at 30-55%
+    utilisation while the community finds it; the old flat
+    0.55-0.85 window meant `low_utilisation` (threshold 0.40)
+    never fired on any facility, which in turn meant the
+    community_facility L1+L2 gate was untestable.
     """
     atype = asset.get("asset_type", "")
     subtype = asset.get("subtype", "")
@@ -1622,8 +1639,17 @@ def _target_final_occupancy(aid, asset):
             "services": 0.85, "medical_retail": 0.85, "office": 0.85,
             "showroom": 0.80, "entertainment": 0.70,
         }.get(subtype, 0.85)
-        return max(0.50, benchmark + seeded_uniform(
-            f"{aid}-final-occ", -0.05, 0.05))
+
+        # M1 — competition-driven subtypes get a wider downward
+        # band. High-margin anchor tenants (supermarket, medical,
+        # office) keep the narrow band because they rarely drop
+        # below 0.75 even in a depressed market.
+        if subtype in {"cafe", "restaurant", "f_and_b", "entertainment"}:
+            lo, hi = -0.35, 0.03
+        else:
+            lo, hi = -0.15, 0.05
+        return max(0.30, benchmark + seeded_uniform(
+            f"{aid}-final-occ", lo, hi))
 
     if atype == "residential":
         benchmark = {
@@ -1631,10 +1657,17 @@ def _target_final_occupancy(aid, asset):
             "apartment_lowrise": 0.85, "apartment_highrise": 0.80,
             "affordable_housing": 0.95,
         }.get(subtype, 0.85)
-        return max(0.50, benchmark + seeded_uniform(
-            f"{aid}-final-occ", -0.05, 0.05))
+        return max(0.45, benchmark + seeded_uniform(
+            f"{aid}-final-occ", -0.10, 0.05))
 
     if atype == "community_facility":
+        # M3 — new facilities ramp up; older ones operate at
+        # benchmark. The 3-year threshold matches the RAMP_UP_GRACE
+        # in backend/app/deadspace/status.py.
+        completion = _safe_int(asset.get("completion_year"), BASE_YEAR - 5)
+        years_old = BASE_YEAR - completion
+        if years_old <= 3:
+            return seeded_uniform(f"{aid}-final-occ", 0.30, 0.55)
         return seeded_uniform(f"{aid}-final-occ", 0.55, 0.85)
 
     return 0.50

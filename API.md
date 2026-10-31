@@ -26,18 +26,27 @@ This document outlines the RESTful APIs provided by the backend for the frontend
 {
   "run_id": "LLM-da8ac14f",
   "scenario_id": "SC-LLM-da8ac14f-C1",
+  "interventions": [
+    {
+      "target_asset_id": "BLD-0183",
+      "type": "repurpose",
+      "role": "catalytic",
+      "beneficiary_asset_id": "BLD-0151"
+    }
+  ],
   "decision": {
     "selected_candidate": "Catalytic Family Anchor & Commercial Efficiency",
     "reasoning": "Selected as the sole viable intervention...",
     "key_trade_offs": [
-      "Accepts a 1.86% township carbon increase to activate underutilized land."
+      "Capex reaches RM 1.95M, leaving only RM 50k for contingency.",
+      "Retains the supermarket anchor without disruption, sacrificing the larger scale of a full rebuild."
     ],
     "justification": {
-      "summary": "We propose a balanced dual intervention...",
-      "why_this_plan": "Standalone retrofitting would leave the catchment unaddressed...",
-      "what_simulation_shows": "Effective commercial demand expands from 3125.9 m² to 3825.3 m²...",
-      "beyond_the_model": "Childcare facilities generate non-discretionary twice-daily footfall...",
-      "recommendation": "Proceed subject to securing an accredited childcare operator."
+      "summary": "Board-level summary paragraph (≤80 words).",
+      "why_this_plan": "Strategic rationale referencing rejected alternatives (≤110 words).",
+      "what_simulation_shows": "Concrete numbers from the B4 simulation across financial / social / environmental (≤120 words).",
+      "beyond_the_model": "Domain insight beyond the metrics (optional, may be null).",
+      "recommendation": "Under what conditions the user should proceed (≤40 words)."
     }
   },
   "assets_analysis": [
@@ -45,31 +54,79 @@ This document outlines the RESTful APIs provided by the backend for the frontend
       "asset_id": "BLD-0183",
       "summary_card": {
         "financial": {
-          "main_metric": { "label": "Annual NOI", "baseline": -2669929.55, "intervention": -2269450.75, "unit": "RM" },
-          "counterfactual": { "capex_if_new_build_rm": 6500000, "capex_if_repurpose_rm": 2150280, "capex_saved_rm": 4349720 }
+          "main_metric": {
+            "label": "Annual NOI",
+            "baseline": -2342226.25,
+            "intervention": -1140522.84,
+            "unit": "RM"
+          },
+          "counterfactual": {
+            "capex_if_new_build_rm": 23292220.0,
+            "capex_if_repurpose_rm": 1950000.0,
+            "capex_saved_rm": 21342220.0
+          }
         },
         "social": {
-          "main_metric": { "label": "Space Utilization", "baseline": 0.632, "intervention": 0.632, "unit": "ratio" },
+          "main_metric": {
+            "label": "Space Utilization",
+            "baseline": 0.698,
+            "intervention": 0.851,
+            "unit": "ratio"
+          },
           "metrics": {
-            "coverage_ratio_15min_walk": { "baseline": 0.65, "intervention": 0.72 },
+            "coverage_ratio_15min_walk": { "baseline": 0.324, "intervention": 0.451 },
             "effective_demand_m2": { "baseline": 3125.9, "intervention": 3825.3 }
           }
         },
         "environmental": {
           "main_metrics": [
-            { "label": "Operational Carbon", "baseline": 1660.45, "intervention": 1360.54, "unit": "tCO2e/yr" },
-            { "label": "Stranded Carbon", "baseline": 249.06, "intervention": 501.1, "unit": "tCO2e/yr" }
+            {
+              "label": "Operational Carbon",
+              "baseline": 1660.45,
+              "intervention": 1295.15,
+              "unit": "tCO2e/yr"
+            },
+            {
+              "label": "Surface Temp ΔT",
+              "baseline": 2.4,
+              "intervention": 1.8,
+              "unit": "°C"
+            },
+            {
+              "label": "Perceived Temp (AT)",
+              "baseline": 40.5,
+              "intervention": 39.8,
+              "unit": "°C"
+            }
           ],
-          "counterfactual": { "embodied_if_new_build_tco2e": 2150.5, "embodied_if_repurpose_tco2e": 220.5, "net_carbon_averted_tco2e": 1930.0 }
+          "counterfactual": {
+            "embodied_if_new_build_tco2e": 2994.7,
+            "embodied_if_repurpose_tco2e": 532.4,
+            "net_carbon_averted_tco2e": 2462.3
+          }
         },
         "subunits": [
-          { "subtype": "f_and_b", "area_m2": 400, "occupancy_baseline": 0.05, "occupancy_intervention": 0.85, "allocated_carbon_tco2e": 150.2, "allocated_noi_rm": -250000 }
+          {
+            "subtype": "cafe",
+            "area_m2": 325.8,
+            "occupancy_baseline": 0.511,
+            "occupancy_intervention": 0.0,
+            "allocated_carbon_tco2e": 0.0,
+            "allocated_noi_rm": 0.0
+          }
         ]
       },
       "timeline": {
         "years": ["2026", "2027", "2028", "2030", "2033"],
         "metrics": {
-          "noi_rm": { "baseline": [ -2669929, -2700000, -2800000, -2600000, -2669929 ], "intervention": [ -2669929, -2500000, -2200000, -2100000, -2269450 ] }
+          "noi_rm": {
+            "baseline":     [-2342226.25, -2410550.12, -2495233.88, -2601449.21, -2735902.67],
+            "intervention": [-2342226.25, -2210441.30, -1654220.15, -1320550.87, -1140522.84]
+          },
+          "surface_temp_delta_c": {
+            "baseline":     [2.4, 2.4, 2.4, 2.4, 2.4],
+            "intervention": [2.4, 2.4, 2.2, 1.9, 1.8]
+          }
         }
       }
     }
@@ -78,7 +135,16 @@ This document outlines the RESTful APIs provided by the backend for the frontend
     "total_carbon_before_tco2e": 130922.25,
     "total_carbon_after_tco2e": 133355.00,
     "carbon_delta_pct": 0.0186
-  }
+  },
+  "candidates_summary": [
+    {
+      "name": "Catalytic Family Anchor & Commercial Efficiency",
+      "strategy_summary": "Repurpose the dead F&B floor to childcare to drive footfall.",
+      "plan": [
+        { "asset_id": "BLD-0183", "type": "repurpose" }
+      ]
+    }
+  ]
 }
 ```
 
@@ -142,7 +208,17 @@ This document outlines the RESTful APIs provided by the backend for the frontend
       "energy_kwh_hvac": 1295460.0,
       "energy_kwh_lighting": 539775.0,
       "energy_kwh_base_load": 323865.0,
-      "surface_temp_delta_c": 6.8
+      "t_asset_c": null,
+      "t_township_c": null,
+      "surface_temp_delta_c": null,
+      "surface_temp_provenance": null,
+      "surface_temp_collection_id": null,
+      "surface_temp_band": null,
+      "surface_temp_source_catalog": null,
+      "surface_temp_valid_pixel_count": null,
+      "surface_temp_period_start": null,
+      "surface_temp_period_end": null,
+      "surface_temp_source_image_count": null
     },
     "trajectory": {
       "class": "declining",
@@ -176,6 +252,13 @@ This document outlines the RESTful APIs provided by the backend for the frontend
   }
 }
 ```
+
+Surface-temperature fields are populated from `LANDSAT/LC08/C02/T1_L2` when
+`backend/scripts/landsat_lst_pipeline.py` has produced the configured thermal
+observations file. The API labels valid values `Observed (Landsat 8 L2)` and
+defines `surface_temp_delta_c = t_asset_c - t_township_c`. Missing clear pixels
+remain `null`; the previous canopy-based temperature proxy is not used as a
+fallback.
 
 ---
 

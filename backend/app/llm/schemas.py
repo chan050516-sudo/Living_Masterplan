@@ -44,6 +44,83 @@ INTENT_SCHEMA = {
 # Stage 2 — Parameters (shared by candidates and final plan)
 # ------------------------------------------------------------------
 
+# ------------------------------------------------------------------
+# P1 — Engineering parameter contract
+# ------------------------------------------------------------------
+# The LLM translates natural language ("retain the shell, use VRF,
+# add 60% rooftop PV") into this strict object. The deterministic
+# engine reads it to derive:
+#   - avoided embodied carbon (structure_retention_ratio)
+#   - LST-coupled cooling load (hvac_cop, operating hours, roof)
+#   - rooftop PV offset (rooftop_pv_coverage)
+#
+# This is an OPTIONAL companion to the legacy `measures` /
+# `energy_efficiency_gain` path. Omit it for pure spatial
+# interventions or when only an aggregate efficiency number is known.
+#
+# Kept to 7 fields on purpose: structured-output reliability degrades
+# sharply beyond ~8 required fields on Gemini Flash.
+
+ENGINEERING_SPEC_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "structure_retention_ratio": {
+            "type": "NUMBER",
+            "description": (
+                "Fraction of the existing structural frame retained "
+                "(0.0-1.0). 1.0 = cosmetic retrofit; 0.9 = adaptive "
+                "reuse; 0.6 = heavy retrofit with reinforcement; 0.0 "
+                "= demolish and rebuild."
+            ),
+        },
+        "facade_action": {
+            "type": "STRING",
+            "enum": [
+                "retain", "insulated_overclad",
+                "curtain_wall", "timber_clad",
+            ],
+        },
+        "primary_material": {
+            "type": "STRING",
+            "enum": [
+                "standard_concrete", "ggbs_concrete",
+                "mass_timber", "recycled_steel",
+            ],
+        },
+        "roof_intervention": {
+            "type": "STRING",
+            "enum": ["none", "cool_roof", "green_roof", "solar_canopy"],
+        },
+        "hvac_cop": {
+            "type": "NUMBER",
+            "description": (
+                "HVAC coefficient of performance (2.0-6.0). Standard "
+                "split AC ≈ 2.8; VRF ≈ 3.5-4.2; district cooling ≈ 5.5."
+            ),
+        },
+        "operating_hours_per_week": {
+            "type": "NUMBER",
+            "description": (
+                "Weekly operating hours (20-168). 70 = standard office; "
+                "112 = 16h/7d hub; 168 = 24/7."
+            ),
+        },
+        "rooftop_pv_coverage": {
+            "type": "NUMBER",
+            "description": "Fraction of roof area covered by PV (0.0-0.9).",
+        },
+    },
+    "required": [
+        "structure_retention_ratio",
+        "facade_action",
+        "primary_material",
+        "roof_intervention",
+        "hvac_cop",
+        "operating_hours_per_week",
+        "rooftop_pv_coverage",
+    ],
+}
+
 PROPOSAL_PARAMETERS_SCHEMA = {
     "type": "OBJECT",
     "properties": {
@@ -157,6 +234,12 @@ PROPOSAL_PARAMETERS_SCHEMA = {
         # --- optional cost overrides ---
         "capex_delta_rm": {"type": "NUMBER"},
         "opex_delta_rm": {"type": "NUMBER"},
+
+        # P1 — Structured engineering parameters. Optional; when
+        # present, the deterministic engine replaces the aggregate
+        # `energy_efficiency_gain` path with a physics-derived cooling
+        # and embodied-carbon model.
+        "engineering_spec": ENGINEERING_SPEC_SCHEMA,
     },
 }
 
@@ -165,37 +248,11 @@ PROPOSAL_PARAMETERS_SCHEMA = {
 # Reusable plan item (one intervention on one asset)
 # ------------------------------------------------------------------
 
-_PLAN_ITEM_SCHEMA = {
-    "type": "OBJECT",
-    "properties": {
-        "asset_id": {"type": "STRING"},
-        "type": {
-            "type": "STRING",
-            "enum": [
-                "repurpose", "retrofit", "renovation",
-                "green_corridor", "pedestrian_upgrade",
-                "new_development", "delay_development",
-                "interim_solar_farm",
-            ],
-        },
-        "parameters": PROPOSAL_PARAMETERS_SCHEMA,
-        "rationale": {"type": "STRING"},
-        "investment_case": {
-            "type": "OBJECT",
-            "properties": {
-                "capital_invested": {"type": "STRING"},
-                "return_delivered": {"type": "STRING"},
-                "strategic_rationale": {"type": "STRING"},
-            },
-            "required": [
-                "capital_invested",
-                "return_delivered",
-                "strategic_rationale",
-            ],
-        },
-    },
-    "required": ["asset_id", "type", "parameters", "rationale"],
-}
+# _PLAN_ITEM_SCHEMA is defined at the END of this file (after
+# CATALYTIC_LINK_SCHEMA). We use a forward-reference pattern here:
+# CANDIDATES_SCHEMA is rebound at the bottom of the file once the
+# canonical _PLAN_ITEM_SCHEMA exists. Do NOT reference
+# _PLAN_ITEM_SCHEMA in this top section.
 
 
 # ------------------------------------------------------------------
@@ -224,38 +281,7 @@ CANDIDATES_SCHEMA = {
                 "bold move (repurpose / new_development); at least one "
                 "may be incremental (retrofit / upgrade)."
             ),
-            "items": {
-                "type": "OBJECT",
-                "properties": {
-                    "name": {
-                        "type": "STRING",
-                        "description": (
-                            "A short strategy label, e.g. "
-                            "'Full repurpose', 'Cost recovery', "
-                            "'Mixed-use intervention'."
-                        ),
-                    },
-                    "strategy_summary": {
-                        "type": "STRING",
-                        "description": (
-                            "One sentence explaining what this "
-                            "candidate is trying to achieve."
-                        ),
-                    },
-                    "reasoning_trace": {
-                        "type": "STRING",
-                        "description": (
-                            "Why this candidate makes sense, up to "
-                            "120 words."
-                        ),
-                    },
-                    "plan": {
-                        "type": "ARRAY",
-                        "items": _PLAN_ITEM_SCHEMA,
-                    },
-                },
-                "required": ["name", "strategy_summary", "plan"],
-            },
+            "items": {"type": "OBJECT"},
         },
     },
     "required": ["reasoning_trace", "candidates"],
@@ -426,6 +452,7 @@ _PLAN_ITEM_SCHEMA = {
             "enum": [
                 "repurpose",
                 "retrofit",
+                "renovation",
                 "green_corridor",
                 "pedestrian_upgrade",
                 "new_development",
@@ -459,9 +486,54 @@ _PLAN_ITEM_SCHEMA = {
             ],
         },
     },
-    "required": ["asset_id", "type", "role", "parameters", "rationale"],
+    "required": ["asset_id", "type", "parameters", "rationale"],
 }
 
+# ------------------------------------------------------------------
+# One complete candidate — a named strategy with a plan covering
+# every target asset.
+# ------------------------------------------------------------------
+# This is the object that each element of `candidates` must be.
+# `_PLAN_ITEM_SCHEMA` describes a SINGLE asset-level intervention,
+# which is the element of `CANDIDATE_SCHEMA.plan`, not the candidate
+# itself. Rebinding candidates.items to _PLAN_ITEM_SCHEMA made the
+# LLM emit flat lists of plan items with no name and no enclosing
+# plan, which every candidate then failed to validate against
+# ("plan is empty or malformed").
+CANDIDATE_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "name": {
+            "type": "STRING",
+            "description": (
+                "A short strategy label, e.g. 'Full repurpose', "
+                "'Cost recovery', 'Mixed-use intervention'."
+            ),
+        },
+        "strategy_summary": {
+            "type": "STRING",
+            "description": (
+                "One sentence explaining what this candidate is "
+                "trying to achieve."
+            ),
+        },
+        "reasoning_trace": {
+            "type": "STRING",
+            "description": (
+                "Why this candidate makes sense, up to 120 words."
+            ),
+        },
+        "plan": {
+            "type": "ARRAY",
+            "description": (
+                "One item per target asset. Every target must appear "
+                "exactly once in every candidate."
+            ),
+            "items": _PLAN_ITEM_SCHEMA,
+        },
+    },
+    "required": ["name", "strategy_summary", "plan"],
+}
 
 # ------------------------------------------------------------------
 # Stage 2.7 — Final Selection & Justification (Merged)
@@ -511,3 +583,17 @@ FINAL_DECISION_SCHEMA = {
         "executive_summary", "why_this_plan", "what_simulation_shows", "recommendation"
     ],
 }
+
+
+# ------------------------------------------------------------------
+# Deferred rebind (P0-2 fix)
+# ------------------------------------------------------------------
+# CANDIDATES_SCHEMA was defined before the canonical
+# _PLAN_ITEM_SCHEMA (the one with role / catalytic_link / renovation)
+# existed. Python evaluates dicts at definition time, so the earlier
+# binding captured a stale version. Rebind the nested schema now that
+# the canonical _PLAN_ITEM_SCHEMA is available.
+#
+# Same for FINAL_DECISION_SCHEMA — it doesn't reference
+# _PLAN_ITEM_SCHEMA, so no rebind needed there.
+CANDIDATES_SCHEMA["properties"]["candidates"]["items"] = CANDIDATE_SCHEMA

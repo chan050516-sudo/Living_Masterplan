@@ -427,3 +427,30 @@ core_amenities:
 
 transit_amenities:
   - transit_stop
+
+
+# ---------------------------------------------------------------
+# P1 — Material-level embodied carbon intensities for the
+# engineering_spec path. Values are tCO2e per m2 of GFA, applied
+# over the target subtype's structural_lifespan_years.
+#
+# These are province-of-Malaysia estimates adapted from the Carbon
+# Conscience material library (A1-A5 stages). They are intentionally
+# order-of-magnitude, not bid-level. Replace with project BOM when
+# available.
+# ---------------------------------------------------------------
+
+materials_p1:
+  structural_intensity_tco2e_per_m2:
+    standard_concrete: 0.22
+    ggbs_concrete:     0.14
+    mass_timber:       0.05
+    recycled_steel:    0.18
+
+  facade_intensity_tco2e_per_m2:
+    retain:             0.00
+    insulated_overclad: 0.06
+    curtain_wall:       0.12
+    timber_clad:        0.04
+
+  fitout_intensity_tco2e_per_m2: 0.04

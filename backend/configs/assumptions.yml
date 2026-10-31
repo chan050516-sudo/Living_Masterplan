@@ -42,9 +42,6 @@ environmental:
   solar_usable_land_fraction:         0.60
   solar_installation_carbon_tco2e_per_kwp: 0.05
   hvac_canopy_relief_per_unit: 0.10
-  uhi_hard_surface_penalty_c:  8.0
-  uhi_canopy_cooling_c:        4.5
-
   # Phase 11b — canopy growth model
   # Urban tropical trees in Malaysia: mean annual DBH increment of
   # 0.98 cm and height increment of 0.73 m per year (UPM urban forest
@@ -54,6 +51,19 @@ environmental:
   canopy_growth_rate_annual:   0.025    # 2.5%/yr of remaining gap to ceiling
   canopy_ceiling_ratio:        0.60    # township-scale upper bound
   canopy_growth_start_year:    2026    # growth starts from the base year
+
+  canopy_temperature_coupling:
+    intercept_celsius: +1.468
+    slope_celsius_per_unit: -1.709
+    smoothing_years: 3.0
+
+  # P1 — Rooftop PV self-consumption model.
+  # The engine deducts PV yield from operational energy before
+  # carbon conversion when an intervention's engineering_spec
+  # supplies a non-zero rooftop_pv_coverage.
+  pv:
+    panel_efficiency: 0.18          # monocrystalline, standard commercial
+    peak_sun_hours_per_day: 4.2     # Peninsular Malaysia annual average
 
 # Phase 11 — Energy sub-system split (industry benchmarks, tropical climate)
 energy_breakdown:
@@ -210,3 +220,21 @@ off_network_defaults:
   residential_default_m: 20.0
   green_space_default_m: 5.0
   undeveloped_parcel_default_m: 15.0
+
+# ----------------------------------------------------------------
+# Carbon sequestration — township-level green-space CO2 uptake
+# ----------------------------------------------------------------
+# Yearly rate (tCO2e/year), same temporal structure as
+# `carbon_operational_tco2e`. Reported by B4's
+# `_compute_township_metrics` alongside operational carbon so the
+# two can be compared year-by-year.
+#
+# Does NOT enter `carbon_operational_tco2e` — sequestration is a
+# physical removal process, not an emission stream. Mixing the two
+# would corrupt the primary carbon comparison.
+#
+# Rate source: IPCC 2006 Guidelines, tropical moist forest NPP,
+# reduced for urban soil / water limitation. Conservative.
+carbon_accounting:
+  sequestration:
+    canopy_uptake_tco2e_per_m2_year: 0.0015

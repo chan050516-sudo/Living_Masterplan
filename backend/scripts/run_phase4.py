@@ -52,13 +52,20 @@ SCENARIOS = ["SC-CURRENT", "SC-REPURPOSE", "SC-DELAY"]
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--current-only", action="store_true",
+                        help="Run only SC-CURRENT across all years. "
+                             "Use this when preparing the demo — "
+                             "the other scenarios are not read by "
+                             "the year selector.")
     args = parser.parse_args()
     repo_root = Path(__file__).resolve().parents[2]
 
     if args.quick:
         scenarios = ["SC-CURRENT"]
         years = [2026, 2033]
-        print("\nRunning Phase 4 (B4) — QUICK MODE")
+    elif args.current_only:
+        scenarios = ["SC-CURRENT"]
+        years = None            # uses DEFAULT_YEARS = [2026,2027,2028,2030,2033]
     else:
         scenarios = ["SC-CURRENT", "SC-REPURPOSE", "SC-DELAY"]
         years = None

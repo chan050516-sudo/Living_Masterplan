@@ -75,13 +75,26 @@ class VertexGeminiClient:
         conflict with: the model can reason freely, then emit JSON.
         """
         contents = self._to_contents(messages)
-        
-        # Add attachments (PDFs, images)
+
+        # Add attachments (PDFs, images).
+        #
+        # Each attachment is wrapped in its own Content block, not
+        # appended as a bare Part. The hint-text injector below
+        # expects `contents[-1]` to be a Content with `.parts`; a
+        # trailing raw Part (bytes) would make the isinstance check
+        # fail and the JSON-instruction hint would be silently
+        # dropped — the model would then return free-form text and
+        # _parse_json_response would fail.
         if attachments:
             for file_bytes, mime_type in attachments:
-                contents.append(
-                    types.Part.from_bytes(data=file_bytes, mime_type=mime_type)
-                )
+                contents.append(types.Content(
+                    role="user",
+                    parts=[
+                        types.Part.from_bytes(
+                            data=file_bytes, mime_type=mime_type,
+                        ),
+                    ],
+                ))
         if contents:
             hint_text = (
                 "\n\nReturn ONLY a JSON object matching this structure:\n"
@@ -164,6 +177,7 @@ class VertexGeminiClient:
         log.info("Stage 2: sending structured-via-prompt request "
                  "(%d messages)", len(messages))
         t0 = _time.time()
+        
         try:
             response = self.client.models.generate_content(
                 model=self.model,
@@ -171,10 +185,7 @@ class VertexGeminiClient:
                 config=config,
             )
         except Exception as e:
-            log.error(
-                "Stage 2: generate_content raised after %.2fs: %s",
-                _time.time() - t0, e,
-            )
+            log.error("Stage 2 API call failed: %s", e)
             raise
 
         log.info("Stage 2: returned in %.2fs", _time.time() - t0)

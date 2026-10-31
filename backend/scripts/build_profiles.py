@@ -1,10 +1,13 @@
 import json
 import pandas as pd
 import math
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BASE_DIR = REPO_ROOT / "bukit_jelutong" / "processed" / "business"
+sys.path.insert(0, str(REPO_ROOT / "backend"))
+from app.derived.thermal import empty_thermal_metrics, load_thermal_observations
 
 def _safe_float(val, decimals=2):
     """Clean NaN for JSON serialization"""
@@ -23,6 +26,42 @@ def _parse_json(raw):
     except:
         return None
 
+def _calculate_apparent_temp(lst_celsius, asset_type):
+    """
+    Convert LST to Apparent Temperature using LCZ-based aerodynamic damping,
+    calibrated for tropical Malaysia (noontime humidity and baseline Ta).
+    """
+    if lst_celsius is None or pd.isna(lst_celsius):
+        return None
+        
+    BASE_TA = 32.0 
+    
+    # 1. Stratified Aerodynamic Damping based on Local Climate Zones (LCZ)
+    if asset_type in ['commercial', 'industrial', 'infrastructure']:
+        damping = 0.25
+        rh = 0.58
+    elif asset_type in ['residential', 'community_facility', 'mixed_use', 'religious', 'education', 'facility']:
+        damping = 0.35
+        rh = 0.60
+    elif asset_type in ['green_space', 'undeveloped_parcel']:
+        damping = 0.70
+        rh = 0.65
+    else:
+        damping = 0.30
+        rh = 0.60
+
+    # 2. Estimate 1.5m Air Temperature (Ta)
+    ta = BASE_TA + (lst_celsius - BASE_TA) * damping
+
+    # 3. Calculate Vapour Pressure (e) using WMO standard Magnus-Tetens formula
+    e = rh * 6.105 * math.exp((17.27 * ta) / (237.7 + ta))
+    
+    # 4. Steadman Apparent Temperature (BOM standard)
+    wind_speed = 1.5  # m/s
+    at = ta + (0.33 * e) - (0.70 * wind_speed) - 4.00
+    
+    return round(at, 2)
+
 def build_profiles(year=2026):
     print("Loading data sources...")
     assets = pd.read_csv(BASE_DIR / "assets.csv")
@@ -34,11 +73,16 @@ def build_profiles(year=2026):
     with open(BASE_DIR / f"deadspace_{year}.json") as f:
         deadspace_list = json.load(f)
     deadspace_dict = {d["asset_id"]: d for d in deadspace_list}
+
+    thermal_observations = load_thermal_observations(
+        BASE_DIR / "thermal_observations.csv"
+    )
     
     profiles = {}
     
     for _, a in assets.iterrows():
         aid = a["asset_id"]
+        atype = a.get("asset_type")
         
         # Get metrics for this year
         m_df = metrics_yr[metrics_yr["asset_id"] == aid]
@@ -46,6 +90,22 @@ def build_profiles(year=2026):
         
         # Get deadspace diagnosis
         ds = deadspace_dict.get(aid, {})
+        thermal = (
+            thermal_observations.get(aid, empty_thermal_metrics())
+            if year == 2026
+            else empty_thermal_metrics()
+        )
+        # Thermal evidence is injected ONCE at API time (main.py).
+        # Do not write it into the profile here — doing so produced
+        # three identical "Observed land surface temperature" lines
+        # in the AssetPanel evidence block (one from B6's evidence
+        # builder, one from this builder, one from main.py).
+        evidence = [
+            line for line in ds.get("evidence", [])
+            if "UHI proxy" not in str(line)
+            and "open-field baseline" not in str(line)
+            and "Observed land surface temperature" not in str(line)
+        ]
         
         # Get lease info
         asset_leases = leases[leases["asset_id"] == aid] if not leases.empty else pd.DataFrame()
@@ -69,7 +129,6 @@ def build_profiles(year=2026):
             for st, info in unit_mix.items():
                 area = _safe_float(info.get("area_m2"))
                 occ = _safe_float(occ_by_subtype.get(st))
-                # Estimate allocated carbon/NOI by area ratio
                 total_mix_area = sum(float(v.get("area_m2", 0)) for v in unit_mix.values())
                 ratio = area / total_mix_area if total_mix_area > 0 else 0
                 
@@ -88,7 +147,7 @@ def build_profiles(year=2026):
             "identity": {
                 "asset_id": aid,
                 "asset_name": a.get("asset_name"),
-                "asset_type": a.get("asset_type"),
+                "asset_type": atype,
                 "subtype": a.get("subtype"),
                 "land_use": a.get("land_use"),
                 "status": a.get("status"),
@@ -135,7 +194,21 @@ def build_profiles(year=2026):
                 "energy_kwh_hvac": _safe_float(m.get("energy_kwh_hvac"), 0),
                 "energy_kwh_lighting": _safe_float(m.get("energy_kwh_lighting_equipment"), 0),
                 "energy_kwh_base_load": _safe_float(m.get("energy_kwh_base_load"), 0),
-                "surface_temp_delta_c": _safe_float(m.get("surface_temp_delta_c"), 1),
+                "t_asset_c": _safe_float(thermal.get("t_asset_c"), 2),
+                "t_township_c": _safe_float(thermal.get("t_township_c"), 2),
+                "surface_temp_delta_c": _safe_float(thermal.get("surface_temp_delta_c"), 2),
+                "apparent_temp_c": _calculate_apparent_temp(thermal.get("t_asset_c"), atype),
+                "surface_temp_provenance": thermal.get("surface_temp_provenance"),
+                "surface_temp_collection_id": thermal.get("surface_temp_collection_id"),
+                "surface_temp_band": thermal.get("surface_temp_band"),
+                "surface_temp_source_catalog": thermal.get("surface_temp_source_catalog"),
+                "surface_temp_valid_pixel_count": thermal.get("surface_temp_valid_pixel_count"),
+                "surface_temp_period_start": thermal.get("surface_temp_period_start"),
+                "surface_temp_period_end": thermal.get("surface_temp_period_end"),
+                "surface_temp_source_image_count": thermal.get("surface_temp_source_image_count"),
+                "green_coverage": _safe_float(m.get("green_coverage"), 3),
+                "canopy_coverage": _safe_float(m.get("canopy_coverage"), 3),
+                "green_per_capita_m2": _safe_float(m.get("green_per_capita_m2"), 1),
             },
             "trajectory": {
                 "class": m.get("trajectory_class"),
@@ -146,10 +219,11 @@ def build_profiles(year=2026):
             },
             "deadspace_diagnosis": {
                 "status": ds.get("status", "healthy"),
+                # Keep all flags (removed the previous UHI filter)
                 "flags": ds.get("flags", []),
                 "urgency_index": _safe_float(ds.get("urgency_index"), 1),
                 "contributing_factors": ds.get("contributing_factors", []),
-                "evidence": ds.get("evidence", [])
+                "evidence": evidence
             },
             "leases": {
                 "anchor_lease": anchor_lease

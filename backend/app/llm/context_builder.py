@@ -107,6 +107,7 @@ def build_context_pack(intent: dict, ds) -> dict:
         "available_interventions": available_interventions,
         "nearby_subtype_radii": nearby_subtype_radii,
         "catalytic_vocabulary": _catalytic_vocabulary(),
+        "engineering_spec_vocabulary": _engineering_spec_vocabulary(),
         "model_assumptions": _relevant_assumptions(ds),
     }
 
@@ -150,7 +151,11 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "green_coverage": derived.get("green_coverage"),
             "canopy_coverage": derived.get("canopy_coverage"),
             "green_per_capita_m2": derived.get("green_per_capita_m2"),
-            "surface_temp_delta_c": derived.get("carbon_operational_tco2e"),
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
     elif asset_type == "community_facility":
         key_metrics = {
@@ -163,6 +168,19 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "occupancy_rate": observed.get("occupancy_rate"),
             "noi_rm": derived.get("noi_rm"),
             "effective_demand_m2": derived.get("effective_demand_m2"),
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
+        }
+    elif asset_type in ("residential", "community_facility"):
+        key_metrics = {
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
 
     return {
@@ -548,6 +566,111 @@ def _catalytic_vocabulary() -> dict:
         "footfall_injection": {
             "description": "an anchor use draws visitors to the area",
             "max_verification": "claimed",
+        },
+    }
+
+
+def _engineering_spec_vocabulary() -> dict:
+    """Vocabulary and guidance for the P1 engineering_spec block.
+
+    Exposed in the context pack so the LLM has a menu of legal values
+    and typical magnitudes without guessing. Does NOT prescribe a
+    specific spec — the LLM picks based on asset state.
+    """
+    return {
+        "when_to_use": (
+            "Use engineering_spec on retrofit and repurpose items when "
+            "the user's intent implies material, HVAC, or PV decisions. "
+            "Omit it for spatial interventions (green_corridor, "
+            "pedestrian_upgrade) or when only an aggregate efficiency "
+            "number is known."
+        ),
+        "fields": {
+            "structure_retention_ratio": {
+                "type": "float [0.0, 1.0]",
+                "typical_values": {
+                    "cosmetic_retrofit": 0.95,
+                    "adaptive_reuse": 0.85,
+                    "heavy_retrofit": 0.60,
+                    "demolish_rebuild": 0.0,
+                },
+                "physics_hook": (
+                    "Avoided embodied carbon = new_build_intensity + "
+                    "demolition - (R_s × structural_intensity + facade "
+                    "+ fitout). Values below 0.10 yield zero avoided "
+                    "carbon — the engine treats them as a rebuild."
+                ),
+            },
+            "facade_action": {
+                "type": "enum",
+                "values": [
+                    "retain", "insulated_overclad",
+                    "curtain_wall", "timber_clad",
+                ],
+                "physics_hook": (
+                    "Adds facade embodied intensity: retain=0, "
+                    "insulated_overclad=0.06, curtain_wall=0.12, "
+                    "timber_clad=0.04 tCO2e/m2."
+                ),
+            },
+            "primary_material": {
+                "type": "enum",
+                "values": [
+                    "standard_concrete", "ggbs_concrete",
+                    "mass_timber", "recycled_steel",
+                ],
+                "physics_hook": (
+                    "Structural embodied intensity per m2 retained: "
+                    "standard_concrete=0.22, ggbs_concrete=0.14, "
+                    "mass_timber=0.05, recycled_steel=0.18 tCO2e/m2."
+                ),
+            },
+            "roof_intervention": {
+                "type": "enum",
+                "values": ["none", "cool_roof", "green_roof", "solar_canopy"],
+                "physics_hook": (
+                    "Reduces cooling ambient temperature: cool_roof="
+                    "-1.5°C, green_roof=-2.2°C, solar_canopy=-1.8°C. "
+                    "Prefer green_roof or solar_canopy when the asset's "
+                    "observed surface_temp_delta_c exceeds +2.0°C."
+                ),
+            },
+            "hvac_cop": {
+                "type": "float [2.0, 6.0]",
+                "typical_values": {
+                    "legacy_split_ac": 2.8,
+                    "standard_vrf": 3.5,
+                    "premium_vrf": 4.2,
+                    "district_cooling": 5.5,
+                },
+                "physics_hook": (
+                    "Cooling energy scales as 3.0 / hvac_cop relative "
+                    "to a standard split system. COP 4.2 delivers "
+                    "~29% energy reduction for the same load."
+                ),
+            },
+            "operating_hours_per_week": {
+                "type": "float [20, 168]",
+                "typical_values": {
+                    "standard_office": 70,
+                    "extended_retail": 84,
+                    "community_hub": 112,
+                    "24_7": 168,
+                },
+                "physics_hook": (
+                    "Cooling energy scales linearly with operating "
+                    "hours. Do not exceed what the target usage "
+                    "actually requires."
+                ),
+            },
+            "rooftop_pv_coverage": {
+                "type": "float [0.0, 0.9]",
+                "physics_hook": (
+                    "Annual PV yield = footprint_m2 × coverage × 0.18 "
+                    "× 4.2 kWh/day × 365. Deducted from operational "
+                    "energy before carbon conversion."
+                ),
+            },
         },
     }
 

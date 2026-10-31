@@ -14,3 +14,8 @@ business:
   development_projects:    "business/development_projects.csv"
   development_candidates:  "business/development_candidates.csv"
   interventions:           "business/interventions.csv"
+
+thermal:
+  directory:               "thermal"
+  observations:             "business/thermal_observations.csv"
+  manifest:                 "thermal/thermal_observations_manifest.json"

@@ -28,6 +28,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+import math
 
 import pandas as pd
 
@@ -35,11 +36,16 @@ from .context_builder import build_context_pack
 from .schemas import (
     INTENT_SCHEMA,
     CANDIDATES_SCHEMA,
-    FINAL_DECISION_SCHEMA, # 替换原本的两个
+    FINAL_DECISION_SCHEMA,  # 替换原本的两个
 )
 from .tool_service import TownshipDataSource
 from .validator import ProposalValidator
-from ..simulation.engine import simulate_scenario, write_scenario_result
+from ..derived.environmental import MATERIAL_INTENSITY_REPURPOSE
+from ..simulation.engine import (
+    PROJECT_ID_PREFIX,
+    simulate_scenario,
+    write_scenario_result,
+)
 
 log = logging.getLogger(__name__)
 
@@ -48,6 +54,91 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 MAX_PROPOSAL_ATTEMPTS = 2
 MAX_PARALLEL_SIMULATIONS = 3
 
+
+# P2-5 fix — new-build CAPEX reference rates (RM per m² GFA).
+#
+# Used ONLY to size the "what if we rebuilt instead of reused"
+# counterfactual on the frontend card. This table intentionally
+# mirrors `bukit_jelutong/build_mock_data.CAPEX_PER_M2`, but that
+# module is a preprocessing script and must not be imported by
+# runtime code. Keeping a local copy at the orchestration layer
+# makes the dependency explicit and reviewable.
+#
+# Material intensity for the repurpose side is NOT duplicated —
+# it comes from `derived.environmental.MATERIAL_INTENSITY_REPURPOSE`.
+_NEW_BUILD_CAPEX_RM_PER_M2 = {
+    "commercial":         3500.0,
+    "community_facility": 3000.0,
+    "residential":        2500.0,
+    "green_space":         400.0,
+    "undeveloped_parcel":    0.0,
+}
+
+def _lst_to_apparent_temp(lst_celsius, asset_type, wind_speed_ms=1.5):
+    """
+    Convert Land Surface Temperature (LST) to Apparent Temperature (AT) 
+    using LCZ-based aerodynamic damping, calibrated for tropical Malaysia.
+    """
+    if lst_celsius is None or pd.isna(lst_celsius):
+        return None
+        
+    BASE_TA = 32.0 
+    
+    # 1. Stratified Aerodynamic Damping based on Local Climate Zones (LCZ)
+    if asset_type in ['commercial', 'industrial', 'infrastructure']:
+        damping = 0.25
+        rh = 0.58
+    elif asset_type in ['residential', 'community_facility', 'mixed_use', 'religious', 'education', 'facility']:
+        damping = 0.35
+        rh = 0.60
+    elif asset_type in ['green_space', 'undeveloped_parcel']:
+        damping = 0.70
+        rh = 0.65
+    else:
+        damping = 0.30
+        rh = 0.60
+
+    # 2. Estimate 1.5m Air Temperature (Ta)
+    ta = BASE_TA + (lst_celsius - BASE_TA) * damping
+
+    # 3. Calculate Vapour Pressure (e) using WMO standard Magnus-Tetens formula
+    e = rh * 6.105 * math.exp((17.27 * ta) / (237.7 + ta))
+    
+    # 4. Steadman Apparent Temperature (BOM standard)
+    at = ta + (0.33 * e) - (0.70 * wind_speed_ms) - 4.00
+    
+    return round(at, 2)
+
+
+def _get_baseline_lst(repo_root: Path = None) -> float:
+    """Dynamically read the true township baseline LST from the thermal obs file.
+
+    `repo_root` is optional so that `_build_frontend_payload` can call
+    this without threading the root through — it falls back to the
+    repository root, and the data path is resolved through paths.yml
+    so switching datasets (Bukit Jelutong → Elmina) works without a
+    code change.
+    """
+    default_baseline = 39.33
+    try:
+        from ..config import load_paths
+
+        paths = load_paths()
+        root = repo_root or Path(__file__).resolve().parents[3]
+        base_dir = root / paths["base"]
+        thermal_path = base_dir / paths.get("thermal", {}).get(
+            "observations", "business/thermal_observations.csv",
+        )
+        if thermal_path.exists():
+            df = pd.read_csv(thermal_path)
+            if (
+                "t_township_c" in df.columns
+                and not df["t_township_c"].dropna().empty
+            ):
+                return float(df["t_township_c"].dropna().iloc[0])
+    except Exception:
+        pass
+    return default_baseline
 
 # ------------------------------------------------------------------
 # Public entry points
@@ -75,6 +166,7 @@ def orchestrate_and_simulate_batch(
     llm_client,
     repo_root: Path = None,
     base_year: int = 2026,
+    attachments: list = None,
 ) -> dict:
     """
     Run the multi-candidate pipeline.
@@ -91,8 +183,11 @@ def orchestrate_and_simulate_batch(
     run_id = f"LLM-{uuid.uuid4().hex[:8]}"
 
     # ---- Stage 0: intent parsing ----
-    log.info("[%s] Stage 0 — intent parsing", run_id)
-    intent = _parse_intent(user_query, selected_asset_ids, llm_client, base_year)
+    log.info("[%s] Stage 0 — Parsing user intent and constraints", run_id)
+    intent = _parse_intent(
+        user_query, selected_asset_ids, llm_client, base_year,
+        attachments=attachments,
+    )
 
     # ---- Stage 1: context assembly ----
     log.info("[%s] Stage 1 — context assembly", run_id)
@@ -102,7 +197,7 @@ def orchestrate_and_simulate_batch(
         run_id, len(context_pack["targets"]),
         len(context_pack["available_subtypes"]),
     )
-
+    
     # ---- Stage 2 + 2.5a: generate candidates and validate them ----
     valid_candidates: list = []
     last_raw_candidates: list = []
@@ -370,6 +465,8 @@ def _generate_candidates(
     if candidate_feedback:
         user_content["candidate_feedback"] = candidate_feedback
 
+    print(f">>> STAGE 2 PROMPT SIZE: {len(prompt) + len(json.dumps(user_content, default=str, indent=2))} chars")
+
     t0 = time.time()
     try:
         result = llm_client.chat_structured(
@@ -409,23 +506,60 @@ def _generate_candidates(
 def _simulate_candidates_shared(candidates, repo_root, selected_ids):
     """
     Run B4 for the baseline and every candidate, sharing the heavy setup.
-    
+
     Multi-asset support: B4 natively simulates all assets in the township,
     but the comparison block will filter down to the `selected_ids`.
     We first run the baseline (SC-CURRENT) so we have a valid comparison
     for the frontend dashboard.
+
+    P2-4 fix — the baseline `years` dict was copied verbatim into every
+    candidate's scenario JSON, producing N_candidates × N_years ×
+    N_assets duplication. It is now trimmed to the union of:
+
+      - `selected_ids`
+      - catalytic beneficiaries across every candidate
+      - PRJ::* project pseudo-entries
+
+    The catalytic beneficiaries are not known until AFTER candidate
+    generation, so the union is computed here, before the simulation
+    loop, from the candidates that have already been validated.
     """
     if not candidates:
         return
 
     shared_cache: dict = {}
-    
+
     # Run baseline (SC-CURRENT) first to provide comparison data
     log.info("[shared] simulating BASELINE (SC-CURRENT)")
     baseline_sim = _run_simulation(
-        "SC-CURRENT", repo_root, selected_ids=selected_ids, _shared_cache=shared_cache
+        "SC-CURRENT", repo_root, selected_ids=selected_ids,
+        _shared_cache=shared_cache,
     )
-    baseline_years = baseline_sim.get("years", {})
+    baseline_years_full = baseline_sim.get("years", {})
+
+    # P2-4 fix — collect every asset the frontend needs to render,
+    # not the whole township state.
+    extra_ids: set = set()
+    for cand in candidates:
+        for item in cand.get("plan", []):
+            if item.get("role") != "catalytic":
+                continue
+            b_id = (item.get("catalytic_link") or {}).get(
+                "beneficiary_asset_id",
+            )
+            if b_id:
+                extra_ids.add(b_id)
+
+    keep_ids = set(selected_ids or []) | extra_ids
+    baseline_years = _filter_years_to_ids(baseline_years_full, keep_ids)
+
+    log.info(
+        "[shared] baseline trimmed to %d asset ids (from %d)",
+        len(next(iter(baseline_years.values()), {}).get("assets", {}))
+            if baseline_years else 0,
+        len(next(iter(baseline_years_full.values()), {}).get("assets", {}))
+            if baseline_years_full else 0,
+    )
 
     # Run all candidates
     for idx, cand in enumerate(candidates, start=1):
@@ -435,17 +569,23 @@ def _simulate_candidates_shared(candidates, repo_root, selected_ids):
         )
         t0 = time.time()
         cand["simulation"] = _run_simulation(
-            cand["scenario_id"], repo_root, selected_ids=selected_ids, _shared_cache=shared_cache
+            cand["scenario_id"], repo_root, selected_ids=selected_ids,
+            _shared_cache=shared_cache,
         )
-        
+
         # Inject baseline data into the simulation result
         if not cand["simulation"].get("error"):
             cand["simulation"]["_baseline_years"] = baseline_years
             try:
-                write_scenario_result(cand["simulation"], repo_root=repo_root)
+                write_scenario_result(
+                    cand["simulation"], repo_root=repo_root,
+                )
             except Exception as e:
-                log.warning(f"Failed to write scenario {cand['scenario_id']}: {e}")
-                
+                log.warning(
+                    f"Failed to write scenario "
+                    f"{cand['scenario_id']}: {e}"
+                )
+
         log.info(
             "[shared] candidate %d/%d finished in %.1fs",
             idx, len(candidates), time.time() - t0,
@@ -494,6 +634,12 @@ def _verify_catalytic_links(candidates):
     Levels are strictly capped downward by simulation evidence:
       - declared > achievable  →  set to achievable
       - declared <= achievable →  unchanged
+
+    P3-a fix — verification notes are now attached to the candidate
+    (as `_verification_notes`), not to the catalytic_link dict. This
+    keeps `catalytic_link` structurally aligned with
+    `CATALYTIC_LINK_SCHEMA` so a future strict schema pass cannot
+    flag the extra `_verification_notes` key.
     """
     _LEVEL_ORDER = {"verified": 2, "partially_verified": 1, "claimed": 0}
 
@@ -519,6 +665,8 @@ def _verify_catalytic_links(candidates):
         brief = cand.get("simulation_brief") or {}
         per_asset = brief.get("per_asset_metrics") or {}
 
+        notes: list = []
+
         for item in cand.get("plan", []):
             if item.get("role") != "catalytic":
                 continue
@@ -533,9 +681,9 @@ def _verify_catalytic_links(candidates):
                 # the claim to "claimed" — nothing was measured.
                 if link.get("verification_level") != "claimed":
                     link["verification_level"] = "claimed"
-                    link.setdefault("_verification_notes", []).append(
-                        "beneficiary not in simulation brief; "
-                        "downgraded to 'claimed'"
+                    notes.append(
+                        f"{beneficiary}: beneficiary not in simulation "
+                        f"brief; downgraded to 'claimed'"
                     )
                 continue
 
@@ -577,11 +725,15 @@ def _verify_catalytic_links(candidates):
             declared = link.get("verification_level", "claimed")
             if _LEVEL_ORDER.get(declared, 0) > _LEVEL_ORDER.get(achievable, 0):
                 link["verification_level"] = achievable
-                link.setdefault("_verification_notes", []).append(
-                    f"simulation only supports '{achievable}' for "
-                    f"mechanism '{link.get('mechanism')}' on this "
-                    f"beneficiary; downgraded from '{declared}'"
+                notes.append(
+                    f"{beneficiary}: simulation only supports "
+                    f"'{achievable}' for mechanism "
+                    f"'{link.get('mechanism')}'; downgraded from "
+                    f"'{declared}'"
                 )
+
+        if notes:
+            cand["_verification_notes"] = notes
 
 
 def _build_catalytic_evidence(candidates):
@@ -709,8 +861,6 @@ def _build_catalytic_evidence(candidates):
 def _build_frontend_payload(simulation, comparison, intent, final_decision):
     """
     Transforms the raw simulation output into a multi-asset, frontend-ready JSON.
-    Includes main metrics for cards, counterfactual comparisons (A vs A+B),
-    and per-subunit allocation ledgers.
     """
     if not simulation or simulation.get("error"):
         return {"error": simulation.get("error", "Simulation failed")}
@@ -723,15 +873,28 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
 
     # Collect all target assets and catalytic beneficiaries
     targets = set(comparison.get("per_asset", {}).keys())
+    
+    # NEW: Extract clean intervention list for map visualization
+    clean_interventions = []
     for intv in simulation.get("interventions", []):
         try:
             params = json.loads(intv.get("parameters_json", "{}"))
-            if "_catalytic" in params:
-                b_id = params["_catalytic"].get("beneficiary_asset_id")
-                if b_id:
-                    targets.add(b_id)
         except (json.JSONDecodeError, TypeError):
-            pass
+            params = {}
+            
+        role = params.get("_role", "primary")
+        catalytic = params.get("_catalytic", {})
+        
+        # Add beneficiary to targets so it gets rendered in frontend cards
+        if role == "catalytic" and catalytic.get("beneficiary_asset_id"):
+            targets.add(catalytic["beneficiary_asset_id"])
+            
+        clean_interventions.append({
+            "target_asset_id": intv.get("target_asset_id"),
+            "type": intv.get("intervention_type"),
+            "role": role,
+            "beneficiary_asset_id": catalytic.get("beneficiary_asset_id") if role == "catalytic" else None
+        })
 
     assets_payload = []
 
@@ -739,9 +902,6 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
         final_state = intervention_years.get(final_year, {}).get("assets", {}).get(aid, {})
         base_final_state = baseline_years.get(final_year, {}).get("assets", {}).get(aid, {})
 
-        # Bug Fix: If this asset is a new_development, its metrics 
-        # are stored under a virtual project ID (e.g., PRJ::INT-LLM-002).
-        # We need to fetch those metrics and apply them to the asset card.
         if not final_state or final_state.get("carbon_operational_tco2e", 0) == 0:
             for key, state in intervention_years.get(final_year, {}).get("assets", {}).items():
                 if key.startswith("PRJ::") and state.get("_project_target_asset_id") == aid:
@@ -756,22 +916,63 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             return float(val) if val is not None and not pd.isna(val) else default
 
         def _get_util(state):
-            return _get(state, "occupancy_rate") or _get(state, "utilisation_rate")
+            """
+            Return the primary utilisation metric for this state row,
+            distinguishing "missing" from "genuinely zero".
+
+            P3-b fix — the old `or` chain treated a legitimate
+            0-occupancy asset as falsy and fell through to
+            utilisation_rate. That happened to produce 0 for
+            residential today (utilisation_rate is None there), but
+            the intent was opaque and the behaviour would change the
+            moment utilisation_rate became populated for a
+            residential row. Explicit None check.
+            """
+            occ = _get(state, "occupancy_rate", default=None)
+            if occ is not None: return occ
+            util = _get(state, "utilisation_rate", default=None)
+            if util is not None: return util
+            return 0.0
 
         # --- 1. Counterfactual Calculation ---
-        asset_intv = next((i for i in simulation.get("interventions", []) if i.get("target_asset_id") == aid), None)
-        avoided_embodied = comparison.get("per_asset", {}).get(aid, {}).get("avoided_embodied_carbon_tco2e", {}).get("after", 0.0)
-        
-        floor_area = _get(final_state, "floor_area_m2", 0.0)
-        capex_invested = float(asset_intv.get("capex_delta_rm") or 0) if asset_intv else 0.0
-        
-        # Estimate: New Build Embodied = Repurpose Embodied + Avoided Embodied
-        carbon_repurpose = floor_area * 0.08 if floor_area > 0 else 0
-        carbon_new_build = carbon_repurpose + avoided_embodied if avoided_embodied > 0 else 0
-        
-        # Estimate: New Build CAPEX = Area * Industry Cost Rate
-        new_build_rate = 3500 if final_state.get("_effective_asset_type") == "commercial" else 2500
-        capex_new_build = floor_area * new_build_rate if floor_area > 0 else 0
+        asset_intv = next(
+            (i for i in simulation.get("interventions", [])
+             if i.get("target_asset_id") == aid),
+            None,
+        )
+        avoided_embodied = (
+            comparison.get("per_asset", {})
+            .get(aid, {})
+            .get("avoided_embodied_carbon_tco2e", {})
+            .get("after", 0.0)
+        )
+
+        floor_area = (
+            _get(final_state, "floor_area_m2", 0.0)
+            or _get(final_state, "_effective_lettable", 0.0) / 0.85
+            or _get(final_state, "_project_gfa_m2", 0.0)
+        )
+        capex_invested = (
+            float(asset_intv.get("capex_delta_rm") or 0)
+            if asset_intv else 0.0
+        )
+
+        carbon_repurpose = (
+            floor_area * MATERIAL_INTENSITY_REPURPOSE
+            if floor_area > 0 else 0.0
+        )
+        carbon_new_build = (
+            carbon_repurpose + avoided_embodied
+            if avoided_embodied > 0 else 0.0
+        )
+
+        _new_build_rate = _NEW_BUILD_CAPEX_RM_PER_M2.get(
+            final_state.get("_effective_asset_type", "commercial"),
+            _NEW_BUILD_CAPEX_RM_PER_M2["commercial"],
+        )
+        capex_new_build = (
+            floor_area * _new_build_rate if floor_area > 0 else 0.0
+        )   
 
         # --- 2. Subunit Breakdown ---
         subunits = []
@@ -780,8 +981,7 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             try:
                 mix = json.loads(raw_mix)
                 total_mix_area = sum(float(v.get("area_m2", 0)) for v in mix.values())
-                if total_mix_area <= 0:
-                    total_mix_area = 1.0
+                if total_mix_area <= 0: total_mix_area = 1.0
                 
                 occ_by_subtype = json.loads(final_state.get("occupancy_by_subtype_calc_json", "{}"))
                 base_occ_by_subtype = json.loads(base_final_state.get("occupancy_by_subtype_calc_json", "{}"))
@@ -801,8 +1001,62 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             except Exception:
                 pass
 
+        # --- 2.5 Engineering spec extraction (P1) ---
+        # Pull the plan item's engineering_spec (if present) and the
+        # PV yield the engine derived from it, so the frontend can
+        # render the "Engineered Param Spec Extracted" card.
+        _eng_spec = None
+        if asset_intv is not None:
+            try:
+                _intv_params = json.loads(
+                    asset_intv.get("parameters_json") or "{}"
+                )
+                _raw_spec = _intv_params.get("engineering_spec")
+                if isinstance(_raw_spec, dict):
+                    _eng_spec = {
+                        "structure_retention_ratio": _raw_spec.get(
+                            "structure_retention_ratio",
+                        ),
+                        "facade_action": _raw_spec.get("facade_action"),
+                        "primary_material": _raw_spec.get(
+                            "primary_material",
+                        ),
+                        "roof_intervention": _raw_spec.get(
+                            "roof_intervention",
+                        ),
+                        "hvac_cop": _raw_spec.get("hvac_cop"),
+                        "operating_hours_per_week": _raw_spec.get(
+                            "operating_hours_per_week",
+                        ),
+                        "rooftop_pv_coverage": _raw_spec.get(
+                            "rooftop_pv_coverage",
+                        ),
+                        "pv_yield_kwh_year": _get(
+                            final_state, "energy_kwh_pv_offset", 0.0,
+                        ),
+                    }
+            except (json.JSONDecodeError, TypeError):
+                _eng_spec = None
+
         # --- 3. Assemble Summary Card ---
+        baseline_lst = _get_baseline_lst()
+        base_lst_delta = _get(base_final_state, "surface_temp_delta_c", default=None)
+        intv_lst_delta = _get(final_state, "surface_temp_delta_c", default=None)
+        
+        # Get the effective asset type for LCZ damping logic
+        effective_atype = final_state.get("_effective_asset_type", "commercial")
+        
+        base_at = _lst_to_apparent_temp(
+            baseline_lst + base_lst_delta if base_lst_delta is not None else None, 
+            effective_atype
+        )
+        intv_at = _lst_to_apparent_temp(
+            baseline_lst + intv_lst_delta if intv_lst_delta is not None else None, 
+            effective_atype
+        )
+
         card = {
+            "engineering_spec": _eng_spec,
             "financial": {
                 "main_metric": {
                     "label": "Annual NOI",
@@ -847,7 +1101,19 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                         "baseline": _get(base_final_state, "carbon_stranded_tco2e"),
                         "intervention": _get(final_state, "carbon_stranded_tco2e"),
                         "unit": "tCO2e/yr"
-                    }
+                    },
+                    {
+                        "label": "Surface Temp ΔT",
+                        "baseline": _get(base_final_state, "surface_temp_delta_c"),
+                        "intervention": _get(final_state, "surface_temp_delta_c"),
+                        "unit": "°C"
+                    },
+                    {
+                        "label": "Perceived Temp (AT)",
+                        "baseline": base_at,
+                        "intervention": intv_at,
+                        "unit": "°C"
+                    },
                 ],
                 "counterfactual": {
                     "embodied_if_new_build_tco2e": round(carbon_new_build, 1),
@@ -863,7 +1129,8 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             "noi_rm": {"baseline": [], "intervention": []},
             "carbon_operational_tco2e": {"baseline": [], "intervention": []},
             "carbon_stranded_tco2e": {"baseline": [], "intervention": []},
-            "space_utilization": {"baseline": [], "intervention": []}
+            "space_utilization": {"baseline": [], "intervention": []},
+            "surface_temp_delta_c": {"baseline": [], "intervention": []},
         }
 
         for y in years_list:
@@ -882,6 +1149,9 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             timeline_metrics["space_utilization"]["baseline"].append(_get_util(b_asset))
             timeline_metrics["space_utilization"]["intervention"].append(_get_util(i_asset))
 
+            timeline_metrics["surface_temp_delta_c"]["baseline"].append(_get(b_asset, "surface_temp_delta_c"))
+            timeline_metrics["surface_temp_delta_c"]["intervention"].append(_get(i_asset, "surface_temp_delta_c"))
+
         assets_payload.append({
             "asset_id": aid,
             "summary_card": card,
@@ -894,6 +1164,7 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
     return {
         "run_id": final_decision.get("run_id"),
         "scenario_id": scenario_id,
+        "interventions": clean_interventions,
         "decision": {
             "selected_candidate": final_decision.get("selected_candidate_name"),
             "reasoning": final_decision.get("selection_reasoning", ""),
@@ -939,6 +1210,9 @@ def _select_and_justify(intent, candidates, llm_client):
         "constraints": intent.get("constraints"),
         "candidates": candidate_summaries,
     }
+
+    user_content_json = json.dumps(user_content, default=str, indent=2)
+    log.info("Stage 2.7: Sending %d chars to LLM for final decision", len(user_content_json))
 
     t0 = time.time()
     try:
@@ -1049,6 +1323,40 @@ def _run_simulation(scenario_id, repo_root, selected_ids=None,
     except Exception as e:
         log.exception("Simulation failed for %s", scenario_id)
         return {"error": f"{type(e).__name__}: {e}"}
+
+
+def _filter_years_to_ids(years_dict: dict, keep_ids: set) -> dict:
+    """
+    P2-4 fix — trim the baseline `years` payload to the assets the
+    frontend actually renders.
+
+    The full SC-CURRENT `years` dict carries every township asset for
+    every simulated year. Copying it verbatim into each candidate's
+    scenario JSON means N_candidates × N_years × N_assets duplicate
+    state. Two classes of ids are retained:
+
+      - keep_ids  : selected targets + catalytic beneficiaries
+      - PRJ::*    : project pseudo-entries, needed by the
+                    new_development frontend fallback in
+                    `_build_frontend_payload`
+
+    An empty `keep_ids` returns the input unchanged (so a caller that
+    passes no filter gets the full baseline, matching the pre-fix
+    behaviour).
+    """
+    if not keep_ids:
+        return years_dict
+
+    out: dict = {}
+    for year_key, year_data in years_dict.items():
+        assets = year_data.get("assets", {})
+        filtered = {
+            aid: st
+            for aid, st in assets.items()
+            if aid in keep_ids or aid.startswith(PROJECT_ID_PREFIX)
+        }
+        out[year_key] = {**year_data, "assets": filtered}
+    return out
 
 
 # ------------------------------------------------------------------

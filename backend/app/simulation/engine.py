@@ -33,17 +33,15 @@ Phase 9 changes:
 
 Phase 10 (Circular & Planet fixes):
   - Integrates Avoided Embodied Carbon into the comparison block.
-  - Adds UHI surface temp proxy (surface_temp_delta_c).
+  - Carries observed Landsat 8 Level-2 surface temperatures into scenarios.
   - Supports interim_solar_farm for generating clean energy offsets.
 
 Phase 11 (2026-10-16):
   - Productive vs stranded carbon split in every year's state row.
   - Energy sub-system breakdown (HVAC / lighting / base load) with
     canopy-based HVAC relief.
-  - UHI proxy pulled from the B3-derived canopy field, evaluated
-    BEFORE metric_row is constructed (metric_row is only created
-    after the environmental block, so accessing it earlier raises
-    UnboundLocalError).
+  - Parcel temperatures remain tied to the Landsat observation
+    baseline; canopy changes do not manufacture temperature values.
   - _add_project_state records embodied carbon for new construction.
 """
 
@@ -52,19 +50,12 @@ import logging
 import math
 from pathlib import Path
 
-import networkx as nx
 import pandas as pd
 
 from .. import __version__
 from ..config import load_paths, load_assumptions
 from ..derived.engine import compute_derived_metrics
-from ..derived.network_graph import (
-    build_walk_graph,
-    extract_nodes,
-    find_entry_point,
-    find_nearest_node,
-    insert_all_entries,
-)
+from ..derived.network_graph import find_nearest_node
 from ..derived.huff import huff_gravity_by_subtype
 from ..derived.environmental import (
     energy_from_subtype,
@@ -74,7 +65,6 @@ from ..derived.environmental import (
     productive_stranded_carbon,
     embodied_amortised,
     maintenance_carbon_annual,
-    calculate_surface_temp_delta,
     interim_solar_generation,
     canopy_growth,
     embodied_carbon_for_subtype,
@@ -82,6 +72,7 @@ from ..derived.environmental import (
     MATERIAL_INTENSITY_REPURPOSE,
     DEMOLITION_CARBON_INTENSITY,
 )
+from ..derived.thermal import THERMAL_METRIC_FIELDS
 from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
@@ -209,6 +200,18 @@ _DEMAND_CHANGE_THRESHOLD = 0.05
 # change of at least this many m².
 _DEMAND_CHANGE_ABSOLUTE_FLOOR_M2 = 100.0
 
+# P1 — Engineering-spec cooling model constants.
+#
+# The cooling load scales with (T_ambient_LST - setpoint) / COP.
+# The reference COP is a standard split AC (3.0); the reference
+# operating hours are a 70h/week office.
+_P1_REFERENCE_COP = 3.0
+_P1_REFERENCE_HOURS_PER_WEEK = 70.0
+_P1_SETPOINT_C = 24.0
+_P1_TYPICAL_INDOOR_OUTDOOR_GAP_C = 19.0
+_P1_COOLING_FACTOR_FLOOR = 0.15
+_P1_COOLING_FACTOR_CEILING = 1.50
+
 # Default access-to-use conversion. Used when
 # assumptions.huff.access_to_use_conversion is absent.
 _DEFAULT_ACCESS_TO_USE_CONVERSION = 0.2
@@ -240,22 +243,22 @@ _SPATIAL_REFRESH_FIELDS = (
 )
 
 
-def _compute_distance_matrix(G, cutoff_m=5000.0):
-    """
-    All-pairs shortest path using effective_length_m, bounded by
-    `cutoff_m`.
+# def _compute_distance_matrix(G, cutoff_m=5000.0):
+#     """
+#     All-pairs shortest path using effective_length_m, bounded by
+#     `cutoff_m`.
 
-    Must use the same cutoff as `accessibility.compute_distance_matrix`
-    so B3's baseline and B4's simulated states are directly
-    comparable pair-for-pair. At a township scale every meaningful
-    path is under 5 km; a pair whose actual path exceeds the cutoff
-    falls back to the Huff FALLBACK_DISTANCE_M (1500 m) inside
-    `huff_gravity_by_subtype`, which is a conservative overestimate
-    and does not distort competition shares.
-    """
-    return dict(nx.all_pairs_dijkstra_path_length(
-        G, cutoff=cutoff_m, weight="effective_length_m",
-    ))
+#     Must use the same cutoff as `accessibility.compute_distance_matrix`
+#     so B3's baseline and B4's simulated states are directly
+#     comparable pair-for-pair. At a township scale every meaningful
+#     path is under 5 km; a pair whose actual path exceeds the cutoff
+#     falls back to the Huff FALLBACK_DISTANCE_M (1500 m) inside
+#     `huff_gravity_by_subtype`, which is a conservative overestimate
+#     and does not distort competition shares.
+#     """
+#     return dict(nx.all_pairs_dijkstra_path_length(
+#         G, cutoff=cutoff_m, weight="effective_length_m",
+#     ))
 
 
 def _is_valid_number(v) -> bool:
@@ -331,7 +334,7 @@ def _is_lease_active_at(lease, year):
     return True
 
 
-def _compute_lease_target_occupancy(leases_df, asset_id, year):
+def _compute_lease_target_occupancy(asset_leases, year):
     """
     Occupancy implied by the lease schedule for a given year.
 
@@ -341,10 +344,7 @@ def _compute_lease_target_occupancy(leases_df, asset_id, year):
     the asset's leased area that can possibly be occupied. Huff
     decides where within this ceiling the actual occupancy sits.
     """
-    if leases_df is None or leases_df.empty:
-        return None
-    asset_leases = leases_df[leases_df["asset_id"] == asset_id]
-    if asset_leases.empty:
+    if asset_leases is None or asset_leases.empty:
         return None
 
     total_area = 0.0
@@ -735,7 +735,18 @@ def simulate_scenario(
 
     scenario_interventions = interventions_df[
         interventions_df["scenario_id"] == scenario_id
-    ]
+    ].copy()
+
+    # Pre-group for O(1) lookups in the year loop.
+    intvs_by_asset = {}
+    if not scenario_interventions.empty:
+        for aid, group in scenario_interventions.groupby("target_asset_id"):
+            intvs_by_asset[str(aid)] = group.to_dict("records")
+
+    leases_by_asset = {}
+    if not leases_df.empty:
+        for aid, group in leases_df.groupby("asset_id"):
+            leases_by_asset[str(aid)] = group
 
     # ---- Cached: geometry bundle ----
     if "geometry" in _shared_cache:
@@ -745,20 +756,44 @@ def simulate_scenario(
         geometry = load_geometry(repo_root, paths)
         _shared_cache["geometry"] = geometry
 
-    # ---- Cached: B3 derived metrics (段 A) ----
+    # ---- Cached: B3 derived metrics ----
     if "base_derived" in _shared_cache:
         base_derived = _shared_cache["base_derived"]
         log.debug(
             "Reusing cached B3 derived metrics for year %d", base_year,
         )
     else:
-        log.info(
-            "Computing B3 derived metrics for year %d "
-            "(first candidate in this run)", base_year,
-        )
-        base_derived = compute_derived_metrics(
-            repo_root=repo_root, year=base_year,
-        )
+        enriched_csv = base / "business" / "asset_metrics_enriched.csv"
+        
+        # Fast path: if offline script already computed and saved metrics,
+        # load them directly instead of running B3 physics in real-time.
+        if enriched_csv.exists():
+            log.info("Loading B3 derived metrics from %s (fast path)", enriched_csv)
+            full_df = pd.read_csv(enriched_csv)
+            base_derived = full_df[full_df["year"] == base_year].copy()
+            
+            # We still need the pipelines cached for the simulation loop.
+            # This forces the pipeline build/load logic to run, but skips
+            # the heavy per-asset deriver loop.
+            compute_derived_metrics(
+                repo_root=repo_root,
+                year=base_year,
+                years=[base_year],
+                _shared_cache=_shared_cache,
+                _cache_key="base",
+            )
+        else:
+            log.info(
+                "Computing B3 derived metrics for year %d "
+                "(first candidate in this run)", base_year,
+            )
+            base_derived = compute_derived_metrics(
+                repo_root=repo_root, 
+                year=base_year,
+                _shared_cache=_shared_cache,
+                _cache_key="base",
+            )
+            
         _shared_cache["base_derived"] = base_derived
 
     # ---- Population config ----
@@ -786,23 +821,21 @@ def simulate_scenario(
 
     def _get_pipeline(tag: str, active_spatial: list) -> dict:
         """
-        Build or return the walking pipeline for a network version.
-
-        On cache miss:
-          - modify the network with the active spatial interventions
-          - run B3 with the modified network (network_override)
-          - rebuild the graph, virtual nodes, and distance matrix
-        On cache hit: return the stored result.
+        Return the walking pipeline for a network version.
+        
+        Phase A: Graph building and all-pairs Dijkstra are handled
+        entirely by B3. This function simply computes derived metrics
+        (or uses base) and then unpacks the pre-built pipeline from
+        the shared cache.
         """
         if tag in _pipeline_cache:
             return _pipeline_cache[tag]
 
         if tag == "base":
-            modified_network = None
             derived = base_derived
         else:
             log.info(
-                "Building pipeline for network version %s "
+                "Computing B3 derived metrics for network version %s "
                 "(spatial interventions active; this may take a few seconds).",
                 tag,
             )
@@ -816,6 +849,8 @@ def simulate_scenario(
                     repo_root=repo_root,
                     year=base_year,
                     network_override=modified_network,
+                    _shared_cache=_shared_cache,
+                    _cache_key=tag,
                 )
             except Exception as e:
                 log.warning(
@@ -823,25 +858,27 @@ def simulate_scenario(
                     "falling back to the base network.",
                     tag, e,
                 )
-                modified_network = None
+                tag = "base"
                 derived = base_derived
 
-        log.info("[pipeline %s] building walking graph...", tag)
-        G, demand, supply, nodes, asset_entries = _build_graph_and_nodes(
-            geometry, assets_df, assumptions, network_gdf=modified_network,
-        )
-        log.info("[pipeline %s] graph built: %d nodes, %d edges", tag, G.number_of_nodes(), G.number_of_edges())
-        log.info("[pipeline %s] computing all-pairs Dijkstra (cutoff 5000m)...", tag)
-        matrix = _compute_distance_matrix(G)
-        log.info("[pipeline %s] Dijkstra complete: %d source nodes", tag, len(matrix))
+        # Phase A: Load the cached pipeline from B3.
+        pipe_key = f"{tag}_walking"
+        p = _shared_cache.get("pipelines", {}).get(pipe_key)
+        
+        if not p:
+            # This should never happen if B3 ran correctly, but we
+            # defensively guard against corrupted shared caches.
+            raise RuntimeError(
+                f"Walking pipeline missing from shared cache for key: {pipe_key}"
+            )
 
         result = {
-            "distance_matrix": matrix,
-            "demand_nodes":    demand,
-            "supply_nodes":    supply,
-            "nodes_gdf":       nodes,
+            "distance_matrix": p["distance_matrix"],
+            "demand_nodes":    p["demand_nodes"],
+            "supply_nodes":    p["supply_nodes"],
+            "nodes_gdf":       p["nodes_gdf"],
             "derived":         derived,
-            "asset_entries":   asset_entries,
+            "asset_entries":   p["asset_entries"],
         }
         _pipeline_cache[tag] = result
         return result
@@ -859,6 +896,8 @@ def simulate_scenario(
             return f
         except (TypeError, ValueError):
             return default
+
+    base_derived_records = {r["asset_id"]: r for _, r in base_derived.iterrows()}
 
     occupancy_prev = {}
     for _, asset in assets_df.iterrows():
@@ -906,13 +945,16 @@ def simulate_scenario(
         pipeline_nodes_gdf = current_pipeline["nodes_gdf"]
         year_derived = current_pipeline["derived"]
 
+        # Pre-build dictionary for O(1) lookups instead of O(N) DataFrame filtering
+        year_derived_records = {r["asset_id"]: r for _, r in year_derived.iterrows()}
+
         # ---- Resolve effective asset state ----
         effective_assets = {}
         activated_interventions = {}
-        for _, asset in assets_df.iterrows():
+        for asset in assets_df.to_dict("records"):
             aid = asset["asset_id"]
-            intvs = interventions_for_asset(aid, scenario_interventions)
-            eff = asset.to_dict()
+            intvs = intvs_by_asset.get(aid, [])
+            eff = dict(asset)
             activated = None
             for intv in intvs:
                 p = resolve_phase(year, intv)
@@ -1037,12 +1079,13 @@ def simulate_scenario(
             eff_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
 
             # Both branches below need the asset's virtual node.
-            # A missing node means the asset could not be projected
-            # onto the walking network, so it cannot participate in
-            # any Huff pool.
             node_id = nodes[0]["node"] if nodes else None
             if node_id is None:
                 continue
+
+            # Calculate vitality based on current simulated occupancy
+            _cur_occ = occupancy_prev.get(aid, 0.85)
+            _vitality = max(0.1, min(1.0, _cur_occ))
 
             if eff_mix is not None:
                 # Phase B.2c — rebuild supply nodes from the
@@ -1054,7 +1097,7 @@ def simulate_scenario(
                     year_supply_nodes.append({
                         "asset_id": aid,
                         "node": node_id,
-                        "attractiveness": area,
+                        "attractiveness": area * _vitality,
                         "subtype": st,
                     })
             else:
@@ -1063,9 +1106,7 @@ def simulate_scenario(
                 year_supply_nodes.append({
                     "asset_id": aid,
                     "node": node_id,
-                    "attractiveness": float(
-                        eff.get("lettable_area_m2") or 0.0
-                    ),
+                    "attractiveness": float(eff.get("lettable_area_m2") or 0.0) * _vitality,
                     "subtype": eff_subtype,
                 })
 
@@ -1096,11 +1137,14 @@ def simulate_scenario(
         # enter the Huff demand pool. Without this, `catchment_growth`
         # catalytic interventions have no observable effect on the
         # beneficiary's effective_demand_m2.
-        projected_demand_nodes.extend(
-            _new_project_demand_nodes(
-                active_projects, geometry, pipeline_nodes_gdf,
-            )
+        #
+        # P2-7 — the node map is returned explicitly and threaded
+        # through to `_compute_project_reachable_population`.
+        _project_demand_nodes, project_node_map = _new_project_demand_nodes(
+            active_projects, geometry, pipeline_nodes_gdf,
         )
+        projected_demand_nodes.extend(_project_demand_nodes)
+
         huff_m2 = huff_gravity_by_subtype(
             distance_matrix,
             projected_demand_nodes,
@@ -1206,11 +1250,31 @@ def simulate_scenario(
                     # renewed. When the lease schedule says a tenant
                     # left and was not replaced, that is a hard upper
                     # bound on the occupancy target.
-                    lease_target = _compute_lease_target_occupancy(
-                        leases_df, aid, year,
-                    )
-                    if lease_target is not None and lease_target < target_occ:
-                        target_occ = lease_target
+                    #
+                    # P1 fix: A full repurpose INVALIDATES the old lease
+                    # schedule. The asset is now a different business with
+                    # new tenancy contracts. Applying the old lease ceiling
+                    # here would suppress the post-repurpose occupancy to
+                    # the footprint of the pre-repurpose tenants, which is
+                    # physically wrong.
+                    _is_full_repurpose = False
+                    if activated is not None and activated.get("intervention_type") == "repurpose":
+                        _intv_params = {}
+                        try:
+                            _intv_params = json.loads(activated.get("parameters_json") or "{}")
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+                        # Partial repurpose (subtype_changes) keeps the anchor; 
+                        # only a full repurpose clears the schedule.
+                        if not _intv_params.get("subtype_changes"):
+                            _is_full_repurpose = True
+                            
+                    if not _is_full_repurpose:
+                        lease_target = _compute_lease_target_occupancy(
+                            leases_by_asset.get(aid), year,
+                        )
+                        if lease_target is not None and lease_target < target_occ:
+                            target_occ = lease_target
 
                 elif effective_type == "community_facility":
                     if activated is None:
@@ -1253,10 +1317,10 @@ def simulate_scenario(
             # for this parcel), the helpers fall back to class-typical
             # defaults.
             # -------------------------------------------------------------
-            _yr_canopy_match = year_derived[year_derived["asset_id"] == aid]
+            _yr_derived_rec = year_derived_records.get(aid)
             canopy_from_b3 = None
-            if not _yr_canopy_match.empty:
-                _cv = _yr_canopy_match.iloc[0].get("canopy_coverage")
+            if _yr_derived_rec is not None:
+                _cv = _yr_derived_rec.get("canopy_coverage")
                 if _is_valid_number(_cv):
                     canopy_from_b3 = float(_cv)
 
@@ -1279,8 +1343,24 @@ def simulate_scenario(
                     ceiling=_ceiling,
                 )
 
+            # Phase P1 — read the base-year Landsat observation so
+            # the LST-coupled cooling model can use it. Thermal
+            # observations are static (single acquisition date), so
+            # the base-year value applies to every simulated year.
+            # We read it here, BEFORE the environmental block, because
+            # the cooling model runs inside that block. The same
+            # `_thermal_rows` frame is reused by the thermal-coupling
+            # block below.
+            # Phase P1 — read the base-year Landsat observation
+            _thermal_row = base_derived_records.get(aid)
+            _t_asset_lst_observed = 32.0
+            if _thermal_row is not None:
+                _t_val = _thermal_row.get("t_asset_c")
+                if _is_valid_number(_t_val):
+                    _t_asset_lst_observed = float(_t_val)
+
             # ---- Environmental (subtype-aware) ----
-            floor_area = float(eff.get("floor_area_m2") or 0)
+            floor_area = _safe_num(eff.get("floor_area_m2"), 0.0)
 
             # Phase 11 — interim solar farm: the asset generates rather
             # than consumes. Carbon is a negative offset.
@@ -1345,44 +1425,146 @@ def simulate_scenario(
                     breakdown_raw["hvac_kwh"], canopy_for_hvac
                 )
 
-                # Per-subsystem retrofit multipliers (P1).
-                # Fall back to aggregate multiplier when per-subsystem
-                # values are absent (legacy retrofit).
-                hvac_mult = eff.get("_hvac_multiplier")
-                lighting_mult = eff.get("_lighting_multiplier")
-                base_mult = eff.get("_base_multiplier")
+                # ---- P1: LST-coupled cooling model ----
+                # When the intervention supplied an engineering_spec,
+                # `_hvac_cop` is on `eff`. Replace the aggregate
+                # efficiency multiplier with a physics-derived cooling
+                # load that scales as (T_ambient - setpoint) / COP
+                # × operating_hours_factor.
+                _hvac_cop = eff.get("_hvac_cop")
+                _has_spec = _is_valid_number(_hvac_cop)
 
-                if (_is_valid_number(hvac_mult)
-                        and _is_valid_number(lighting_mult)
-                        and _is_valid_number(base_mult)):
-                    hvac_mult = float(hvac_mult)
-                    lighting_mult = float(lighting_mult)
-                    base_mult = float(base_mult)
+                if _has_spec:
+                    _cop = max(2.0, min(6.0, float(_hvac_cop)))
+
+                    # Ambient temperature for cooling = observed LST
+                    # minus the relief from any roof intervention.
+                    # `_t_asset_lst_observed` was read from base_derived
+                    # above; it is static across years.
+                    _roof_relief = _safe_num(
+                        eff.get("_cooling_from_roof_c"), 0.0,
+                    )
+                    _t_ambient_for_cooling = (
+                        _t_asset_lst_observed - _roof_relief
+                    )
+
+                    _cooling_factor = max(
+                        _P1_COOLING_FACTOR_FLOOR,
+                        min(
+                            _P1_COOLING_FACTOR_CEILING,
+                            (_t_ambient_for_cooling - _P1_SETPOINT_C)
+                            / _P1_TYPICAL_INDOOR_OUTDOOR_GAP_C,
+                        ),
+                    )
+                    _cop_factor = _P1_REFERENCE_COP / _cop
+                    _hours_factor = _safe_num(
+                        eff.get("_operating_hours_per_week"),
+                        _P1_REFERENCE_HOURS_PER_WEEK,
+                    ) / _P1_REFERENCE_HOURS_PER_WEEK
+
+                    hvac_adj = (
+                        hvac_after_canopy
+                        * _cooling_factor
+                        * _cop_factor
+                        * _hours_factor
+                    )
+                    lighting_adj = breakdown_raw["lighting_equipment_kwh"]
+                    base_adj = breakdown_raw["base_load_kwh"]
+
+                    energy_adjusted = hvac_adj + lighting_adj + base_adj
+
+                    # ---- P1: rooftop PV self-consumption offset ----
+                    _pv_cov = _safe_num(
+                        eff.get("_rooftop_pv_coverage"), 0.0,
+                    )
+                    _pv_kwh = 0.0
+                    if _pv_cov > 0.0:
+                        _footprint = _safe_num(
+                            eff.get("land_area_m2"), 0.0,
+                        )
+                        if _footprint <= 0:
+                            _footprint = (
+                                _safe_num(eff.get("floor_area_m2"), 0.0)
+                                / 2.5
+                            )
+                        # Safety cap: roof area cannot exceed GFA
+                        _fa = _safe_num(
+                            eff.get("floor_area_m2"), _footprint,
+                        )
+                        _footprint = min(_footprint, _fa)
+
+                        _pv_cfg = (
+                            assumptions.get("environmental", {})
+                            .get("pv", {})
+                        )
+                        _panel_eff = _safe_num(
+                            _pv_cfg.get("panel_efficiency"), 0.18,
+                        )
+                        _peak_sun = _safe_num(
+                            _pv_cfg.get("peak_sun_hours_per_day"), 4.2,
+                        )
+                        _pv_kwh = max(
+                            0.0,
+                            _footprint * _pv_cov * _panel_eff
+                            * _peak_sun * 365.0,
+                        )
+                        energy_adjusted = max(
+                            0.0, energy_adjusted - _pv_kwh,
+                        )
+
+                    eff["_pv_kwh_year"] = _pv_kwh
+
+                    breakdown = {
+                        "hvac_kwh": hvac_adj,
+                        "lighting_equipment_kwh": lighting_adj,
+                        "base_load_kwh": base_adj,
+                    }
+
+                    energy = energy_adjusted
+                    carbon = operational_carbon(
+                        energy_adjusted, emission_factor,
+                    )
+
                 else:
-                    agg = eff.get("_energy_efficiency_multiplier")
-                    if _is_valid_number(agg):
-                        hvac_mult = lighting_mult = base_mult = float(agg)
+                    # ---- Legacy path (unchanged) ----
+                    hvac_mult = eff.get("_hvac_multiplier")
+                    lighting_mult = eff.get("_lighting_multiplier")
+                    base_mult = eff.get("_base_multiplier")
+
+                    if (_is_valid_number(hvac_mult)
+                            and _is_valid_number(lighting_mult)
+                            and _is_valid_number(base_mult)):
+                        hvac_mult = float(hvac_mult)
+                        lighting_mult = float(lighting_mult)
+                        base_mult = float(base_mult)
                     else:
-                        hvac_mult = lighting_mult = base_mult = 1.0
+                        agg = eff.get("_energy_efficiency_multiplier")
+                        if _is_valid_number(agg):
+                            hvac_mult = lighting_mult = base_mult = float(agg)
+                        else:
+                            hvac_mult = lighting_mult = base_mult = 1.0
 
-                hvac_adj = hvac_after_canopy * hvac_mult
-                lighting_adj = (
-                    breakdown_raw["lighting_equipment_kwh"] * lighting_mult
-                )
-                base_adj = breakdown_raw["base_load_kwh"] * base_mult
+                    hvac_adj = hvac_after_canopy * hvac_mult
+                    lighting_adj = (
+                        breakdown_raw["lighting_equipment_kwh"]
+                        * lighting_mult
+                    )
+                    base_adj = breakdown_raw["base_load_kwh"] * base_mult
 
-                energy_adjusted = hvac_adj + lighting_adj + base_adj
+                    energy_adjusted = hvac_adj + lighting_adj + base_adj
 
-                # Rewrite breakdown so downstream reporting shows the
-                # post-retrofit per-subsystem values.
-                breakdown = {
-                    "hvac_kwh": hvac_adj,
-                    "lighting_equipment_kwh": lighting_adj,
-                    "base_load_kwh": base_adj,
-                }
+                    breakdown = {
+                        "hvac_kwh": hvac_adj,
+                        "lighting_equipment_kwh": lighting_adj,
+                        "base_load_kwh": base_adj,
+                    }
 
-                energy = energy_adjusted
-                carbon = operational_carbon(energy_adjusted, emission_factor)
+                    eff["_pv_kwh_year"] = 0.0
+
+                    energy = energy_adjusted
+                    carbon = operational_carbon(
+                        energy_adjusted, emission_factor,
+                    )
 
             # Phase 11 — productive vs stranded split
             if is_interim_solar:
@@ -1402,19 +1584,21 @@ def simulate_scenario(
                     rate = 0.0
                 split = productive_stranded_carbon(carbon, rate)
 
-            # Phase 11 — UHI proxy with type-specific canopy fallback
-            if canopy_from_b3 is not None and canopy_from_b3 > 0.01:
-                canopy_for_uhi = canopy_from_b3
-            elif effective_type == "residential":
-                canopy_for_uhi = 0.25
-            elif effective_type == "green_space":
-                canopy_for_uhi = 0.60
-            else:
-                canopy_for_uhi = 0.10
-            uhi = calculate_surface_temp_delta(
-                canopy_coverage_ratio=canopy_for_uhi,
-                is_hard_surface=(effective_type != "green_space"),
-            )
+            # P2-3 fix — align with B3: green_space has no energy
+            # intensity and no operational carbon (B3's green deriver
+            # does not compute `carbon_operational_tco2e`, so the
+            # field is NaN in the 2026 baseline). B4 was writing 0,
+            # which made the comparison block render "null → 0".
+            # Force all three fields to None so the comparison key
+            # is dropped cleanly by `_valid()` in `_build_comparison`.
+            if effective_type == "green_space":
+                carbon = None
+                energy = None
+                split = {
+                    "carbon_productive_tco2e": None,
+                    "carbon_stranded_tco2e": None,
+                    "stranded_carbon_ratio": None,
+                }
 
             # ---- Build metric row ----
             prev_metrics = _get_prev_metrics(state_by_year[years[year_idx - 1]], aid)
@@ -1427,9 +1611,57 @@ def simulate_scenario(
             for _field in _ALL_TYPE_EXCLUSIVE_FIELDS - _owned:
                 metric_row[_field] = None
 
+            # ---------------------------------------------------------
+            # Canopy -> Temperature Coupling
+            # ---------------------------------------------------------
+            _coupled_temp = None
+            
+            if _thermal_row is not None and canopy_from_b3 is not None:
+                base_canopy = _thermal_row.get("canopy_coverage")
+                base_temp = _thermal_row.get("surface_temp_delta_c")
+                
+                if _is_valid_number(base_canopy) and _is_valid_number(base_temp):
+                    delta_canopy = float(canopy_from_b3) - float(base_canopy)
+                    
+                    if abs(delta_canopy) > 0.01:
+                        cfg = assumptions.get("environmental", {}).get("canopy_temperature_coupling", {})
+                        slope = cfg.get("slope_celsius_per_unit", -3.272)
+                        smooth_years = cfg.get("smoothing_years", 3.0)
+                        
+                        smoothing = min(1.0, max(0.0, _years_elapsed / smooth_years))
+                        temp_shift = delta_canopy * slope * smoothing
+                        _coupled_temp = float(base_temp) + temp_shift
+
+            # These values describe the observed footprint and township
+            # baseline. They are carried unchanged into scenarios unless
+            # a canopy coupling is triggered.
+            for _field in THERMAL_METRIC_FIELDS:
+                if _thermal_row is None or _field not in _thermal_row.index:
+                    metric_row[_field] = None
+                else:
+                    _value = _thermal_row.get(_field)
+                    
+                    # Apply coupling results
+                    if _field == "surface_temp_delta_c" and _coupled_temp is not None:
+                        metric_row[_field] = _coupled_temp
+                        continue
+                        
+                    if _value is None or pd.isna(_value):
+                        metric_row[_field] = None
+                    elif _field in (
+                        "surface_temp_provenance",
+                        "surface_temp_period_start",
+                        "surface_temp_period_end",
+                    ):
+                        metric_row[_field] = str(_value)
+                    elif _is_valid_number(_value):
+                        metric_row[_field] = float(_value)
+                    else:
+                        metric_row[_field] = None
+
             # ---- Spatial refresh ----
-            if not _yr_canopy_match.empty:
-                fresh = _yr_canopy_match.iloc[0]
+            if _yr_derived_rec is not None:
+                fresh = _yr_derived_rec
                 for _field in _SPATIAL_REFRESH_FIELDS:
                     if _field not in fresh.index:
                         continue
@@ -1454,10 +1686,8 @@ def simulate_scenario(
                 # available (B3 computes it for every asset regardless
                 # of type) and equals service_coverage by construction.
                 if metric_row.get("service_coverage") is None:
-                    if not _yr_canopy_match.empty:
-                        fresh_cov = _yr_canopy_match.iloc[0].get(
-                            "coverage_ratio_10min_walk",
-                        )
+                    if _yr_derived_rec is not None:
+                        fresh_cov = _yr_derived_rec.get("coverage_ratio_10min_walk")
                         if _is_valid_number(fresh_cov):
                             metric_row["service_coverage"] = float(fresh_cov)
             elif effective_type == "commercial":
@@ -1472,6 +1702,14 @@ def simulate_scenario(
                     state_by_year=state_by_year,
                     base_year=base_year,
                     assumptions=assumptions,
+                )
+                # P1-4 fix — refresh per-subtype occupancy so the
+                # subunit breakdown reflects the new aggregate.
+                _recompute_per_subtype_occupancy(
+                    metric_row=metric_row,
+                    eff=eff,
+                    new_occ=new_occ,
+                    prev_occ=prev_occ,
                 )
             elif effective_type == "residential":
                 if activated is not None:
@@ -1533,14 +1771,15 @@ def simulate_scenario(
             # include residents from delivered residential projects.
             # See `_compute_project_reachable_population`.
             _base_reachable = 0.0
-            if not _yr_canopy_match.empty:
-                _rv = _yr_canopy_match.iloc[0].get("reachable_population_walk")
+            if _yr_derived_rec is not None:
+                _rv = _yr_derived_rec.get("reachable_population_walk")
                 if _is_valid_number(_rv):
                     _base_reachable = float(_rv)
             _project_reachable = _compute_project_reachable_population(
                 active_projects,
                 current_pipeline.get("asset_entries", {}).get(aid),
                 distance_matrix,
+                project_node_map=project_node_map,   # P2-7 fix
             )
             metric_row["reachable_population_walk"] = (
                 _base_reachable + _project_reachable
@@ -1552,12 +1791,18 @@ def simulate_scenario(
             metric_row["energy_kwh_hvac"] = hvac_adj
             metric_row["energy_kwh_lighting_equipment"] = breakdown["lighting_equipment_kwh"]
             metric_row["energy_kwh_base_load"] = breakdown["base_load_kwh"]
+            # P1 — PV yield carried through for the comparison block
+            # and the frontend engineering-spec card.
+            metric_row["energy_kwh_pv_offset"] = eff.get(
+                "_pv_kwh_year", 0.0,
+            )
             metric_row["carbon_productive_tco2e"] = split["carbon_productive_tco2e"]
             metric_row["carbon_stranded_tco2e"] = split["carbon_stranded_tco2e"]
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
-            metric_row["surface_temp_delta_c"] = uhi
             metric_row["canopy_coverage"] = canopy_from_b3
             metric_row["operational_capacity_ratio"] = capacity_ratio
+            metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
+            metric_row["land_area_m2"] = eff.get("land_area_m2")     # sequestration
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -1610,6 +1855,41 @@ def simulate_scenario(
         assets_df, interventions_df, projects_df, scenario_id,
     )
 
+    # ---- Phase 4c — per-year deadspace diagnostics ----
+    # Recompute for all assets (baseline) or only intervened assets (candidates).
+    intervened_ids = None
+    if scenario_id != BASELINE_SCENARIO_ID and not scenario_interventions.empty:
+        intervened_ids = set(scenario_interventions["target_asset_id"].dropna().unique())
+        
+    deadspace_by_year = _build_deadspace_by_year(
+        state_by_year=state_by_year,
+        assets_df=assets_df,
+        base_derived=base_derived,
+        assumptions=assumptions,
+        years=years,
+        intervened_ids=intervened_ids,
+        baseline_deadspace=_shared_cache.get("baseline_deadspace_records"),
+    )
+    
+    if scenario_id == BASELINE_SCENARIO_ID:
+        _shared_cache["baseline_deadspace_records"] = {
+            y: {r["asset_id"]: r for r in records}
+            for y, records in deadspace_by_year.items()
+        }
+
+    ds_dir = base / "business" / "scenarios"
+    ds_dir.mkdir(parents=True, exist_ok=True)
+    for ds_year, records in deadspace_by_year.items():
+        if ds_year == base_year:
+            continue
+        ds_path = ds_dir / f"deadspace_{scenario_id}_{ds_year}.json"
+        with open(ds_path, "w", encoding="utf-8") as f:
+            json.dump(_json_safe(records), f, indent=2)
+        log.info(
+            "Wrote %d deadspace records for %s year %d -> %s",
+            len(records), scenario_id, ds_year, ds_path.name,
+        )
+
     return {
         "scenario_id": scenario_id,
         "scenario_name": _scenario_name(scenario_id),
@@ -1641,6 +1921,11 @@ def _add_project_state(year_state, proj, year, emission_factor):
     structural lifespan from taxonomy.yml, not a global 50-year
     constant. A 30-year convenience retail and a 60-year terrace
     house do not amortise their locked-in carbon at the same rate.
+
+    P1-3 / P1-5 fix: carries floor_area_m2, occupancy_rate,
+    utilisation_rate, and noi_rm so the frontend summary card for a
+    new_development asset shows the project's outcome instead of
+    a wall of zeros.
     """
     pid = proj.get("project_id")
     if not pid:
@@ -1673,15 +1958,45 @@ def _add_project_state(year_state, proj, year, emission_factor):
 
     maintenance_carbon = maintenance_carbon_annual(embodied_total)
 
-    uhi = calculate_surface_temp_delta(
-        canopy_coverage_ratio=0.05,
-        is_hard_surface=True,
-    )
+    # ---- P1-5: derive occupancy / utilisation / NOI from subtype ----
+    # A delivered project is a real asset from the moment it activates.
+    # Its headline metrics (space utilisation, annual NOI) must be
+    # non-zero on the frontend card.
+    _subtype_defn = get_subtype(subtype) or {}
+    _asset_class = _subtype_defn.get("asset_class")
+    _bench_occ = get_occupancy_benchmark(subtype) or 0.85
+
+    if _asset_class == "commercial":
+        # Rough yield-on-cost: 5% NOI on a RM 3,500/m² build.
+        # Scaled by occupancy so a half-let shop does not show
+        # the same NOI as a fully-let one.
+        _capex_per_m2 = 3500.0
+        noi_rm = gfa * _capex_per_m2 * 0.05 * _bench_occ
+        occupancy_rate = _bench_occ
+        utilisation_rate = None
+    elif _asset_class == "residential":
+        noi_rm = None
+        occupancy_rate = _bench_occ
+        utilisation_rate = None
+    elif _asset_class == "community_facility":
+        noi_rm = None
+        occupancy_rate = None
+        utilisation_rate = _bench_occ
+    else:
+        noi_rm = None
+        occupancy_rate = None
+        utilisation_rate = None
 
     year_state[key] = {
         "asset_id": key,
         "year": year,
         "subtype": subtype,
+        # ---- P1-3 / P1-5: fields the frontend card expects ----
+        "floor_area_m2": gfa,
+        "occupancy_rate": occupancy_rate,
+        "utilisation_rate": utilisation_rate,
+        "noi_rm": noi_rm,
+        # ---- existing fields ----
         "carbon_operational_tco2e": carbon,
         "carbon_productive_tco2e": carbon,
         "carbon_stranded_tco2e": 0.0,
@@ -1689,7 +2004,14 @@ def _add_project_state(year_state, proj, year, emission_factor):
         "embodied_carbon_total_tco2e": embodied_total,
         "embodied_carbon_amortised_tco2e": embodied_amortised,
         "maintenance_carbon_tco2e": maintenance_carbon,
-        "surface_temp_delta_c": uhi,
+        "t_asset_c": None,
+        "t_township_c": None,
+        "surface_temp_delta_c": None,
+        "surface_temp_provenance": None,
+        "surface_temp_valid_pixel_count": None,
+        "surface_temp_period_start": None,
+        "surface_temp_period_end": None,
+        "surface_temp_source_image_count": None,
         "energy_kwh": energy,
         "metric_source": "simulated",
         "model_version": __version__,
@@ -1703,128 +2025,128 @@ def _add_project_state(year_state, proj, year, emission_factor):
     }
 
 
-def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
-    """
-    Build the walking graph and demand/supply node lists for Huff.
+# def _build_graph_and_nodes(geometry, assets_df, assumptions, network_gdf=None):
+#     """
+#     Build the walking graph and demand/supply node lists for Huff.
 
-    Supply nodes expand per-subtype for mixed-use commercial assets,
-    matching B3's `_build_huff_supply_nodes`. A mall's F&B floor
-    competes in the F&B pool with its F&B area, not in the primary
-    subtype's pool with its whole lettable area.
+#     Supply nodes expand per-subtype for mixed-use commercial assets,
+#     matching B3's `_build_huff_supply_nodes`. A mall's F&B floor
+#     competes in the F&B pool with its F&B area, not in the primary
+#     subtype's pool with its whole lettable area.
 
-    Without this expansion, B4's simulated year-2027+ Huff is
-    computed with a single-subtype model while B3's year-2026
-    baseline is per-subtype. The delta between them mixes a real
-    intervention effect with a silent model switch.
-    """
-    if network_gdf is None:
-        network_gdf = geometry["network"]["analysis"]
+#     Without this expansion, B4's simulated year-2027+ Huff is
+#     computed with a single-subtype model while B3's year-2026
+#     baseline is per-subtype. The delta between them mixes a real
+#     intervention effect with a silent model switch.
+#     """
+#     if network_gdf is None:
+#         network_gdf = geometry["network"]["analysis"]
 
-    gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
-    G = build_walk_graph(network_gdf, gamma=gamma)
+#     gamma = assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3)
+#     G = build_walk_graph(network_gdf, gamma=gamma)
 
-    all_entries = {}
-    parcels_gdf = geometry["parcels"]["analysis"]
+#     all_entries = {}
+#     parcels_gdf = geometry["parcels"]["analysis"]
 
-    for _, asset in assets_df.iterrows():
-        aid = asset["asset_id"]
-        geom = None
+#     for _, asset in assets_df.iterrows():
+#         aid = asset["asset_id"]
+#         geom = None
 
-        # Primary: resolve through parcels.asset_id, the 1:1 map
-        # written by build_mock_data.
-        match = parcels_gdf[parcels_gdf["asset_id"] == aid]
-        if not match.empty:
-            geom = match.iloc[0].geometry
-        else:
-            # Fallback: resolve through the asset's own parcel_id.
-            # Handles shared parcels and any asset whose parcel was
-            # not assigned a 1:1 asset_id back-reference.
-            #
-            # B4 fix — without this fallback, assets whose parcel
-            # only carries parcel_id (no asset_id back-reference)
-            # are silently dropped from the B4 walking pipeline
-            # while B3 includes them. The result is a smaller
-            # commercial supply pool in B4 (44 vs 74) and a
-            # spurious jump in effective_demand_m2 for the
-            # surviving competitors on every simulated year.
-            pid = asset.get("parcel_id")
-            if pid is not None and not (
-                isinstance(pid, float) and pd.isna(pid)
-            ):
-                pmatch = parcels_gdf[parcels_gdf["parcel_id"] == pid]
-                if not pmatch.empty:
-                    geom = pmatch.iloc[0].geometry
+#         # Primary: resolve through parcels.asset_id, the 1:1 map
+#         # written by build_mock_data.
+#         match = parcels_gdf[parcels_gdf["asset_id"] == aid]
+#         if not match.empty:
+#             geom = match.iloc[0].geometry
+#         else:
+#             # Fallback: resolve through the asset's own parcel_id.
+#             # Handles shared parcels and any asset whose parcel was
+#             # not assigned a 1:1 asset_id back-reference.
+#             #
+#             # B4 fix — without this fallback, assets whose parcel
+#             # only carries parcel_id (no asset_id back-reference)
+#             # are silently dropped from the B4 walking pipeline
+#             # while B3 includes them. The result is a smaller
+#             # commercial supply pool in B4 (44 vs 74) and a
+#             # spurious jump in effective_demand_m2 for the
+#             # surviving competitors on every simulated year.
+#             pid = asset.get("parcel_id")
+#             if pid is not None and not (
+#                 isinstance(pid, float) and pd.isna(pid)
+#             ):
+#                 pmatch = parcels_gdf[parcels_gdf["parcel_id"] == pid]
+#                 if not pmatch.empty:
+#                     geom = pmatch.iloc[0].geometry
 
-        if geom is None or geom.is_empty:
-            continue
-        p, off_d, eid = find_entry_point(geom, network_gdf, "walking")
-        if p is None:
-            continue
-        all_entries[f"A::{aid}"] = (p, off_d, eid)
+#         if geom is None or geom.is_empty:
+#             continue
+#         p, off_d, eid = find_entry_point(geom, network_gdf, "walking")
+#         if p is None:
+#             continue
+#         all_entries[f"A::{aid}"] = (p, off_d, eid)
 
-    pop_analysis = geometry["population"]["analysis"]
-    for _, pop in pop_analysis.iterrows():
-        pid = pop["population_id"]
-        p, off_d, eid = find_entry_point(pop.geometry, network_gdf, "walking")
-        if p is None:
-            continue
-        all_entries[f"D::{pid}"] = (p, off_d, eid)
+#     pop_analysis = geometry["population"]["analysis"]
+#     for _, pop in pop_analysis.iterrows():
+#         pid = pop["population_id"]
+#         p, off_d, eid = find_entry_point(pop.geometry, network_gdf, "walking")
+#         if p is None:
+#             continue
+#         all_entries[f"D::{pid}"] = (p, off_d, eid)
 
-    G_aug = G.copy()
-    inserted = insert_all_entries(G_aug, network_gdf, all_entries)
+#     G_aug = G.copy()
+#     inserted = insert_all_entries(G_aug, network_gdf, all_entries)
 
-    asset_entries = {}
-    demand_entries_map = {}
-    for key, val in inserted.items():
-        if key.startswith("A::"):
-            asset_entries[key[3:]] = val
-        elif key.startswith("D::"):
-            demand_entries_map[key[3:]] = val
+#     asset_entries = {}
+#     demand_entries_map = {}
+#     for key, val in inserted.items():
+#         if key.startswith("A::"):
+#             asset_entries[key[3:]] = val
+#         elif key.startswith("D::"):
+#             demand_entries_map[key[3:]] = val
 
-    demand_nodes = []
-    for _, pop in pop_analysis.iterrows():
-        pid = pop["population_id"]
-        info = demand_entries_map.get(pid)
-        if info is None:
-            continue
-        demand_nodes.append({
-            "population_id": pid,
-            "node": info["virtual_node"],
-            "population": float(pop["total_population"]),
-        })
+#     demand_nodes = []
+#     for _, pop in pop_analysis.iterrows():
+#         pid = pop["population_id"]
+#         info = demand_entries_map.get(pid)
+#         if info is None:
+#             continue
+#         demand_nodes.append({
+#             "population_id": pid,
+#             "node": info["virtual_node"],
+#             "population": float(pop["total_population"]),
+#         })
 
-    # Supply nodes expand per subtype when a unit_mix is present.
-    supply_nodes = []
-    for _, asset in assets_df.iterrows():
-        if asset["asset_type"] != "commercial":
-            continue
-        aid = asset["asset_id"]
-        info = asset_entries.get(aid)
-        if info is None:
-            continue
+#     # Supply nodes expand per subtype when a unit_mix is present.
+#     supply_nodes = []
+#     for _, asset in assets_df.iterrows():
+#         if asset["asset_type"] != "commercial":
+#             continue
+#         aid = asset["asset_id"]
+#         info = asset_entries.get(aid)
+#         if info is None:
+#             continue
 
-        mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
-        if mix:
-            for st, m in mix.items():
-                st_area = float(m.get("area_m2") or 0)
-                if st_area <= 0:
-                    continue
-                supply_nodes.append({
-                    "asset_id": aid,
-                    "node": info["virtual_node"],
-                    "attractiveness": st_area,
-                    "subtype": st,
-                })
-        else:
-            supply_nodes.append({
-                "asset_id": aid,
-                "node": info["virtual_node"],
-                "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
-                "subtype": asset.get("subtype", "convenience_retail"),
-            })
+#         mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
+#         if mix:
+#             for st, m in mix.items():
+#                 st_area = float(m.get("area_m2") or 0)
+#                 if st_area <= 0:
+#                     continue
+#                 supply_nodes.append({
+#                     "asset_id": aid,
+#                     "node": info["virtual_node"],
+#                     "attractiveness": st_area,
+#                     "subtype": st,
+#                 })
+#         else:
+#             supply_nodes.append({
+#                 "asset_id": aid,
+#                 "node": info["virtual_node"],
+#                 "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+#                 "subtype": asset.get("subtype", "convenience_retail"),
+#             })
 
-    nodes_gdf = extract_nodes(network_gdf)
-    return G_aug, demand_nodes, supply_nodes, nodes_gdf, asset_entries
+#     nodes_gdf = extract_nodes(network_gdf)
+#     return G_aug, demand_nodes, supply_nodes, nodes_gdf, asset_entries
 
 
 def _parse_unit_mix_engine(raw):
@@ -1924,10 +2246,24 @@ def _new_project_demand_nodes(active_projects, geometry, nodes_gdf):
     Only residential land use contributes demand nodes; commercial
     and facility projects contribute supply nodes via the sibling
     function.
+
+    P2-7 fix — returns an explicit `project_id → node_id` map instead
+    of stashing `_node_id` on each project dict. The previous design
+    mutated the caller's `active_projects` list, which is safe only
+    because the list is reconstructed per-year. Any caching or
+    concurrent use of the list would have silently corrupted the
+    node assignment.
+
+    Returns
+    -------
+    (demand_nodes, project_node_map)
+        demand_nodes       : list of Huff demand node dicts
+        project_node_map   : {project_id: resolved_node_id}
     """
     from ..taxonomy import get_subtype, default_subtype_for
 
     out = []
+    project_node_map: dict = {}
     for proj in active_projects:
         subtype = proj.get("subtype")
         if not subtype:
@@ -1969,23 +2305,20 @@ def _new_project_demand_nodes(active_projects, geometry, nodes_gdf):
         except Exception:
             continue
 
-        # Phase E blocker fix — stash the resolved node id on the
-        # project dict so `_compute_project_reachable_population` can
-        # look it up when computing the asset's walking catchment.
-        # The dict is shared by reference with the caller's
-        # active_projects list.
-        proj["_node_id"] = proj_node
+        project_id = proj.get("project_id") or "?"
+        project_node_map[project_id] = proj_node
 
         out.append({
-            "population_id": f"PRJ-POP-{proj.get('project_id', '?')}",
+            "population_id": f"PRJ-POP-{project_id}",
             "node": proj_node,
             "population": pop,
         })
-    return out
+    return out, project_node_map
 
 
 def _compute_project_reachable_population(
     active_projects, asset_entry, distance_matrix,
+    project_node_map=None,
     max_distance_m=1200.0,
 ):
     """
@@ -2004,17 +2337,22 @@ def _compute_project_reachable_population(
     claim was capped at `partially_verified`.
 
     This function fills the gap by walking the delivered projects,
-    resolving each one's node via `_node_id` (stashed by
-    `_new_project_demand_nodes`), and summing the populations within
-    max_distance_m of the asset's virtual node.
+    resolving each one's node via `project_node_map`, and summing
+    the populations within max_distance_m of the asset's virtual node.
 
     max_distance_m defaults to 1200 m, matching B3's own catchment
     computation (`aggregate_catchment_profile(max_distance_m=1200.0)`).
     A project beyond that threshold is not inside the asset's walk
     catchment and must not count.
+
+    P2-7 fix — the project → node mapping now arrives via an explicit
+    parameter rather than a `_node_id` field stashed on the project
+    dict by `_new_project_demand_nodes`.
     """
     if not active_projects or not asset_entry:
         return 0.0
+    if project_node_map is None:
+        project_node_map = {}
     asset_vn = asset_entry.get("virtual_node")
     if not asset_vn or asset_vn not in distance_matrix:
         return 0.0
@@ -2025,7 +2363,8 @@ def _compute_project_reachable_population(
 
     total = 0.0
     for proj in active_projects:
-        proj_node = proj.get("_node_id")
+        project_id = proj.get("project_id") or "?"
+        proj_node = project_node_map.get(project_id)
         if not proj_node:
             continue
         d_net = row.get(proj_node)
@@ -2073,6 +2412,8 @@ def _state_from_df(derived_df, assets_df):
             row_dict["_effective_asset_type"] = a["asset_type"]
             row_dict["_effective_capacity"] = a.get("capacity")
             row_dict["_effective_lettable"] = a.get("lettable_area_m2")
+            row_dict["floor_area_m2"] = a.get("floor_area_m2")   # P1-3 fix
+            row_dict["land_area_m2"] = a.get("land_area_m2")     # sequestration
         row_dict["_state_kind"] = "asset"
         state[aid] = row_dict
     return state
@@ -2114,6 +2455,7 @@ _COMPARISON_METRICS = [
     ("maintenance_carbon_tco2e", "tCO2e/yr"),
     ("surface_temp_delta_c", "Celsius"),
     ("operational_capacity_ratio", "ratio"),
+    ("energy_kwh_pv_offset", "kWh"),   # P1
 ]
 
 
@@ -2283,11 +2625,81 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             except (TypeError, ValueError):
                 pass
 
-            saved = repurposable_area * repurposable_ratio * (
-                intensity_new
-                + DEMOLITION_CARBON_INTENSITY
-                - MATERIAL_INTENSITY_REPURPOSE
-            )
+            # P1 — spec-aware avoided embodied carbon.
+            # When the plan supplied an engineering_spec, derive the
+            # actual upfront intensity from the physics parameters.
+            # Otherwise fall back to the legacy MATERIAL_INTENSITY_
+            # REPURPOSE constant.
+            _spec = params.get("engineering_spec") if isinstance(
+                params, dict
+            ) else None
+
+            if isinstance(_spec, dict):
+                try:
+                    _r_s = float(
+                        _spec.get("structure_retention_ratio", 0.85)
+                    )
+                    _r_s = max(0.0, min(1.0, _r_s))
+                except (TypeError, ValueError):
+                    _r_s = 0.85
+
+                _mat_name = _spec.get(
+                    "primary_material", "standard_concrete",
+                )
+                _facade_name = _spec.get("facade_action", "retain")
+
+                _mat_intensity_table = {
+                    "standard_concrete": 0.22,
+                    "ggbs_concrete":     0.14,
+                    "mass_timber":       0.05,
+                    "recycled_steel":    0.18,
+                }
+                _facade_intensity_table = {
+                    "retain":             0.00,
+                    "insulated_overclad": 0.06,
+                    "curtain_wall":       0.12,
+                    "timber_clad":        0.04,
+                }
+
+                _struct_i = _mat_intensity_table.get(
+                    _mat_name, 0.22,
+                )
+                _facade_i = _facade_intensity_table.get(
+                    _facade_name, 0.06,
+                )
+                _fitout_i = 0.04
+
+                _actual_upfront = (
+                    _r_s * _struct_i + _facade_i + _fitout_i
+                )
+
+                if _r_s < 0.10:
+                    # Effectively a rebuild. A repurpose that retains
+                    # less than 10% of the structure is indistinguishable
+                    # from new construction on the carbon ledger —
+                    # claim no avoided carbon.
+                    saved_per_m2 = 0.0
+                else:
+                    saved_per_m2 = max(
+                        0.0,
+                        intensity_new
+                        + DEMOLITION_CARBON_INTENSITY
+                        - _actual_upfront,
+                    )
+
+                saved = (
+                    repurposable_area
+                    * repurposable_ratio
+                    * saved_per_m2
+                )
+            else:
+                # Legacy path (unchanged).
+                saved = repurposable_area * repurposable_ratio * (
+                    intensity_new
+                    + DEMOLITION_CARBON_INTENSITY
+                    - MATERIAL_INTENSITY_REPURPOSE
+                )
+
             if saved > 0:
                 avoided_embodied_total += saved
                 per_asset[aid]["avoided_embodied_carbon_tco2e"] = {
@@ -2402,6 +2814,21 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
     carbon sums across every simulated year up to final_year — this is
     the number that actually differs between SC-CURRENT and SC-DELAY,
     since both scenarios have the project operating by final_year.
+
+    Carbon sequestration
+    --------------------
+    Reported as a yearly rate (tCO2e/year), matching the temporal
+    structure of `carbon_operational_tco2e`. This makes it possible
+    to compare the two side-by-side:
+
+        net_carbon_by_year[year] = operational_carbon[year]
+                                   - sequestration[year]
+
+    A negative net figure means the township is a net sink that year.
+
+    Sequestration does NOT enter `carbon_operational_tco2e` — that
+    would conflate a physical removal process with an emission
+    stream and corrupt the primary carbon comparison.
     """
     before = state_by_year.get(base_year, {})
     after = state_by_year.get(final_year, {})
@@ -2461,6 +2888,63 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
             if _is_valid(c):
                 project_carbon_cumulative += float(c) * dt
 
+    # ---- Carbon sequestration, yearly rate ----
+    #
+    # `load_assumptions` is imported at module level and
+    # lru_cached; the call is effectively free.
+    _assumptions = load_assumptions()
+    _seq_cfg = (
+        _assumptions.get("carbon_accounting", {})
+        .get("sequestration", {})
+    )
+    _uptake_rate = float(
+        _seq_cfg.get("canopy_uptake_tco2e_per_m2_year", 0.0015),
+    )
+
+    def _seq_for_state(state_dict):
+        total = 0.0
+        for aid, st in state_dict.items():
+            if _is_project(aid):
+                continue
+            if st.get("_effective_asset_type") != "green_space":
+                continue
+            canopy = st.get("canopy_coverage")
+            land = st.get("land_area_m2")
+            if not _is_valid(canopy) or not _is_valid(land):
+                continue
+            try:
+                total += float(land) * float(canopy) * _uptake_rate
+            except (TypeError, ValueError):
+                continue
+        return total
+
+    # Per-year table of sequestration, operational carbon, and net
+    seq_by_year = {}
+    op_by_year = {}
+    net_by_year = {}
+    for y in years:
+        yr_state = state_by_year.get(y, {})
+        seq_val = _seq_for_state(yr_state)
+        op_val = _sum_carbon(yr_state)
+        seq_by_year[str(y)] = round(seq_val, 2)
+        op_by_year[str(y)] = (
+            round(op_val, 2) if op_val is not None else None
+        )
+        net_by_year[str(y)] = (
+            round(op_val - seq_val, 2) if op_val is not None else None
+        )
+
+    seq_before = seq_by_year.get(str(base_year), 0.0)
+    seq_after = seq_by_year.get(str(final_year), 0.0)
+
+    # Cumulative sequestration: sum(rate × years_in_window)
+    seq_cumulative = 0.0
+    for idx, y in enumerate(years):
+        if y > final_year:
+            break
+        dt = (y - years[idx - 1]) if idx > 0 else 1
+        seq_cumulative += seq_by_year.get(str(y), 0.0) * dt
+
     return {
         "walk_15min_avg_coverage_before": walk_before,
         "walk_15min_avg_coverage_after": walk_after,
@@ -2476,6 +2960,22 @@ def _compute_township_metrics(state_by_year, years, base_year, final_year):
         "project_carbon_cumulative_tco2e": (
             project_carbon_cumulative if project_carbon_cumulative > 0 else None
         ),
+        # ---- Carbon sequestration, yearly ----
+        "sequestration_by_year_tco2e_year": seq_by_year,
+        "sequestration_before_tco2e_year": (
+            round(seq_before, 2) if seq_before > 0 else None
+        ),
+        "sequestration_after_tco2e_year": (
+            round(seq_after, 2) if seq_after > 0 else None
+        ),
+        "sequestration_delta_tco2e_year": round(seq_after - seq_before, 2),
+        "sequestration_cumulative_tco2e": (
+            round(seq_cumulative, 2) if seq_cumulative > 0 else None
+        ),
+        "canopy_uptake_rate_tco2e_per_m2_year": _uptake_rate,
+        # ---- Net carbon (operational - sequestration), yearly ----
+        "operational_carbon_by_year_tco2e_year": op_by_year,
+        "net_carbon_by_year_tco2e_year": net_by_year,
     }
 
 
@@ -2647,6 +3147,63 @@ def _scenario_name(scenario_id: str) -> str:
     return names.get(scenario_id, scenario_id)
 
 
+def _recompute_per_subtype_occupancy(metric_row, eff, new_occ, prev_occ):
+    """
+    P1-4 fix — keep per-subtype occupancy in sync with the aggregate.
+
+    B3 computes `occupancy_by_subtype_calc_json` at the base year
+    with a fixed seeded spread. B4 only updates the aggregate
+    `occupancy_rate`, so without this fix the per-subtype breakdown
+    shown on the dashboard froze at the 2026 snapshot even as the
+    aggregate moved. Partial repurpose demos then showed identical
+    "before" and "after" per-subtype occupancies despite the
+    aggregate jumping.
+
+    Strategy:
+      - scale each EXISTING subtype by (new_occ / prev_occ)
+      - initialise NEW subtypes (introduced by a partial repurpose)
+        to their subtype benchmark, falling back to new_occ
+      - clip everything to [0, 1]
+    """
+    mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
+    if not mix:
+        return
+
+    old_json = metric_row.get("occupancy_by_subtype_calc_json")
+    try:
+        old = json.loads(old_json) if isinstance(old_json, str) and old_json else {}
+    except (json.JSONDecodeError, TypeError):
+        old = {}
+    if not isinstance(old, dict):
+        old = {}
+
+    base = float(prev_occ) if prev_occ and float(prev_occ) > 0 else 1.0
+    try:
+        ratio = float(new_occ) / base if base > 0 else 1.0
+    except (TypeError, ValueError, ZeroDivisionError):
+        ratio = 1.0
+
+    result = {}
+    for st in mix.keys():
+        v = old.get(st)
+        if v is None:
+            # Newly introduced subtype (partial repurpose target).
+            bench = get_occupancy_benchmark(st)
+            try:
+                bench_f = float(bench) if bench is not None else float(new_occ)
+            except (TypeError, ValueError):
+                bench_f = float(new_occ)
+            result[st] = round(min(1.0, max(0.0, bench_f)), 4)
+        else:
+            try:
+                v_f = float(v) * ratio
+            except (TypeError, ValueError):
+                v_f = float(new_occ)
+            result[st] = round(min(1.0, max(0.0, v_f)), 4)
+
+    metric_row["occupancy_by_subtype_calc_json"] = json.dumps(result)
+
+
 def _json_safe(obj):
     """
     Recursively replace float NaN with None so json.dump emits valid
@@ -2659,6 +3216,260 @@ def _json_safe(obj):
     if isinstance(obj, float) and math.isnan(obj):
         return None
     return obj
+
+
+# ------------------------------------------------------------------
+# Phase 4c — per-year deadspace diagnostics
+# ------------------------------------------------------------------
+
+
+def _compute_trajectories_from_state(state_by_year, upto_year):
+    """
+    Rebuild per-asset trajectory features from B4's simulated history.
+
+    B6's detector consumes `trajectory_class`, `peak_occupancy`,
+    `years_since_peak`, `occupancy_trend_3yr`, and
+    `years_below_benchmark`. B4 does not update these on simulated
+    years — the values carried forward from the base year are the
+    B3 classification of 2022-2026, not the trajectory of the
+    simulated window. Feeding them to B6 unchanged would emit a
+    2026-derived `rapid_decline` flag on a 2033 asset that is
+    actually stable.
+
+    Strategy:
+      - Base year (first entry in `state_by_year`): B4 copies B3's
+        base-year state verbatim, so `trajectory_class` is already
+        correct. Preserve it untouched.
+      - Later years: reclassify from the (base_year..upto_year)
+        occupancy sequence. Fewer years are available than B3 had,
+        so classes requiring a long history (e.g. `declining`
+        needs years_since_peak >= 2) may not fire until enough
+        simulated years have accumulated. This is a data-
+        availability limit, not a logic error.
+    """
+    from ..derived.engine import _classify_trajectory
+    from ..taxonomy import get_subtype_or_default
+    import numpy as np
+
+    result = {}
+    sorted_years = sorted(y for y in state_by_year if y <= upto_year)
+    if not sorted_years:
+        return result
+    base_year = sorted_years[0]
+
+    current_state = state_by_year.get(upto_year, {})
+    for aid in current_state:
+        if aid.startswith(PROJECT_ID_PREFIX):
+            continue
+
+        # Base year — B3's own classification is authoritative.
+        if upto_year == base_year:
+            st = current_state[aid]
+            result[aid] = {
+                "trajectory_class": st.get("trajectory_class"),
+                "peak_occupancy": st.get("peak_occupancy"),
+                "years_since_peak": st.get("years_since_peak"),
+                "occupancy_trend_3yr": st.get("occupancy_trend_3yr"),
+                "years_below_benchmark": st.get("years_below_benchmark"),
+            }
+            continue
+
+        occ_history = []
+        for y in sorted_years:
+            st = state_by_year[y].get(aid, {})
+            occ = st.get("occupancy_rate")
+            if occ is None:
+                occ = st.get("utilisation_rate")
+            if occ is None:
+                continue
+            try:
+                occ_history.append(float(occ))
+            except (TypeError, ValueError):
+                pass
+
+        if len(occ_history) < 2:
+            result[aid] = {"trajectory_class": "unknown"}
+            continue
+
+        peak = max(occ_history)
+        peak_idx = occ_history.index(peak)
+        years_since_peak = len(occ_history) - 1 - peak_idx
+
+        subtype = current_state[aid].get("subtype")
+        benchmark = None
+        if subtype:
+            defn = get_subtype_or_default(subtype)
+            benchmark = (
+                defn.get("occupancy_benchmark")
+                or defn.get("utilisation_benchmark")
+            )
+        try:
+            benchmark = float(benchmark) if benchmark is not None else 0.85
+        except (TypeError, ValueError):
+            benchmark = 0.85
+
+        below_count = 0
+        for o in reversed(occ_history):
+            if o < benchmark * 0.85:
+                below_count += 1
+            else:
+                break
+
+        tclass = _classify_trajectory(
+            occ_history, peak, years_since_peak, below_count, benchmark,
+        )
+
+        n = min(3, len(occ_history))
+        y_arr = np.array(occ_history[-n:], dtype=float)
+        x_arr = np.arange(n)
+        try:
+            trend = float(np.polyfit(x_arr, y_arr, 1)[0])
+        except Exception:
+            trend = None
+
+        result[aid] = {
+            "trajectory_class": tclass,
+            "peak_occupancy": peak,
+            "years_since_peak": years_since_peak,
+            "occupancy_trend_3yr": trend,
+            "years_below_benchmark": below_count,
+        }
+
+    return result
+
+
+def _build_deadspace_by_year(
+    state_by_year, assets_df, base_derived, assumptions, years,
+    intervened_ids=None, baseline_deadspace=None,
+):
+    """
+    Run B6's deadspace detector against every simulated year.
+
+    Why this exists
+    ---------------
+    The frontend's year selector reads deadspace records per year.
+    Before this function, only 2026 had a full diagnosis (B3 -> B6,
+    written by run_phase3.py). Every later year fell back to a
+    placeholder branch in /api/map/geometry that only checked
+    occupancy < 0.50 and utilisation < 0.40. That collapsed a
+    200-plus flagged population on 2026 to fewer than 80 on 2027 —
+    semantically wrong (a thirty-flag detector becomes a two-flag
+    detector) and narratively backwards (the intended story is
+    "healthy today, at risk later"; the placeholder told the
+    opposite).
+
+    Field ownership
+    ---------------
+    B4's state carries most of B6's required fields (occupancy,
+    utilisation, NOI, carbon split, surface temp, service coverage,
+    green / canopy coverage, per-subtype occupancy). Three fields
+    need to be filled in here:
+
+      - trajectory_*: rebuilt from the simulated history via
+        _compute_trajectories_from_state.
+      - dsr: recomputed from effective_demand_m2 / _effective_lettable
+        when both are present; inherited from the base year otherwise.
+      - demographic_mismatch / neighborhood_diversity: static
+        attributes of the asset, copied from the base-year B3 record.
+
+    Asset identity
+    --------------
+    A repurpose or renovation changes asset_type / subtype. B6 must
+    diagnose the asset under its NEW class, not its original one.
+    `_effective_asset_type` and `subtype` from the B4 state override
+    the raw asset row.
+
+    Returns
+    -------
+    {year: [deadspace_record, ...]}
+    """
+    from ..deadspace.detector import detect_deadspace_for_asset
+    import pandas as pd
+
+    base_lookup = {}
+    for _, row in base_derived.iterrows():
+        base_lookup[row["asset_id"]] = row.to_dict()
+
+    assets_lookup = {r["asset_id"]: r for _, r in assets_df.iterrows()}
+    results = {}
+
+    for year in years:
+        year_state = state_by_year.get(year, {})
+        if not year_state:
+            continue
+
+        trajectories = _compute_trajectories_from_state(state_by_year, year)
+
+        records = []
+        for aid, st in year_state.items():
+            if aid.startswith(PROJECT_ID_PREFIX):
+                continue
+            if aid not in assets_lookup:
+                continue
+
+            # Optimization: skip recomputation for un-intervened assets
+            # in candidate scenarios by directly reusing baseline records.
+            if (
+                intervened_ids is not None
+                and baseline_deadspace is not None
+                and year in baseline_deadspace
+                and aid not in intervened_ids
+                and aid in baseline_deadspace[year]
+            ):
+                records.append(baseline_deadspace[year][aid])
+                continue
+
+            asset_dict = dict(assets_lookup[aid])
+            if st.get("_effective_asset_type"):
+                asset_dict["asset_type"] = st["_effective_asset_type"]
+            if st.get("subtype"):
+                asset_dict["subtype"] = st["subtype"]
+
+            metrics_dict = dict(st)
+            metrics_dict["year"] = year
+            metrics_dict["asset_id"] = aid
+            metrics_dict.update(trajectories.get(aid, {}))
+
+            # DSR — recompute if the base-year value is stale
+            if metrics_dict.get("dsr") is None:
+                demand = metrics_dict.get("effective_demand_m2")
+                supply = (
+                    metrics_dict.get("_effective_lettable")
+                    or asset_dict.get("lettable_area_m2")
+                )
+                if demand is not None and supply:
+                    try:
+                        s = float(supply)
+                        if s > 0:
+                            metrics_dict["dsr"] = float(demand) / s
+                    except (TypeError, ValueError):
+                        pass
+
+            # Static fields — inherit from base-year B3
+            base = base_lookup.get(aid, {})
+            for static_field in (
+                "demographic_mismatch", "neighborhood_diversity",
+            ):
+                if metrics_dict.get(static_field) is None:
+                    v = base.get(static_field)
+                    if v is not None:
+                        metrics_dict[static_field] = v
+
+            try:
+                rec = detect_deadspace_for_asset(
+                    asset=pd.Series(asset_dict),
+                    metrics=pd.Series(metrics_dict),
+                    assumptions=assumptions,
+                )
+                records.append(rec)
+            except Exception as e:
+                log.warning(
+                    "B6 failed for %s year %d: %s", aid, year, e,
+                )
+
+        results[year] = records
+
+    return results
 
 
 def write_scenario_result(result: dict, repo_root: Path = None) -> Path:

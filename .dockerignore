@@ -1,0 +1,63 @@
+# --- Git & System ---
+.git/
+.gitignore
+README.md
+API.md
+Living_Masterplan.md
+Supporting_Document.md
+docs/
+contracts/
+
+# --- Environment & Secrets (防泄密) ---
+.env
+.env.*
+.envrc
+*.pem
+*.key
+
+# --- Python & Virtual Environments (防体积膨胀) ---
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[codz]
+*$py.class
+cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+*.log
+
+# --- IDE & Editors ---
+.vscode/
+.idea/
+*.swp
+tempCodeRunnerFile.py
+
+# --- Tests ---
+backend/tests/
+tests/
+
+# --- Frontend ---
+frontend/
+node_modules/
+**/node_modules/
+
+# --- Pipeline Cache & Large Pickle files ---
+bukit_jelutong/processed/business/_pipeline_cache_*.pkl
+bukit_jelutong/processed/business/llm_run_cache.pkl
+*.pkl
+
+# --- Generated outputs & Debug runs ---
+bukit_jelutong/processed/business/scenarios/SC-LLM-*
+bukit_jelutong/processed/business/scenarios/SC-DELAY.json
+bukit_jelutong/processed/business/scenarios/SC-REPURPOSE.json
+bukit_jelutong/processed/business/llm_runs/
+
+# --- Legacy & Other ---
+legacy/
+elmina/
