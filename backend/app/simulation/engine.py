@@ -207,6 +207,18 @@ _DEMAND_CHANGE_THRESHOLD = 0.05
 # change of at least this many m².
 _DEMAND_CHANGE_ABSOLUTE_FLOOR_M2 = 100.0
 
+# P1 — Engineering-spec cooling model constants.
+#
+# The cooling load scales with (T_ambient_LST - setpoint) / COP.
+# The reference COP is a standard split AC (3.0); the reference
+# operating hours are a 70h/week office.
+_P1_REFERENCE_COP = 3.0
+_P1_REFERENCE_HOURS_PER_WEEK = 70.0
+_P1_SETPOINT_C = 24.0
+_P1_TYPICAL_INDOOR_OUTDOOR_GAP_C = 19.0
+_P1_COOLING_FACTOR_FLOOR = 0.15
+_P1_COOLING_FACTOR_CEILING = 1.50
+
 # Default access-to-use conversion. Used when
 # assumptions.huff.access_to_use_conversion is absent.
 _DEFAULT_ACCESS_TO_USE_CONVERSION = 0.2
@@ -1280,6 +1292,21 @@ def simulate_scenario(
                     ceiling=_ceiling,
                 )
 
+            # Phase P1 — read the base-year Landsat observation so
+            # the LST-coupled cooling model can use it. Thermal
+            # observations are static (single acquisition date), so
+            # the base-year value applies to every simulated year.
+            # We read it here, BEFORE the environmental block, because
+            # the cooling model runs inside that block. The same
+            # `_thermal_rows` frame is reused by the thermal-coupling
+            # block below.
+            _thermal_rows = base_derived[base_derived["asset_id"] == aid]
+            _t_asset_lst_observed = 32.0
+            if not _thermal_rows.empty:
+                _t_val = _thermal_rows.iloc[0].get("t_asset_c")
+                if _is_valid_number(_t_val):
+                    _t_asset_lst_observed = float(_t_val)
+
             # ---- Environmental (subtype-aware) ----
             floor_area = _safe_num(eff.get("floor_area_m2"), 0.0)
 
@@ -1346,44 +1373,146 @@ def simulate_scenario(
                     breakdown_raw["hvac_kwh"], canopy_for_hvac
                 )
 
-                # Per-subsystem retrofit multipliers (P1).
-                # Fall back to aggregate multiplier when per-subsystem
-                # values are absent (legacy retrofit).
-                hvac_mult = eff.get("_hvac_multiplier")
-                lighting_mult = eff.get("_lighting_multiplier")
-                base_mult = eff.get("_base_multiplier")
+                # ---- P1: LST-coupled cooling model ----
+                # When the intervention supplied an engineering_spec,
+                # `_hvac_cop` is on `eff`. Replace the aggregate
+                # efficiency multiplier with a physics-derived cooling
+                # load that scales as (T_ambient - setpoint) / COP
+                # × operating_hours_factor.
+                _hvac_cop = eff.get("_hvac_cop")
+                _has_spec = _is_valid_number(_hvac_cop)
 
-                if (_is_valid_number(hvac_mult)
-                        and _is_valid_number(lighting_mult)
-                        and _is_valid_number(base_mult)):
-                    hvac_mult = float(hvac_mult)
-                    lighting_mult = float(lighting_mult)
-                    base_mult = float(base_mult)
+                if _has_spec:
+                    _cop = max(2.0, min(6.0, float(_hvac_cop)))
+
+                    # Ambient temperature for cooling = observed LST
+                    # minus the relief from any roof intervention.
+                    # `_t_asset_lst_observed` was read from base_derived
+                    # above; it is static across years.
+                    _roof_relief = _safe_num(
+                        eff.get("_cooling_from_roof_c"), 0.0,
+                    )
+                    _t_ambient_for_cooling = (
+                        _t_asset_lst_observed - _roof_relief
+                    )
+
+                    _cooling_factor = max(
+                        _P1_COOLING_FACTOR_FLOOR,
+                        min(
+                            _P1_COOLING_FACTOR_CEILING,
+                            (_t_ambient_for_cooling - _P1_SETPOINT_C)
+                            / _P1_TYPICAL_INDOOR_OUTDOOR_GAP_C,
+                        ),
+                    )
+                    _cop_factor = _P1_REFERENCE_COP / _cop
+                    _hours_factor = _safe_num(
+                        eff.get("_operating_hours_per_week"),
+                        _P1_REFERENCE_HOURS_PER_WEEK,
+                    ) / _P1_REFERENCE_HOURS_PER_WEEK
+
+                    hvac_adj = (
+                        hvac_after_canopy
+                        * _cooling_factor
+                        * _cop_factor
+                        * _hours_factor
+                    )
+                    lighting_adj = breakdown_raw["lighting_equipment_kwh"]
+                    base_adj = breakdown_raw["base_load_kwh"]
+
+                    energy_adjusted = hvac_adj + lighting_adj + base_adj
+
+                    # ---- P1: rooftop PV self-consumption offset ----
+                    _pv_cov = _safe_num(
+                        eff.get("_rooftop_pv_coverage"), 0.0,
+                    )
+                    _pv_kwh = 0.0
+                    if _pv_cov > 0.0:
+                        _footprint = _safe_num(
+                            eff.get("land_area_m2"), 0.0,
+                        )
+                        if _footprint <= 0:
+                            _footprint = (
+                                _safe_num(eff.get("floor_area_m2"), 0.0)
+                                / 2.5
+                            )
+                        # Safety cap: roof area cannot exceed GFA
+                        _fa = _safe_num(
+                            eff.get("floor_area_m2"), _footprint,
+                        )
+                        _footprint = min(_footprint, _fa)
+
+                        _pv_cfg = (
+                            assumptions.get("environmental", {})
+                            .get("pv", {})
+                        )
+                        _panel_eff = _safe_num(
+                            _pv_cfg.get("panel_efficiency"), 0.18,
+                        )
+                        _peak_sun = _safe_num(
+                            _pv_cfg.get("peak_sun_hours_per_day"), 4.2,
+                        )
+                        _pv_kwh = max(
+                            0.0,
+                            _footprint * _pv_cov * _panel_eff
+                            * _peak_sun * 365.0,
+                        )
+                        energy_adjusted = max(
+                            0.0, energy_adjusted - _pv_kwh,
+                        )
+
+                    eff["_pv_kwh_year"] = _pv_kwh
+
+                    breakdown = {
+                        "hvac_kwh": hvac_adj,
+                        "lighting_equipment_kwh": lighting_adj,
+                        "base_load_kwh": base_adj,
+                    }
+
+                    energy = energy_adjusted
+                    carbon = operational_carbon(
+                        energy_adjusted, emission_factor,
+                    )
+
                 else:
-                    agg = eff.get("_energy_efficiency_multiplier")
-                    if _is_valid_number(agg):
-                        hvac_mult = lighting_mult = base_mult = float(agg)
+                    # ---- Legacy path (unchanged) ----
+                    hvac_mult = eff.get("_hvac_multiplier")
+                    lighting_mult = eff.get("_lighting_multiplier")
+                    base_mult = eff.get("_base_multiplier")
+
+                    if (_is_valid_number(hvac_mult)
+                            and _is_valid_number(lighting_mult)
+                            and _is_valid_number(base_mult)):
+                        hvac_mult = float(hvac_mult)
+                        lighting_mult = float(lighting_mult)
+                        base_mult = float(base_mult)
                     else:
-                        hvac_mult = lighting_mult = base_mult = 1.0
+                        agg = eff.get("_energy_efficiency_multiplier")
+                        if _is_valid_number(agg):
+                            hvac_mult = lighting_mult = base_mult = float(agg)
+                        else:
+                            hvac_mult = lighting_mult = base_mult = 1.0
 
-                hvac_adj = hvac_after_canopy * hvac_mult
-                lighting_adj = (
-                    breakdown_raw["lighting_equipment_kwh"] * lighting_mult
-                )
-                base_adj = breakdown_raw["base_load_kwh"] * base_mult
+                    hvac_adj = hvac_after_canopy * hvac_mult
+                    lighting_adj = (
+                        breakdown_raw["lighting_equipment_kwh"]
+                        * lighting_mult
+                    )
+                    base_adj = breakdown_raw["base_load_kwh"] * base_mult
 
-                energy_adjusted = hvac_adj + lighting_adj + base_adj
+                    energy_adjusted = hvac_adj + lighting_adj + base_adj
 
-                # Rewrite breakdown so downstream reporting shows the
-                # post-retrofit per-subsystem values.
-                breakdown = {
-                    "hvac_kwh": hvac_adj,
-                    "lighting_equipment_kwh": lighting_adj,
-                    "base_load_kwh": base_adj,
-                }
+                    breakdown = {
+                        "hvac_kwh": hvac_adj,
+                        "lighting_equipment_kwh": lighting_adj,
+                        "base_load_kwh": base_adj,
+                    }
 
-                energy = energy_adjusted
-                carbon = operational_carbon(energy_adjusted, emission_factor)
+                    eff["_pv_kwh_year"] = 0.0
+
+                    energy = energy_adjusted
+                    carbon = operational_carbon(
+                        energy_adjusted, emission_factor,
+                    )
 
             # Phase 11 — productive vs stranded split
             if is_interim_solar:
@@ -1433,7 +1562,6 @@ def simulate_scenario(
             # ---------------------------------------------------------
             # Canopy -> Temperature Coupling
             # ---------------------------------------------------------
-            _thermal_rows = base_derived[base_derived["asset_id"] == aid]
             _coupled_temp = None
             
             if not _thermal_rows.empty and canopy_from_b3 is not None:
@@ -1613,6 +1741,11 @@ def simulate_scenario(
             metric_row["energy_kwh_hvac"] = hvac_adj
             metric_row["energy_kwh_lighting_equipment"] = breakdown["lighting_equipment_kwh"]
             metric_row["energy_kwh_base_load"] = breakdown["base_load_kwh"]
+            # P1 — PV yield carried through for the comparison block
+            # and the frontend engineering-spec card.
+            metric_row["energy_kwh_pv_offset"] = eff.get(
+                "_pv_kwh_year", 0.0,
+            )
             metric_row["carbon_productive_tco2e"] = split["carbon_productive_tco2e"]
             metric_row["carbon_stranded_tco2e"] = split["carbon_stranded_tco2e"]
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
@@ -2268,6 +2401,7 @@ _COMPARISON_METRICS = [
     ("maintenance_carbon_tco2e", "tCO2e/yr"),
     ("surface_temp_delta_c", "Celsius"),
     ("operational_capacity_ratio", "ratio"),
+    ("energy_kwh_pv_offset", "kWh"),   # P1
 ]
 
 
@@ -2437,11 +2571,81 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             except (TypeError, ValueError):
                 pass
 
-            saved = repurposable_area * repurposable_ratio * (
-                intensity_new
-                + DEMOLITION_CARBON_INTENSITY
-                - MATERIAL_INTENSITY_REPURPOSE
-            )
+            # P1 — spec-aware avoided embodied carbon.
+            # When the plan supplied an engineering_spec, derive the
+            # actual upfront intensity from the physics parameters.
+            # Otherwise fall back to the legacy MATERIAL_INTENSITY_
+            # REPURPOSE constant.
+            _spec = params.get("engineering_spec") if isinstance(
+                params, dict
+            ) else None
+
+            if isinstance(_spec, dict):
+                try:
+                    _r_s = float(
+                        _spec.get("structure_retention_ratio", 0.85)
+                    )
+                    _r_s = max(0.0, min(1.0, _r_s))
+                except (TypeError, ValueError):
+                    _r_s = 0.85
+
+                _mat_name = _spec.get(
+                    "primary_material", "standard_concrete",
+                )
+                _facade_name = _spec.get("facade_action", "retain")
+
+                _mat_intensity_table = {
+                    "standard_concrete": 0.22,
+                    "ggbs_concrete":     0.14,
+                    "mass_timber":       0.05,
+                    "recycled_steel":    0.18,
+                }
+                _facade_intensity_table = {
+                    "retain":             0.00,
+                    "insulated_overclad": 0.06,
+                    "curtain_wall":       0.12,
+                    "timber_clad":        0.04,
+                }
+
+                _struct_i = _mat_intensity_table.get(
+                    _mat_name, 0.22,
+                )
+                _facade_i = _facade_intensity_table.get(
+                    _facade_name, 0.06,
+                )
+                _fitout_i = 0.04
+
+                _actual_upfront = (
+                    _r_s * _struct_i + _facade_i + _fitout_i
+                )
+
+                if _r_s < 0.10:
+                    # Effectively a rebuild. A repurpose that retains
+                    # less than 10% of the structure is indistinguishable
+                    # from new construction on the carbon ledger —
+                    # claim no avoided carbon.
+                    saved_per_m2 = 0.0
+                else:
+                    saved_per_m2 = max(
+                        0.0,
+                        intensity_new
+                        + DEMOLITION_CARBON_INTENSITY
+                        - _actual_upfront,
+                    )
+
+                saved = (
+                    repurposable_area
+                    * repurposable_ratio
+                    * saved_per_m2
+                )
+            else:
+                # Legacy path (unchanged).
+                saved = repurposable_area * repurposable_ratio * (
+                    intensity_new
+                    + DEMOLITION_CARBON_INTENSITY
+                    - MATERIAL_INTENSITY_REPURPOSE
+                )
+
             if saved > 0:
                 avoided_embodied_total += saved
                 per_asset[aid]["avoided_embodied_carbon_tco2e"] = {

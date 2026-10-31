@@ -1001,6 +1001,43 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             except Exception:
                 pass
 
+        # --- 2.5 Engineering spec extraction (P1) ---
+        # Pull the plan item's engineering_spec (if present) and the
+        # PV yield the engine derived from it, so the frontend can
+        # render the "Engineered Param Spec Extracted" card.
+        _eng_spec = None
+        if asset_intv is not None:
+            try:
+                _intv_params = json.loads(
+                    asset_intv.get("parameters_json") or "{}"
+                )
+                _raw_spec = _intv_params.get("engineering_spec")
+                if isinstance(_raw_spec, dict):
+                    _eng_spec = {
+                        "structure_retention_ratio": _raw_spec.get(
+                            "structure_retention_ratio",
+                        ),
+                        "facade_action": _raw_spec.get("facade_action"),
+                        "primary_material": _raw_spec.get(
+                            "primary_material",
+                        ),
+                        "roof_intervention": _raw_spec.get(
+                            "roof_intervention",
+                        ),
+                        "hvac_cop": _raw_spec.get("hvac_cop"),
+                        "operating_hours_per_week": _raw_spec.get(
+                            "operating_hours_per_week",
+                        ),
+                        "rooftop_pv_coverage": _raw_spec.get(
+                            "rooftop_pv_coverage",
+                        ),
+                        "pv_yield_kwh_year": _get(
+                            final_state, "energy_kwh_pv_offset", 0.0,
+                        ),
+                    }
+            except (json.JSONDecodeError, TypeError):
+                _eng_spec = None
+
         # --- 3. Assemble Summary Card ---
         baseline_lst = _get_baseline_lst()
         base_lst_delta = _get(base_final_state, "surface_temp_delta_c", default=None)
@@ -1019,6 +1056,7 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
         )
 
         card = {
+            "engineering_spec": _eng_spec,
             "financial": {
                 "main_metric": {
                     "label": "Annual NOI",

@@ -151,8 +151,20 @@ export type MainMetric = {
   unit: string
 }
 
+export type EngineeringSpec = {
+  structure_retention_ratio: number | null
+  facade_action: string | null
+  primary_material: string | null
+  roof_intervention: string | null
+  hvac_cop: number | null
+  operating_hours_per_week: number | null
+  rooftop_pv_coverage: number | null
+  pv_yield_kwh_year: number | null
+}
+
 export type AssetAnalysis = {
   asset_id: string
+  engineering_spec?: EngineeringSpec | null
   summary_card: {
     financial?: {
       main_metric?: MainMetric

@@ -669,3 +669,107 @@ Selected as the sole viable intervention fulfilling the balanced mandate within 
 
   [recommendation]
   Proceed subject to securing an accredited childcare operating partner for P-VAC-04 and front-loading BLD-0183 re-leasing strategies to match tenant roll-off schedules.
+
+
+
+(.venv) PS C:\Users\chan0\Personal Project\Living_Masterplan> python backend/scripts/run_llm_real2.py --scenario 1
+Start:    16:26:57
+Model:    gemini-3.8-flash
+Targets:  ['BLD-0193']
+Query:    Review the attached feasibility summary for BLD-0193. We need to stop the financial bleeding immediately. Generate the best intervention plan that com... (truncated for console)
+
+
+================================================================================
+ 🚀 Scenario 1: Precision Medicine (Subunit Repurpose w/ PDF Context)
+================================================================================
+
+16:26:57 INFO app.llm.orchestrator: [LLM-ed57e73e] Stage 0 — Parsing user intent and constraints
+16:26:57 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+16:27:19 INFO httpx: HTTP Request: POST https://aiplatform.googleapis.com/v1beta1/projects/living-masterplan/locations/global/publishers/google/models/gemini-3.8-flash:generateContent "HTTP/1.1 200 OK"
+16:27:19 INFO app.llm.orchestrator: [LLM-ed57e73e] Stage 1 — context assembly
+16:27:19 INFO app.llm.orchestrator: [LLM-ed57e73e] context pack: 1 targets, 1 asset classes
+16:27:19 INFO app.llm.orchestrator: [LLM-ed57e73e] Stage 2 — candidate generation (attempt 1)
+>>> STAGE 2 PROMPT SIZE: 26413 chars
+16:27:19 INFO app.llm.vertex_client: Stage 2: sending structured-via-prompt request (2 messages)
+16:27:19 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+16:27:30 INFO httpx: HTTP Request: POST https://aiplatform.googleapis.com/v1beta1/projects/living-masterplan/locations/global/publishers/google/models/gemini-3.8-flash:generateContent "HTTP/1.1 200 OK"
+16:27:30 INFO app.llm.vertex_client: Stage 2: returned in 11.24s
+16:27:30 INFO app.llm.vertex_client: Stage 2: received 7173 chars
+16:27:30 INFO app.llm.orchestrator: Stage 2 attempt 1: candidates returned in 11.24s
+16:27:30 INFO app.llm.orchestrator: [LLM-ed57e73e] Stage 2.5a — validating 2 candidates
+16:27:30 INFO app.llm.orchestrator: Wrote 1 interventions to C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\interventions.csv as scenario SC-LLM-ed57e73e-C1
+16:27:30 INFO app.llm.orchestrator: [LLM-ed57e73e] candidate 'Supermarket Repurpose' written as SC-LLM-ed57e73e-C1
+16:27:30 INFO app.llm.orchestrator: Wrote 1 interventions to C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\interventions.csv as scenario SC-LLM-ed57e73e-C2
+16:27:30 INFO app.llm.orchestrator: [LLM-ed57e73e] candidate 'Targeted Deep Retrofit' written as SC-LLM-ed57e73e-C2
+16:27:30 INFO app.llm.orchestrator: [LLM-ed57e73e] Stage 2.5b — simulating 2 candidates with shared setup
+16:27:30 INFO app.llm.orchestrator: [shared] simulating BASELINE (SC-CURRENT)
+16:27:31 INFO app.simulation.engine: Computing B3 derived metrics for year 2026 (first candidate in this run)
+16:27:32 INFO app.derived.network_graph: Bridged 10 disconnected walking components (total effective distance added: 626 m)
+16:28:08 INFO app.simulation.engine: [pipeline base] building walking graph...
+16:28:08 INFO app.derived.network_graph: Bridged 10 disconnected walking components (total effective distance added: 626 m)
+16:28:18 INFO app.simulation.engine: [pipeline base] graph built: 2669 nodes, 3261 edges
+16:28:18 INFO app.simulation.engine: [pipeline base] computing all-pairs Dijkstra (cutoff 5000m)...
+16:28:31 INFO app.simulation.engine: [pipeline base] Dijkstra complete: 2669 source nodes
+16:28:56 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2027 -> deadspace_SC-CURRENT_2027.json
+16:28:56 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2028 -> deadspace_SC-CURRENT_2028.json
+16:28:56 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2030 -> deadspace_SC-CURRENT_2030.json
+16:28:56 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2033 -> deadspace_SC-CURRENT_2033.json
+16:28:56 INFO app.llm.orchestrator: [shared] baseline trimmed to 1 asset ids (from 916)
+16:28:56 INFO app.llm.orchestrator: [shared] simulating candidate 1/2: Supermarket Repurpose (SC-LLM-ed57e73e-C1)
+16:29:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C1 year 2027 -> deadspace_SC-LLM-ed57e73e-C1_2027.json
+16:29:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C1 year 2028 -> deadspace_SC-LLM-ed57e73e-C1_2028.json
+16:29:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C1 year 2030 -> deadspace_SC-LLM-ed57e73e-C1_2030.json
+16:29:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C1 year 2033 -> deadspace_SC-LLM-ed57e73e-C1_2033.json
+16:29:23 INFO app.llm.orchestrator: [shared] candidate 1/2 finished in 26.8s
+16:29:23 INFO app.llm.orchestrator: [shared] simulating candidate 2/2: Targeted Deep Retrofit (SC-LLM-ed57e73e-C2)
+16:29:48 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C2 year 2027 -> deadspace_SC-LLM-ed57e73e-C2_2027.json
+16:29:48 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C2 year 2028 -> deadspace_SC-LLM-ed57e73e-C2_2028.json
+16:29:48 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C2 year 2030 -> deadspace_SC-LLM-ed57e73e-C2_2030.json
+16:29:48 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-ed57e73e-C2 year 2033 -> deadspace_SC-LLM-ed57e73e-C2_2033.json
+16:29:49 INFO app.llm.orchestrator: [shared] candidate 2/2 finished in 26.5s
+16:29:49 INFO app.llm.orchestrator: [LLM-ed57e73e] Stage 2.7 — final selection and justification
+16:29:49 INFO app.llm.orchestrator: Stage 2.7: Sending 12623 chars to LLM for final decision
+16:29:49 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+16:30:09 INFO httpx: HTTP Request: POST https://aiplatform.googleapis.com/v1beta1/projects/living-masterplan/locations/global/publishers/google/models/gemini-3.8-flash:generateContent "HTTP/1.1 200 OK"
+16:30:09 INFO app.llm.orchestrator: Stage 2.7: final decision returned in 19.39s
+16:30:11 INFO app.llm.orchestrator: Wrote orchestration result to C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\llm_runs\LLM-ed57e73e.json
+
+PIPELINE FINISHED in 194.1s
+PIPELINE COMPLETE.
+
+--- 1. LLM Strategic Reasoning (Internal) ---
+Under the financial objective, Supermarket Repurpose wins because it initiates asset reactivation and creates an immediate commercial leasing trajectory. Targeted Deep Retrofit fails commercially: it reduces asset operational carbon by 45.1% (to 360.55 tCO2e) but leaves occupancy locked at 0.0%, sustaining 100% stranded carbon and failing to address the net operating income deficit of -RM 1,383,363. In contrast, Supermarket Repurpose shifts occupancy from 0.0% to 9.31% and expands effective commercial demand from 269.8 m2 to 1,671.4 m2, unlocking productive utilization without demolishing the reinforced concrete frame.
+
+--- 2. Candidates Summary ---
+  [Supermarket Repurpose] 👑 [WINNER] -> BLD-0193(repurpose)
+  [Targeted Deep Retrofit] -> BLD-0193(retrofit)
+
+--- 3. Asset Summary Cards (From Simulation) ---
+  Asset: BLD-0193
+    NOI (Annual): RM -1383363.3161902134 -> RM -1383363.3161902134
+    Counterfactual CAPEX Saved: RM 10843520
+    Space Utilization: 0.0% -> 9.3%
+    Operational Carbon: 676.7846370133333 -> 839.4028674477598 tCO2e/yr
+    Carbon Averted: 761.6 tCO2e
+
+--- 4. Executive Justification ---
+
+  [summary]
+  We recommend executing the Supermarket Repurpose plan for BLD-0193, converting its 3,082 m2 commercial floorplate into neighborhood retail. The intervention preserves the reinforced concrete structure, avoiding 761.61 tCO2e in embodied carbon while reactivating deadspace into 9.31% initial occupancy and 1,671.4 m2 of effective demand. While operational carbon increases by 27.9% due to retail refrigeration, this trade-off is required to establish revenue generation and halt chronic holding losses without structural demolition.
+
+  [why_this_plan]
+  The priority is stopping financial bleeding and generating revenue. Targeted Deep Retrofit was rejected because spending capital on building envelope efficiency while the building remains 100% vacant is wasted expenditure that leaves net operating income frozen at -RM 1,383,363. Supermarket Repurpose changes the asset's economic function, leveraging a 95.1% 10-minute driving catchment to capture anchor grocery demand. Retaining the RC frame satisfies zoning and capital constraints while establishing an immediate pathway toward operational solvency.
+
+  [what_simulation_shows]
+  At the asset level, baseline net operating income remains at -RM 1,383,363 with annual maintenance pressure at RM 367,882, but repurposing expands effective commercial demand from 269.8 m2 to 1,671.4 m2, driving occupancy from 0.0% to 9.31%. Operational carbon increases from 656.48 to 839.40 tCO2e, shifting 78.13 tCO2e into productive carbon and lowering the stranded carbon ratio to 90.7%. Across the township, operational carbonrises by 2.51% to 132,248.12 tCO2e by 2033, while green canopy sequestration increases marginally by 3.62 tCO2e/year.
+
+  [beyond_the_model]
+  Pre-leasing to a credit-worthy anchor tenant secures long-term covenant strength and catalytic footfall, creating secondary leasing opportunities for adjacent vacant retail bays.
+
+  [recommendation]
+  Proceed immediately with grocery anchor pre-leasing commitments and detailed fit-out design, ensuring capital expenditure stays within the RM 2,000,000 threshold.
+
+================================================================================
+✅ MOCK DATA EXPORTED to: C:\Users\chan0\Personal Project\Living_Masterplan\frontend\src\mock_scenario_1.json
+   You can directly copy the contents of this file into your frontend 'mockData.ts'
+================================================================================

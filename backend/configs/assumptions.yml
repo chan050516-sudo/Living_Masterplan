@@ -57,6 +57,14 @@ environmental:
     slope_celsius_per_unit: -1.709
     smoothing_years: 3.0
 
+  # P1 — Rooftop PV self-consumption model.
+  # The engine deducts PV yield from operational energy before
+  # carbon conversion when an intervention's engineering_spec
+  # supplies a non-zero rooftop_pv_coverage.
+  pv:
+    panel_efficiency: 0.18          # monocrystalline, standard commercial
+    peak_sun_hours_per_day: 4.2     # Peninsular Malaysia annual average
+
 # Phase 11 — Energy sub-system split (industry benchmarks, tropical climate)
 energy_breakdown:
   commercial:

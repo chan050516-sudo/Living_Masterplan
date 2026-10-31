@@ -399,6 +399,7 @@ export function AssetPanel(props: {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
               {analysis.assets_analysis.map((a) => {
                 const card = a.summary_card
+                const spec = a.engineering_spec
                 const fin = card.financial?.main_metric
                 const soc = card.social?.main_metric
                 const env = card.environmental?.main_metrics ?? []
@@ -408,6 +409,87 @@ export function AssetPanel(props: {
                 return (
                   <div key={a.asset_id} style={{ padding: 16, background: C.card, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                     <div style={{ ...mono, fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#fff' }}>{a.asset_id}</div>
+
+                    {/* P1 — Extracted engineering spec card */}
+                    {spec && (
+                      <div style={{
+                        marginBottom: 14, padding: 12,
+                        background: 'rgba(0,210,255,0.06)',
+                        border: '1px solid rgba(0,210,255,0.25)',
+                        borderRadius: 6,
+                      }}>
+                        <div style={{ ...cap, fontSize: 9.5, color: '#00d2ff', marginBottom: 8, letterSpacing: '.08em' }}>
+                          ⚙️ ENGINEERED PARAM SPEC EXTRACTED
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: 11.5 }}>
+                          {spec.structure_retention_ratio !== null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Structure retained</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {(spec.structure_retention_ratio * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          )}
+                          {spec.primary_material && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Primary material</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.primary_material.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {spec.facade_action && spec.facade_action !== 'retain' && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Facade</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.facade_action.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {spec.roof_intervention && spec.roof_intervention !== 'none' && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Roof</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.roof_intervention.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {spec.hvac_cop !== null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>HVAC COP</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.hvac_cop.toFixed(1)}
+                              </span>
+                            </div>
+                          )}
+                          {spec.operating_hours_per_week !== null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Op. hours/week</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.operating_hours_per_week.toFixed(0)}
+                              </span>
+                            </div>
+                          )}
+                          {spec.rooftop_pv_coverage !== null && spec.rooftop_pv_coverage > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>PV coverage</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {(spec.rooftop_pv_coverage * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          )}
+                          {spec.pv_yield_kwh_year !== null && spec.pv_yield_kwh_year > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gridColumn: '1 / -1', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>PV yield (annual)</span>
+                              <span style={{ ...mono, color: '#00d2ff', fontWeight: 600 }}>
+                                {Math.round(spec.pv_yield_kwh_year).toLocaleString()} kWh/yr
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
