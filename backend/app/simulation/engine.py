@@ -1079,12 +1079,13 @@ def simulate_scenario(
             eff_mix = _parse_unit_mix_engine(eff.get("unit_mix_json"))
 
             # Both branches below need the asset's virtual node.
-            # A missing node means the asset could not be projected
-            # onto the walking network, so it cannot participate in
-            # any Huff pool.
             node_id = nodes[0]["node"] if nodes else None
             if node_id is None:
                 continue
+
+            # Calculate vitality based on current simulated occupancy
+            _cur_occ = occupancy_prev.get(aid, 0.85)
+            _vitality = max(0.1, min(1.0, _cur_occ))
 
             if eff_mix is not None:
                 # Phase B.2c — rebuild supply nodes from the
@@ -1096,7 +1097,7 @@ def simulate_scenario(
                     year_supply_nodes.append({
                         "asset_id": aid,
                         "node": node_id,
-                        "attractiveness": area,
+                        "attractiveness": area * _vitality,
                         "subtype": st,
                     })
             else:
@@ -1105,9 +1106,7 @@ def simulate_scenario(
                 year_supply_nodes.append({
                     "asset_id": aid,
                     "node": node_id,
-                    "attractiveness": float(
-                        eff.get("lettable_area_m2") or 0.0
-                    ),
+                    "attractiveness": float(eff.get("lettable_area_m2") or 0.0) * _vitality,
                     "subtype": eff_subtype,
                 })
 

@@ -193,7 +193,14 @@ def compute_derived_metrics(
             gamma=assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3),
             cfg=walking_cfg,
         )
-        supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
+        # Get the base year metrics
+        base_year_metrics = business["asset_metrics"]
+        if "year" in base_year_metrics.columns:
+            base_year_metrics = base_year_metrics[base_year_metrics["year"] == year]
+            
+        supply_nodes_huff = _build_huff_supply_nodes(
+            business["assets"], walking_pipeline, base_year_metrics
+        )
         demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
         
         # Enrich the pipeline with fields B4 expects.
@@ -510,23 +517,19 @@ def _build_huff_demand_nodes(walking_pipeline) -> list:
     return nodes
 
 
-def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
+def _build_huff_supply_nodes(assets_df, walking_pipeline, asset_metrics_df=None) -> list:
     """
     Supply nodes expand per-subtype for mixed-use commercial assets.
-
-    A mall with a unit_mix {"supermarket": ..., "f_and_b": ...}
-    enters each subtype's Huff pool with that subtype's own area as
-    attractiveness. A single-subtype shop enters one pool with its
-    whole lettable area.
-
-    Phase B.2 fix — previously every commercial asset entered
-    exactly one pool keyed by its primary subtype. A mall's F&B
-    floor competed as if it were medical_retail; its supermarket as
-    if it were the primary subtype. The per-subtype DSR and per-
-    subtype demand that B.2 emits could therefore only ever show
-    one subtype. Fixing the supply-node builder makes the whole
-    per-subtype pipeline coherent.
+    Introduces a 'dead supply discount' for highly vacant assets.
     """
+    # Build occupancy lookup map
+    occ_map = {}
+    if asset_metrics_df is not None and not asset_metrics_df.empty:
+        for _, row in asset_metrics_df.iterrows():
+            occ = row.get("occupancy_rate")
+            if pd.notna(occ):
+                occ_map[str(row["asset_id"])] = float(occ)
+                
     nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
@@ -535,6 +538,10 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
         entry = walking_pipeline["asset_entries"].get(aid)
         if entry is None:
             continue
+        
+        # Apply discount: 0% occupancy = 10% attractiveness, 100% = 100%
+        occ = occ_map.get(aid, 0.85) 
+        vitality = max(0.1, min(1.0, occ))
 
         mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
         if mix:
@@ -545,17 +552,15 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline) -> list:
                 nodes.append({
                     "asset_id": aid,
                     "node": entry["virtual_node"],
-                    "attractiveness": area,
+                    "attractiveness": area * vitality,
                     "subtype": st,
                 })
         else:
-            subtype = asset.get("subtype") or default_subtype_for(
-                asset.get("asset_type"),
-            )
+            subtype = asset.get("subtype") or default_subtype_for(asset.get("asset_type"))
             nodes.append({
                 "asset_id": aid,
                 "node": entry["virtual_node"],
-                "attractiveness": float(asset.get("lettable_area_m2") or 0.0),
+                "attractiveness": float(asset.get("lettable_area_m2") or 0.0) * vitality,
                 "subtype": subtype,
             })
     return nodes
