@@ -428,6 +428,7 @@ export default function App() {
           ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
           ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
           threeRef.current?.setBuildings(buildingsRef.current)       
+          threeRef.current?.setParks(areaRef.current)        
         }
       })
       .catch((e) => setError(e.message))
@@ -478,13 +479,13 @@ export default function App() {
         ? { anchor: 'map', color: '#f4f0ec', intensity: 0.4, position: [1.2, 240, 40] }
         : { anchor: 'viewport', color: '#ffffff', intensity: 0.42, position: [1.4, 200, 28] })
 
-      map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': STATUS_PAINT as never, 'fill-opacity': 0.35 } })
-      if (REALISTIC) {
+      map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': STATUS_PAINT as never, 'fill-opacity': ['case', ['==', ['slice', ['get', 'id'], 0, 2], 'G-'], REALISTIC ? 0 : 0.35, 0.35] as never } })
+        if (REALISTIC) {
         map.addLayer({
           id: 'assets-contact-shadow', type: 'line', source: 'assets',
           paint: {
             'line-color': '#000000',
-            'line-opacity': 0.45,
+            'line-opacity': 0,
             'line-width': ['interpolate', ['linear'], ['zoom'], 14, 3, 18, 14] as never,
             'line-blur': ['interpolate', ['linear'], ['zoom'], 14, 2, 18, 8] as never,
           },
@@ -502,7 +503,7 @@ export default function App() {
             id, type: 'fill', source: 'assets', filter: filter as never,
             paint: {
               'fill-color': '#120c11',
-              'fill-opacity': 0.38,
+              'fill-opacity': 0.38 * 0,
               'fill-translate-anchor': 'map',
               'fill-translate': ['interpolate', ['exponential', 2], ['zoom'],
                 14, ['literal', z14], 18, ['literal', z18]] as never,
@@ -534,6 +535,7 @@ export default function App() {
       if (REALISTIC) {
         threeRef.current = createThreeLayer([101.528, 3.112])
         map.addLayer(threeRef.current.layer)
+        map.addLayer({ id: 'area-outline', type: 'line', source: 'area', paint: { 'line-color': STATUS_PAINT as never, 'line-width': 1, 'line-opacity': 0.35, 'line-blur': 0.5 } })
       }
       map.addLayer({ id: 'points-dot', type: 'circle', source: 'points', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never, 'circle-color': STATUS_PAINT as never, 'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(0,0,0,.55)' } })
 
@@ -733,6 +735,12 @@ export default function App() {
       map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
     }    map.setPaintProperty('area-fill', 'fill-color', expr as never)
     map.setPaintProperty('points-dot', 'circle-color', expr as never)
+    if (REALISTIC) {
+      const isSel = ['in', ['get', 'id'], ['literal', selectedIds]]
+      map.setPaintProperty('area-outline', 'line-color', expr as never)
+      map.setPaintProperty('area-outline', 'line-width', ['case', isSel, 3, 1] as never)
+      map.setPaintProperty('area-outline', 'line-opacity', ['case', isSel, 1, 0.35] as never)
+    }  
   }, [selectedIds, previewing, assets, mapReady])
 
   useEffect(() => {
