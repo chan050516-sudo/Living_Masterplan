@@ -9,6 +9,7 @@ Phase 2 changes:
 
 import json
 import logging
+import pickle
 from pathlib import Path
 
 import geopandas as gpd
@@ -25,6 +26,7 @@ from .network_graph import (
     build_graph_by_mode,
     find_entry_point,
     insert_all_entries,
+    extract_nodes,
 )
 from .accessibility import (
     compute_distance_matrix,
@@ -63,6 +65,8 @@ def compute_derived_metrics(
     year: int = 2026,
     years: list = None,
     network_override=None,
+    _shared_cache: dict = None,
+    _cache_key: str = None,
 ) -> pd.DataFrame:
     """
     Compute derived metrics for every asset at every requested year.
@@ -143,36 +147,86 @@ def compute_derived_metrics(
     walking_cfg = mode_configs.get("walking", {})
     driving_cfg = mode_configs.get("driving", {})
 
-    # Walking may use an override network (e.g. after a spatial
-    # intervention). Driving always uses the original layer.
     base_network = geometry["network"]["analysis"]
     walking_network = network_override if network_override is not None else base_network
 
-    walking_pipeline = _prepare_mode_pipeline(
-        mode="walking",
-        network_gdf=walking_network,
-        assets_df=business["assets"],
-        parcels_gdf=geometry["parcels"]["analysis"],
-        pop_gdf=pop_analysis,
-        gamma=assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3),
-        cfg=walking_cfg,
+    # Phase A: Pipeline caching.
+    # B3 computes the full walking graph + all-pairs Dijkstra once per
+    # network version. B4 reads this cache directly, eliminating the
+    # 10-15s duplicate graph build / Dijkstra run.
+    walk_key = f"{_cache_key or 'base'}_walking"
+    drv_key = "base_driving"  # Driving network never changes.
+
+    pipelines = (
+        _shared_cache.setdefault("pipelines", {})
+        if _shared_cache is not None else {}
     )
-    driving_pipeline = _prepare_mode_pipeline(
-        mode="driving",
-        network_gdf=base_network,
-        assets_df=business["assets"],
-        parcels_gdf=geometry["parcels"]["analysis"],
-        pop_gdf=pop_analysis,
-        gamma=0.0,
-        cfg=driving_cfg,
-    )
+
+    # Fast path: load baked pickle from disk if available.
+    cache_dir = repo_root / paths["base"] / "cache"
+    walk_pkl = cache_dir / "walking_pipeline_base.pkl"
+    drive_pkl = cache_dir / "driving_pipeline_base.pkl"
+
+    if walk_key in pipelines:
+        log.info("B3: Reusing in-memory pipeline for %s", walk_key)
+        walking_pipeline = pipelines[walk_key]
+        supply_nodes_huff = walking_pipeline["supply_nodes"]
+        demand_nodes_huff = walking_pipeline["demand_nodes"]
+    elif walk_key == "base_walking" and walk_pkl.exists():
+        log.info("B3: Loading baked walking pipeline from %s", walk_pkl)
+        with open(walk_pkl, "rb") as f:
+            walking_pipeline = pickle.load(f)
+        supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
+        demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
+        walking_pipeline["supply_nodes"] = supply_nodes_huff
+        walking_pipeline["demand_nodes"] = demand_nodes_huff
+        if _shared_cache is not None:
+            pipelines[walk_key] = walking_pipeline
+    else:
+        log.info("B3: Building walking pipeline for %s (first run)", walk_key)
+        walking_pipeline = _prepare_mode_pipeline(
+            mode="walking",
+            network_gdf=walking_network,
+            assets_df=business["assets"],
+            parcels_gdf=geometry["parcels"]["analysis"],
+            pop_gdf=pop_analysis,
+            gamma=assumptions.get("accessibility", {}).get("canopy_impedance_gamma", 0.3),
+            cfg=walking_cfg,
+        )
+        supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
+        demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
+        
+        # Enrich the pipeline with fields B4 expects.
+        walking_pipeline["supply_nodes"] = supply_nodes_huff
+        walking_pipeline["demand_nodes"] = demand_nodes_huff
+        walking_pipeline["nodes_gdf"] = extract_nodes(walking_network)
+        
+        if _shared_cache is not None:
+            pipelines[walk_key] = walking_pipeline
+
+    if drv_key in pipelines:
+        driving_pipeline = pipelines[drv_key]
+    elif drive_pkl.exists():
+        log.info("B3: Loading baked driving pipeline from %s", drive_pkl)
+        with open(drive_pkl, "rb") as f:
+            driving_pipeline = pickle.load(f)
+        if _shared_cache is not None:
+            pipelines[drv_key] = driving_pipeline
+    else:
+        log.info("B3: Building driving pipeline (first run)")
+        driving_pipeline = _prepare_mode_pipeline(
+            mode="driving",
+            network_gdf=base_network,
+            assets_df=business["assets"],
+            parcels_gdf=geometry["parcels"]["analysis"],
+            pop_gdf=pop_analysis,
+            gamma=0.0,
+            cfg=driving_cfg,
+        )
+        if _shared_cache is not None:
+            pipelines[drv_key] = driving_pipeline
 
     # --- Huff per subtype (computed once, reused across all years) ---
-    supply_nodes_huff = _build_huff_supply_nodes(
-        business["assets"], walking_pipeline,
-    )
-    demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
-
     huff_by_asset_subtype = huff_by_subtype_per_asset(
         walking_pipeline["distance_matrix"],
         demand_nodes_huff,

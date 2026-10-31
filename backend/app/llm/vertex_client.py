@@ -185,6 +185,7 @@ class VertexGeminiClient:
                 config=config,
             )
         except Exception as e:
+            log.error("Stage 2 API call failed: %s", e)
             raise
 
         log.info("Stage 2: returned in %.2fs", _time.time() - t0)

@@ -210,23 +210,29 @@ async def get_map_geometry(
     """
     paths = load_paths()
 
+    # Resolve scenario_id from run_id if present
+    scenario_id = "SC-CURRENT"
+    run_data = None
+    # Overlay LLM intervention status if run_id is provided
+    if run_data:
+        for asset in (
+            run_data.get("frontend", {}).get("assets_analysis", [])
+        ):
+            ds_dict[asset["asset_id"]] = "intervened"
+
     # ---- 1. Load the year's deadspace records ----
     if year == 2026:
         ds_path = BASE_DIR / "business" / "deadspace_2026.json"
     else:
-        # The year selector defaults to the baseline scenario. A
-        # future scenario picker would pass scenario_id as a query
-        # parameter; the filename is already shaped for that.
         ds_path = (
             BASE_DIR / "business" / "scenarios"
-            / f"deadspace_SC-CURRENT_{year}.json"
+            / f"deadspace_{scenario_id}_{year}.json"
         )
         if not ds_path.exists():
-            log.warning(
-                "No deadspace records for year %d at %s; falling back "
-                "to the 2026 baseline. Run run_phase4.py to generate.",
-                year, ds_path,
-            )
+            # Fallback to baseline if the candidate file isn't generated
+            log.warning("No deadspace records for %s year %d; using SC-CURRENT.", scenario_id, year)
+            ds_path = BASE_DIR / "business" / "scenarios" / f"deadspace_SC-CURRENT_{year}.json"
+        if not ds_path.exists():
             ds_path = BASE_DIR / "business" / "deadspace_2026.json"
 
     ds_dict = {}
@@ -272,9 +278,13 @@ async def get_map_geometry(
         for asset_id, metrics in thermal.items()
     }
     if year != 2026:
+        # Read the metrics for the specific scenario that produced this run_id
         sc_path = (
-            BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
+            BASE_DIR / "business" / "scenarios" / f"{scenario_id}.json"
         )
+        if not sc_path.exists():
+            sc_path = BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
+            
         if sc_path.exists():
             with open(sc_path, "r", encoding="utf-8") as f:
                 sc_data = json.load(f)
