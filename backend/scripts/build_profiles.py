@@ -26,6 +26,42 @@ def _parse_json(raw):
     except:
         return None
 
+def _calculate_apparent_temp(lst_celsius, asset_type):
+    """
+    Convert LST to Apparent Temperature using LCZ-based aerodynamic damping,
+    calibrated for tropical Malaysia (noontime humidity and baseline Ta).
+    """
+    if lst_celsius is None or pd.isna(lst_celsius):
+        return None
+        
+    BASE_TA = 32.0 
+    
+    # 1. Stratified Aerodynamic Damping based on Local Climate Zones (LCZ)
+    if asset_type in ['commercial', 'industrial', 'infrastructure']:
+        damping = 0.25
+        rh = 0.58
+    elif asset_type in ['residential', 'community_facility', 'mixed_use', 'religious', 'education', 'facility']:
+        damping = 0.35
+        rh = 0.60
+    elif asset_type in ['green_space', 'undeveloped_parcel']:
+        damping = 0.70
+        rh = 0.65
+    else:
+        damping = 0.30
+        rh = 0.60
+
+    # 2. Estimate 1.5m Air Temperature (Ta)
+    ta = BASE_TA + (lst_celsius - BASE_TA) * damping
+
+    # 3. Calculate Vapour Pressure (e) using WMO standard Magnus-Tetens formula
+    e = rh * 6.105 * math.exp((17.27 * ta) / (237.7 + ta))
+    
+    # 4. Steadman Apparent Temperature (BOM standard)
+    wind_speed = 1.5  # m/s
+    at = ta + (0.33 * e) - (0.70 * wind_speed) - 4.00
+    
+    return round(at, 2)
+
 def build_profiles(year=2026):
     print("Loading data sources...")
     assets = pd.read_csv(BASE_DIR / "assets.csv")
@@ -46,6 +82,7 @@ def build_profiles(year=2026):
     
     for _, a in assets.iterrows():
         aid = a["asset_id"]
+        atype = a.get("asset_type")
         
         # Get metrics for this year
         m_df = metrics_yr[metrics_yr["asset_id"] == aid]
@@ -99,7 +136,6 @@ def build_profiles(year=2026):
             for st, info in unit_mix.items():
                 area = _safe_float(info.get("area_m2"))
                 occ = _safe_float(occ_by_subtype.get(st))
-                # Estimate allocated carbon/NOI by area ratio
                 total_mix_area = sum(float(v.get("area_m2", 0)) for v in unit_mix.values())
                 ratio = area / total_mix_area if total_mix_area > 0 else 0
                 
@@ -118,7 +154,7 @@ def build_profiles(year=2026):
             "identity": {
                 "asset_id": aid,
                 "asset_name": a.get("asset_name"),
-                "asset_type": a.get("asset_type"),
+                "asset_type": atype,
                 "subtype": a.get("subtype"),
                 "land_use": a.get("land_use"),
                 "status": a.get("status"),
@@ -168,6 +204,7 @@ def build_profiles(year=2026):
                 "t_asset_c": _safe_float(thermal.get("t_asset_c"), 2),
                 "t_township_c": _safe_float(thermal.get("t_township_c"), 2),
                 "surface_temp_delta_c": _safe_float(thermal.get("surface_temp_delta_c"), 2),
+                "apparent_temp_c": _calculate_apparent_temp(thermal.get("t_asset_c"), atype),
                 "surface_temp_provenance": thermal.get("surface_temp_provenance"),
                 "surface_temp_collection_id": thermal.get("surface_temp_collection_id"),
                 "surface_temp_band": thermal.get("surface_temp_band"),
@@ -189,10 +226,8 @@ def build_profiles(year=2026):
             },
             "deadspace_diagnosis": {
                 "status": ds.get("status", "healthy"),
-                "flags": [
-                    flag for flag in ds.get("flags", [])
-                    if flag not in ("high_uhi_exposure", "uhi_data_anomaly")
-                ],
+                # Keep all flags (removed the previous UHI filter)
+                "flags": ds.get("flags", []),
                 "urgency_index": _safe_float(ds.get("urgency_index"), 1),
                 "contributing_factors": ds.get("contributing_factors", []),
                 "evidence": evidence

@@ -41,6 +41,19 @@ Our local regression results are strongly supported by recent regional and globa
 *   **Southeast Asian Context:** A 2025 study in Malang, Indonesia, showed similar cooling magnitudes (0.1°C to 0.3°C reduction per 10% vegetation increase).
 *   **Note on Metrics:** These studies (and ours) measure *Land Surface Temperature (LST)*, not *Air Temperature*. Global meta-analyses (e.g., McDonald et al., 2025) show a 0.17°C air temperature drop per 10% canopy, meaning our LST-derived coefficient is conservative and scientifically defensible.
 
+### 3.2 LCZ-Based Apparent Temperature Translation
+
+To translate the physical LST reduction into actionable human-comfort metrics, we implement a Local Climate Zone (LCZ)-based aerodynamic damping model to estimate Apparent Temperature (AT). 
+
+*   **The Physical Problem:** A single linear constant (e.g., Ta = LST - 5°C) fails physically. High-albedo commercial roofs reach extreme LST, but their heat is rapidly advected by wind, resulting in lower near-surface air temperatures (Ta). Conversely, vegetated surfaces have strong latent heat fluxes, making LST and Ta tightly coupled.
+*   **Aerodynamic Damping (Heuristic based on Stewart & Oke 2012):** We stratify the LST-to-Ta translation by asset type:
+    *   **Commercial/Industrial (LCZ 1-3):** Damping factor 0.25. High thermal mass but strong turbulent mixing.
+    *   **Residential/Facilities:** Damping factor 0.35.
+    *   **Green Space/Undeveloped:** Damping factor 0.70. Strong evapotranspiration coupling.
+*   **Noontime Meteorological Parameters:** Overpass time (10:00-11:00) sees a diurnal RH trough. We apply realistic noontime relative humidity (58%-65%) rather than the morning average (80%).
+*   **Mathematical Formula:** We use the WMO standard Magnus-Tetens equation for vapour pressure (\(e\)) and the Australian BoM Steadman model for AT (\(AT = Ta + 0.33e - 0.70v - 4.00\)). 
+*   **Result:** Extreme commercial LST (43.7°C) translates to a realistic noontime Ta of 34.9°C and a Perceived Temperature of ~40.5°C (Heat Wave Level 1 warning threshold), preventing the unrealistic "51°C" output caused by using morning humidity with noontime surface heat. 
+
 ## 4. B6 Diagnostic Fix: Restoring the UHI Flag
 
 The previous `high_uhi_exposure` threshold was set to `7.0°C`, which was calibrated for the old synthetic proxy model. Since the observed Landsat maximum ΔT is 4.36°C, the threshold was mathematically incapable of triggering (0 assets flagged).

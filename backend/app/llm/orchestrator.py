@@ -28,6 +28,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+import math
 
 import pandas as pd
 
@@ -73,6 +74,55 @@ _NEW_BUILD_CAPEX_RM_PER_M2 = {
     "undeveloped_parcel":    0.0,
 }
 
+def _lst_to_apparent_temp(lst_celsius, asset_type, wind_speed_ms=1.5):
+    """
+    Convert Land Surface Temperature (LST) to Apparent Temperature (AT) 
+    using LCZ-based aerodynamic damping, calibrated for tropical Malaysia.
+    """
+    if lst_celsius is None or pd.isna(lst_celsius):
+        return None
+        
+    BASE_TA = 32.0 
+    
+    # 1. Stratified Aerodynamic Damping based on Local Climate Zones (LCZ)
+    if asset_type in ['commercial', 'industrial', 'infrastructure']:
+        damping = 0.25
+        rh = 0.58
+    elif asset_type in ['residential', 'community_facility', 'mixed_use', 'religious', 'education', 'facility']:
+        damping = 0.35
+        rh = 0.60
+    elif asset_type in ['green_space', 'undeveloped_parcel']:
+        damping = 0.70
+        rh = 0.65
+    else:
+        damping = 0.30
+        rh = 0.60
+
+    # 2. Estimate 1.5m Air Temperature (Ta)
+    ta = BASE_TA + (lst_celsius - BASE_TA) * damping
+
+    # 3. Calculate Vapour Pressure (e) using WMO standard Magnus-Tetens formula
+    e = rh * 6.105 * math.exp((17.27 * ta) / (237.7 + ta))
+    
+    # 4. Steadman Apparent Temperature (BOM standard)
+    at = ta + (0.33 * e) - (0.70 * wind_speed_ms) - 4.00
+    
+    return round(at, 2)
+
+
+def _get_baseline_lst(repo_root: Path) -> float:
+    """Dynamically read the true township baseline LST from the thermal obs file."""
+    default_baseline = 39.33
+    try:
+        base_dir = Path(__file__).resolve().parents[3] / "bukit_jelutong" / "processed" / "business"
+        thermal_path = base_dir / "thermal_observations.csv"
+        if thermal_path.exists():
+            df = pd.read_csv(thermal_path)
+            if "t_township_c" in df.columns and not df["t_township_c"].dropna().empty:
+                return float(df["t_township_c"].dropna().iloc[0])
+    except Exception:
+        pass
+    return default_baseline
 
 # ------------------------------------------------------------------
 # Public entry points
@@ -943,6 +993,22 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                 pass
 
         # --- 3. Assemble Summary Card ---
+        baseline_lst = _get_baseline_lst()
+        base_lst_delta = _get(base_final_state, "surface_temp_delta_c", default=None)
+        intv_lst_delta = _get(final_state, "surface_temp_delta_c", default=None)
+        
+        # Get the effective asset type for LCZ damping logic
+        effective_atype = final_state.get("_effective_asset_type", "commercial")
+        
+        base_at = _lst_to_apparent_temp(
+            baseline_lst + base_lst_delta if base_lst_delta is not None else None, 
+            effective_atype
+        )
+        intv_at = _lst_to_apparent_temp(
+            baseline_lst + intv_lst_delta if intv_lst_delta is not None else None, 
+            effective_atype
+        )
+
         card = {
             "financial": {
                 "main_metric": {
@@ -994,7 +1060,13 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                         "baseline": _get(base_final_state, "surface_temp_delta_c"),
                         "intervention": _get(final_state, "surface_temp_delta_c"),
                         "unit": "°C"
-                    }
+                    },
+                    {
+                        "label": "Perceived Temp (AT)",
+                        "baseline": base_at,
+                        "intervention": intv_at,
+                        "unit": "°C"
+                    },
                 ],
                 "counterfactual": {
                     "embodied_if_new_build_tco2e": round(carbon_new_build, 1),
