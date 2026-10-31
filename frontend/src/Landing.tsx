@@ -69,6 +69,12 @@ const RULES = [
   'If a claimed benefit does not appear in the simulation, the claim is downgraded automatically.',
 ]
 
+const BRING_YOUR_OWN = [
+  { name: 'Connect your data', text: 'Add the township’s buildings, leases and occupancy in the standard format.' },
+  { name: 'Run the analysis', text: 'The same rules and models find what needs attention.' },
+  { name: 'Compare the plans', text: 'Test reuse, improve and build options before committing capital.' },
+]
+
 const IMPACT = [
   { who: 'Planet', text: 'Keeps embodied carbon in existing structures, reduces material extraction and finds carbon wasted on unused space.' },
   { who: 'SDP', text: 'Compares reuse, improve and build options before capital is committed, with the reasoning written down.' },
@@ -225,8 +231,8 @@ export function Landing() {
           <p className="lp-eyebrow rise">Township of Tomorrow Hackathon 2026 · Planet track</p>
           <h1 className="rise">Don’t just build greener. <em>Build only what the future still needs.</em></h1>
           <p className="lp-lede rise">
-            Living Masterplan finds township assets that have stopped giving value back, then tests
-            whether to reuse, improve or build, five years ahead, before anyone adds new carbon.
+            Works for any township. Connect your own data, find the assets that have stopped giving
+            value back, then test whether to reuse, improve or build, five years ahead.
           </p>
           <div className="lp-hero-actions rise">
             <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
@@ -234,7 +240,7 @@ export function Landing() {
           </div>
         </div>
         <figure className="lp-hero-map">
-          <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of Bukit Jelutong, with deadspace candidates highlighted in orange and assets to watch in pale grey." />
+          <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of the example township, Bukit Jelutong, with deadspace candidates highlighted in orange and assets to watch in pale grey." />
         </figure>
         <p className="lp-legend">
           <span><i className="ok" />Healthy</span>
@@ -249,7 +255,7 @@ export function Landing() {
               <span>{s.label}</span>
             </div>
           ))}
-          <p>Bukit Jelutong prototype. Building shapes and roads are real; business data is simulated.</p>
+          <p>Example township: Bukit Jelutong. Building shapes and roads are real; business data is simulated.</p>
         </div>
       </header>
 
@@ -339,6 +345,21 @@ export function Landing() {
         </section>
 
         <section className="lp-section">
+          <p className="lp-kicker">Any township</p>
+          <h2>Any township. Your data. Tested on Bukit Jelutong.</h2>
+          <p className="lp-body">There is no fixed database. Each township or project connects its own data through one standard format, without rebuilding the system.</p>
+          <ol className="lp-byo rv">
+            {BRING_YOUR_OWN.map((b, i) => (
+              <li key={b.name}>
+                <span>{i + 1}</span>
+                <h3>{b.name}</h3>
+                <p>{b.text}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="lp-section">
           <p className="lp-kicker">Impact</p>
           <h2>One decision, three kinds of value</h2>
           <div className="lp-impact rv">
@@ -361,7 +382,7 @@ export function Landing() {
             </p>
             <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
           </div>
-          <img src="/landing/app-screenshot.jpg" width="1600" height="900" alt="Living Masterplan app showing a 3D map of Bukit Jelutong beside a list of flagged assets." />
+          <img src="/landing/app-screenshot.jpg" width="1600" height="900" alt="Living Masterplan app showing a 3D map of the example township, Bukit Jelutong, beside a list of flagged assets." />
         </section>
 
         <section className="lp-section lp-tinted" id="references">
@@ -378,7 +399,8 @@ export function Landing() {
             </ol>
             <p className="lp-note">
               <b>About the data:</b> occupancy, leases and finances in this prototype are simulated for
-              Bukit Jelutong. A pilot would connect the township’s own database through the same format.
+              the example township, Bukit Jelutong. Any township or project can connect its own data
+              through the same format.
             </p>
           </div>
         </section>

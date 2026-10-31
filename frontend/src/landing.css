@@ -161,6 +161,12 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lp-tiers b { color: var(--night-text); font-weight: 600; }
 .lp-rules li { padding: 13px 0; border-top: 1px solid #473b46; font-size: 15.5px; }
 
+/* any township */
+.lp-byo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 3vw, 36px); margin-top: 34px; }
+.lp-byo li { padding: 24px; background: #fffefd; border: 1px solid var(--line); border-radius: 16px; }
+.lp-byo span { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 14px; border-radius: 50%; background: var(--orange); color: #1a1419; font-size: 15px; font-weight: 700; }
+.lp-byo p { margin-top: 6px; font-size: 15.5px; }
+
 /* impact */
 .lp-impact { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(24px, 4vw, 48px); margin-top: 34px; }
 .lp-impact article { border-top: 3px solid var(--ink); padding-top: 16px; }
@@ -197,7 +203,7 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
   .lp-hero-text { margin-top: 38svh; margin-bottom: 0; }
   .lp-hero-map { top: 2%; left: 10%; right: 10%; width: 80%; }
   .lp-story-head, .lp-steps { max-width: none; }
-  .lp-impact { grid-template-columns: minmax(0, 1fr); }
+  .lp-impact, .lp-byo { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
   .lp { font-size: 16px; }
