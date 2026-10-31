@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import * as maplibregl from 'maplibre-gl'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import type { FeatureCollection, Position } from 'geojson'
 
 const STATUS_HEX: Record<string, string> = {
@@ -19,9 +20,19 @@ const EDGE_COLOUR = '#140e13'
 const EDGE_OPACITY = 0.45
 
 // Towers (glass curtain wall)
-const TOWER_MIN_H = 25   // metres; taller than this gets the glass facade
+const TOWER_MIN_H = 12   // metres; taller than this gets the glass facade
 const FIN_SPACING = 1.6  // metres between vertical fins
 const FLOOR_H = 3.5      // metres per floor (slab lines)
+
+// Hero asset (single selected building gets swapped for a detailed version)
+// Set to e.g. '/models/retrofit.glb' (file in frontend/public/models) to load a real model.
+const HERO_MODEL_URL: string | null = null
+const PANEL_MODEL_URL = '/models/solar_panel.glb'
+const PANEL_LENGTH = 5.0 // metres, long side of one panel
+const ROW_GAP = 1.2       // walkway between rows
+const COL_GAP = 0.3       // gap between panels in a row
+const SETBACK = 1.2       // distance kept from the roof edge
+const MAX_PANELS = 300
 
 // Parks
 const GRASS = '#355e3b'
@@ -32,7 +43,14 @@ const MAX_TREES = 8000
 // Water
 const WATER = '#0d5560'
 
-type Cached = { id: string; status: string; tall: boolean; geos: THREE.BufferGeometry[] }
+type Cached = {
+  id: string
+  status: string
+  tall: boolean
+  height: number
+  polys: Position[][][]
+  geos: THREE.BufferGeometry[]
+}
 
 // Dusk gradient that water and glass reflect, matching the map sky.
 function makeSkyEnv() {
@@ -61,13 +79,13 @@ function pointInRing(x: number, y: number, ring: THREE.Vector2[]): boolean {
   return inside
 }
 
+// Disposes everything inside a group, including loaded .glb models.
 function disposeGroup(group: THREE.Group) {
-  for (const child of group.children) {
-    const mesh = child as THREE.Mesh
-    mesh.geometry.dispose()
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material]
-    mats.forEach((m) => m.dispose())
-  }
+  group.traverse((o) => {
+    const m = o as THREE.Mesh
+    if (m.geometry) m.geometry.dispose()
+    if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach((x) => x.dispose())
+  })
   group.clear()
 }
 
@@ -96,7 +114,6 @@ function makeTowerMaterial(colour: string, env: THREE.Texture): THREE.MeshStanda
       .replace('#include <common>', `#include <common>
         varying vec2 vFacadeUv;
         varying float vFacadeUp;
-        // 1.0 on fins and floor slabs, 0.0 on glass.
         float facadeFrame() {
           float b = fract(vFacadeUv.x / ${FIN_SPACING.toFixed(2)});
           float fin = 1.0 - smoothstep(0.0, 0.07, b) * (1.0 - smoothstep(0.93, 1.0, b));
@@ -138,9 +155,51 @@ export function createThreeLayer(origin: [number, number]) {
   const parks = new THREE.Group()
   const water = new THREE.Group()
   const edges = new THREE.Group()
-  scene.add(buildings, parks, water, edges)
+  const hero = new THREE.Group()
+  scene.add(buildings, parks, water, edges, hero)
 
   const skyEnv = makeSkyEnv()
+  const gltfLoader = new GLTFLoader()
+
+  // Solar panel model, loaded once, normalised to PANEL_LENGTH, base at y=0, long side along X.
+  type PanelPart = { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; matrix: THREE.Matrix4 }
+  let panelParts: PanelPart[] | null = null
+  let panelSize = { w: PANEL_LENGTH, d: 1.0 }
+
+  function loadPanelTemplate() {
+    gltfLoader.load(PANEL_MODEL_URL, (gltf) => {
+      const root = gltf.scene
+      root.updateMatrixWorld(true)
+      const box = new THREE.Box3().setFromObject(root)
+      const size = box.getSize(new THREE.Vector3())
+      const centre = box.getCenter(new THREE.Vector3())
+      const turn = size.z > size.x
+      const long = Math.max(size.x, size.z)
+      const short = Math.min(size.x, size.z)
+      const s = PANEL_LENGTH / long
+
+      const norm = new THREE.Matrix4().makeScale(s, s, s)
+        .multiply(new THREE.Matrix4().makeRotationY(turn ? Math.PI / 2 : 0))
+        .multiply(new THREE.Matrix4().makeTranslation(-centre.x, -box.min.y, -centre.z))
+
+      const parts: PanelPart[] = []
+      root.traverse((o) => {
+        const m = o as THREE.Mesh
+        if (!m.isMesh) return
+        const mats = Array.isArray(m.material) ? m.material : [m.material]
+        mats.forEach((mat) => {
+          if ((mat as THREE.MeshStandardMaterial).isMeshStandardMaterial) {
+            ;(mat as THREE.MeshStandardMaterial).envMap = skyEnv
+            ;(mat as THREE.MeshStandardMaterial).envMapIntensity = 1.2
+          }
+        })
+        parts.push({ geometry: m.geometry, material: m.material, matrix: norm.clone().multiply(m.matrixWorld) })
+      })
+      panelParts = parts
+      panelSize = { w: PANEL_LENGTH, d: short * s }
+      updateHero()
+    }, undefined, (err) => console.warn('[three] solar panel model failed to load', err))
+  }
 
   // Lighting: cool sky fill + warm sun that casts shadows.
   scene.add(new THREE.HemisphereLight('#b9c6e6', '#2b212a', 0.9))
@@ -164,6 +223,7 @@ export function createThreeLayer(origin: [number, number]) {
   let cache: Cached[] = []
   let selected = new Set<string>()
   let selectedColour = '#2196f3'
+  let heroId: string | null = null
 
   function toShapePoint(p: Position): THREE.Vector2 {
     const m = maplibregl.MercatorCoordinate.fromLngLat([p[0], p[1]], 0)
@@ -189,7 +249,6 @@ export function createThreeLayer(origin: [number, number]) {
     return g?.type === 'Polygon' ? [g.coordinates] : g?.type === 'MultiPolygon' ? g.coordinates : []
   }
 
-  // Flat surface lying on the ground at height y.
   function flatGeometry(shape: THREE.Shape, y: number): THREE.BufferGeometry {
     const geo = new THREE.ShapeGeometry(shape)
     geo.rotateX(-Math.PI / 2)
@@ -205,7 +264,6 @@ export function createThreeLayer(origin: [number, number]) {
     const nrm = geo.getAttribute('normal')
     const colors = new Float32Array(pos.count * 3)
     for (let i = 0; i < pos.count; i++) {
-      // Roof faces point straight up: give them a brighter, sunlit shade.
       const isRoof = nrm.getY(i) > 0.9
       const t = Math.min(1, Math.max(0, pos.getY(i) / height))
       const s = isRoof ? ROOF_SHADE : BASE_SHADE + (TOP_SHADE - BASE_SHADE) * Math.pow(t, 0.7)
@@ -218,7 +276,6 @@ export function createThreeLayer(origin: [number, number]) {
     const shape = shapeOf(rings)
     if (!shape) return null
     const geo = new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: false })
-    // Extrude's wall UVs are already in metres (along wall, up wall): keep a copy for the facade shader.
     geo.setAttribute('facadeUv', geo.getAttribute('uv').clone())
     geo.rotateX(-Math.PI / 2)
     geo.clearGroups()
@@ -230,6 +287,7 @@ export function createThreeLayer(origin: [number, number]) {
     disposeGroup(buildings)
     const groups: Record<string, THREE.BufferGeometry[]> = {}
     for (const c of cache) {
+      if (c.id === heroId) continue // drawn by the hero group instead
       const key = selected.has(c.id) ? '__selected' : c.status + (c.tall ? '|tower' : '')
       ;(groups[key] ??= []).push(...c.geos)
     }
@@ -277,6 +335,123 @@ export function createThreeLayer(origin: [number, number]) {
     ground.scale.set(r * 2, 1, r * 2)
   }
 
+  // ---------- Hero asset ----------
+
+  // Footprint bounds in scene metres (x, z) across all polygons of the building.
+  function footprintBox(c: Cached) {
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity
+    for (const rings of c.polys) for (const p of ringToPoints(rings[0])) {
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x)
+      minZ = Math.min(minZ, -p.y); maxZ = Math.max(maxZ, -p.y)
+    }
+    return { minX, maxX, minZ, maxZ }
+  }
+
+  // Built-in placeholder: the building itself, plus a green roof and a solar array on top.
+  function buildPlaceholderHero(c: Cached) {
+    const body = mergeGeometries(c.geos)
+    if (body) {
+      const mesh = new THREE.Mesh(body, new THREE.MeshStandardMaterial({
+        color: selectedColour, vertexColors: true, roughness: 0.6, metalness: 0.1,
+        emissive: selectedColour, emissiveIntensity: 0.2,
+      }))
+      mesh.castShadow = true
+      mesh.receiveShadow = true
+      hero.add(mesh)
+    }
+
+    const roofY = c.height + 0.15
+    const spots: Array<{ x: number; z: number; yaw: number }> = []
+
+    for (const rings of c.polys) {
+      const shape = shapeOf(rings)
+      if (!shape) continue
+
+      // Align rows with the building's longest wall.
+      const outer = ringToPoints(rings[0])
+      let theta = 0, best = 0
+      for (let i = 0; i < outer.length; i++) {
+        const a = outer[i], b = outer[(i + 1) % outer.length]
+        const len = a.distanceTo(b)
+        if (len > best) { best = len; theta = Math.atan2(b.y - a.y, b.x - a.x) }
+      }
+      const cos = Math.cos(theta), sin = Math.sin(theta)
+      const toU = (p: THREE.Vector2) => p.x * cos + p.y * sin
+      const toV = (p: THREE.Vector2) => -p.x * sin + p.y * cos
+      const toX = (u: number, v: number) => u * cos - v * sin
+      const toY = (u: number, v: number) => u * sin + v * cos
+
+      let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity
+      for (const p of outer) {
+        const u = toU(p), v = toV(p)
+        minU = Math.min(minU, u); maxU = Math.max(maxU, u); minV = Math.min(minV, v); maxV = Math.max(maxV, v)
+      }
+
+      const hw = panelSize.w / 2, hd = panelSize.d / 2
+      const m = SETBACK
+      for (let u = minU + m + hw; u <= maxU - m - hw; u += panelSize.w + COL_GAP) {
+        for (let v = minV + m + hd; v <= maxV - m - hd; v += panelSize.d + ROW_GAP) {
+          // Panel corners plus a setback ring must all sit inside the roof.
+          const corners = [[-hw - m, -hd - m], [hw + m, -hd - m], [-hw - m, hd + m], [hw + m, hd + m], [0, 0]]
+          const inside = corners.every(([du, dv]) => pointInRing(toX(u + du, v + dv), toY(u + du, v + dv), outer))
+          if (inside) spots.push({ x: toX(u, v), z: -toY(u, v), yaw: theta })
+        }
+      }
+    }
+
+    const placed = spots.slice(0, MAX_PANELS)
+    if (!panelParts || !placed.length) return
+
+    const pm = new THREE.Matrix4()
+    const q = new THREE.Quaternion()
+    const one = new THREE.Vector3(1, 1, 1)
+    const up = new THREE.Vector3(0, 1, 0)
+    for (const part of panelParts) {
+      const mat = Array.isArray(part.material) ? part.material.map((x) => x.clone()) : part.material.clone()
+      const inst = new THREE.InstancedMesh(part.geometry.clone(), mat, placed.length)
+      placed.forEach((s, i) => {
+        q.setFromAxisAngle(up, s.yaw)
+        pm.compose(new THREE.Vector3(s.x, roofY, s.z), q, one).multiply(part.matrix)
+        inst.setMatrixAt(i, pm)
+      })
+      inst.castShadow = true
+      inst.receiveShadow = true
+      hero.add(inst)
+    }
+  }
+
+  // Real model: scaled to fit the footprint and sat on the ground at its centre.
+  function loadGlbHero(c: Cached, url: string) {
+    const id = c.id
+    gltfLoader.load(url, (gltf) => {
+      if (heroId !== id) return // selection changed while loading
+      const obj = gltf.scene
+      const fp = footprintBox(c)
+      const fw = fp.maxX - fp.minX, fd = fp.maxZ - fp.minZ
+      const box = new THREE.Box3().setFromObject(obj)
+      const size = box.getSize(new THREE.Vector3())
+      obj.scale.setScalar(Math.min(fw / size.x, fd / size.z))
+      const fitted = new THREE.Box3().setFromObject(obj)
+      const centre = fitted.getCenter(new THREE.Vector3())
+      obj.position.x += (fp.minX + fp.maxX) / 2 - centre.x
+      obj.position.z += (fp.minZ + fp.maxZ) / 2 - centre.z
+      obj.position.y -= fitted.min.y
+      obj.traverse((o) => { o.castShadow = true; o.receiveShadow = true })
+      hero.add(obj)
+      map?.triggerRepaint()
+    }, undefined, (err) => console.warn('[three] hero model failed to load', err))
+  }
+
+  function updateHero() {
+    disposeGroup(hero)
+    const c = heroId ? cache.find((x) => x.id === heroId) : undefined
+    if (c) {
+      if (HERO_MODEL_URL) loadGlbHero(c, HERO_MODEL_URL)
+      else buildPlaceholderHero(c)
+    }
+    map?.triggerRepaint()
+  }
+
   function setBuildings(fc: FeatureCollection) {
     for (const c of cache) c.geos.forEach((g) => g.dispose())
     cache = []
@@ -285,17 +460,18 @@ export function createThreeLayer(origin: [number, number]) {
       const id = String(props.id ?? '')
       const status = String(props.status ?? '')
       const height = Number(props.height) > 0 ? Number(props.height) : 8
+      const polys = polysOf(f.geometry)
       const geos: THREE.BufferGeometry[] = []
-      for (const rings of polysOf(f.geometry)) {
+      for (const rings of polys) {
         const geo = buildingGeometry(rings, height)
         if (geo) geos.push(geo)
       }
-      if (geos.length) cache.push({ id, status, tall: height > TOWER_MIN_H, geos })
+      if (geos.length) cache.push({ id, status, tall: height > TOWER_MIN_H, height, polys, geos })
     }
     rebuild()
     fitShadows()
+    updateHero()
 
-    // Crisp outlines on building corners and roof edges, built once per data load.
     disposeGroup(edges)
     const edgeGeos = cache.flatMap((c) => c.geos.map((g) => new THREE.EdgesGeometry(g, 30)))
     if (edgeGeos.length) {
@@ -312,7 +488,9 @@ export function createThreeLayer(origin: [number, number]) {
   function setSelection(ids: string[], colour: string) {
     selected = new Set(ids)
     selectedColour = colour
+    heroId = ids.length === 1 ? ids[0] : null
     rebuild()
+    updateHero()
   }
 
   // ---------- Parks: grass + instanced trees ----------
@@ -330,7 +508,6 @@ export function createThreeLayer(origin: [number, number]) {
         if (!shape) continue
         grassGeos.push(flatGeometry(shape, 0.3))
 
-        // Scatter trees inside the outer ring, avoiding holes.
         const outer = ringToPoints(rings[0])
         const holes = rings.slice(1).map(ringToPoints)
         const area = Math.abs(THREE.ShapeUtils.area(outer))
@@ -428,12 +605,12 @@ export function createThreeLayer(origin: [number, number]) {
 
     onAdd(m: maplibregl.Map, gl: WebGLRenderingContext | WebGL2RenderingContext) {
       map = m
+      loadPanelTemplate()
       renderer = new THREE.WebGLRenderer({ canvas: m.getCanvas(), context: gl, antialias: true })
       renderer.autoClear = false
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFShadowMap
 
-      // Water is static, so load it once here.
       fetch('/water.geojson')
         .then((r) => r.json())
         .then((fc: FeatureCollection) => setWater(fc))
