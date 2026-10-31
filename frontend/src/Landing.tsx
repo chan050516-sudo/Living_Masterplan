@@ -12,12 +12,6 @@ const HEADLINE = [
   { value: '5 years', label: 'simulated for every plan' },
 ]
 
-const DEADSPACE_COSTS = [
-  { name: 'Financial', text: 'Rental losses and maintenance keep building up on idle floor space.' },
-  { name: 'Environmental', text: 'Energy cools and lights empty floors, while the carbon in the structure gives nothing back.' },
-  { name: 'Social', text: 'Long vacancies leave residents with fewer useful places within walking distance.' },
-]
-
 const STEPS = [
   {
     name: 'Audit',
@@ -123,8 +117,6 @@ const REFERENCES = [
   },
 ]
 
-const TEAM = ['David', 'Hanan', 'Mathaba', 'Shimaa', 'Yu Qian']
-
 function CountUp({ value }: { value: string }) {
   const [shown, setShown] = useState(value)
   const ref = useRef<HTMLElement>(null)
@@ -228,7 +220,6 @@ export function Landing() {
 
       <header className="lp-hero lp-open" id="top" data-step="-1">
         <div className="lp-hero-text">
-          <p className="lp-eyebrow rise">Township of Tomorrow Hackathon 2026 · Planet track</p>
           <h1 className="rise">Don’t just build greener. <em>Build only what the future still needs.</em></h1>
           <p className="lp-lede rise">
             Works for any township. Connect your own data, find the assets that have stopped giving
@@ -260,34 +251,6 @@ export function Landing() {
       </header>
 
       <main>
-        <div className="lp-sheet">
-        <section className="lp-section lp-problem rv">
-          <div>
-            <p className="lp-kicker">The problem</p>
-            <h2>Masterplans are static. Townships are not.</h2>
-            <p className="lp-body">
-              Plans are made years ahead, then people, shops and habits change. Assets the plan
-              expected to thrive sit underused, and the usual answer is still to build something new.
-            </p>
-            <div className="lp-facts">
-              <p><strong>37%</strong> of global emissions come from buildings and construction.</p>
-              <p><strong>Nearly 50%</strong> of global material extraction goes to the same sector.</p>
-            </div>
-            <p className="lp-source">Source: UNEP & GlobalABC, 2025–2026</p>
-          </div>
-          <div className="lp-ledger">
-            <h3>What deadspace costs</h3>
-            {DEADSPACE_COSTS.map((c) => (
-              <div key={c.name}>
-                <h4>{c.name}</h4>
-                <p>{c.text}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        </div>
-
         <section className="lp-story lp-open" id="how">
           <div className="lp-story-head" data-step="0">
             <p className="lp-kicker">How it works</p>
@@ -397,11 +360,6 @@ export function Landing() {
                 </li>
               ))}
             </ol>
-            <p className="lp-note">
-              <b>About the data:</b> occupancy, leases and finances in this prototype are simulated for
-              the example township, Bukit Jelutong. Any township or project can connect its own data
-              through the same format.
-            </p>
           </div>
         </section>
         </div>
@@ -409,11 +367,15 @@ export function Landing() {
 
       <footer className="lp-footer">
         <div>
-          <h2>Ask before adding carbon.</h2>
-          <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
+          <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
+          <p>Any township. Your data. Build only what the future still needs.</p>
         </div>
-        <p>Built by {TEAM.join(', ')} for the Township of Tomorrow Hackathon 2026.</p>
+        <div className="lp-host">
+          <img src="/landing/sdp-logo.png" alt="Sime Darby Property" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+          <p>Built for the Sime Darby Property<br />Township of Tomorrow Hackathon 2026</p>
+        </div>
       </footer>
+
     </div>
   )
 }
