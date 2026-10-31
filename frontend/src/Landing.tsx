@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Scene3D } from './township3d'
+import { Evidence } from './Evidence'
 import './landing.css'
 
 const DEMO_HREF = '#/demo'
@@ -74,48 +75,6 @@ const IMPACT = [
   { who: 'Planet', text: 'Keeps embodied carbon in existing structures, reduces material extraction and finds carbon wasted on unused space.' },
   { who: 'SDP', text: 'Compares reuse, improve and build options before capital is committed, with the reasoning written down.' },
   { who: 'Residents', text: 'Turns idle space into what the neighbourhood needs, closer to home and easier to reach on foot.' },
-]
-
-const REFERENCES = [
-  {
-    cite: 'UNEP & GlobalABC (2026). Global Status Report for Buildings and Construction 2025–2026.',
-    use: 'Sector share of global emissions and material extraction.',
-    href: 'https://www.unep.org/resources/report/global-status-report-buildings-and-construction-2025-2026',
-  },
-  {
-    cite: 'CIDB Malaysia (2021). Embodied Carbon Inventory Data for Construction Materials.',
-    use: 'Embodied carbon estimates.',
-    href: 'https://www.cidb.gov.my/wp-content/uploads/2022/11/V4_EMBODIED-CARBON-INVENTORY-TEMPLATE-final-1.pdf',
-  },
-  {
-    cite: 'Energy Commission of Malaysia (2026). Grid Emission Factor in Malaysia 2022–2024 (Provisional).',
-    use: 'Operational carbon: 0.769 kgCO₂e/kWh, the 2022 Peninsular Malaysia factor.',
-    href: 'https://myenergystats.st.gov.my/documents/d/guest/grid-emission-factor-gef-in-malaysia-2022-2024-provisional-',
-  },
-  {
-    cite: 'Ewing, R. & Cervero, R. (2010). Travel and the Built Environment: A Meta-Analysis. Journal of the American Planning Association, 76(3), 265–294.',
-    use: 'Why better access does not raise use one-to-one.',
-    href: 'https://planning.org/knowledgebase/resource/9149498',
-  },
-  {
-    cite: 'Cervero, R. (2002). Built Environments and Mode Choice: Toward a Normative Framework. Transportation Research Part D, 7(4), 265–284.',
-    use: 'Link between built environment and travel choice.',
-    href: 'https://worldtransitresearch.info/research/2102',
-  },
-  {
-    cite: 'Huff, D. L. (1964). Defining and Estimating a Trading Area. Journal of Marketing, 28(4), 34–38.',
-    use: 'Commercial demand allocation.',
-  },
-  {
-    cite: 'OpenStreetMap contributors. Road, path and map data.',
-    use: 'Walking and driving networks.',
-    href: 'https://www.openstreetmap.org/copyright',
-  },
-  {
-    cite: 'Microsoft. Global ML Building Footprints.',
-    use: 'Building shapes.',
-    href: 'https://github.com/microsoft/GlobalMLBuildingFootprints',
-  },
 ]
 
 // Plays once per page load, so coming back from the demo does not repeat it.
@@ -387,20 +346,7 @@ export function Landing() {
           <img src="/landing/app-screenshot.jpg" width="1600" height="900" alt="Living Masterplan app showing a 3D map of the example township, Bukit Jelutong, beside a list of flagged assets." />
         </section>
 
-        <section className="lp-section lp-tinted" id="references">
-          <div className="lp-inner">
-            <p className="lp-kicker">References</p>
-            <h2>Sources and methods</h2>
-            <ol className="lp-refs">
-              {REFERENCES.map((r) => (
-                <li key={r.cite}>
-                  {r.href ? <a href={r.href} target="_blank" rel="noreferrer">{r.cite}</a> : <span>{r.cite}</span>}
-                  <small>{r.use}</small>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
+        <Evidence />
         </div>
       </main>
 
