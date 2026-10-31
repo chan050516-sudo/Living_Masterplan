@@ -1418,6 +1418,7 @@ def simulate_scenario(
                     "carbon_stranded_tco2e": None,
                     "stranded_carbon_ratio": None,
                 }
+
             # ---- Build metric row ----
             prev_metrics = _get_prev_metrics(state_by_year[years[year_idx - 1]], aid)
             metric_row = dict(prev_metrics)
@@ -1429,15 +1430,42 @@ def simulate_scenario(
             for _field in _ALL_TYPE_EXCLUSIVE_FIELDS - _owned:
                 metric_row[_field] = None
 
-            # These values describe the observed footprint and township
-            # baseline. They are carried unchanged into scenarios and are
-            # not recalculated from simulated canopy growth.
+            # ---------------------------------------------------------
+            # Canopy -> Temperature Coupling
+            # ---------------------------------------------------------
             _thermal_rows = base_derived[base_derived["asset_id"] == aid]
+            _coupled_temp = None
+            
+            if not _thermal_rows.empty and canopy_from_b3 is not None:
+                base_canopy = _thermal_rows.iloc[0].get("canopy_coverage")
+                base_temp = _thermal_rows.iloc[0].get("surface_temp_delta_c")
+                
+                if _is_valid_number(base_canopy) and _is_valid_number(base_temp):
+                    delta_canopy = float(canopy_from_b3) - float(base_canopy)
+                    
+                    if abs(delta_canopy) > 0.01:
+                        cfg = assumptions.get("environmental", {}).get("canopy_temperature_coupling", {})
+                        slope = cfg.get("slope_celsius_per_unit", -3.272)
+                        smooth_years = cfg.get("smoothing_years", 3.0)
+                        
+                        smoothing = min(1.0, max(0.0, _years_elapsed / smooth_years))
+                        temp_shift = delta_canopy * slope * smoothing
+                        _coupled_temp = float(base_temp) + temp_shift
+
+            # These values describe the observed footprint and township
+            # baseline. They are carried unchanged into scenarios unless
+            # a canopy coupling is triggered.
             for _field in THERMAL_METRIC_FIELDS:
                 if _thermal_rows.empty or _field not in _thermal_rows.columns:
                     metric_row[_field] = None
                 else:
                     _value = _thermal_rows.iloc[0].get(_field)
+                    
+                    # Apply coupling results
+                    if _field == "surface_temp_delta_c" and _coupled_temp is not None:
+                        metric_row[_field] = _coupled_temp
+                        continue
+                        
                     if _value is None or pd.isna(_value):
                         metric_row[_field] = None
                     elif _field in (

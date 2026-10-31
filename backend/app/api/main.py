@@ -162,10 +162,6 @@ async def get_asset_profiles():
         environmental = profile.setdefault("environmental", {})
         environmental.update(observed)
         diagnosis = profile.get("deadspace_diagnosis") or {}
-        diagnosis["flags"] = [
-            flag for flag in diagnosis.get("flags", [])
-            if flag not in ("high_uhi_exposure", "uhi_data_anomaly")
-        ]
         diagnosis["evidence"] = [
             line for line in diagnosis.get("evidence", [])
             if "UHI proxy" not in str(line)
@@ -250,10 +246,7 @@ async def get_map_geometry(
             ds_list = json.load(f)
         ds_dict = {d["asset_id"]: d.get("status") for d in ds_list}
         flags_dict = {
-            d["asset_id"]: [
-                flag for flag in d.get("flags", [])
-                if flag not in ("high_uhi_exposure", "uhi_data_anomaly")
-            ]
+            d["asset_id"]: d.get("flags", [])
             for d in ds_list
         }
         urgency_dict = {

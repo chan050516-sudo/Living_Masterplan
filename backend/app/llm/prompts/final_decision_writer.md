@@ -24,6 +24,7 @@ Read the simulation briefs, not just the plan descriptions. The numbers decide.
 - `retrofit` changes energy, carbon, and NOI. It does NOT change occupancy.
 - `renovation` to residential converts developer-held units to rental stock. It DOES change occupancy.
 - `repurpose` changes the occupancy trajectory by changing what the asset IS.
+- `green_corridor` or `retrofit` with `roof_intervention` will reduce `surface_temp_delta_c` over time (simulated microclimate cooling). ALWAYS mention this UHI reduction in your justification if it decreases.
 *(Note: Baseline developer-held sell-off raises occupancy even without intervention. Compare candidates against each other, not just against baseline).*
 
 ## The Output Structure

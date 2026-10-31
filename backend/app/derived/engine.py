@@ -104,12 +104,27 @@ def compute_derived_metrics(
     )
     thermal_observations = load_thermal_observations(thermal_path)
 
+    # Load WRI Canopy Observation Data
+    wri_canopy_lookup = {}
+    wri_path = repo_root / paths["base"] / "business" / "wri_canopy_observations.csv"
+    if wri_path.exists():
+        wri_df = pd.read_csv(wri_path)
+        wri_canopy_lookup = dict(zip(wri_df["asset_id"], wri_df["wri_treecover_fraction"]))
+
     green_blue_analysis = geometry.get("green_blue", {}).get("analysis")
 
     # --- Canopy coverage per asset ---
     asset_canopy = {}
     for _, asset in business["assets"].iterrows():
         aid = asset["asset_id"]
+        
+        # Priortise WRI Data
+        wri_val = wri_canopy_lookup.get(aid)
+        if wri_val is not None and not pd.isna(wri_val):
+            asset_canopy[aid] = float(wri_val)
+            continue
+            
+        # Fallback: Only if WRI null，use OSM algorithm
         parcels = geometry["parcels"]["analysis"]
         match = parcels[parcels["asset_id"] == aid]
         if match.empty:

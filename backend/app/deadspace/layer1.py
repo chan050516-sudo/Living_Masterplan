@@ -49,7 +49,7 @@ DEFAULTS = {
     # 7.0 corresponds to effective canopy < 0.075, i.e. essentially
     # no shade. Below that, the fallback canopy is at least nominally
     # shading the footprint.
-    "uhi_exposure_above_c": 7.0,
+    "uhi_exposure_above_c": 3.0,
     # Phase B.2 — per-subtype death thresholds
     "subtype_dead_occupancy_below": 0.10,
     "subtype_low_occupancy_below": 0.40,

@@ -52,6 +52,11 @@ environmental:
   canopy_ceiling_ratio:        0.60    # township-scale upper bound
   canopy_growth_start_year:    2026    # growth starts from the base year
 
+  canopy_temperature_coupling:
+    intercept_celsius: +1.468
+    slope_celsius_per_unit: -1.709
+    smoothing_years: 3.0
+
 # Phase 11 — Energy sub-system split (industry benchmarks, tropical climate)
 energy_breakdown:
   commercial:

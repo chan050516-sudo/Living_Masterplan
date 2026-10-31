@@ -988,6 +988,12 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                         "baseline": _get(base_final_state, "carbon_stranded_tco2e"),
                         "intervention": _get(final_state, "carbon_stranded_tco2e"),
                         "unit": "tCO2e/yr"
+                    },
+                    {
+                        "label": "Surface Temp ΔT",
+                        "baseline": _get(base_final_state, "surface_temp_delta_c"),
+                        "intervention": _get(final_state, "surface_temp_delta_c"),
+                        "unit": "°C"
                     }
                 ],
                 "counterfactual": {
@@ -1004,7 +1010,8 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             "noi_rm": {"baseline": [], "intervention": []},
             "carbon_operational_tco2e": {"baseline": [], "intervention": []},
             "carbon_stranded_tco2e": {"baseline": [], "intervention": []},
-            "space_utilization": {"baseline": [], "intervention": []}
+            "space_utilization": {"baseline": [], "intervention": []},
+            "surface_temp_delta_c": {"baseline": [], "intervention": []},
         }
 
         for y in years_list:
@@ -1022,6 +1029,9 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             
             timeline_metrics["space_utilization"]["baseline"].append(_get_util(b_asset))
             timeline_metrics["space_utilization"]["intervention"].append(_get_util(i_asset))
+
+            timeline_metrics["surface_temp_delta_c"]["baseline"].append(_get(b_asset, "surface_temp_delta_c"))
+            timeline_metrics["surface_temp_delta_c"]["intervention"].append(_get(i_asset, "surface_temp_delta_c"))
 
         assets_payload.append({
             "asset_id": aid,

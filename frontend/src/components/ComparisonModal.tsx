@@ -29,6 +29,7 @@ const LABELS: Record<string, string> = {
   coverage_ratio_15min_walk: '15-min walk coverage',
   coverage_ratio_10min_walk: '10-min walk coverage',
   coverage_ratio_5min_walk: '5-min walk coverage',
+  surface_temp_delta_c: 'Surface Temp ΔT',
 }
 
 function pretty(s: string) {
