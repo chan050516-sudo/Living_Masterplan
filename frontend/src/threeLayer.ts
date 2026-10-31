@@ -20,18 +20,18 @@ const EDGE_COLOUR = '#140e13'
 const EDGE_OPACITY = 0.45
 
 // Towers (glass curtain wall)
-const TOWER_MIN_H = 12   // metres; taller than this gets the glass facade
-const FIN_SPACING = 1.6  // metres between vertical fins
-const FLOOR_H = 3.5      // metres per floor (slab lines)
+const TOWER_MIN_H = 12
+const FIN_SPACING = 1.6
+const FLOOR_H = 3.5
 
-// Hero asset (single selected building gets swapped for a detailed version)
-// Set to e.g. '/models/retrofit.glb' (file in frontend/public/models) to load a real model.
-const HERO_MODEL_URL: string | null = null
+// Hero assets (buildings with an intervention get a visible upgrade)
+const GREEN_ROOF = '#4f7d3a'
+const GREEN_ROOF_TYPES = ['green_corridor'] // every other type gets solar panels
 const PANEL_MODEL_URL = '/models/solar_panel.glb'
-const PANEL_LENGTH = 5.0 // metres, long side of one panel
-const ROW_GAP = 1.2       // walkway between rows
-const COL_GAP = 0.3       // gap between panels in a row
-const SETBACK = 1.2       // distance kept from the roof edge
+const PANEL_LENGTH = 4.0
+const ROW_GAP = 1.2
+const COL_GAP = 0.3
+const SETBACK = 1.2
 const MAX_PANELS = 300
 
 // Parks
@@ -52,7 +52,8 @@ type Cached = {
   geos: THREE.BufferGeometry[]
 }
 
-// Dusk gradient that water and glass reflect, matching the map sky.
+export type HeroIntervention = { id: string; type: string }
+
 function makeSkyEnv() {
   const c = document.createElement('canvas')
   c.width = 16; c.height = 256
@@ -79,7 +80,6 @@ function pointInRing(x: number, y: number, ring: THREE.Vector2[]): boolean {
   return inside
 }
 
-// Disposes everything inside a group, including loaded .glb models.
 function disposeGroup(group: THREE.Group) {
   group.traverse((o) => {
     const m = o as THREE.Mesh
@@ -89,8 +89,6 @@ function disposeGroup(group: THREE.Group) {
   group.clear()
 }
 
-// Glass curtain wall drawn in the shader. Walls only; roofs keep the normal look.
-// facadeUv is in metres: x along the wall, y up the wall.
 function makeTowerMaterial(colour: string, env: THREE.Texture): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({
     color: colour,
@@ -136,8 +134,6 @@ function makeTowerMaterial(colour: string, env: THREE.Texture): THREE.MeshStanda
   return mat
 }
 
-// Three.js scene drawn inside MapLibre's own WebGL context.
-// Scene units are metres from `origin`: X east, Y up, Z south.
 export function createThreeLayer(origin: [number, number]) {
   const merc = maplibregl.MercatorCoordinate.fromLngLat(origin, 0)
   const scale = merc.meterInMercatorCoordinateUnits()
@@ -201,7 +197,6 @@ export function createThreeLayer(origin: [number, number]) {
     }, undefined, (err) => console.warn('[three] solar panel model failed to load', err))
   }
 
-  // Lighting: cool sky fill + warm sun that casts shadows.
   scene.add(new THREE.HemisphereLight('#b9c6e6', '#2b212a', 0.9))
   const sun = new THREE.DirectionalLight('#fff1e0', 1.6)
   sun.castShadow = true
@@ -211,7 +206,6 @@ export function createThreeLayer(origin: [number, number]) {
   scene.add(sun)
   scene.add(sun.target)
 
-  // Invisible ground that only shows shadows.
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2),
     new THREE.ShadowMaterial({ opacity: SHADOW_OPACITY, depthWrite: false }),
@@ -223,7 +217,7 @@ export function createThreeLayer(origin: [number, number]) {
   let cache: Cached[] = []
   let selected = new Set<string>()
   let selectedColour = '#2196f3'
-  let heroId: string | null = null
+  let heroes = new Map<string, string>() // asset id -> intervention type
 
   function toShapePoint(p: Position): THREE.Vector2 {
     const m = maplibregl.MercatorCoordinate.fromLngLat([p[0], p[1]], 0)
@@ -287,7 +281,7 @@ export function createThreeLayer(origin: [number, number]) {
     disposeGroup(buildings)
     const groups: Record<string, THREE.BufferGeometry[]> = {}
     for (const c of cache) {
-      if (c.id === heroId) continue // drawn by the hero group instead
+      if (heroes.has(c.id)) continue // drawn by the hero group instead
       const key = selected.has(c.id) ? '__selected' : c.status + (c.tall ? '|tower' : '')
       ;(groups[key] ??= []).push(...c.geos)
     }
@@ -335,25 +329,16 @@ export function createThreeLayer(origin: [number, number]) {
     ground.scale.set(r * 2, 1, r * 2)
   }
 
-  // ---------- Hero asset ----------
+  // ---------- Hero assets ----------
 
-  // Footprint bounds in scene metres (x, z) across all polygons of the building.
-  function footprintBox(c: Cached) {
-    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity
-    for (const rings of c.polys) for (const p of ringToPoints(rings[0])) {
-      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x)
-      minZ = Math.min(minZ, -p.y); maxZ = Math.max(maxZ, -p.y)
-    }
-    return { minX, maxX, minZ, maxZ }
-  }
-
-  // Built-in placeholder: the building itself, plus a green roof and a solar array on top.
-  function buildPlaceholderHero(c: Cached) {
+  function buildHero(c: Cached, type: string) {
+    const isSel = selected.has(c.id)
+    const colour = isSel ? selectedColour : (STATUS_HEX[c.status] ?? STATUS_FALLBACK)
     const body = mergeGeometries(c.geos)
     if (body) {
       const mesh = new THREE.Mesh(body, new THREE.MeshStandardMaterial({
-        color: selectedColour, vertexColors: true, roughness: 0.6, metalness: 0.1,
-        emissive: selectedColour, emissiveIntensity: 0.2,
+        color: colour, vertexColors: true, roughness: 0.6, metalness: 0.1,
+        emissive: isSel ? colour : '#000000', emissiveIntensity: isSel ? 0.2 : 0,
       }))
       mesh.castShadow = true
       mesh.receiveShadow = true
@@ -361,13 +346,21 @@ export function createThreeLayer(origin: [number, number]) {
     }
 
     const roofY = c.height + 0.15
+    const greenRoof = GREEN_ROOF_TYPES.includes(type)
     const spots: Array<{ x: number; z: number; yaw: number }> = []
 
     for (const rings of c.polys) {
       const shape = shapeOf(rings)
       if (!shape) continue
 
-      // Align rows with the building's longest wall.
+      if (greenRoof) {
+        const green = new THREE.Mesh(flatGeometry(shape, roofY), new THREE.MeshStandardMaterial({ color: GREEN_ROOF, roughness: 1 }))
+        green.receiveShadow = true
+        hero.add(green)
+        continue
+      }
+
+      // Solar rows aligned with the building's longest wall.
       const outer = ringToPoints(rings[0])
       let theta = 0, best = 0
       for (let i = 0; i < outer.length; i++) {
@@ -376,14 +369,12 @@ export function createThreeLayer(origin: [number, number]) {
         if (len > best) { best = len; theta = Math.atan2(b.y - a.y, b.x - a.x) }
       }
       const cos = Math.cos(theta), sin = Math.sin(theta)
-      const toU = (p: THREE.Vector2) => p.x * cos + p.y * sin
-      const toV = (p: THREE.Vector2) => -p.x * sin + p.y * cos
       const toX = (u: number, v: number) => u * cos - v * sin
       const toY = (u: number, v: number) => u * sin + v * cos
 
       let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity
       for (const p of outer) {
-        const u = toU(p), v = toV(p)
+        const u = p.x * cos + p.y * sin, v = -p.x * sin + p.y * cos
         minU = Math.min(minU, u); maxU = Math.max(maxU, u); minV = Math.min(minV, v); maxV = Math.max(maxV, v)
       }
 
@@ -391,7 +382,6 @@ export function createThreeLayer(origin: [number, number]) {
       const m = SETBACK
       for (let u = minU + m + hw; u <= maxU - m - hw; u += panelSize.w + COL_GAP) {
         for (let v = minV + m + hd; v <= maxV - m - hd; v += panelSize.d + ROW_GAP) {
-          // Panel corners plus a setback ring must all sit inside the roof.
           const corners = [[-hw - m, -hd - m], [hw + m, -hd - m], [-hw - m, hd + m], [hw + m, hd + m], [0, 0]]
           const inside = corners.every(([du, dv]) => pointInRing(toX(u + du, v + dv), toY(u + du, v + dv), outer))
           if (inside) spots.push({ x: toX(u, v), z: -toY(u, v), yaw: theta })
@@ -420,34 +410,11 @@ export function createThreeLayer(origin: [number, number]) {
     }
   }
 
-  // Real model: scaled to fit the footprint and sat on the ground at its centre.
-  function loadGlbHero(c: Cached, url: string) {
-    const id = c.id
-    gltfLoader.load(url, (gltf) => {
-      if (heroId !== id) return // selection changed while loading
-      const obj = gltf.scene
-      const fp = footprintBox(c)
-      const fw = fp.maxX - fp.minX, fd = fp.maxZ - fp.minZ
-      const box = new THREE.Box3().setFromObject(obj)
-      const size = box.getSize(new THREE.Vector3())
-      obj.scale.setScalar(Math.min(fw / size.x, fd / size.z))
-      const fitted = new THREE.Box3().setFromObject(obj)
-      const centre = fitted.getCenter(new THREE.Vector3())
-      obj.position.x += (fp.minX + fp.maxX) / 2 - centre.x
-      obj.position.z += (fp.minZ + fp.maxZ) / 2 - centre.z
-      obj.position.y -= fitted.min.y
-      obj.traverse((o) => { o.castShadow = true; o.receiveShadow = true })
-      hero.add(obj)
-      map?.triggerRepaint()
-    }, undefined, (err) => console.warn('[three] hero model failed to load', err))
-  }
-
   function updateHero() {
     disposeGroup(hero)
-    const c = heroId ? cache.find((x) => x.id === heroId) : undefined
-    if (c) {
-      if (HERO_MODEL_URL) loadGlbHero(c, HERO_MODEL_URL)
-      else buildPlaceholderHero(c)
+    for (const [id, type] of heroes) {
+      const c = cache.find((x) => x.id === id)
+      if (c) buildHero(c, type)
     }
     map?.triggerRepaint()
   }
@@ -488,12 +455,21 @@ export function createThreeLayer(origin: [number, number]) {
   function setSelection(ids: string[], colour: string) {
     selected = new Set(ids)
     selectedColour = colour
-    heroId = ids.length === 1 ? ids[0] : null
     rebuild()
     updateHero()
   }
 
-  // ---------- Parks: grass + instanced trees ----------
+  // Buildings with a previewed or accepted intervention.
+  function setInterventions(list: HeroIntervention[]) {
+    const next = new Map(list.map((h) => [h.id, h.type]))
+    const same = next.size === heroes.size && [...next].every(([k, v]) => heroes.get(k) === v)
+    if (same) return
+    heroes = next
+    rebuild()
+    updateHero()
+  }
+
+  // ---------- Parks ----------
 
   function setParks(fc: FeatureCollection) {
     disposeGroup(parks)
@@ -626,5 +602,5 @@ export function createThreeLayer(origin: [number, number]) {
     },
   }
 
-  return { layer, setBuildings, setSelection, setParks }
+  return { layer, setBuildings, setSelection, setParks, setInterventions }
 }
