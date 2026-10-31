@@ -767,7 +767,7 @@ export default function App() {
         ::-webkit-scrollbar-track { background: transparent !important; }
       `}</style>
       <header style={{ height: 58, flex: 'none', padding: '0 22px', borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 14, background: '#241c23' }}>
-        <strong style={{ fontSize: 14, letterSpacing: '.14em' }}>LIVING MASTERPLAN</strong>
+        <a href="#/" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '.14em', color: 'inherit', textDecoration: 'none' }}>LIVING MASTERPLAN</a>
         <span style={{ fontSize: 13, color: C.muted }}>Bukit Jelutong</span>
         
         <button className={`btn ${showHistory ? 'primary' : ''}`} onClick={() => setShowHistory(!showHistory)} style={{...btn(showHistory), marginLeft: 20}}>
