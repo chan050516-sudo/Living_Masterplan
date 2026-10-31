@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+import type { Scene3D } from './township3d'
 import './landing.css'
 
 const DEMO_HREF = '#/demo'
@@ -117,9 +119,96 @@ const REFERENCES = [
 
 const TEAM = ['David', 'Hanan', 'Mathaba', 'Shimaa', 'Yu Qian']
 
+function CountUp({ value }: { value: string }) {
+  const [shown, setShown] = useState(value)
+  const ref = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const match = value.match(/[\d,]+/)
+    const el = ref.current
+    if (!match || !el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const end = Number(match[0].replace(/,/g, ''))
+    let raf = 0
+    const io = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting) return
+      io.disconnect()
+      const start = performance.now()
+      const tick = (t: number) => {
+        const p = Math.min((t - start) / 1600, 1)
+        const n = Math.round(end * (1 - Math.pow(1 - p, 3)))
+        setShown(value.replace(match[0], n.toLocaleString('en-US')))
+        if (p < 1) raf = requestAnimationFrame(tick)
+      }
+      raf = requestAnimationFrame(tick)
+    })
+    io.observe(el)
+    return () => { io.disconnect(); cancelAnimationFrame(raf) }
+  }, [value])
+  return <strong ref={ref}>{shown}</strong>
+}
+
+function useScene() {
+  const canvas = useRef<HTMLCanvasElement>(null)
+  const scene = useRef<Scene3D | null>(null)
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    const el = canvas.current
+    if (!el || !document.createElement('canvas').getContext('webgl2')) return
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const light = window.innerWidth < 960
+    // Loaded on demand. If it fails, the flat map stays on screen.
+    // Wait a moment so the headline paints before the 3D work starts.
+    new Promise((done) => setTimeout(done, 300))
+      .then(() => import('./township3d'))
+      .then(({ startTownship }) => startTownship(el, { still, light }))
+      .then((s) => {
+        if (cancelled) { s.dispose(); return }
+        scene.current = s
+        setReady(true)
+      })
+      .catch(() => {})
+    return () => { cancelled = true; scene.current?.dispose(); scene.current = null }
+  }, [])
+  return { canvas, scene, ready }
+}
+
 export function Landing() {
+  const { canvas, scene, ready } = useScene()
+  const root = useRef<HTMLDivElement>(null)
+  const [step, setStep] = useState(-1)
+
+  useEffect(() => { scene.current?.setStep(step) }, [step, ready, scene])
+
+  useEffect(() => {
+    const el = root.current
+    if (!el) return
+    const onScroll = () => scene.current?.setScroll(Math.min(window.scrollY / window.innerHeight, 1))
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    const reveal = new IntersectionObserver((list) => {
+      list.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); reveal.unobserve(e.target) } })
+    }, { rootMargin: '0px 0px -8% 0px' })
+    el.querySelectorAll('.rv').forEach((n) => reveal.observe(n))
+
+    const beats = new IntersectionObserver((list) => {
+      list.forEach((e) => { if (e.isIntersecting) setStep(Number((e.target as HTMLElement).dataset.step)) })
+    }, { rootMargin: '-50% 0px -50% 0px' })
+    el.querySelectorAll('[data-step]').forEach((n) => beats.observe(n))
+
+    // Stop drawing while solid sections fully cover the canvas.
+    const seen = new Set<Element>()
+    const stage = new IntersectionObserver((list) => {
+      list.forEach((e) => { if (e.isIntersecting) seen.add(e.target); else seen.delete(e.target) })
+      scene.current?.setActive(seen.size > 0)
+    })
+    el.querySelectorAll('.lp-open').forEach((n) => stage.observe(n))
+
+    return () => { window.removeEventListener('scroll', onScroll); reveal.disconnect(); beats.disconnect(); stage.disconnect() }
+  }, [scene])
+
   return (
-    <div className="lp">
+    <div className={`lp${ready ? ' lp-3d' : ''}`} ref={root}>
+      <canvas className="lp-canvas" ref={canvas} aria-hidden="true" />
       <nav className="lp-nav" aria-label="Main">
         <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
         <div className="lp-links">
@@ -131,31 +220,32 @@ export function Landing() {
         <a className="lp-cta small" href={DEMO_HREF}>Launch demo</a>
       </nav>
 
-      <header className="lp-hero" id="top">
+      <header className="lp-hero lp-open" id="top" data-step="-1">
         <div className="lp-hero-text">
-          <p className="lp-eyebrow">Township of Tomorrow Hackathon 2026 · Planet track</p>
-          <h1>Don’t just build greener. Build only what the future still needs.</h1>
-          <p className="lp-lede">
+          <p className="lp-eyebrow rise">Township of Tomorrow Hackathon 2026 · Planet track</p>
+          <h1 className="rise">Don’t just build greener. <em>Build only what the future still needs.</em></h1>
+          <p className="lp-lede rise">
             Living Masterplan finds township assets that have stopped giving value back, then tests
             whether to reuse, improve or build, five years ahead, before anyone adds new carbon.
           </p>
-          <div className="lp-hero-actions">
+          <div className="lp-hero-actions rise">
             <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
             <a className="lp-quiet" href="#how">See how it works</a>
           </div>
         </div>
         <figure className="lp-hero-map">
           <img src="/landing/township-map.svg" width="1020" height="1010" alt="Building footprints of Bukit Jelutong, with deadspace candidates highlighted in orange and assets to watch in pale grey." />
-          <figcaption>
-            <span><i className="ok" />Healthy</span>
-            <span><i className="watch" />Watch</span>
-            <span><i className="dead" />Deadspace candidate</span>
-          </figcaption>
         </figure>
+        <p className="lp-legend">
+          <span><i className="ok" />Healthy</span>
+          <span><i className="watch" />Watch</span>
+          <span><i className="dead" />Deadspace candidate</span>
+          <span><i className="smoke" />Stranded carbon</span>
+        </p>
         <div className="lp-stats">
           {HEADLINE.map((s) => (
             <div key={s.label}>
-              <strong>{s.value}</strong>
+              <CountUp value={s.value} />
               <span>{s.label}</span>
             </div>
           ))}
@@ -164,7 +254,8 @@ export function Landing() {
       </header>
 
       <main>
-        <section className="lp-section lp-problem">
+        <div className="lp-sheet">
+        <section className="lp-section lp-problem rv">
           <div>
             <p className="lp-kicker">The problem</p>
             <h2>Masterplans are static. Townships are not.</h2>
@@ -189,29 +280,31 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="lp-section" id="how">
-          <p className="lp-kicker">How it works</p>
-          <h2>Five steps from a flagged building to a decision</h2>
-          <p className="lp-body">Followed here through one saved prototype run on a real building footprint, using simulated business data.</p>
+        </div>
+
+        <section className="lp-story lp-open" id="how">
+          <div className="lp-story-head" data-step="0">
+            <p className="lp-kicker">How it works</p>
+            <h2>Five steps from a flagged building to a decision</h2>
+            <p className="lp-body">One saved prototype run on a real building footprint, using simulated business data. Keep scrolling.</p>
+          </div>
           <ol className="lp-steps">
-            <li className="lp-steps-head" aria-hidden="true">
-              <span>Step</span><span>What the system does</span><span>Example: BLD-0037</span>
-            </li>
             {STEPS.map((s, i) => (
-              <li key={s.name}>
+              <li key={s.name} data-step={i} className={step === i ? 'on' : ''}>
                 <h3><span>{i + 1}</span>{s.name}</h3>
                 <p>{s.what}</p>
-                <p className="lp-example">{s.example}</p>
+                <p className="lp-example"><b>BLD-0037</b>{s.example}</p>
               </li>
             ))}
           </ol>
         </section>
 
+        <div className="lp-sheet">
         <section className="lp-section lp-tinted" id="concepts">
           <div className="lp-inner">
             <p className="lp-kicker">Key concepts</p>
             <h2>The ideas behind it, in plain words</h2>
-            <dl className="lp-concepts">
+            <dl className="lp-concepts rv">
               {CONCEPTS.map((c) => (
                 <div key={c.term}>
                   <dt>{c.term}</dt>
@@ -226,7 +319,7 @@ export function Landing() {
           <div className="lp-inner">
             <p className="lp-kicker">Why you can check it</p>
             <h2>Tools calculate the world. AI reasons about it.</h2>
-            <div className="lp-trust-grid">
+            <div className="lp-trust-grid rv">
               <div>
                 <h3>Every number shows where it came from</h3>
                 <ul className="lp-tiers">
@@ -248,7 +341,7 @@ export function Landing() {
         <section className="lp-section">
           <p className="lp-kicker">Impact</p>
           <h2>One decision, three kinds of value</h2>
-          <div className="lp-impact">
+          <div className="lp-impact rv">
             {IMPACT.map((v) => (
               <article key={v.who}>
                 <h3>{v.who}</h3>
@@ -258,7 +351,7 @@ export function Landing() {
           </div>
         </section>
 
-        <section className="lp-section lp-see">
+        <section className="lp-section lp-see rv">
           <div>
             <p className="lp-kicker">See it working</p>
             <h2>Start with the township. End with a plan.</h2>
@@ -289,6 +382,7 @@ export function Landing() {
             </p>
           </div>
         </section>
+        </div>
       </main>
 
       <footer className="lp-footer">
