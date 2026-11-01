@@ -293,7 +293,6 @@
     "status": "deadspace_candidate",
     "flags": [
       "below_benchmark_occupancy",
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "chronic_stagnation",
       "negative_noi",
@@ -304,7 +303,6 @@
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
-        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "chronic_stagnation"
       ]
@@ -331,27 +329,23 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.375
+        "contribution": 0.4286
       },
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.125
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.125
+        "contribution": 0.1429
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.125
+        "contribution": 0.1429
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.125
+        "contribution": 0.1429
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.125
+        "contribution": 0.1429
       }
     ],
     "evidence": [
@@ -365,12 +359,12 @@
       "Vacancy: 6 months",
       "NOI (RM, annual): -2,412,214",
       "NOI yield (annual): -0.1036",
-      "DSR: 0.55",
+      "DSR: 1.13",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.98",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,234",
+      "Walk 5-min coverage: 1.6%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,633",
       "Subtype occupancy:",
       "  cafe: 51.1%",
       "  restaurant: 53.9%",
@@ -821,12 +815,12 @@
       "Vacancy: 3 months",
       "NOI (RM, annual): -1,228,456",
       "NOI yield (annual): -0.059",
-      "DSR: 0.08",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,266",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,527",
       "Subtype occupancy:",
       "  restaurant: 44.8%",
       "  convenience_retail: 55.0%",
@@ -1290,15 +1284,17 @@
     "flags": [
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "low_neighborhood_diversity",
       "negative_noi"
     ],
-    "urgency_index": 5.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "low_neighborhood_diversity"
       ]
     },
@@ -1323,19 +1319,23 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.5
+        "contribution": 0.4286
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1667
+        "contribution": 0.1429
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.1429
       },
       {
         "factor": "low_neighborhood_diversity",
-        "contribution": 0.1667
+        "contribution": 0.1429
       }
     ],
     "evidence": [
@@ -1349,12 +1349,12 @@
       "Vacancy: 1 months",
       "NOI (RM, annual): -914,553",
       "NOI yield (annual): -0.046",
-      "DSR: 0.33",
-      "Demographic mismatch: 0.2",
+      "DSR: 0.58",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.0",
-      "Walk 5-min coverage: 12.8%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,444",
+      "Walk 5-min coverage: 6.1%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,375",
       "Subtype occupancy:",
       "  restaurant: 50.0%",
       "  services: 55.0%",
@@ -5640,12 +5640,12 @@
       "Vacancy: 60 months",
       "NOI (RM, annual): -1,383,363",
       "NOI yield (annual): -0.109",
-      "DSR: 0.09",
+      "DSR: 0.12",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,284",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,376",
       "Subtype occupancy:",
       "  restaurant: 0.0% [dead]",
       "  kopitiam: 0.0% [dead]",
@@ -7826,14 +7826,16 @@
     "status": "monitor",
     "flags": [
       "dsr_below_threshold",
-      "walking_accessibility_deficit"
+      "walking_accessibility_deficit",
+      "demographic_mismatch"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 3.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "dsr_below_threshold",
-        "walking_accessibility_deficit"
+        "walking_accessibility_deficit",
+        "demographic_mismatch"
       ]
     },
     "layer2": {
@@ -7854,11 +7856,15 @@
     "contributing_factors": [
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.5
+        "contribution": 0.3333
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
+        "contribution": 0.3333
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.3333
       }
     ],
     "evidence": [
@@ -7872,12 +7878,12 @@
       "Vacancy: 1 months",
       "NOI (RM, annual): 259,494",
       "NOI yield (annual): 0.0248",
-      "DSR: 0.32",
-      "Demographic mismatch: 0.2",
+      "DSR: 0.38",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,184",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,415",
       "Subtype occupancy:",
       "  restaurant: 53.6%",
       "  kopitiam: 70.6%",
@@ -10968,12 +10974,12 @@
       "Vacancy: 3 months",
       "NOI (RM, annual): 1,643,470",
       "NOI yield (annual): 0.3737",
-      "DSR: 0.16",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  cafe: 62.2%",
       "  kopitiam: 71.0%",
@@ -11856,13 +11862,14 @@
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon",
       "subtype_mix_dead",
       "chronic_stagnation",
       "negative_noi",
       "maintenance_surge_high"
     ],
-    "urgency_index": 9.0,
+    "urgency_index": 10.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -11870,6 +11877,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon",
         "subtype_mix_dead",
         "chronic_stagnation"
@@ -11897,39 +11905,43 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.1875
+        "contribution": 0.1765
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.1875
+        "contribution": 0.1765
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.125
+        "contribution": 0.1176
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.125
+        "contribution": 0.1176
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.125
+        "contribution": 0.1176
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0625
+        "contribution": 0.0588
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0625
+        "contribution": 0.0588
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.0588
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.0625
+        "contribution": 0.0588
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.0625
+        "contribution": 0.0588
       }
     ],
     "evidence": [
@@ -11943,12 +11955,12 @@
       "Vacancy: 35 months",
       "NOI (RM, annual): -1,443,909",
       "NOI yield (annual): -0.1143",
-      "DSR: 0.11",
-      "Demographic mismatch: 0.09",
+      "DSR: 0.13",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,567",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,837",
       "Subtype occupancy:",
       "  office: 2.6% [dead]",
       "  restaurant: 4.6% [dead]",
@@ -12333,12 +12345,12 @@
       "Vacancy: 6 months",
       "NOI (RM, annual): 1,234,448",
       "NOI yield (annual): 0.2998",
-      "DSR: 0.16",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  cafe: 55.0%",
       "  services: 55.0%",
@@ -13905,12 +13917,12 @@
       "Vacancy: 72 months",
       "NOI (RM, annual): -414,880",
       "NOI yield (annual): -0.1099",
-      "DSR: 0.06",
+      "DSR: 0.09",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,375",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,839",
       "Subtype occupancy:",
       "  kopitiam: 0.0% [dead]",
       "  cafe: 0.0% [dead]",
@@ -14228,12 +14240,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): -284,735",
       "NOI yield (annual): -0.0256",
-      "DSR: 0.18",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,299",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,561",
       "Subtype occupancy:",
       "  cafe: 48.7%",
       "  services: 55.0%",
@@ -14749,12 +14761,12 @@
       "Vacancy: 2 months",
       "NOI (RM, annual): 1,713,519",
       "NOI yield (annual): 0.473",
-      "DSR: 0.16",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  cafe: 60.4%",
       "  kopitiam: 81.7%",
@@ -14816,12 +14828,12 @@
       "Vacancy: 3 months",
       "NOI (RM, annual): -254,220",
       "NOI yield (annual): -0.0235",
-      "DSR: 0.19",
+      "DSR: 0.22",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  cafe: 44.8%",
       "  office: 69.7%",
@@ -15023,12 +15035,12 @@
       "Vacancy: 18 months",
       "NOI (RM, annual): -155,518",
       "NOI yield (annual): -0.0436",
-      "DSR: 0.07",
+      "DSR: 0.64",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.9",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,174",
+      "Walk 5-min coverage: 1.6%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,772",
       "Subtype occupancy:",
       "  convenience_retail: 2.1% [dead]",
       "  services: 12.3% [low]",
@@ -15773,12 +15785,12 @@
       "Vacancy: 24 months",
       "NOI (RM, annual): 314,129",
       "NOI yield (annual): 0.0474",
-      "DSR: 0.34",
+      "DSR: 0.42",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,184",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,415",
       "Subtype occupancy:",
       "  cafe: 39.2% [low]",
       "  restaurant: 54.4%",
@@ -16542,9 +16554,9 @@
       "DSR: 0.05",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Trajectory: stable (5-yr peak 76.4%)"
     ],
     "model_version": "0.4.0"
@@ -16691,12 +16703,12 @@
       "Vacancy: 96 months",
       "NOI (RM, annual): -1,039,207",
       "NOI yield (annual): -0.1117",
-      "DSR: 0.18",
+      "DSR: 0.2",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  restaurant: 0.0% [dead]",
       "  kopitiam: 0.0% [dead]",
@@ -16931,9 +16943,9 @@
       "DSR: 0.05",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Trajectory: stable (5-yr peak 85.9%)"
     ],
     "model_version": "0.4.0"
@@ -17362,12 +17374,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,577,289",
       "NOI yield (annual): 0.5275",
-      "DSR: 0.32",
+      "DSR: 0.3",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 5.8%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,479",
+      "Walk 5-min coverage: 2.8%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,548",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -17446,11 +17458,12 @@
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon",
       "subtype_mix_dead",
       "negative_noi"
     ],
-    "urgency_index": 9.0,
+    "urgency_index": 10.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -17458,6 +17471,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon",
         "subtype_mix_dead"
       ]
@@ -17483,31 +17497,35 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.2143
+        "contribution": 0.2
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.2143
+        "contribution": 0.2
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1429
+        "contribution": 0.1333
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1429
+        "contribution": 0.1333
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1429
+        "contribution": 0.1333
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0714
+        "contribution": 0.0667
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0714
+        "contribution": 0.0667
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.0667
       }
     ],
     "evidence": [
@@ -17520,12 +17538,12 @@
       "Vacancy: 96 months",
       "NOI (RM, annual): -664,921",
       "NOI yield (annual): -0.1117",
-      "DSR: 0.5",
-      "Demographic mismatch: 0.2",
+      "DSR: 0.75",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 5.8%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,469",
+      "Walk 5-min coverage: 2.8%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,539",
       "Subtype occupancy:",
       "  restaurant: 0.0% [dead]",
       "  kopitiam: 0.0% [dead]",
@@ -17618,9 +17636,9 @@
       "DSR: 0.05",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -18239,9 +18257,9 @@
       "DSR: 0.09",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Trajectory: stable (5-yr peak 73.7%)"
     ],
     "model_version": "0.4.0"
@@ -19071,12 +19089,12 @@
       "Vacancy: 12 months",
       "NOI (RM, annual): -393,430",
       "NOI yield (annual): -0.0723",
-      "DSR: 0.18",
+      "DSR: 0.2",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  services: 1.4% [dead]",
       "  office: 5.9% [dead]",
@@ -19170,9 +19188,9 @@
       "DSR: 0.03",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 1.9%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,214",
+      "Walk 5-min coverage: 0.9%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,896",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -19522,12 +19540,12 @@
       "Vacancy: 132 months",
       "NOI (RM, annual): -898,020",
       "NOI yield (annual): -0.1146",
-      "DSR: 0.18",
+      "DSR: 0.21",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  restaurant: 0.0% [dead]",
       "  kopitiam: 0.0% [dead]",
@@ -19636,12 +19654,12 @@
       "Vacancy: 33 months",
       "NOI (RM, annual): -788,625",
       "NOI yield (annual): -0.1016",
-      "DSR: 0.15",
+      "DSR: 0.16",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  kopitiam: 0.2% [dead]",
       "  office: 7.8% [dead]",
@@ -19907,13 +19925,13 @@
       "Occupancy: 0.0%",
       "Vacancy: 12 months",
       "NOI (RM, annual): -542,041",
-      "NOI yield (annual): -0.1058",
-      "DSR: 0.18",
+      "NOI yield (annual): -0.1057",
+      "DSR: 0.2",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  restaurant: 0.0% [dead]",
       "  kopitiam: 0.0% [dead]",
@@ -19969,12 +19987,12 @@
       "Vacancy: 3 months",
       "NOI (RM, annual): 715,833",
       "NOI yield (annual): 0.2799",
-      "DSR: 0.26",
+      "DSR: 0.28",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Trajectory: stable (5-yr peak 73.1%)"
     ],
     "model_version": "0.4.0"
@@ -20232,12 +20250,12 @@
       "Vacancy: 34 months",
       "NOI (RM, annual): -726,705",
       "NOI yield (annual): -0.0979",
-      "DSR: 0.06",
+      "DSR: 0.11",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 1.9%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,217",
+      "Walk 5-min coverage: 0.9%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,898",
       "Subtype occupancy:",
       "  convenience_retail: 0.8% [dead]",
       "  services: 5.7% [dead]",
@@ -20559,9 +20577,9 @@
       "DSR: 0.09",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Trajectory: stable (5-yr peak 81.5%)"
     ],
     "model_version": "0.4.0"
@@ -20707,12 +20725,13 @@
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon",
       "subtype_mix_dead",
       "chronic_stagnation",
       "negative_noi"
     ],
-    "urgency_index": 9.0,
+    "urgency_index": 10.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -20720,6 +20739,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon",
         "subtype_mix_dead",
         "chronic_stagnation"
@@ -20746,35 +20766,39 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.2
+        "contribution": 0.1875
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.2
+        "contribution": 0.1875
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1333
+        "contribution": 0.125
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1333
+        "contribution": 0.125
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1333
+        "contribution": 0.125
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0667
+        "contribution": 0.0625
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0667
+        "contribution": 0.0625
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.0625
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.0667
+        "contribution": 0.0625
       }
     ],
     "evidence": [
@@ -20788,12 +20812,12 @@
       "Vacancy: 35 months",
       "NOI (RM, annual): -671,543",
       "NOI yield (annual): -0.0937",
-      "DSR: 0.15",
-      "Demographic mismatch: 0.09",
+      "DSR: 0.16",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  medical_retail: 2.0% [dead]",
       "  services: 6.8% [dead]",
@@ -21310,12 +21334,12 @@
       "Vacancy: 168 months",
       "NOI (RM, annual): -271,938",
       "NOI yield (annual): -0.1178",
-      "DSR: 0.1",
+      "DSR: 0.17",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 1.9%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,217",
+      "Walk 5-min coverage: 0.9%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,898",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -21988,12 +22012,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,166,543",
       "NOI yield (annual): 0.1838",
-      "DSR: 0.21",
+      "DSR: 0.25",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,326",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,588",
       "Subtype occupancy:",
       "  kopitiam: 55.0%",
       "  cafe: 55.1%",
@@ -22825,14 +22849,16 @@
     "status": "monitor",
     "flags": [
       "below_benchmark_occupancy",
+      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "chronic_stagnation"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 3.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
+        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "chronic_stagnation"
       ]
@@ -22856,15 +22882,19 @@
     "contributing_factors": [
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.3333
+        "contribution": 0.25
+      },
+      {
+        "factor": "dsr_below_threshold",
+        "contribution": 0.25
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.3333
+        "contribution": 0.25
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.3333
+        "contribution": 0.25
       }
     ],
     "evidence": [
@@ -22877,12 +22907,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,622,083",
       "NOI yield (annual): 0.5221",
-      "DSR: nan",
+      "DSR: 0.15",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,361",
+      "Walk 5-min coverage: 11.4%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,438",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -23122,7 +23152,6 @@
     "status": "deadspace_candidate",
     "flags": [
       "low_occupancy",
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon",
       "subtype_mix_dead",
@@ -23133,7 +23162,6 @@
       "triggered": true,
       "reasons": [
         "low_occupancy",
-        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon",
         "subtype_mix_dead"
@@ -23160,27 +23188,23 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.25
+        "contribution": 0.2727
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.25
+        "contribution": 0.2727
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1667
+        "contribution": 0.1818
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1667
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.0833
+        "contribution": 0.1818
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0833
+        "contribution": 0.0909
       }
     ],
     "evidence": [
@@ -23193,12 +23217,12 @@
       "Vacancy: 12 months",
       "NOI (RM, annual): -457,104",
       "NOI yield (annual): -0.1057",
-      "DSR: 0.4",
+      "DSR: 1.41",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,358",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,376",
       "Subtype occupancy:",
       "  kopitiam: 0.0% [dead]",
       "  cafe: 0.0% [dead]",
@@ -26320,16 +26344,18 @@
       "low_occupancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon_ratio_small_asset",
       "chronic_stagnation"
     ],
-    "urgency_index": 4.0,
+    "urgency_index": 5.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_occupancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon_ratio_small_asset",
         "chronic_stagnation"
       ]
@@ -26353,23 +26379,27 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.3333
+        "contribution": 0.2857
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1667
+        "contribution": 0.1429
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.1429
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1667
+        "contribution": 0.1429
       }
     ],
     "evidence": [
@@ -26384,11 +26414,11 @@
       "NOI (RM, annual): 700,821",
       "NOI yield (annual): 0.3695",
       "DSR: 0.04",
-      "Demographic mismatch: 0.15",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 1.9%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,214",
+      "Walk 5-min coverage: 0.9%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,896",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -26871,16 +26901,18 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
+      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon_ratio_small_asset",
       "chronic_stagnation"
     ],
-    "urgency_index": 3.0,
+    "urgency_index": 4.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_occupancy",
         "long_vacancy",
+        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon_ratio_small_asset",
         "chronic_stagnation"
@@ -26905,23 +26937,27 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.2857
+        "contribution": 0.25
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2857
+        "contribution": 0.25
+      },
+      {
+        "factor": "dsr_below_threshold",
+        "contribution": 0.125
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1429
+        "contribution": 0.125
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1429
+        "contribution": 0.125
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1429
+        "contribution": 0.125
       }
     ],
     "evidence": [
@@ -26935,12 +26971,12 @@
       "Vacancy: 22 months",
       "NOI (RM, annual): 60,513",
       "NOI yield (annual): 0.0372",
-      "DSR: nan",
+      "DSR: 0.0",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,299",
+      "Walk 5-min coverage: 1.6%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,669",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -28173,16 +28209,18 @@
       "low_occupancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon_ratio_small_asset",
       "chronic_stagnation"
     ],
-    "urgency_index": 4.0,
+    "urgency_index": 5.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_occupancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon_ratio_small_asset",
         "chronic_stagnation"
       ]
@@ -28206,23 +28244,27 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.3333
+        "contribution": 0.2857
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1667
+        "contribution": 0.1429
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.1429
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1667
+        "contribution": 0.1429
       }
     ],
     "evidence": [
@@ -28236,12 +28278,12 @@
       "Vacancy: 8 months",
       "NOI (RM, annual): 925,201",
       "NOI yield (annual): 0.7687",
-      "DSR: 0.06",
-      "Demographic mismatch: 0.2",
+      "DSR: 0.26",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,136",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,397",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -28807,12 +28849,12 @@
       "Vacancy: 24 months",
       "NOI (RM, annual): -35,830",
       "NOI yield (annual): -0.0336",
-      "DSR: 0.1",
+      "DSR: 0.12",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 12.7%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,446",
+      "Walk 5-min coverage: 6.0%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,708",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -28971,8 +29013,8 @@
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 3,996",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 3,918",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -29154,12 +29196,12 @@
       "Vacancy: 3 months",
       "NOI (RM, annual): 1,042,140",
       "NOI yield (annual): 1.0015",
-      "DSR: 0.08",
+      "DSR: 0.79",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 3,685",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 3,608",
       "Trajectory: stable (5-yr peak 86.2%)"
     ],
     "model_version": "0.4.0"
@@ -29276,9 +29318,9 @@
       "DSR: 0.07",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 1.0",
-      "Walk 5-min coverage: 6.9%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,095",
+      "Walk 5-min coverage: 3.3%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,523",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -29545,16 +29587,18 @@
       "low_occupancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon_ratio_small_asset",
       "chronic_stagnation"
     ],
-    "urgency_index": 4.0,
+    "urgency_index": 5.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_occupancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon_ratio_small_asset",
         "chronic_stagnation"
       ]
@@ -29578,23 +29622,27 @@
     "contributing_factors": [
       {
         "factor": "low_occupancy",
-        "contribution": 0.3333
+        "contribution": 0.2857
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1667
+        "contribution": 0.1429
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.1429
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1667
+        "contribution": 0.1429
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1667
+        "contribution": 0.1429
       }
     ],
     "evidence": [
@@ -29609,11 +29657,11 @@
       "NOI (RM, annual): 551,304",
       "NOI yield (annual): 0.5817",
       "DSR: 0.05",
-      "Demographic mismatch: 0.2",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,241",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,502",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -29703,12 +29751,12 @@
       "Vacancy: 1 months",
       "NOI (RM, annual): 1,730,800",
       "NOI yield (annual): 1.8459",
-      "DSR: 0.48",
+      "DSR: 0.45",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 12.8%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,252",
+      "Walk 5-min coverage: 6.1%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,331",
       "Trajectory: stable (5-yr peak 76.3%)"
     ],
     "model_version": "0.4.0"
@@ -29938,12 +29986,12 @@
       "Vacancy: 24 months",
       "NOI (RM, annual): -94,311",
       "NOI yield (annual): -0.1065",
-      "DSR: 0.88",
+      "DSR: 0.83",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
-      "Walk 5-min coverage: 8.9%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,014",
+      "Walk 5-min coverage: 4.3%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,355",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -30680,7 +30728,6 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "high_stranded_carbon_ratio_small_asset",
       "negative_noi"
@@ -30691,7 +30738,6 @@
       "reasons": [
         "low_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "walking_accessibility_deficit",
         "high_stranded_carbon_ratio_small_asset"
       ]
@@ -30717,27 +30763,23 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.3
+        "contribution": 0.3333
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.2
+        "contribution": 0.2222
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.1
+        "contribution": 0.2222
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1
+        "contribution": 0.1111
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1
+        "contribution": 0.1111
       }
     ],
     "evidence": [
@@ -30750,12 +30792,12 @@
       "Vacancy: 36 months",
       "NOI (RM, annual): -85,602",
       "NOI yield (annual): -0.1073",
-      "DSR: 0.27",
+      "DSR: 1.16",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.93",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,319",
+      "Walk 5-min coverage: 11.4%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,407",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -30838,12 +30880,12 @@
       "Vacancy: 108 months",
       "NOI (RM, annual): -88,727",
       "NOI yield (annual): -0.1126",
-      "DSR: 0.0",
+      "DSR: 0.02",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,240",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,501",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -31188,7 +31230,6 @@
     "flags": [
       "below_benchmark_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "chronic_stagnation",
       "negative_noi",
       "maintenance_surge_high"
@@ -31199,7 +31240,6 @@
       "reasons": [
         "below_benchmark_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "chronic_stagnation"
       ]
     },
@@ -31224,27 +31264,23 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.3333
+        "contribution": 0.375
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2222
+        "contribution": 0.25
       },
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.1111
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.1111
+        "contribution": 0.125
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1111
+        "contribution": 0.125
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.1111
+        "contribution": 0.125
       }
     ],
     "evidence": [
@@ -31257,12 +31293,12 @@
       "Vacancy: 14 months",
       "NOI (RM, annual): -1,245,571",
       "NOI yield (annual): -0.074",
-      "DSR: 0.5",
+      "DSR: 1.04",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 10.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,313",
+      "Walk 5-min coverage: 16.8%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,392",
       "Subtype occupancy:",
       "  cafe: 52.7%",
       "  kopitiam: 55.0%",
@@ -31324,9 +31360,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 12,422 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Utilisation: 55.0%",
-      "Service coverage: 15.4%",
+      "Service coverage: 20.3%",
       "Cost per user (RM): 15.54",
-      "Walk 5-min coverage: 6.6%",
+      "Walk 5-min coverage: 4.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31380,9 +31416,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 440.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Utilisation: 72.1%",
-      "Service coverage: 15.4%",
+      "Service coverage: 20.3%",
       "Cost per user (RM): 43.91",
-      "Walk 5-min coverage: 6.6%",
+      "Walk 5-min coverage: 4.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31436,9 +31472,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 12,422 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Utilisation: 81.2%",
-      "Service coverage: 15.4%",
+      "Service coverage: 20.3%",
       "Cost per user (RM): 10.53",
-      "Walk 5-min coverage: 6.6%",
+      "Walk 5-min coverage: 4.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31492,9 +31528,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 9,317 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Utilisation: 87.1%",
-      "Service coverage: 15.4%",
+      "Service coverage: 8.9%",
       "Cost per user (RM): 9.81",
-      "Walk 5-min coverage: 6.6%",
+      "Walk 5-min coverage: 4.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31548,9 +31584,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 880.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Utilisation: 55.0%",
-      "Service coverage: 15.4%",
+      "Service coverage: 8.9%",
       "Cost per user (RM): 58.65",
-      "Walk 5-min coverage: 6.6%",
+      "Walk 5-min coverage: 4.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31716,9 +31752,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 880.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.6 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.3 \u00b0C",
       "Utilisation: 81.8%",
-      "Service coverage: 0.0%",
+      "Service coverage: 16.1%",
       "Cost per user (RM): 39.43",
-      "Walk 5-min coverage: 0.0%",
+      "Walk 5-min coverage: 4.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31771,9 +31807,9 @@
       "Productive carbon (serving users): 50.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 212.0 tCO2e",
       "Utilisation: 68.0%",
-      "Service coverage: 27.4%",
+      "Service coverage: 25.0%",
       "Cost per user (RM): 46.6",
-      "Walk 5-min coverage: 4.4%",
+      "Walk 5-min coverage: 13.5%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31826,9 +31862,9 @@
       "Productive carbon (serving users): 62.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 217.0 tCO2e",
       "Utilisation: 82.4%",
-      "Service coverage: 25.3%",
+      "Service coverage: 24.0%",
       "Cost per user (RM): 39.32",
-      "Walk 5-min coverage: 4.4%",
+      "Walk 5-min coverage: 13.5%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31894,9 +31930,9 @@
       "Productive carbon (serving users): 11.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 92.0 tCO2e",
       "Utilisation: 36.8%",
-      "Service coverage: 27.4%",
+      "Service coverage: 25.0%",
       "Cost per user (RM): 80.8",
-      "Walk 5-min coverage: 4.4%",
+      "Walk 5-min coverage: 13.5%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -31949,9 +31985,9 @@
       "Productive carbon (serving users): 83.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 416.0 tCO2e",
       "Utilisation: 57.6%",
-      "Service coverage: 27.4%",
+      "Service coverage: 25.0%",
       "Cost per user (RM): 56.1",
-      "Walk 5-min coverage: 4.4%",
+      "Walk 5-min coverage: 13.5%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32004,9 +32040,9 @@
       "Productive carbon (serving users): 54.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 283.0 tCO2e",
       "Utilisation: 55.0%",
-      "Service coverage: 16.5%",
+      "Service coverage: 19.8%",
       "Cost per user (RM): 58.74",
-      "Walk 5-min coverage: 4.4%",
+      "Walk 5-min coverage: 13.5%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32060,9 +32096,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 71.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.5 \u00b0C",
       "Utilisation: 77.9%",
-      "Service coverage: 25.4%",
+      "Service coverage: 12.1%",
       "Cost per user (RM): 10.79",
-      "Walk 5-min coverage: 6.9%",
+      "Walk 5-min coverage: 3.3%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32116,9 +32152,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 312.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.7 \u00b0C",
       "Utilisation: 76.7%",
-      "Service coverage: 19.4%",
+      "Service coverage: 10.8%",
       "Cost per user (RM): 11.13",
-      "Walk 5-min coverage: 6.9%",
+      "Walk 5-min coverage: 3.3%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32172,9 +32208,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 428.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.5 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.2 \u00b0C",
       "Utilisation: 71.5%",
-      "Service coverage: 18.7%",
+      "Service coverage: 8.9%",
       "Cost per user (RM): 5.98",
-      "Walk 5-min coverage: 5.9%",
+      "Walk 5-min coverage: 2.8%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32228,9 +32264,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,471 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.6 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.3 \u00b0C",
       "Utilisation: 75.8%",
-      "Service coverage: 18.7%",
+      "Service coverage: 8.9%",
       "Cost per user (RM): 11.27",
-      "Walk 5-min coverage: 5.9%",
+      "Walk 5-min coverage: 2.8%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32284,9 +32320,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 4,063 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.4 \u00b0C",
       "Utilisation: 56.6%",
-      "Service coverage: 24.1%",
+      "Service coverage: 11.5%",
       "Cost per user (RM): 15.1",
-      "Walk 5-min coverage: 5.9%",
+      "Walk 5-min coverage: 2.8%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32340,7 +32376,7 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 12,549 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.6 \u00b0C",
       "Utilisation: 87.5%",
-      "Service coverage: 1.9%",
+      "Service coverage: 0.9%",
       "Cost per user (RM): 9.77",
       "Walk 5-min coverage: 0.0%",
       "Trajectory: stable (5-yr peak nan%)"
@@ -32396,9 +32432,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 623.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.5 \u00b0C",
       "Utilisation: 51.9%",
-      "Service coverage: 23.5%",
+      "Service coverage: 12.7%",
       "Cost per user (RM): 8.23",
-      "Walk 5-min coverage: 1.9%",
+      "Walk 5-min coverage: 0.9%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32452,9 +32488,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 380.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.7 \u00b0C",
       "Utilisation: 67.2%",
-      "Service coverage: 26.1%",
+      "Service coverage: 12.4%",
       "Cost per user (RM): 9.52",
-      "Walk 5-min coverage: 5.7%",
+      "Walk 5-min coverage: 2.7%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32508,9 +32544,9 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 128.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 42.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.7 \u00b0C",
       "Utilisation: 84.0%",
-      "Service coverage: 2.5%",
+      "Service coverage: 1.2%",
       "Cost per user (RM): 5.11",
-      "Walk 5-min coverage: 2.5%",
+      "Walk 5-min coverage: 1.2%",
       "Trajectory: stable (5-yr peak nan%)"
     ],
     "model_version": "0.4.0"
@@ -32655,12 +32691,12 @@
       "Vacancy: 33 months",
       "NOI (RM, annual): -468,745",
       "NOI yield (annual): -0.0837",
-      "DSR: 0.08",
+      "DSR: 0.18",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,007",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,483",
       "Subtype occupancy:",
       "  kopitiam: 2.3% [dead]",
       "  cafe: 3.7% [dead]",
@@ -32733,12 +32769,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,713,316",
       "NOI yield (annual): 0.8159",
-      "DSR: 0.0",
+      "DSR: 0.03",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,015",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,487",
       "Trajectory: stable (5-yr peak 89.0%)"
     ],
     "model_version": "0.4.0"
@@ -32821,12 +32857,12 @@
       "Vacancy: 180 months",
       "NOI (RM, annual): -333,058",
       "NOI yield (annual): -0.1189",
-      "DSR: 0.11",
+      "DSR: 0.25",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,126",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,535",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -32908,12 +32944,12 @@
       "Vacancy: 15 months",
       "NOI (RM, annual): -123,767",
       "NOI yield (annual): -0.0221",
-      "DSR: 0.07",
+      "DSR: 0.27",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,076",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,548",
       "Subtype occupancy:",
       "  cafe: 49.4%",
       "  restaurant: 55.0%",
@@ -32991,12 +33027,12 @@
       "Vacancy: 12 months",
       "NOI (RM, annual): 275,563",
       "NOI yield (annual): 0.0984",
-      "DSR: 0.11",
+      "DSR: 0.27",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,143",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,532",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -33053,12 +33089,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,298,588",
       "NOI yield (annual): 0.4638",
-      "DSR: 0.11",
+      "DSR: 0.31",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,149",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,524",
       "Trajectory: stable (5-yr peak 73.0%)"
     ],
     "model_version": "0.4.0"
@@ -33135,12 +33171,12 @@
       "Vacancy: 24 months",
       "NOI (RM, annual): -298,263",
       "NOI yield (annual): -0.1065",
-      "DSR: 0.1",
+      "DSR: 0.22",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,094",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,578",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -33154,11 +33190,12 @@
       "long_vacancy",
       "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon_ratio_small_asset",
       "chronic_stagnation",
       "negative_noi"
     ],
-    "urgency_index": 6.0,
+    "urgency_index": 7.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -33166,6 +33203,7 @@
         "long_vacancy",
         "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon_ratio_small_asset",
         "chronic_stagnation"
       ]
@@ -33191,31 +33229,35 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.2727
+        "contribution": 0.25
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1818
+        "contribution": 0.1667
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1818
+        "contribution": 0.1667
       },
       {
         "factor": "dsr_below_threshold",
-        "contribution": 0.0909
+        "contribution": 0.0833
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.0909
+        "contribution": 0.0833
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.0833
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.0909
+        "contribution": 0.0833
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.0909
+        "contribution": 0.0833
       }
     ],
     "evidence": [
@@ -33229,12 +33271,12 @@
       "Vacancy: 30 months",
       "NOI (RM, annual): -69,063",
       "NOI yield (annual): -0.0493",
-      "DSR: 0.02",
-      "Demographic mismatch: 0.2",
+      "DSR: 0.32",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.92",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,130",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,545",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -33291,12 +33333,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 846,185",
       "NOI yield (annual): 0.3022",
-      "DSR: 0.12",
+      "DSR: 0.22",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,015",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,515",
       "Trajectory: stable (5-yr peak 72.2%)"
     ],
     "model_version": "0.4.0"
@@ -33361,12 +33403,12 @@
       "Vacancy: 1 months",
       "NOI (RM, annual): 959,384",
       "NOI yield (annual): 0.9137",
-      "DSR: 0.0",
+      "DSR: 0.02",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,001",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,501",
       "Trajectory: stable (5-yr peak 83.1%)"
     ],
     "model_version": "0.4.0"
@@ -33431,12 +33473,12 @@
       "Vacancy: 2 months",
       "NOI (RM, annual): 1,740,601",
       "NOI yield (annual): 0.8289",
-      "DSR: 0.04",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
-      "Walk 5-min coverage: 6.6%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,085",
+      "Walk 5-min coverage: 4.7%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,581",
       "Trajectory: stable (5-yr peak 73.9%)"
     ],
     "model_version": "0.4.0"
@@ -33449,17 +33491,19 @@
       "below_benchmark_occupancy",
       "long_vacancy",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "low_neighborhood_diversity",
       "chronic_stagnation",
       "maintenance_surge_high"
     ],
-    "urgency_index": 5.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
         "long_vacancy",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "low_neighborhood_diversity",
         "chronic_stagnation"
       ]
@@ -33485,27 +33529,31 @@
     "contributing_factors": [
       {
         "factor": "long_vacancy",
-        "contribution": 0.2857
+        "contribution": 0.25
       },
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.1429
+        "contribution": 0.125
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1429
+        "contribution": 0.125
+      },
+      {
+        "factor": "demographic_mismatch",
+        "contribution": 0.125
       },
       {
         "factor": "low_neighborhood_diversity",
-        "contribution": 0.1429
+        "contribution": 0.125
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.1429
+        "contribution": 0.125
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.1429
+        "contribution": 0.125
       }
     ],
     "evidence": [
@@ -33519,12 +33567,12 @@
       "Vacancy: 14 months",
       "NOI (RM, annual): 512,514",
       "NOI yield (annual): 0.7322",
-      "DSR: nan",
+      "DSR: 1.66",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.0",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,802",
+      "Walk 5-min coverage: 16.1%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,642",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -33535,19 +33583,19 @@
     "status": "deadspace_candidate",
     "flags": [
       "low_occupancy",
-      "dsr_below_threshold",
       "walking_accessibility_deficit",
+      "demographic_mismatch",
       "high_stranded_carbon_ratio_small_asset",
       "rapid_decline",
       "maintenance_surge_high"
     ],
-    "urgency_index": 6.0,
+    "urgency_index": 7.0,
     "layer1": {
       "triggered": true,
       "reasons": [
         "low_occupancy",
-        "dsr_below_threshold",
         "walking_accessibility_deficit",
+        "demographic_mismatch",
         "high_stranded_carbon_ratio_small_asset",
         "rapid_decline"
       ]
@@ -33580,11 +33628,11 @@
         "contribution": 0.25
       },
       {
-        "factor": "dsr_below_threshold",
+        "factor": "walking_accessibility_deficit",
         "contribution": 0.125
       },
       {
-        "factor": "walking_accessibility_deficit",
+        "factor": "demographic_mismatch",
         "contribution": 0.125
       },
       {
@@ -33606,12 +33654,12 @@
       "Vacancy: 10 months",
       "NOI (RM, annual): 937,158",
       "NOI yield (annual): 1.3388",
-      "DSR: 0.38",
-      "Demographic mismatch: 0.2",
+      "DSR: 1.23",
+      "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.94",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,337",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,425",
       "Trajectory: rapid decline (from 62.7% peak, 2 yr ago)"
     ],
     "model_version": "0.4.0"
@@ -33687,12 +33735,12 @@
       "Vacancy: 48 months",
       "NOI (RM, annual): -105,028",
       "NOI yield (annual): -0.1081",
-      "DSR: 0.3",
+      "DSR: 0.76",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,452",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,529",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -33760,7 +33808,7 @@
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
+      "Drive 10-min coverage: 86.3%",
       "Median walk distance (m): nan",
       "Trajectory: stable (5-yr peak 77.7%)"
     ],
@@ -33771,6 +33819,7 @@
     "year": 2028,
     "status": "deadspace_candidate",
     "flags": [
+      "dsr_below_threshold",
       "walking_accessibility_deficit",
       "maintenance_surge_high"
     ],
@@ -33778,6 +33827,7 @@
     "layer1": {
       "triggered": true,
       "reasons": [
+        "dsr_below_threshold",
         "walking_accessibility_deficit"
       ]
     },
@@ -33791,21 +33841,26 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
+        "repurpose",
         "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
+        "factor": "dsr_below_threshold",
+        "contribution": 0.3333
+      },
+      {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
+        "contribution": 0.3333
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.5
+        "contribution": 0.3333
       }
     ],
     "evidence": [
@@ -33818,12 +33873,12 @@
       "Vacancy: 0 months",
       "NOI (RM, annual): 1,885,988",
       "NOI yield (annual): 0.8981",
-      "DSR: nan",
+      "DSR: 0.17",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,349",
+      "Walk 5-min coverage: 11.4%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,426",
       "Trajectory: stable (5-yr peak 80.3%)"
     ],
     "model_version": "0.4.0"
@@ -33835,7 +33890,6 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "high_stranded_carbon",
       "negative_noi",
       "maintenance_surge_high"
@@ -33846,7 +33900,6 @@
       "reasons": [
         "low_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "high_stranded_carbon"
       ]
     },
@@ -33872,27 +33925,23 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.2727
+        "contribution": 0.3
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1818
+        "contribution": 0.2
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1818
+        "contribution": 0.2
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1818
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.0909
+        "contribution": 0.2
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.0909
+        "contribution": 0.1
       }
     ],
     "evidence": [
@@ -33905,12 +33954,12 @@
       "Vacancy: 168 months",
       "NOI (RM, annual): -215,244",
       "NOI yield (annual): -0.1178",
-      "DSR: 0.23",
+      "DSR: 0.86",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 0.0%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,385",
+      "Walk 5-min coverage: 11.4%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,462",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -33922,7 +33971,6 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "high_stranded_carbon_ratio_small_asset",
       "negative_noi"
     ],
@@ -33932,7 +33980,6 @@
       "reasons": [
         "low_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "high_stranded_carbon_ratio_small_asset"
       ]
     },
@@ -33957,23 +34004,19 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.3333
+        "contribution": 0.375
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.2222
+        "contribution": 0.25
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2222
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.1111
+        "contribution": 0.25
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1111
+        "contribution": 0.125
       }
     ],
     "evidence": [
@@ -33986,12 +34029,12 @@
       "Vacancy: 36 months",
       "NOI (RM, annual): -41,230",
       "NOI yield (annual): -0.1073",
-      "DSR: 0.31",
+      "DSR: 1.42",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,296",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,373",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -34003,7 +34046,6 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
-      "dsr_below_threshold",
       "high_stranded_carbon_ratio_small_asset",
       "negative_noi"
     ],
@@ -34013,7 +34055,6 @@
       "reasons": [
         "low_occupancy",
         "long_vacancy",
-        "dsr_below_threshold",
         "high_stranded_carbon_ratio_small_asset"
       ]
     },
@@ -34038,23 +34079,19 @@
     "contributing_factors": [
       {
         "factor": "negative_noi",
-        "contribution": 0.3333
+        "contribution": 0.375
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.2222
+        "contribution": 0.25
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.2222
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.1111
+        "contribution": 0.25
       },
       {
         "factor": "high_stranded_carbon_ratio_small_asset",
-        "contribution": 0.1111
+        "contribution": 0.125
       }
     ],
     "evidence": [
@@ -34067,12 +34104,12 @@
       "Vacancy: 48 months",
       "NOI (RM, annual): -97,279",
       "NOI yield (annual): -0.1081",
-      "DSR: 0.31",
+      "DSR: 0.83",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,418",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,460",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -34136,12 +34173,12 @@
       "Vacancy: 2 months",
       "NOI (RM, annual): 1,490,381",
       "NOI yield (annual): 0.8626",
-      "DSR: 0.11",
+      "DSR: 0.22",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,385",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,462",
       "Trajectory: stable (5-yr peak 74.0%)"
     ],
     "model_version": "0.4.0"
@@ -34217,12 +34254,12 @@
       "Vacancy: 144 months",
       "NOI (RM, annual): -110,218",
       "NOI yield (annual): -0.1156",
-      "DSR: 0.31",
+      "DSR: 0.76",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,457",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,534",
       "Trajectory: never occupied since completion"
     ],
     "model_version": "0.4.0"
@@ -34233,7 +34270,6 @@
     "status": "deadspace_candidate",
     "flags": [
       "below_benchmark_occupancy",
-      "dsr_below_threshold",
       "chronic_stagnation",
       "maintenance_surge_high"
     ],
@@ -34242,7 +34278,6 @@
       "triggered": true,
       "reasons": [
         "below_benchmark_occupancy",
-        "dsr_below_threshold",
         "chronic_stagnation"
       ]
     },
@@ -34266,19 +34301,15 @@
     "contributing_factors": [
       {
         "factor": "below_benchmark_occupancy",
-        "contribution": 0.25
-      },
-      {
-        "factor": "dsr_below_threshold",
-        "contribution": 0.25
+        "contribution": 0.3333
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.25
+        "contribution": 0.3333
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.25
+        "contribution": 0.3333
       }
     ],
     "evidence": [
@@ -34291,12 +34322,12 @@
       "Vacancy: 10 months",
       "NOI (RM, annual): 1,249,216",
       "NOI yield (annual): 1.1234",
-      "DSR: 0.31",
+      "DSR: 0.84",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,410",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,462",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -34377,12 +34408,12 @@
       "Vacancy: 17 months",
       "NOI (RM, annual): 12,379",
       "NOI yield (annual): 0.0071",
-      "DSR: 0.08",
+      "DSR: 0.3",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
-      "Walk 5-min coverage: 4.4%",
-      "Drive 10-min coverage: 95.1%",
-      "Median walk distance (m): 1,319",
+      "Walk 5-min coverage: 13.5%",
+      "Drive 10-min coverage: 86.3%",
+      "Median walk distance (m): 1,396",
       "Trajectory: chronic low (3 consecutive years below benchmark)"
     ],
     "model_version": "0.4.0"
@@ -34427,7 +34458,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.2 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 66.1%",
-      "Green space per capita (m2): 15.32"
+      "Green space per capita (m2): 8.87"
     ],
     "model_version": "0.4.0"
   },
@@ -34471,7 +34502,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 34.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -5.4 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 79.0%",
-      "Green space per capita (m2): 4.62"
+      "Green space per capita (m2): 2.31"
     ],
     "model_version": "0.4.0"
   },
@@ -34515,7 +34546,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 55.4%",
-      "Green space per capita (m2): 4.69"
+      "Green space per capita (m2): 2.05"
     ],
     "model_version": "0.4.0"
   },
@@ -34566,7 +34597,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 34.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -5.3 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 68.2%",
-      "Green space per capita (m2): 1.57"
+      "Green space per capita (m2): 0.78"
     ],
     "model_version": "0.4.0"
   },
@@ -34610,7 +34641,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.4 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 59.1%",
-      "Green space per capita (m2): 3.42"
+      "Green space per capita (m2): 2.02"
     ],
     "model_version": "0.4.0"
   },
@@ -34619,12 +34650,15 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
+      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_green_per_capita"
+      ]
     },
     "layer2": {
       "triggered": true,
@@ -34640,12 +34674,16 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
+        "factor": "low_green_per_capita",
+        "contribution": 0.5
+      },
+      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 1.0
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -34654,7 +34692,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.6 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.3 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 69.8%",
-      "Green space per capita (m2): 3.27"
+      "Green space per capita (m2): 1.87"
     ],
     "model_version": "0.4.0"
   },
@@ -34663,12 +34701,15 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
+      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_green_per_capita"
+      ]
     },
     "layer2": {
       "triggered": true,
@@ -34684,12 +34725,16 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
+        "factor": "low_green_per_capita",
+        "contribution": 0.5
+      },
+      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 1.0
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -34698,7 +34743,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 37.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -1.5 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 52.6%",
-      "Green space per capita (m2): 2.78"
+      "Green space per capita (m2): 1.64"
     ],
     "model_version": "0.4.0"
   },
@@ -34749,7 +34794,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.8 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.9%",
-      "Green space per capita (m2): 0.76"
+      "Green space per capita (m2): 0.38"
     ],
     "model_version": "0.4.0"
   },
@@ -34758,12 +34803,15 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
+      "low_green_per_capita",
       "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_green_per_capita"
+      ]
     },
     "layer2": {
       "triggered": true,
@@ -34779,12 +34827,16 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
+        "factor": "low_green_per_capita",
+        "contribution": 0.5
+      },
+      {
         "factor": "low_accessibility_high_ecological_value",
-        "contribution": 1.0
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -34793,7 +34845,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 42.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +3.6 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 37.8%",
-      "Green space per capita (m2): 11.63"
+      "Green space per capita (m2): 1.14"
     ],
     "model_version": "0.4.0"
   },
@@ -34846,9 +34898,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -34856,22 +34909,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -34880,7 +34940,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.3 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.0 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 47.7%",
-      "Green space per capita (m2): 0.94"
+      "Green space per capita (m2): 0.62"
     ],
     "model_version": "0.4.0"
   },
@@ -34931,7 +34991,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.3 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -1.1 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 64.2%",
-      "Green space per capita (m2): 0.72"
+      "Green space per capita (m2): 0.71"
     ],
     "model_version": "0.4.0"
   },
@@ -34982,7 +35042,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -1.4 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 75.8%",
-      "Green space per capita (m2): 0.99"
+      "Green space per capita (m2): 0.49"
     ],
     "model_version": "0.4.0"
   },
@@ -35033,7 +35093,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.1 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 71.0%",
-      "Green space per capita (m2): 0.52"
+      "Green space per capita (m2): 0.33"
     ],
     "model_version": "0.4.0"
   },
@@ -35042,9 +35102,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -35052,22 +35113,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -35076,7 +35144,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.3 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 67.5%",
-      "Green space per capita (m2): 0.52"
+      "Green space per capita (m2): 0.35"
     ],
     "model_version": "0.4.0"
   },
@@ -35170,7 +35238,7 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
       "Green coverage: 100.0%",
       "Canopy coverage: 51.2%",
-      "Green space per capita (m2): 0.68"
+      "Green space per capita (m2): 0.4"
     ],
     "model_version": "0.4.0"
   },
@@ -35221,7 +35289,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 37.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -1.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 72.9%",
-      "Green space per capita (m2): 0.51"
+      "Green space per capita (m2): 0.54"
     ],
     "model_version": "0.4.0"
   },
@@ -35230,9 +35298,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -35240,22 +35309,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -35264,7 +35340,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.4 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.0 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 59.3%",
-      "Green space per capita (m2): 0.43"
+      "Green space per capita (m2): 0.28"
     ],
     "model_version": "0.4.0"
   },
@@ -35314,7 +35390,7 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
       "Green coverage: 100.0%",
       "Canopy coverage: 51.1%",
-      "Green space per capita (m2): 0.46"
+      "Green space per capita (m2): 0.44"
     ],
     "model_version": "0.4.0"
   },
@@ -35365,7 +35441,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 78.6%",
-      "Green space per capita (m2): 0.38"
+      "Green space per capita (m2): 0.26"
     ],
     "model_version": "0.4.0"
   },
@@ -35415,7 +35491,7 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
       "Green coverage: 100.0%",
       "Canopy coverage: 49.4%",
-      "Green space per capita (m2): 0.36"
+      "Green space per capita (m2): 0.19"
     ],
     "model_version": "0.4.0"
   },
@@ -35466,7 +35542,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.3 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 60.0%",
-      "Green space per capita (m2): 0.27"
+      "Green space per capita (m2): 0.26"
     ],
     "model_version": "0.4.0"
   },
@@ -35475,9 +35551,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -35485,22 +35562,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -35509,7 +35593,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.6 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 53.1%",
-      "Green space per capita (m2): 0.19"
+      "Green space per capita (m2): 0.14"
     ],
     "model_version": "0.4.0"
   },
@@ -35562,9 +35646,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -35572,22 +35657,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -35647,7 +35739,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.6 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.3 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 50.5%",
-      "Green space per capita (m2): 0.18"
+      "Green space per capita (m2): 0.13"
     ],
     "model_version": "0.4.0"
   },
@@ -35698,7 +35790,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.8 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 61.3%",
-      "Green space per capita (m2): 0.29"
+      "Green space per capita (m2): 0.17"
     ],
     "model_version": "0.4.0"
   },
@@ -35749,7 +35841,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 42.3 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.9 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 64.2%",
-      "Green space per capita (m2): 0.29"
+      "Green space per capita (m2): 0.31"
     ],
     "model_version": "0.4.0"
   },
@@ -35844,7 +35936,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.5 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.8 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 77.5%",
-      "Green space per capita (m2): 0.29"
+      "Green space per capita (m2): 0.14"
     ],
     "model_version": "0.4.0"
   },
@@ -35895,7 +35987,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.4 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.1 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 43.4%",
-      "Green space per capita (m2): 0.19"
+      "Green space per capita (m2): 0.11"
     ],
     "model_version": "0.4.0"
   },
@@ -35952,7 +36044,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.3 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 3.0%",
-      "Green space per capita (m2): 0.1"
+      "Green space per capita (m2): 0.07"
     ],
     "model_version": "0.4.0"
   },
@@ -36091,7 +36183,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 37.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -2.2 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 67.7%",
-      "Green space per capita (m2): 0.32"
+      "Green space per capita (m2): 0.05"
     ],
     "model_version": "0.4.0"
   },
@@ -36142,7 +36234,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 43.4%",
-      "Green space per capita (m2): 0.05"
+      "Green space per capita (m2): 0.03"
     ],
     "model_version": "0.4.0"
   },
@@ -36195,9 +36287,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -36205,22 +36298,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -36229,7 +36329,7 @@
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 42.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.7 \u00b0C",
       "Green coverage: 100.0%",
       "Canopy coverage: 50.5%",
-      "Green space per capita (m2): 0.03"
+      "Green space per capita (m2): 0.02"
     ],
     "model_version": "0.4.0"
   },
@@ -36238,9 +36338,10 @@
     "year": 2028,
     "status": "improvement_opportunity",
     "flags": [
-      "low_green_per_capita"
+      "low_green_per_capita",
+      "low_accessibility_high_ecological_value"
     ],
-    "urgency_index": 1.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -36248,22 +36349,29 @@
       ]
     },
     "layer2": {
-      "triggered": false,
-      "reasons": []
+      "triggered": true,
+      "reasons": [
+        "low_accessibility_high_ecological_value"
+      ]
     },
     "layer3": {
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "green_corridor"
+        "green_corridor",
+        "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
     },
     "contributing_factors": [
       {
         "factor": "low_green_per_capita",
-        "contribution": 1.0
+        "contribution": 0.5
+      },
+      {
+        "factor": "low_accessibility_high_ecological_value",
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -36856,7 +36964,7 @@
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-04",
+    "asset_id": "P-VAC-GOLD-01",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -36902,16 +37010,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.3 \u00b0C",
-      "Developable area (m2): 8,716",
-      "Potential GFA (m2): 13,075",
-      "Demand-supply gap: -80,969",
-      "Infrastructure cost (RM): 1,743,298"
+      "Developable area (m2): 9,232",
+      "Potential GFA (m2): 13,848",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 1,846,400"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-05",
+    "asset_id": "P-VAC-GOLD-02",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -36957,16 +37064,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.5 \u00b0C",
-      "Developable area (m2): 3,142",
-      "Potential GFA (m2): 4,712",
-      "Demand-supply gap: -80,969",
-      "Infrastructure cost (RM): 628,320"
+      "Developable area (m2): 23,283",
+      "Potential GFA (m2): 34,924",
+      "Demand-supply gap: -39,329",
+      "Infrastructure cost (RM): 4,656,600"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-06",
+    "asset_id": "P-VAC-GOLD-03",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37012,15 +37118,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Developable area (m2): 4,525",
-      "Potential GFA (m2): 6,788",
-      "Demand-supply gap: -59,868",
-      "Infrastructure cost (RM): 905,046"
+      "Developable area (m2): 21,037",
+      "Potential GFA (m2): 31,556",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 4,207,400"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-07",
+    "asset_id": "P-VAC-GOLD-04",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37066,16 +37172,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -1.2 \u00b0C",
-      "Developable area (m2): 5,180",
-      "Potential GFA (m2): 7,770",
-      "Demand-supply gap: -80,969",
-      "Infrastructure cost (RM): 1,035,994"
+      "Developable area (m2): 20,602",
+      "Potential GFA (m2): 30,903",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 4,120,400"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-08",
+    "asset_id": "P-VAC-GOLD-05",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37121,16 +37226,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 35.4 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -4.0 \u00b0C",
-      "Developable area (m2): 8,978",
-      "Potential GFA (m2): 13,467",
-      "Demand-supply gap: -59,868",
-      "Infrastructure cost (RM): 1,795,596"
+      "Developable area (m2): 22,532",
+      "Potential GFA (m2): 33,798",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 4,506,400"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-09",
+    "asset_id": "P-VAC-GOLD-06",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37176,16 +37280,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.7 \u00b0C",
-      "Developable area (m2): 5,644",
-      "Potential GFA (m2): 8,465",
-      "Demand-supply gap: -80,969",
-      "Infrastructure cost (RM): 1,128,732"
+      "Developable area (m2): 22,204",
+      "Potential GFA (m2): 33,306",
+      "Demand-supply gap: -39,200",
+      "Infrastructure cost (RM): 4,440,800"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-10",
+    "asset_id": "P-VAC-GOLD-07",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37231,16 +37334,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 43.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +3.7 \u00b0C",
-      "Developable area (m2): 2,530",
-      "Potential GFA (m2): 3,795",
-      "Demand-supply gap: -59,868",
-      "Infrastructure cost (RM): 505,970"
+      "Developable area (m2): 17,940",
+      "Potential GFA (m2): 26,910",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 3,588,000"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-11",
+    "asset_id": "P-VAC-GOLD-08",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37286,16 +37388,15 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 34.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -5.1 \u00b0C",
-      "Developable area (m2): 9,642",
-      "Potential GFA (m2): 14,463",
-      "Demand-supply gap: -59,868",
-      "Infrastructure cost (RM): 1,928,448"
+      "Developable area (m2): 23,057",
+      "Potential GFA (m2): 34,586",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 4,611,400"
     ],
     "model_version": "0.4.0"
   },
   {
-    "asset_id": "P-VAC-12",
+    "asset_id": "P-VAC-GOLD-09",
     "year": 2028,
     "status": "development_risk",
     "flags": [
@@ -37341,11 +37442,10 @@
       "Stranded carbon (unused capacity): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users): 0.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): nan tCO2e",
-      "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.7 \u00b0C",
-      "Developable area (m2): 3,678",
-      "Potential GFA (m2): 5,516",
-      "Demand-supply gap: -59,868",
-      "Infrastructure cost (RM): 735,524"
+      "Developable area (m2): 19,825",
+      "Potential GFA (m2): 29,738",
+      "Demand-supply gap: -38,825",
+      "Infrastructure cost (RM): 3,965,000"
     ],
     "model_version": "0.4.0"
   }

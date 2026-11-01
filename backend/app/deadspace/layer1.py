@@ -33,7 +33,7 @@ DEFAULTS = {
     "demand_supply_gap_below": 0.0,
     "walking_coverage_5min_below": 0.20,
     "driving_coverage_10min_below": 0.50,
-    "demographic_mismatch_above": 0.50,
+    "demographic_mismatch_above": 0.40,
     "neighborhood_diversity_below": 0.30,
     # Phase 11 — stranded carbon diagnostics
     "stranded_carbon_ratio_above": 0.50,

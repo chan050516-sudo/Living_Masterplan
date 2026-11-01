@@ -501,13 +501,16 @@ def _recompute_commercial_financials(
     state_by_year: dict,
     base_year: int,
     assumptions: dict,
+    activated: dict = None,
 ) -> None:
     """
     Mutates `metric_row` in place to reflect the current occupancy.
 
-    Rental income and footfall scale linearly with the occupancy
-    ratio. Maintenance is recomputed with the aging factor. NOI and
-    NOI yield follow.
+    If an intervention is active (post-activation), rental income is
+    computed using market pricing + location factor instead of the
+    baseline pro-rata scaling.
+    Otherwise, the legacy pro-rata scaling is retained to preserve
+    the baseline behavior.
     """
     baseline = state_by_year.get(base_year, {}).get(aid, {})
     base_occ = baseline.get("occupancy_rate")
@@ -516,14 +519,41 @@ def _recompute_commercial_financials(
 
     if not _is_valid_number(base_occ) or float(base_occ) <= 0:
         return
-    if not _is_valid_number(base_rental):
-        return
 
-    ratio = float(new_occ) / float(base_occ)
-    scaled_rental = float(base_rental) * ratio
-    metric_row["rental_income_rm"] = scaled_rental
+    if activated is not None:
+        # ---- Market pricing for post-intervention assets ----
+        # Uses the subtype's market rent plus a location factor.
+        # This ensures the NOI reflects the new asset class, not the old one.
+        from ..taxonomy import get_market_rent_per_m2  # Local import to avoid cycles
 
+        new_subtype = eff.get("subtype")
+        market_rate = get_market_rent_per_m2(new_subtype, default=200.0)
+
+        # Location factor: 0.6 + 0.8 * coverage_ratio_15min_walk.
+        # A high-coverage parcel commands a premium; a dead-end parcel discounts.
+        cov15 = baseline.get("coverage_ratio_15min_walk")
+        cov15 = float(cov15) if _is_valid_number(cov15) else 0.0
+        loc_factor = 0.6 + 0.8 * cov15
+
+        lettable = eff.get("lettable_area_m2")
+        lettable = float(lettable) if _is_valid_number(lettable) else 0.0
+
+        scaled_rental = market_rate * lettable * new_occ * loc_factor
+        metric_row["rental_income_rm"] = scaled_rental
+
+    else:
+        # ---- Legacy pro-rata scaling ----
+        # Baseline behavior: scale rental income proportionally to occupancy.
+        if not _is_valid_number(base_rental):
+            return
+
+        ratio = float(new_occ) / float(base_occ)
+        scaled_rental = float(base_rental) * ratio
+        metric_row["rental_income_rm"] = scaled_rental
+
+    # ---- Footfall ----
     if _is_valid_number(base_footfall):
+        ratio = float(new_occ) / float(base_occ)
         scaled_footfall = float(base_footfall) * ratio
         metric_row["footfall_daily"] = scaled_footfall
         if scaled_footfall > 0:
@@ -533,6 +563,7 @@ def _recompute_commercial_financials(
         else:
             metric_row["rental_income_per_visit_proxy"] = None
 
+    # ---- Maintenance ----
     maintenance_base = eff.get("maintenance_annual_rm")
     completion_year = eff.get("completion_year")
     maintenance_current = None
@@ -545,12 +576,14 @@ def _recompute_commercial_financials(
         maintenance_current = float(maintenance_base) * (1.0 + alpha) ** years_old
     metric_row["maintenance_surge_rm"] = maintenance_current
 
+    # ---- NOI ----
     opex = eff.get("opex_annual_rm")
     opex_f = float(opex) if _is_valid_number(opex) else 0.0
     maint_f = maintenance_current if maintenance_current is not None else 0.0
     noi = scaled_rental - opex_f - maint_f
     metric_row["noi_rm"] = noi
 
+    # ---- NOI Yield ----
     capex = eff.get("capex_initial_rm")
     if _is_valid_number(capex) and float(capex) > 0:
         metric_row["noi_yield"] = noi / float(capex)
@@ -1702,6 +1735,7 @@ def simulate_scenario(
                     state_by_year=state_by_year,
                     base_year=base_year,
                     assumptions=assumptions,
+                    activated=activated,  # Pass the intervention state
                 )
                 # P1-4 fix — refresh per-subtype occupancy so the
                 # subunit breakdown reflects the new aggregate.

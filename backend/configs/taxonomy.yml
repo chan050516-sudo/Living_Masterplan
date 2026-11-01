@@ -27,10 +27,11 @@ subtypes:
     display_name: "Convenience retail"
     target_area_m2: [50, 300]
     occupancy_benchmark: 0.85
+    market_rent_rm_per_m2_year: 180
     energy_intensity_kwh_m2_year: 280          # Malaysia retail (ST audit range)
     material_intensity_tco2e_m2: 0.35          # light steel + masonry
     structural_lifespan_years: 30
-    target_demographics: [all]
+    target_demographics: [families, workers]
     competition_radius_m: 500
     demand_coefficient_m2_per_person: 0.05
     is_core_amenity: true
@@ -41,6 +42,7 @@ subtypes:
     display_name: "Supermarket"
     target_area_m2: [1000, 5000]
     occupancy_benchmark: 0.90
+    market_rent_rm_per_m2_year: 150
     energy_intensity_kwh_m2_year: 420          # high HVAC + refrigeration load
     material_intensity_tco2e_m2: 0.42          # large-span steel frame
     structural_lifespan_years: 30
@@ -55,6 +57,7 @@ subtypes:
     display_name: "Food and beverage"
     target_area_m2: [50, 500]
     occupancy_benchmark: 0.80
+    market_rent_rm_per_m2_year: 200
     energy_intensity_kwh_m2_year: 380
     material_intensity_tco2e_m2: 0.30
     structural_lifespan_years: 25
@@ -69,10 +72,11 @@ subtypes:
     display_name: "Restaurant (sit-down dining)"
     target_area_m2: [150, 800]
     occupancy_benchmark: 0.75
+    market_rent_rm_per_m2_year: 220
     energy_intensity_kwh_m2_year: 400
     material_intensity_tco2e_m2: 0.32
     structural_lifespan_years: 25
-    target_demographics: [all, workers, families]
+    target_demographics: [young_adults, families, workers]
     competition_radius_m: 1500
     demand_coefficient_m2_per_person: 0.10
     is_core_amenity: false
@@ -83,6 +87,7 @@ subtypes:
     display_name: "Kopitiam / coffee shop (hawker-style)"
     target_area_m2: [50, 300]
     occupancy_benchmark: 0.85
+    market_rent_rm_per_m2_year: 150
     energy_intensity_kwh_m2_year: 180
     material_intensity_tco2e_m2: 0.28
     structural_lifespan_years: 25
@@ -97,10 +102,11 @@ subtypes:
     display_name: "Cafe / coffee shop (specialty)"
     target_area_m2: [50, 200]
     occupancy_benchmark: 0.70
+    market_rent_rm_per_m2_year: 180
     energy_intensity_kwh_m2_year: 250
     material_intensity_tco2e_m2: 0.30
     structural_lifespan_years: 20
-    target_demographics: [young_adults, workers]
+    target_demographics: [young_adults] 
     competition_radius_m: 800
     demand_coefficient_m2_per_person: 0.06
     is_core_amenity: false
@@ -111,10 +117,11 @@ subtypes:
     display_name: "Medical retail (pharmacy, clinic-as-business)"
     target_area_m2: [80, 300]
     occupancy_benchmark: 0.85
+    market_rent_rm_per_m2_year: 260
     energy_intensity_kwh_m2_year: 220
     material_intensity_tco2e_m2: 0.38
     structural_lifespan_years: 40
-    target_demographics: [all, seniors]
+    target_demographics: [seniors, families]
     competition_radius_m: 1500
     demand_coefficient_m2_per_person: 0.03
     is_core_amenity: true
@@ -125,6 +132,7 @@ subtypes:
     display_name: "Office"
     target_area_m2: [500, 20000]
     occupancy_benchmark: 0.85
+    market_rent_rm_per_m2_year: 220
     energy_intensity_kwh_m2_year: 210          # ST: typical Malaysian office
     material_intensity_tco2e_m2: 0.48          # concrete frame + curtain wall
     structural_lifespan_years: 50
@@ -139,6 +147,7 @@ subtypes:
     display_name: "Personal services (bank, salon, repair)"
     target_area_m2: [50, 300]
     occupancy_benchmark: 0.85
+    market_rent_rm_per_m2_year: 160
     energy_intensity_kwh_m2_year: 180
     material_intensity_tco2e_m2: 0.32
     structural_lifespan_years: 30
@@ -153,6 +162,7 @@ subtypes:
     display_name: "Entertainment (cinema, karaoke)"
     target_area_m2: [500, 5000]
     occupancy_benchmark: 0.70
+    market_rent_rm_per_m2_year: 240
     energy_intensity_kwh_m2_year: 400
     material_intensity_tco2e_m2: 0.45
     structural_lifespan_years: 30
@@ -167,6 +177,7 @@ subtypes:
     display_name: "Showroom (car, furniture)"
     target_area_m2: [500, 3000]
     occupancy_benchmark: 0.80
+    market_rent_rm_per_m2_year: 180
     energy_intensity_kwh_m2_year: 150
     material_intensity_tco2e_m2: 0.40
     structural_lifespan_years: 30
