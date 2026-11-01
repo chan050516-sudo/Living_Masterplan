@@ -24,15 +24,37 @@ const TOWER_MIN_H = 12
 const FIN_SPACING = 1.6
 const FLOOR_H = 3.5
 
-// Hero assets (buildings with an intervention get a visible upgrade)
+// Hero assets: each intervention type gets its own upgrade.
 const GREEN_ROOF = '#4f7d3a'
-const GREEN_ROOF_TYPES = ['green_corridor'] // every other type gets solar panels
+const TIMBER = '#9a6a45'
+const TIMBER_DARK = '#6e4a30'
+const PLANTER = '#4c7a3d'
+const SCAFFOLD = '#c9b48a'
+const PAVING = '#b7aea3'
+const LAMP_POLE = '#2a2628'
+const LAMP_LIGHT = '#ffcf7a'
+
 const PANEL_MODEL_URL = '/models/solar_panel.glb'
 const PANEL_LENGTH = 4.0
 const ROW_GAP = 1.2
 const COL_GAP = 0.3
 const SETBACK = 1.2
 const MAX_PANELS = 300
+
+// Cooling halo: ground glow sized by temperature reduction (deltaT, negative = cooler).
+const HALO_COLOUR = '#6ee7d8'
+const HALO_BASE_R = 60
+const HALO_R_PER_DEG = 70
+const HALO_STRENGTH = 1.0
+// Placeholder cooling per type until real Landsat deltaT arrives from the backend.
+const FAKE_DELTA_T: Record<string, number> = {
+  green_corridor: -1.8,
+  pedestrian_upgrade: -0.9,
+  repurpose: -0.6,
+  retrofit: -0.5,
+  renovation: -0.3,
+}
+const FAKE_DELTA_T_DEFAULT = -0.5
 
 // Parks
 const GRASS = '#355e3b'
@@ -52,7 +74,10 @@ type Cached = {
   geos: THREE.BufferGeometry[]
 }
 
-export type HeroIntervention = { id: string; type: string }
+type Box = { x: number; y: number; z: number; sx: number; sy: number; sz: number; yaw: number }
+type TreeSpot = { x: number; z: number; h: number }
+
+export type HeroIntervention = { id: string; type: string; deltaT?: number }
 
 function makeSkyEnv() {
   const c = document.createElement('canvas')
@@ -87,6 +112,92 @@ function disposeGroup(group: THREE.Group) {
     if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach((x) => x.dispose())
   })
   group.clear()
+}
+
+// Many boxes in one draw call. Each box: centre, size, rotation around the vertical axis.
+function boxMesh(list: Box[], material: THREE.Material): THREE.InstancedMesh | null {
+  if (!list.length) return null
+  const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), material, list.length)
+  const m = new THREE.Matrix4()
+  const q = new THREE.Quaternion()
+  const up = new THREE.Vector3(0, 1, 0)
+  list.forEach((b, i) => {
+    q.setFromAxisAngle(up, b.yaw)
+    m.compose(new THREE.Vector3(b.x, b.y, b.z), q, new THREE.Vector3(b.sx, b.sy, b.sz))
+    inst.setMatrixAt(i, m)
+  })
+  inst.castShadow = true
+  inst.receiveShadow = true
+  return inst
+}
+
+// Simple trees (trunk + crown), instanced. Used for parks and street trees.
+function treeMeshes(spots: TreeSpot[], baseY: number): THREE.InstancedMesh[] {
+  if (!spots.length) return []
+  const trunks = new THREE.InstancedMesh(
+    new THREE.CylinderGeometry(0.25, 0.35, 1, 5),
+    new THREE.MeshStandardMaterial({ color: '#4a3528', roughness: 1 }),
+    spots.length,
+  )
+  const crowns = new THREE.InstancedMesh(
+    new THREE.IcosahedronGeometry(1, 1),
+    new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true }),
+    spots.length,
+  )
+  const m = new THREE.Matrix4()
+  const q = new THREE.Quaternion()
+  const greens = ['#2f5d34', '#3b6e3a', '#2a5230', '#46783f']
+  const col = new THREE.Color()
+  spots.forEach((t, i) => {
+    m.compose(new THREE.Vector3(t.x, baseY + t.h * 0.2, t.z), q, new THREE.Vector3(1, t.h * 0.4, 1))
+    trunks.setMatrixAt(i, m)
+    const r = t.h * 0.35
+    m.compose(new THREE.Vector3(t.x, baseY + t.h * 0.62, t.z), q, new THREE.Vector3(r, r * 0.9, r))
+    crowns.setMatrixAt(i, m)
+    crowns.setColorAt(i, col.set(greens[i % greens.length]))
+  })
+  for (const tm of [trunks, crowns]) { tm.castShadow = true; tm.receiveShadow = true }
+  return [trunks, crowns]
+}
+
+// Rotated frame aligned with a footprint's longest wall. u runs along that wall, v across it.
+function frameOf(outer: THREE.Vector2[]) {
+  let theta = 0, best = 0
+  for (let i = 0; i < outer.length; i++) {
+    const a = outer[i], b = outer[(i + 1) % outer.length]
+    const len = a.distanceTo(b)
+    if (len > best) { best = len; theta = Math.atan2(b.y - a.y, b.x - a.x) }
+  }
+  const cos = Math.cos(theta), sin = Math.sin(theta)
+  let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity
+  for (const p of outer) {
+    const u = p.x * cos + p.y * sin, v = -p.x * sin + p.y * cos
+    minU = Math.min(minU, u); maxU = Math.max(maxU, u); minV = Math.min(minV, v); maxV = Math.max(maxV, v)
+  }
+  return {
+    theta, minU, maxU, minV, maxV,
+    toX: (u: number, v: number) => u * cos - v * sin,
+    toY: (u: number, v: number) => u * sin + v * cos,
+  }
+}
+
+// Points walking around a ring, pushed outward by `offset`, roughly every `spacing` metres.
+function ringOutward(outer: THREE.Vector2[], offset: number, spacing: number) {
+  const ccw = THREE.ShapeUtils.area(outer) > 0
+  const out: Array<{ x: number; y: number; dir: THREE.Vector2; len: number; a: THREE.Vector2; n: THREE.Vector2 }> = []
+  for (let i = 0; i < outer.length; i++) {
+    const a = outer[i], b = outer[(i + 1) % outer.length]
+    const len = a.distanceTo(b)
+    if (len < 0.5) continue
+    const dir = b.clone().sub(a).divideScalar(len)
+    const n = ccw ? new THREE.Vector2(dir.y, -dir.x) : new THREE.Vector2(-dir.y, dir.x)
+    const steps = Math.max(1, Math.round(len / spacing))
+    for (let k = 0; k <= steps; k++) {
+      const p = a.clone().addScaledVector(dir, (len * k) / steps).addScaledVector(n, offset)
+      out.push({ x: p.x, y: p.y, dir, len, a, n })
+    }
+  }
+  return out
 }
 
 function makeTowerMaterial(colour: string, env: THREE.Texture): THREE.MeshStandardMaterial {
@@ -134,6 +245,40 @@ function makeTowerMaterial(colour: string, env: THREE.Texture): THREE.MeshStanda
   return mat
 }
 
+function makeHaloMaterial(time: { value: number }, phase: number): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+    uniforms: {
+      uColor: { value: new THREE.Color(HALO_COLOUR) },
+      uTime: time,
+      uPhase: { value: phase },
+      uStrength: { value: HALO_STRENGTH },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor;
+      uniform float uTime;
+      uniform float uPhase;
+      uniform float uStrength;
+      varying vec2 vUv;
+      void main() {
+        float d = length(vUv - 0.5) * 2.0;
+        if (d > 1.0) discard;
+        float base = pow(1.0 - d, 1.6) * 0.32;
+        float w = fract(d - uTime * 0.22 + uPhase);
+        float ring = smoothstep(0.0, 0.06, w) * (1.0 - smoothstep(0.06, 0.18, w)) * (1.0 - d) * 0.45;
+        gl_FragColor = vec4(uColor, (base + ring) * uStrength);
+      }`,
+  })
+}
+
 export function createThreeLayer(origin: [number, number]) {
   const merc = maplibregl.MercatorCoordinate.fromLngLat(origin, 0)
   const scale = merc.meterInMercatorCoordinateUnits()
@@ -152,10 +297,12 @@ export function createThreeLayer(origin: [number, number]) {
   const water = new THREE.Group()
   const edges = new THREE.Group()
   const hero = new THREE.Group()
-  scene.add(buildings, parks, water, edges, hero)
+  const halos = new THREE.Group()
+  scene.add(buildings, parks, water, edges, hero, halos)
 
   const skyEnv = makeSkyEnv()
   const gltfLoader = new GLTFLoader()
+  const haloTime = { value: 0 }
 
   // Solar panel model, loaded once, normalised to PANEL_LENGTH, base at y=0, long side along X.
   type PanelPart = { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; matrix: THREE.Matrix4 }
@@ -217,7 +364,8 @@ export function createThreeLayer(origin: [number, number]) {
   let cache: Cached[] = []
   let selected = new Set<string>()
   let selectedColour = '#2196f3'
-  let heroes = new Map<string, string>() // asset id -> intervention type
+  let heroes = new Map<string, string>()
+  let deltas = new Map<string, number>()
 
   function toShapePoint(p: Position): THREE.Vector2 {
     const m = maplibregl.MercatorCoordinate.fromLngLat([p[0], p[1]], 0)
@@ -248,6 +396,15 @@ export function createThreeLayer(origin: [number, number]) {
     geo.rotateX(-Math.PI / 2)
     geo.translate(0, y, 0)
     return geo
+  }
+
+  function footprintCentre(c: Cached): THREE.Vector3 {
+    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity
+    for (const rings of c.polys) for (const p of ringToPoints(rings[0])) {
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x)
+      minZ = Math.min(minZ, -p.y); maxZ = Math.max(maxZ, -p.y)
+    }
+    return new THREE.Vector3((minX + maxX) / 2, 0, (minZ + maxZ) / 2)
   }
 
   // ---------- Buildings ----------
@@ -281,7 +438,7 @@ export function createThreeLayer(origin: [number, number]) {
     disposeGroup(buildings)
     const groups: Record<string, THREE.BufferGeometry[]> = {}
     for (const c of cache) {
-      if (heroes.has(c.id)) continue // drawn by the hero group instead
+      if (heroes.has(c.id)) continue
       const key = selected.has(c.id) ? '__selected' : c.status + (c.tall ? '|tower' : '')
       ;(groups[key] ??= []).push(...c.geos)
     }
@@ -329,7 +486,140 @@ export function createThreeLayer(origin: [number, number]) {
     ground.scale.set(r * 2, 1, r * 2)
   }
 
-  // ---------- Hero assets ----------
+  // ---------- Hero upgrades, one per intervention type ----------
+
+  // retrofit: solar panels in rows along the longest wall.
+  function addSolar(outer: THREE.Vector2[], roofY: number) {
+    if (!panelParts) return
+    const f = frameOf(outer)
+    const hw = panelSize.w / 2, hd = panelSize.d / 2
+    const m = SETBACK
+    const spots: Array<{ x: number; z: number }> = []
+    for (let u = f.minU + m + hw; u <= f.maxU - m - hw; u += panelSize.w + COL_GAP) {
+      for (let v = f.minV + m + hd; v <= f.maxV - m - hd; v += panelSize.d + ROW_GAP) {
+        const corners = [[-hw - m, -hd - m], [hw + m, -hd - m], [-hw - m, hd + m], [hw + m, hd + m], [0, 0]]
+        const inside = corners.every(([du, dv]) => pointInRing(f.toX(u + du, v + dv), f.toY(u + du, v + dv), outer))
+        if (inside) spots.push({ x: f.toX(u, v), z: -f.toY(u, v) })
+      }
+    }
+    const placed = spots.slice(0, MAX_PANELS)
+    if (!placed.length) return
+
+    const pm = new THREE.Matrix4()
+    const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), f.theta)
+    const one = new THREE.Vector3(1, 1, 1)
+    for (const part of panelParts) {
+      const mat = Array.isArray(part.material) ? part.material.map((x) => x.clone()) : part.material.clone()
+      const inst = new THREE.InstancedMesh(part.geometry.clone(), mat, placed.length)
+      placed.forEach((s, i) => {
+        pm.compose(new THREE.Vector3(s.x, roofY, s.z), q, one).multiply(part.matrix)
+        inst.setMatrixAt(i, pm)
+      })
+      inst.castShadow = true
+      inst.receiveShadow = true
+      hero.add(inst)
+    }
+  }
+
+  // renovation: scaffolding cage just outside the walls.
+  function addScaffold(outer: THREE.Vector2[], height: number) {
+    const top = height + 1
+    const poles: Box[] = []
+    const ledgers: Box[] = []
+    const seen = new Set<string>()
+    for (const p of ringOutward(outer, 1.2, 2.5)) {
+      poles.push({ x: p.x, y: top / 2, z: -p.y, sx: 0.12, sy: top, sz: 0.12, yaw: 0 })
+      const key = `${p.a.x},${p.a.y}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      const mid = p.a.clone().addScaledVector(p.dir, p.len / 2).addScaledVector(p.n, 1.2)
+      const yaw = Math.atan2(p.dir.y, p.dir.x)
+      for (let h = 2; h <= top; h += 2) {
+        ledgers.push({ x: mid.x, y: h, z: -mid.y, sx: p.len, sy: 0.08, sz: 0.08, yaw })
+      }
+    }
+    const mat = new THREE.MeshStandardMaterial({ color: SCAFFOLD, roughness: 0.5, metalness: 0.6 })
+    for (const mesh of [boxMesh(poles, mat), boxMesh(ledgers, mat.clone())]) if (mesh) hero.add(mesh)
+  }
+
+  // repurpose: timber deck, pergola posts and beams, planters.
+  function addTerrace(shape: THREE.Shape, outer: THREE.Vector2[], roofY: number) {
+    const deck = new THREE.Mesh(flatGeometry(shape, roofY + 0.05), new THREE.MeshStandardMaterial({ color: TIMBER, roughness: 0.85 }))
+    deck.receiveShadow = true
+    hero.add(deck)
+
+    const f = frameOf(outer)
+    const GRID = 4, M = 1.0, POST_H = 2.6
+    const us: number[] = [], vs: number[] = []
+    for (let u = f.minU + M; u <= f.maxU - M; u += GRID) us.push(u)
+    for (let v = f.minV + M; v <= f.maxV - M; v += GRID) vs.push(v)
+    const ok = us.map((u) => vs.map((v) => pointInRing(f.toX(u, v), f.toY(u, v), outer)))
+
+    const posts: Box[] = [], beams: Box[] = [], planters: Box[] = []
+    const beamY = roofY + POST_H
+    for (let i = 0; i < us.length; i++) {
+      for (let j = 0; j < vs.length; j++) {
+        if (!ok[i][j]) continue
+        const u = us[i], v = vs[j]
+        posts.push({ x: f.toX(u, v), y: roofY + POST_H / 2, z: -f.toY(u, v), sx: 0.2, sy: POST_H, sz: 0.2, yaw: 0 })
+        if (i + 1 < us.length && ok[i + 1][j]) {
+          const mu = u + GRID / 2
+          beams.push({ x: f.toX(mu, v), y: beamY, z: -f.toY(mu, v), sx: GRID, sy: 0.18, sz: 0.14, yaw: f.theta })
+        }
+        if (j + 1 < vs.length && ok[i][j + 1]) {
+          const mv = v + GRID / 2
+          beams.push({ x: f.toX(u, mv), y: beamY, z: -f.toY(u, mv), sx: GRID, sy: 0.18, sz: 0.14, yaw: f.theta + Math.PI / 2 })
+        }
+        const cellOk = i + 1 < us.length && j + 1 < vs.length && ok[i + 1][j] && ok[i][j + 1] && ok[i + 1][j + 1]
+        if (cellOk && (i + j) % 2 === 0) {
+          const cu = u + GRID / 2, cv = v + GRID / 2
+          planters.push({ x: f.toX(cu, cv), y: roofY + 0.35, z: -f.toY(cu, cv), sx: 1.4, sy: 0.6, sz: 0.7, yaw: f.theta })
+        }
+      }
+    }
+    const wood = new THREE.MeshStandardMaterial({ color: TIMBER_DARK, roughness: 0.8 })
+    const green = new THREE.MeshStandardMaterial({ color: PLANTER, roughness: 0.95 })
+    for (const mesh of [boxMesh(posts, wood), boxMesh(beams, wood.clone()), boxMesh(planters, green)]) if (mesh) hero.add(mesh)
+  }
+
+  // green_corridor: green roof plus a ring of street trees.
+  function addGreenCorridor(shape: THREE.Shape, outer: THREE.Vector2[], roofY: number) {
+    const roof = new THREE.Mesh(flatGeometry(shape, roofY), new THREE.MeshStandardMaterial({ color: GREEN_ROOF, roughness: 1 }))
+    roof.receiveShadow = true
+    hero.add(roof)
+    const spots: TreeSpot[] = ringOutward(outer, 4.5, 8).map((p) => ({ x: p.x, z: -p.y, h: 6 + Math.random() * 4 }))
+    treeMeshes(spots, 0.3).forEach((m) => hero.add(m))
+  }
+
+  // pedestrian_upgrade: paved forecourt around the base with lamp posts.
+  function addForecourt(outer: THREE.Vector2[]) {
+    const f = frameOf(outer)
+    const PAD = 8
+    const corners: Array<[number, number]> = [
+      [f.minU - PAD, f.minV - PAD], [f.maxU + PAD, f.minV - PAD],
+      [f.maxU + PAD, f.maxV + PAD], [f.minU - PAD, f.maxV + PAD],
+    ]
+    const pts = corners.map(([u, v]) => new THREE.Vector2(f.toX(u, v), f.toY(u, v)))
+    const paving = new THREE.Mesh(flatGeometry(new THREE.Shape(pts), 0.35), new THREE.MeshStandardMaterial({ color: PAVING, roughness: 0.9 }))
+    paving.receiveShadow = true
+    hero.add(paving)
+
+    const POLE_H = 4.5
+    const poles: Box[] = [], heads: Box[] = []
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[i], b = pts[(i + 1) % pts.length]
+      const len = a.distanceTo(b)
+      const steps = Math.max(1, Math.round(len / 10))
+      for (let k = 0; k < steps; k++) {
+        const p = a.clone().lerp(b, k / steps)
+        poles.push({ x: p.x, y: POLE_H / 2, z: -p.y, sx: 0.14, sy: POLE_H, sz: 0.14, yaw: 0 })
+        heads.push({ x: p.x, y: POLE_H + 0.1, z: -p.y, sx: 0.5, sy: 0.15, sz: 0.5, yaw: f.theta })
+      }
+    }
+    const poleMat = new THREE.MeshStandardMaterial({ color: LAMP_POLE, roughness: 0.6, metalness: 0.4 })
+    const lightMat = new THREE.MeshStandardMaterial({ color: LAMP_LIGHT, emissive: LAMP_LIGHT, emissiveIntensity: 1.5 })
+    for (const mesh of [boxMesh(poles, poleMat), boxMesh(heads, lightMat)]) if (mesh) hero.add(mesh)
+  }
 
   function buildHero(c: Cached, type: string) {
     const isSel = selected.has(c.id)
@@ -346,75 +636,43 @@ export function createThreeLayer(origin: [number, number]) {
     }
 
     const roofY = c.height + 0.15
-    const greenRoof = GREEN_ROOF_TYPES.includes(type)
-    const spots: Array<{ x: number; z: number; yaw: number }> = []
-
     for (const rings of c.polys) {
       const shape = shapeOf(rings)
       if (!shape) continue
-
-      if (greenRoof) {
-        const green = new THREE.Mesh(flatGeometry(shape, roofY), new THREE.MeshStandardMaterial({ color: GREEN_ROOF, roughness: 1 }))
-        green.receiveShadow = true
-        hero.add(green)
-        continue
-      }
-
-      // Solar rows aligned with the building's longest wall.
       const outer = ringToPoints(rings[0])
-      let theta = 0, best = 0
-      for (let i = 0; i < outer.length; i++) {
-        const a = outer[i], b = outer[(i + 1) % outer.length]
-        const len = a.distanceTo(b)
-        if (len > best) { best = len; theta = Math.atan2(b.y - a.y, b.x - a.x) }
-      }
-      const cos = Math.cos(theta), sin = Math.sin(theta)
-      const toX = (u: number, v: number) => u * cos - v * sin
-      const toY = (u: number, v: number) => u * sin + v * cos
-
-      let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity
-      for (const p of outer) {
-        const u = p.x * cos + p.y * sin, v = -p.x * sin + p.y * cos
-        minU = Math.min(minU, u); maxU = Math.max(maxU, u); minV = Math.min(minV, v); maxV = Math.max(maxV, v)
-      }
-
-      const hw = panelSize.w / 2, hd = panelSize.d / 2
-      const m = SETBACK
-      for (let u = minU + m + hw; u <= maxU - m - hw; u += panelSize.w + COL_GAP) {
-        for (let v = minV + m + hd; v <= maxV - m - hd; v += panelSize.d + ROW_GAP) {
-          const corners = [[-hw - m, -hd - m], [hw + m, -hd - m], [-hw - m, hd + m], [hw + m, hd + m], [0, 0]]
-          const inside = corners.every(([du, dv]) => pointInRing(toX(u + du, v + dv), toY(u + du, v + dv), outer))
-          if (inside) spots.push({ x: toX(u, v), z: -toY(u, v), yaw: theta })
-        }
+      switch (type) {
+        case 'renovation': addScaffold(outer, c.height); break
+        case 'repurpose': addTerrace(shape, outer, roofY); break
+        case 'green_corridor': addGreenCorridor(shape, outer, roofY); break
+        case 'pedestrian_upgrade': addForecourt(outer); break
+        case 'retrofit':
+        default: addSolar(outer, roofY)
       }
     }
+  }
 
-    const placed = spots.slice(0, MAX_PANELS)
-    if (!panelParts || !placed.length) return
-
-    const pm = new THREE.Matrix4()
-    const q = new THREE.Quaternion()
-    const one = new THREE.Vector3(1, 1, 1)
-    const up = new THREE.Vector3(0, 1, 0)
-    for (const part of panelParts) {
-      const mat = Array.isArray(part.material) ? part.material.map((x) => x.clone()) : part.material.clone()
-      const inst = new THREE.InstancedMesh(part.geometry.clone(), mat, placed.length)
-      placed.forEach((s, i) => {
-        q.setFromAxisAngle(up, s.yaw)
-        pm.compose(new THREE.Vector3(s.x, roofY, s.z), q, one).multiply(part.matrix)
-        inst.setMatrixAt(i, pm)
-      })
-      inst.castShadow = true
-      inst.receiveShadow = true
-      hero.add(inst)
-    }
+  function buildHalo(c: Cached, type: string, index: number) {
+    const dT = deltas.get(c.id) ?? FAKE_DELTA_T[type] ?? FAKE_DELTA_T_DEFAULT
+    const r = HALO_BASE_R + Math.abs(dT) * HALO_R_PER_DEG
+    const disc = new THREE.Mesh(
+      new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2),
+      makeHaloMaterial(haloTime, index * 0.37),
+    )
+    disc.position.copy(footprintCentre(c)).setY(0.6)
+    disc.scale.set(r, 1, r)
+    disc.renderOrder = 2
+    halos.add(disc)
   }
 
   function updateHero() {
     disposeGroup(hero)
+    disposeGroup(halos)
+    let i = 0
     for (const [id, type] of heroes) {
       const c = cache.find((x) => x.id === id)
-      if (c) buildHero(c, type)
+      if (!c) continue
+      buildHero(c, type)
+      buildHalo(c, type, i++)
     }
     map?.triggerRepaint()
   }
@@ -459,12 +717,16 @@ export function createThreeLayer(origin: [number, number]) {
     updateHero()
   }
 
-  // Buildings with a previewed or accepted intervention.
   function setInterventions(list: HeroIntervention[]) {
     const next = new Map(list.map((h) => [h.id, h.type]))
-    const same = next.size === heroes.size && [...next].every(([k, v]) => heroes.get(k) === v)
+    const nextDeltas = new Map<string, number>()
+    for (const h of list) if (typeof h.deltaT === 'number') nextDeltas.set(h.id, h.deltaT)
+    const same =
+      next.size === heroes.size && [...next].every(([k, v]) => heroes.get(k) === v) &&
+      nextDeltas.size === deltas.size && [...nextDeltas].every(([k, v]) => deltas.get(k) === v)
     if (same) return
     heroes = next
+    deltas = nextDeltas
     rebuild()
     updateHero()
   }
@@ -474,7 +736,7 @@ export function createThreeLayer(origin: [number, number]) {
   function setParks(fc: FeatureCollection) {
     disposeGroup(parks)
     const grassGeos: THREE.BufferGeometry[] = []
-    const spots: Array<{ x: number; z: number; h: number }> = []
+    const spots: TreeSpot[] = []
 
     for (const f of fc.features) {
       const id = String((f.properties as any)?.id ?? '')
@@ -511,36 +773,7 @@ export function createThreeLayer(origin: [number, number]) {
       }
     }
 
-    const trees = spots.slice(0, MAX_TREES)
-    if (trees.length) {
-      const trunks = new THREE.InstancedMesh(
-        new THREE.CylinderGeometry(0.25, 0.35, 1, 5),
-        new THREE.MeshStandardMaterial({ color: '#4a3528', roughness: 1 }),
-        trees.length,
-      )
-      const crowns = new THREE.InstancedMesh(
-        new THREE.IcosahedronGeometry(1, 1),
-        new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true }),
-        trees.length,
-      )
-      const m = new THREE.Matrix4()
-      const q = new THREE.Quaternion()
-      const greens = ['#2f5d34', '#3b6e3a', '#2a5230', '#46783f']
-      const col = new THREE.Color()
-      trees.forEach((t, i) => {
-        m.compose(new THREE.Vector3(t.x, 0.3 + t.h * 0.2, t.z), q, new THREE.Vector3(1, t.h * 0.4, 1))
-        trunks.setMatrixAt(i, m)
-        const r = t.h * 0.35
-        m.compose(new THREE.Vector3(t.x, 0.3 + t.h * 0.62, t.z), q, new THREE.Vector3(r, r * 0.9, r))
-        crowns.setMatrixAt(i, m)
-        crowns.setColorAt(i, col.set(greens[i % greens.length]))
-      })
-      for (const tm of [trunks, crowns]) {
-        tm.castShadow = true
-        tm.receiveShadow = true
-        parks.add(tm)
-      }
-    }
+    treeMeshes(spots.slice(0, MAX_TREES), 0.3).forEach((m) => parks.add(m))
     map?.triggerRepaint()
   }
 
@@ -599,6 +832,11 @@ export function createThreeLayer(origin: [number, number]) {
       renderer.resetState()
       renderer.setViewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
       renderer.render(scene, camera)
+
+      if (halos.children.length) {
+        haloTime.value = performance.now() / 1000
+        map?.triggerRepaint()
+      }
     },
   }
 
