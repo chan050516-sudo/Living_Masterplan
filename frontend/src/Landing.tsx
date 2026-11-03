@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Scene3D } from './township3d'
+import { fetchProfiles } from './api'
 import { Evidence } from './Evidence'
 import './landing.css'
 
 const DEMO_HREF = '#/demo'
 
-// Prototype snapshot from GET /api/assets/profiles. Refresh before submission.
+// Shown until GET /api/assets/profiles answers, and kept if it fails.
 const HEADLINE = [
   { value: '916', label: 'assets analysed' },
   { value: '81', label: 'deadspace candidates' },
@@ -114,6 +115,30 @@ function Intro() {
   )
 }
 
+const fmt = (n: number) => Math.round(n).toLocaleString('en-US')
+
+/** The headline counts, refreshed from the live API. */
+function useHeadline() {
+  const [stats, setStats] = useState(HEADLINE)
+  useEffect(() => {
+    let live = true
+    fetchProfiles().then((profiles) => {
+      const all = Object.values(profiles)
+      if (!live || all.length === 0) return
+      const dead = all.filter((p) => p.deadspace_diagnosis?.status === 'deadspace_candidate').length
+      const stranded = all.reduce((sum, p) => sum + (p.environmental?.carbon_stranded_tco2e ?? 0), 0)
+      setStats([
+        { ...HEADLINE[0], value: fmt(all.length) },
+        { ...HEADLINE[1], value: fmt(dead) },
+        { ...HEADLINE[2], value: fmt(stranded) },
+        HEADLINE[3],
+      ])
+    }).catch(() => { /* keep the saved snapshot */ })
+    return () => { live = false }
+  }, [])
+  return stats
+}
+
 function CountUp({ value }: { value: string }) {
   const [shown, setShown] = useState(value)
   const ref = useRef<HTMLElement>(null)
@@ -171,6 +196,7 @@ export function Landing() {
   const { canvas, scene, ready } = useScene()
   const root = useRef<HTMLDivElement>(null)
   const [step, setStep] = useState(-1)
+  const headline = useHeadline()
 
   useEffect(() => { scene.current?.setStep(step) }, [step, ready, scene])
 
@@ -238,9 +264,9 @@ export function Landing() {
           <span><i className="smoke" />Stranded carbon</span>
         </p>
         <div className="lp-stats">
-          {HEADLINE.map((s) => (
+          {headline.map((s) => (
             <div key={s.label}>
-              <CountUp value={s.value} />
+              <CountUp key={s.value} value={s.value} />
               <span>{s.label}</span>
             </div>
           ))}
