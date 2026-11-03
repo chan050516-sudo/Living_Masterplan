@@ -640,8 +640,7 @@ export default function App() {
 
     const pointFeatures: Feature[] = []
     const arcFeatures: Feature[] = []
-    const heroList: { id: string; type: string }[] = []
-
+    const heroList: { id: string; type: string; deltaT?: number }[] = []
     // 1. Gather interventions from ALL accepted history + current active preview
     const activeAndAccepted = history.filter(h => h.status === 'accepted' || h.id === activeRunId)
     
@@ -649,7 +648,13 @@ export default function App() {
       const interventions = (item.result as any)?.interventions || []
       
       interventions.forEach((intv: any) => {
-        if (intv.target_asset_id) heroList.push({ id: intv.target_asset_id, type: String(intv.type ?? '') })
+        if (intv.target_asset_id) {
+          // Real cooling from the simulation: surface temp after minus before (negative = cooler).
+          const aa = (item.result.assets_analysis || []).find((a: any) => a.asset_id === intv.target_asset_id) as any
+          const m = aa?.summary_card?.environmental?.main_metrics?.find((x: any) => /surface temp/i.test(x.label))
+          const deltaT = m && m.baseline != null && m.intervention != null ? m.intervention - m.baseline : undefined
+          heroList.push({ id: intv.target_asset_id, type: String(intv.type ?? ''), deltaT })
+        }
         const target = assets.find(x => x.id === intv.target_asset_id)
         
         // Mark the ACTUAL WORKING SITE
