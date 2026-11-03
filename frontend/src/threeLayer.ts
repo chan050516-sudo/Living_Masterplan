@@ -19,17 +19,17 @@ const ROOF_SHADE = 1.18
 const EDGE_COLOUR = '#140e13'
 const EDGE_OPACITY = 0.45
 
-// Map filter: 'hide' removes non-matching buildings, 'ghost' keeps them as faint outlines.
+// Map filter: 'hide' removes non-matching assets, 'ghost' keeps them muted.
 const FILTER_MODE = 'ghost' as 'hide' | 'ghost'
-const GHOST_COLOUR = '#5c555e'   // muted buildings
-const GHOST_GRASS = '#3a3f3b'    // muted parks
+const GHOST_COLOUR = '#5c555e'
+const GHOST_GRASS = '#3a3f3b'
 
 // Towers (glass curtain wall)
 const TOWER_MIN_H = 12
 const FIN_SPACING = 1.6
 const FLOOR_H = 3.5
 
-// Hero assets: each intervention type gets its own upgrade.
+// Building interventions
 const GREEN_ROOF = '#4f7d3a'
 const TIMBER = '#9a6a45'
 const TIMBER_DARK = '#6e4a30'
@@ -39,6 +39,12 @@ const PAVING = '#b7aea3'
 const LAMP_POLE = '#2a2628'
 const LAMP_LIGHT = '#ffcf7a'
 
+// Empty-land interventions (vacant parcels)
+const NEW_DEV_H = 18            // metres, height of the proposed "ghost" building
+const NEW_DEV_COLOUR = '#bfe9ff'
+const FARM_MAX_PANELS = 1500
+const HOLD_COLOUR = '#f2a900'
+
 const PANEL_MODEL_URL = '/models/solar_panel.glb'
 const PANEL_LENGTH = 4.0
 const ROW_GAP = 1.2
@@ -47,17 +53,21 @@ const SETBACK = 1.2
 const MAX_PANELS = 300
 
 // Cooling halo: ground glow sized by temperature reduction (deltaT, negative = cooler).
+// No halo when deltaT is zero or positive (no cooling).
 const HALO_COLOUR = '#6ee7d8'
 const HALO_BASE_R = 60
 const HALO_R_PER_DEG = 70
 const HALO_STRENGTH = 1.0
-// Placeholder cooling per type until real deltaT arrives from analysis results.
+// Placeholder cooling per type, used only when the analysis result has no real value.
 const FAKE_DELTA_T: Record<string, number> = {
   green_corridor: -1.8,
   pedestrian_upgrade: -0.9,
   repurpose: -0.6,
   retrofit: -0.5,
   renovation: -0.3,
+  interim_solar_farm: -0.4,
+  new_development: 0,
+  delay_development: 0,
 }
 const FAKE_DELTA_T_DEFAULT = -0.5
 
@@ -285,6 +295,28 @@ function makeHaloMaterial(time: { value: number }, phase: number): THREE.ShaderM
   })
 }
 
+// Diagonal amber stripes for "on hold" parcels. Uses ground position, so stripes stay a fixed size.
+function makeHatchMaterial(): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    transparent: true,
+    depthWrite: false,
+    uniforms: { uColor: { value: new THREE.Color(HOLD_COLOUR) } },
+    vertexShader: `
+      varying vec2 vPos;
+      void main() {
+        vPos = position.xz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform vec3 uColor;
+      varying vec2 vPos;
+      void main() {
+        float s = step(0.5, fract((vPos.x + vPos.y) / 6.0));
+        gl_FragColor = vec4(uColor, mix(0.08, 0.42, s));
+      }`,
+  })
+}
+
 export function createThreeLayer(origin: [number, number]) {
   const merc = maplibregl.MercatorCoordinate.fromLngLat(origin, 0)
   const scale = merc.meterInMercatorCoordinateUnits()
@@ -373,14 +405,14 @@ export function createThreeLayer(origin: [number, number]) {
   scene.add(ground)
 
   let cache: Cached[] = []
+  let areaPolys = new Map<string, Position[][][]>() // every flat area (parks, vacant parcels) by id
   let selected = new Set<string>()
   let selectedColour = '#2196f3'
   let heroes = new Map<string, string>()
   let deltas = new Map<string, number>()
-  let visibleIds: Set<string> | null = null // null = no filter, show everything
+  let visibleIds: Set<string> | null = null
   let lastParks: FeatureCollection | null = null
 
-  // Selected and intervened assets always stay visible, whatever the filter.
   const isShown = (id: string) => !visibleIds || visibleIds.has(id) || selected.has(id) || heroes.has(id)
 
   function toShapePoint(p: Position): THREE.Vector2 {
@@ -414,9 +446,9 @@ export function createThreeLayer(origin: [number, number]) {
     return geo
   }
 
-  function footprintCentre(c: Cached): THREE.Vector3 {
+  function centreOfPolys(polys: Position[][][]): THREE.Vector3 {
     let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity
-    for (const rings of c.polys) for (const p of ringToPoints(rings[0])) {
+    for (const rings of polys) for (const p of ringToPoints(rings[0])) {
       minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x)
       minZ = Math.min(minZ, -p.y); maxZ = Math.max(maxZ, -p.y)
     }
@@ -501,7 +533,6 @@ export function createThreeLayer(origin: [number, number]) {
     redraw()
   }
 
-  // Edge lines only for visible buildings. Rebuilt when data or the filter changes, not on every click.
   function rebuildEdges() {
     disposeGroup(edges)
     const geos = cache.filter((c) => isShown(c.id)).flatMap((c) => c.edgeGeos)
@@ -534,9 +565,10 @@ export function createThreeLayer(origin: [number, number]) {
     redraw()
   }
 
-  // ---------- Hero upgrades, one per intervention type ----------
+  // ---------- Intervention upgrades ----------
 
-  function addSolar(outer: THREE.Vector2[], roofY: number) {
+  // Solar rows along the longest edge. Used for retrofit (roof) and interim solar farm (ground).
+  function addSolar(outer: THREE.Vector2[], baseY: number, maxPanels = MAX_PANELS) {
     if (!panelParts) return
     const f = frameOf(outer)
     const hw = panelSize.w / 2, hd = panelSize.d / 2
@@ -549,7 +581,7 @@ export function createThreeLayer(origin: [number, number]) {
         if (inside) spots.push({ x: f.toX(u, v), z: -f.toY(u, v) })
       }
     }
-    const placed = spots.slice(0, MAX_PANELS)
+    const placed = spots.slice(0, maxPanels)
     if (!placed.length) return
 
     const pm = new THREE.Matrix4()
@@ -559,7 +591,7 @@ export function createThreeLayer(origin: [number, number]) {
       const mat = Array.isArray(part.material) ? part.material.map((x) => x.clone()) : part.material.clone()
       const inst = new THREE.InstancedMesh(part.geometry.clone(), mat, placed.length)
       placed.forEach((s, i) => {
-        pm.compose(new THREE.Vector3(s.x, roofY, s.z), q, one).multiply(part.matrix)
+        pm.compose(new THREE.Vector3(s.x, baseY, s.z), q, one).multiply(part.matrix)
         inst.setMatrixAt(i, pm)
       })
       inst.castShadow = true
@@ -664,6 +696,51 @@ export function createThreeLayer(origin: [number, number]) {
     for (const mesh of [boxMesh(poles, poleMat), boxMesh(heads, lightMat)]) if (mesh) hero.add(mesh)
   }
 
+  // new_development: translucent glass massing with floor outlines, showing a proposed building.
+  function addNewDevelopment(outer: THREE.Vector2[]) {
+    const f = frameOf(outer)
+    const w = (f.maxU - f.minU) * 0.6
+    const d = (f.maxV - f.minV) * 0.6
+    if (w < 2 || d < 2) return
+    const cu = (f.minU + f.maxU) / 2, cv = (f.minV + f.maxV) / 2
+    const pos = new THREE.Vector3(f.toX(cu, cv), NEW_DEV_H / 2 + 0.3, -f.toY(cu, cv))
+
+    const geo = new THREE.BoxGeometry(w, NEW_DEV_H, d)
+    const glass = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({
+      color: NEW_DEV_COLOUR, transparent: true, opacity: 0.25,
+      roughness: 0.1, metalness: 0.3, envMap: skyEnv, depthWrite: false,
+    }))
+    glass.position.copy(pos)
+    glass.rotation.y = f.theta
+    hero.add(glass)
+
+    const lineMat = () => new THREE.LineBasicMaterial({ color: NEW_DEV_COLOUR, transparent: true, opacity: 0.85 })
+    const outline = new THREE.LineSegments(new THREE.EdgesGeometry(geo), lineMat())
+    outline.position.copy(pos)
+    outline.rotation.y = f.theta
+    hero.add(outline)
+
+    for (let h = FLOOR_H; h < NEW_DEV_H; h += FLOOR_H) {
+      const floor = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(w, 0.01, d)), lineMat())
+      floor.position.set(pos.x, 0.3 + h, pos.z)
+      floor.rotation.y = f.theta
+      ;(floor.material as THREE.LineBasicMaterial).opacity = 0.35
+      hero.add(floor)
+    }
+  }
+
+  // delay_development: amber hatched overlay with an amber border, reading as "on hold".
+  function addHold(shape: THREE.Shape, outer: THREE.Vector2[]) {
+    const hatch = new THREE.Mesh(flatGeometry(shape, 0.45), makeHatchMaterial())
+    hatch.renderOrder = 1
+    hero.add(hatch)
+    const border = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(outer.map((p) => new THREE.Vector3(p.x, 0.5, -p.y))),
+      new THREE.LineBasicMaterial({ color: HOLD_COLOUR }),
+    )
+    hero.add(border)
+  }
+
   function buildHero(c: Cached, type: string) {
     const isSel = selected.has(c.id)
     const colour = isSel ? selectedColour : (STATUS_HEX[c.status] ?? STATUS_FALLBACK)
@@ -694,14 +771,30 @@ export function createThreeLayer(origin: [number, number]) {
     }
   }
 
-  function buildHalo(c: Cached, type: string, index: number) {
-    const dT = deltas.get(c.id) ?? FAKE_DELTA_T[type] ?? FAKE_DELTA_T_DEFAULT
+  // Interventions on empty land (vacant parcels), which have no building to modify.
+  function buildParcelHero(polys: Position[][][], type: string) {
+    for (const rings of polys) {
+      const shape = shapeOf(rings)
+      if (!shape) continue
+      const outer = ringToPoints(rings[0])
+      switch (type) {
+        case 'interim_solar_farm': addSolar(outer, 0.3, FARM_MAX_PANELS); break
+        case 'new_development': addNewDevelopment(outer); break
+        case 'delay_development':
+        default: addHold(shape, outer)
+      }
+    }
+  }
+
+  function buildHalo(id: string, type: string, centre: THREE.Vector3, index: number) {
+    const dT = deltas.get(id) ?? FAKE_DELTA_T[type] ?? FAKE_DELTA_T_DEFAULT
+    if (dT >= 0) return // no cooling, no halo
     const r = HALO_BASE_R + Math.abs(dT) * HALO_R_PER_DEG
     const disc = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2),
       makeHaloMaterial(haloTime, index * 0.37),
     )
-    disc.position.copy(footprintCentre(c)).setY(0.6)
+    disc.position.copy(centre).setY(0.6)
     disc.scale.set(r, 1, r)
     disc.renderOrder = 2
     halos.add(disc)
@@ -713,9 +806,17 @@ export function createThreeLayer(origin: [number, number]) {
     let i = 0
     for (const [id, type] of heroes) {
       const c = cache.find((x) => x.id === id)
-      if (!c) continue
-      buildHero(c, type)
-      buildHalo(c, type, i++)
+      let centre: THREE.Vector3
+      if (c) {
+        buildHero(c, type)
+        centre = centreOfPolys(c.polys)
+      } else {
+        const polys = areaPolys.get(id)
+        if (!polys) continue
+        buildParcelHero(polys, type)
+        centre = centreOfPolys(polys)
+      }
+      buildHalo(id, type, centre, i++)
     }
     redraw()
   }
@@ -769,7 +870,6 @@ export function createThreeLayer(origin: [number, number]) {
     updateHero()
   }
 
-  // Only these asset ids stay on the map (plus selected and intervened). null = show everything.
   function setFilter(ids: string[] | null) {
     const next = ids ? new Set(ids) : null
     const same =
@@ -782,10 +882,19 @@ export function createThreeLayer(origin: [number, number]) {
     if (lastParks) setParks(lastParks)
   }
 
-  // ---------- Parks: grass + trees from real satellite canopy ----------
+  // ---------- Areas: parks (grass + real canopy trees), plus remembering parcel shapes ----------
+
   function setParks(fc: FeatureCollection) {
     lastParks = fc
     disposeGroup(parks)
+
+    // Remember every area's shape so empty-land interventions can be drawn on it.
+    areaPolys = new Map()
+    for (const f of fc.features) {
+      const id = String((f.properties as any)?.id ?? '')
+      if (id) areaPolys.set(id, polysOf(f.geometry))
+    }
+
     const grassGeos: THREE.BufferGeometry[] = []
     const mutedGeos: THREE.BufferGeometry[] = []
     const spots: TreeSpot[] = []
@@ -800,7 +909,6 @@ export function createThreeLayer(origin: [number, number]) {
       for (const rings of polysOf(f.geometry)) {
         const shape = shapeOf(rings)
         if (!shape) continue
-        // Filtered-out parks: dull grass, no trees.
         if (muted) { mutedGeos.push(flatGeometry(shape, 0.3)); continue }
         grassGeos.push(flatGeometry(shape, 0.3))
 
@@ -837,7 +945,7 @@ export function createThreeLayer(origin: [number, number]) {
     }
 
     treeMeshes(spots.slice(0, MAX_TREES), 0.3).forEach((m) => parks.add(m))
-    redraw()
+    updateHero() // parcels are known now, so empty-land interventions can draw
   }
 
   // ---------- Water ----------

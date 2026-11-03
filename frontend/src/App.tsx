@@ -237,6 +237,22 @@ export default function App() {
 
   function closePanel() { setSelectedIds([]); setQuestion(''); reset() }
 
+  const [search, setSearch] = useState('')
+  const [searchMiss, setSearchMiss] = useState(false)
+
+  // Exact ID first, then any ID or name containing the text.
+  function runSearch(q: string) {
+    const s = q.trim().toLowerCase()
+    if (!s) return
+    const hit =
+      assets.find((a) => a.id.toLowerCase() === s) ??
+      assets.find((a) => a.id.toLowerCase().includes(s) || a.name.toLowerCase().includes(s))
+    if (!hit) { setSearchMiss(true); return }
+    setSearchMiss(false)
+    setShowHistory(false)
+    selectOnly(hit.id)
+  }
+
   async function ask(files: File[] = []) { // 1. Add files parameter
     if (selectedAssets.length === 0) return
     const q = question.trim() || 'What should we do with these assets?'
@@ -788,7 +804,7 @@ export default function App() {
     }
     threeRef.current?.setFilter(ids)
   }, [listFilter, assets, selectedIds, mapReady])
-  
+
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
@@ -836,6 +852,25 @@ export default function App() {
           History ({history.length})
         </button>
 
+        <input
+          list="asset-ids"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setSearchMiss(false)
+            if (assets.some((a) => a.id === e.target.value)) runSearch(e.target.value)
+          }}
+          onKeyDown={(e) => { if (e.key === 'Enter') runSearch(search) }}
+          placeholder="Search asset, e.g. BLD-0141"
+          style={{
+            width: 230, padding: '7px 12px', borderRadius: 6, fontSize: 13, fontFamily: 'inherit',
+            border: `1px solid ${searchMiss ? C.bad : C.line}`, background: C.card, color: C.text, outline: 'none',
+          }}
+        />
+        <datalist id="asset-ids">
+          {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </datalist>
+        
         <span style={{ flex: 1 }} />
         <span style={{ ...cap, marginRight: 4 }}>Horizon</span>
         {YEARS.map((y) => (
@@ -868,6 +903,26 @@ export default function App() {
         </main>
 
         <aside style={{ width: 440, flex: 'none', padding: 22, overflowY: 'auto', overflowX: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
+          <input
+            list="asset-ids"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setSearchMiss(false)
+              if (assets.some((a) => a.id === e.target.value)) runSearch(e.target.value)
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') runSearch(search) }}
+            placeholder="Search assets, e.g. BLD-0141 or Residential 109"
+            style={{
+              width: '100%', boxSizing: 'border-box', padding: '10px 14px', marginBottom: 18,
+              borderRadius: 8, fontSize: 13, fontFamily: 'inherit',
+              border: `1px solid ${searchMiss ? C.bad : C.line}`, background: C.card, color: C.text, outline: 'none',
+            }}
+          />
+          <datalist id="asset-ids">
+            {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </datalist>
+          
           {showHistory ? (
             <HistoryPanel 
               history={history} 
