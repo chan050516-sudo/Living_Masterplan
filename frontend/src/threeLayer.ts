@@ -46,7 +46,7 @@ const HALO_COLOUR = '#6ee7d8'
 const HALO_BASE_R = 60
 const HALO_R_PER_DEG = 70
 const HALO_STRENGTH = 1.0
-// Placeholder cooling per type until real Landsat deltaT arrives from the backend.
+// Placeholder cooling per type until real deltaT arrives from analysis results.
 const FAKE_DELTA_T: Record<string, number> = {
   green_corridor: -1.8,
   pedestrian_upgrade: -0.9,
@@ -58,9 +58,10 @@ const FAKE_DELTA_T_DEFAULT = -0.5
 
 // Parks
 const GRASS = '#355e3b'
-const M2_PER_TREE = 150
+const M2_PER_TREE = 150          // fallback density when a park has no canopy reading
+const CROWN_M2 = 25              // ground area one tree crown covers, seen from above
 const MAX_TREES_PER_PARK = 400
-const MAX_TREES = 8000
+const MAX_TREES = 6000
 
 // Water
 const WATER = '#0d5560'
@@ -114,7 +115,6 @@ function disposeGroup(group: THREE.Group) {
   group.clear()
 }
 
-// Many boxes in one draw call. Each box: centre, size, rotation around the vertical axis.
 function boxMesh(list: Box[], material: THREE.Material): THREE.InstancedMesh | null {
   if (!list.length) return null
   const inst = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), material, list.length)
@@ -131,7 +131,7 @@ function boxMesh(list: Box[], material: THREE.Material): THREE.InstancedMesh | n
   return inst
 }
 
-// Simple trees (trunk + crown), instanced. Used for parks and street trees.
+// Simple low-poly trees, instanced. Crowns cast shadows; trunks are too thin to bother.
 function treeMeshes(spots: TreeSpot[], baseY: number): THREE.InstancedMesh[] {
   if (!spots.length) return []
   const trunks = new THREE.InstancedMesh(
@@ -140,7 +140,7 @@ function treeMeshes(spots: TreeSpot[], baseY: number): THREE.InstancedMesh[] {
     spots.length,
   )
   const crowns = new THREE.InstancedMesh(
-    new THREE.IcosahedronGeometry(1, 1),
+    new THREE.IcosahedronGeometry(1, 0), // 20 triangles per crown
     new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true }),
     spots.length,
   )
@@ -156,11 +156,13 @@ function treeMeshes(spots: TreeSpot[], baseY: number): THREE.InstancedMesh[] {
     crowns.setMatrixAt(i, m)
     crowns.setColorAt(i, col.set(greens[i % greens.length]))
   })
-  for (const tm of [trunks, crowns]) { tm.castShadow = true; tm.receiveShadow = true }
+  trunks.castShadow = false
+  crowns.castShadow = true
+  trunks.receiveShadow = false
+  crowns.receiveShadow = false
   return [trunks, crowns]
 }
 
-// Rotated frame aligned with a footprint's longest wall. u runs along that wall, v across it.
 function frameOf(outer: THREE.Vector2[]) {
   let theta = 0, best = 0
   for (let i = 0; i < outer.length; i++) {
@@ -181,7 +183,6 @@ function frameOf(outer: THREE.Vector2[]) {
   }
 }
 
-// Points walking around a ring, pushed outward by `offset`, roughly every `spacing` metres.
 function ringOutward(outer: THREE.Vector2[], offset: number, spacing: number) {
   const ccw = THREE.ShapeUtils.area(outer) > 0
   const out: Array<{ x: number; y: number; dir: THREE.Vector2; len: number; a: THREE.Vector2; n: THREE.Vector2 }> = []
@@ -304,7 +305,13 @@ export function createThreeLayer(origin: [number, number]) {
   const gltfLoader = new GLTFLoader()
   const haloTime = { value: 0 }
 
-  // Solar panel model, loaded once, normalised to PANEL_LENGTH, base at y=0, long side along X.
+  // The sun never moves, so shadows only need recalculating when the scene changes.
+  let shadowDirty = true
+  function redraw() {
+    shadowDirty = true
+    map?.triggerRepaint()
+  }
+
   type PanelPart = { geometry: THREE.BufferGeometry; material: THREE.Material | THREE.Material[]; matrix: THREE.Matrix4 }
   let panelParts: PanelPart[] | null = null
   let panelSize = { w: PANEL_LENGTH, d: 1.0 }
@@ -465,7 +472,7 @@ export function createThreeLayer(origin: [number, number]) {
       mesh.receiveShadow = true
       buildings.add(mesh)
     }
-    map?.triggerRepaint()
+    redraw()
   }
 
   function fitShadows() {
@@ -484,11 +491,11 @@ export function createThreeLayer(origin: [number, number]) {
 
     ground.position.set(centre.x, 0.05, centre.z)
     ground.scale.set(r * 2, 1, r * 2)
+    redraw()
   }
 
   // ---------- Hero upgrades, one per intervention type ----------
 
-  // retrofit: solar panels in rows along the longest wall.
   function addSolar(outer: THREE.Vector2[], roofY: number) {
     if (!panelParts) return
     const f = frameOf(outer)
@@ -521,7 +528,6 @@ export function createThreeLayer(origin: [number, number]) {
     }
   }
 
-  // renovation: scaffolding cage just outside the walls.
   function addScaffold(outer: THREE.Vector2[], height: number) {
     const top = height + 1
     const poles: Box[] = []
@@ -542,7 +548,6 @@ export function createThreeLayer(origin: [number, number]) {
     for (const mesh of [boxMesh(poles, mat), boxMesh(ledgers, mat.clone())]) if (mesh) hero.add(mesh)
   }
 
-  // repurpose: timber deck, pergola posts and beams, planters.
   function addTerrace(shape: THREE.Shape, outer: THREE.Vector2[], roofY: number) {
     const deck = new THREE.Mesh(flatGeometry(shape, roofY + 0.05), new THREE.MeshStandardMaterial({ color: TIMBER, roughness: 0.85 }))
     deck.receiveShadow = true
@@ -582,7 +587,6 @@ export function createThreeLayer(origin: [number, number]) {
     for (const mesh of [boxMesh(posts, wood), boxMesh(beams, wood.clone()), boxMesh(planters, green)]) if (mesh) hero.add(mesh)
   }
 
-  // green_corridor: green roof plus a ring of street trees.
   function addGreenCorridor(shape: THREE.Shape, outer: THREE.Vector2[], roofY: number) {
     const roof = new THREE.Mesh(flatGeometry(shape, roofY), new THREE.MeshStandardMaterial({ color: GREEN_ROOF, roughness: 1 }))
     roof.receiveShadow = true
@@ -591,7 +595,6 @@ export function createThreeLayer(origin: [number, number]) {
     treeMeshes(spots, 0.3).forEach((m) => hero.add(m))
   }
 
-  // pedestrian_upgrade: paved forecourt around the base with lamp posts.
   function addForecourt(outer: THREE.Vector2[]) {
     const f = frameOf(outer)
     const PAD = 8
@@ -674,7 +677,7 @@ export function createThreeLayer(origin: [number, number]) {
       buildHero(c, type)
       buildHalo(c, type, i++)
     }
-    map?.triggerRepaint()
+    redraw()
   }
 
   function setBuildings(fc: FeatureCollection) {
@@ -731,7 +734,7 @@ export function createThreeLayer(origin: [number, number]) {
     updateHero()
   }
 
-  // ---------- Parks ----------
+  // ---------- Parks: grass + trees from real satellite canopy ----------
 
   function setParks(fc: FeatureCollection) {
     disposeGroup(parks)
@@ -739,7 +742,8 @@ export function createThreeLayer(origin: [number, number]) {
     const spots: TreeSpot[] = []
 
     for (const f of fc.features) {
-      const id = String((f.properties as any)?.id ?? '')
+      const props = (f.properties ?? {}) as Record<string, unknown>
+      const id = String(props.id ?? '')
       if (!id.startsWith('G-')) continue
       for (const rings of polysOf(f.geometry)) {
         const shape = shapeOf(rings)
@@ -749,7 +753,13 @@ export function createThreeLayer(origin: [number, number]) {
         const outer = ringToPoints(rings[0])
         const holes = rings.slice(1).map(ringToPoints)
         const area = Math.abs(THREE.ShapeUtils.area(outer))
-        const want = Math.min(MAX_TREES_PER_PARK, Math.floor(area / M2_PER_TREE))
+        // Real canopy when available: trees = covered area / one crown's area.
+        const rawCanopy = props.canopy
+        const hasCanopy = rawCanopy != null && Number.isFinite(Number(rawCanopy))
+        const want = Math.min(
+          MAX_TREES_PER_PARK,
+          Math.floor(hasCanopy ? (area * Number(rawCanopy)) / CROWN_M2 : area / M2_PER_TREE),
+        )
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
         for (const p of outer) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y) }
         let placed = 0
@@ -774,7 +784,7 @@ export function createThreeLayer(origin: [number, number]) {
     }
 
     treeMeshes(spots.slice(0, MAX_TREES), 0.3).forEach((m) => parks.add(m))
-    map?.triggerRepaint()
+    redraw()
   }
 
   // ---------- Water ----------
@@ -804,7 +814,7 @@ export function createThreeLayer(origin: [number, number]) {
     }))
     mesh.receiveShadow = true
     water.add(mesh)
-    map?.triggerRepaint()
+    redraw()
   }
 
   const layer: maplibregl.CustomLayerInterface = {
@@ -819,6 +829,7 @@ export function createThreeLayer(origin: [number, number]) {
       renderer.autoClear = false
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFShadowMap
+      renderer.shadowMap.autoUpdate = false // recalculated only when redraw() marks it dirty
 
       fetch('/water.geojson')
         .then((r) => r.json())
@@ -831,8 +842,13 @@ export function createThreeLayer(origin: [number, number]) {
       camera.projectionMatrix = new THREE.Matrix4().fromArray(matrix).multiply(local)
       renderer.resetState()
       renderer.setViewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
+      if (shadowDirty) {
+        renderer.shadowMap.needsUpdate = true
+        shadowDirty = false
+      }
       renderer.render(scene, camera)
 
+      // Halo animation only repaints the view; shadows stay cached.
       if (halos.children.length) {
         haloTime.value = performance.now() / 1000
         map?.triggerRepaint()

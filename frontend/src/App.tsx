@@ -408,7 +408,12 @@ export default function App() {
             height: finalHeight,
           })
 
-          const tagged: Feature = { ...f, properties: { ...f.properties, id, status: mapStatus, height: finalHeight } }
+          const env = finalProfile?.environmental ?? {}
+          const tagged: Feature = { ...f, properties: {
+            ...f.properties, id, status: mapStatus, height: finalHeight,
+            canopy: env.canopy_coverage ?? null,
+            dT: env.surface_temp_delta_c ?? null,
+          } }
 
           if (f.geometry.type === 'Point') pointFeatures.push(tagged)
           else if (finalHeight > 0) buildingFeatures.push(tagged)
