@@ -95,6 +95,24 @@ def get_energy_intensity(subtype_name: str) -> Optional[float]:
     return get_benchmark(subtype_name, "energy_intensity_kwh_m2_year")
 
 
+def get_market_rent_per_m2(subtype_name: str, default: float = 200.0) -> float:
+    """
+    Market rent RM/m2/year for a commercial subtype.
+    Used by the simulation engine to recompute post-intervention rental
+    income on a market basis, replacing the baseline-derived pro-rata.
+    """
+    defn = get_subtype(subtype_name)
+    if defn is None:
+        return default
+    rate = defn.get("market_rent_rm_per_m2_year")
+    if rate is None:
+        return default
+    try:
+        return float(rate)
+    except (TypeError, ValueError):
+        return default
+
+
 def get_competition_radius_m(subtype_name: str) -> Optional[float]:
     """
     Radius (in metres) within which the subtype competes for demand.

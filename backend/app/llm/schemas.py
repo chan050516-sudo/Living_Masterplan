@@ -44,6 +44,83 @@ INTENT_SCHEMA = {
 # Stage 2 — Parameters (shared by candidates and final plan)
 # ------------------------------------------------------------------
 
+# ------------------------------------------------------------------
+# P1 — Engineering parameter contract
+# ------------------------------------------------------------------
+# The LLM translates natural language ("retain the shell, use VRF,
+# add 60% rooftop PV") into this strict object. The deterministic
+# engine reads it to derive:
+#   - avoided embodied carbon (structure_retention_ratio)
+#   - LST-coupled cooling load (hvac_cop, operating hours, roof)
+#   - rooftop PV offset (rooftop_pv_coverage)
+#
+# This is an OPTIONAL companion to the legacy `measures` /
+# `energy_efficiency_gain` path. Omit it for pure spatial
+# interventions or when only an aggregate efficiency number is known.
+#
+# Kept to 7 fields on purpose: structured-output reliability degrades
+# sharply beyond ~8 required fields on Gemini Flash.
+
+ENGINEERING_SPEC_SCHEMA = {
+    "type": "OBJECT",
+    "properties": {
+        "structure_retention_ratio": {
+            "type": "NUMBER",
+            "description": (
+                "Fraction of the existing structural frame retained "
+                "(0.0-1.0). 1.0 = cosmetic retrofit; 0.9 = adaptive "
+                "reuse; 0.6 = heavy retrofit with reinforcement; 0.0 "
+                "= demolish and rebuild."
+            ),
+        },
+        "facade_action": {
+            "type": "STRING",
+            "enum": [
+                "retain", "insulated_overclad",
+                "curtain_wall", "timber_clad",
+            ],
+        },
+        "primary_material": {
+            "type": "STRING",
+            "enum": [
+                "standard_concrete", "ggbs_concrete",
+                "mass_timber", "recycled_steel",
+            ],
+        },
+        "roof_intervention": {
+            "type": "STRING",
+            "enum": ["none", "cool_roof", "green_roof", "solar_canopy"],
+        },
+        "hvac_cop": {
+            "type": "NUMBER",
+            "description": (
+                "HVAC coefficient of performance (2.0-6.0). Standard "
+                "split AC ≈ 2.8; VRF ≈ 3.5-4.2; district cooling ≈ 5.5."
+            ),
+        },
+        "operating_hours_per_week": {
+            "type": "NUMBER",
+            "description": (
+                "Weekly operating hours (20-168). 70 = standard office; "
+                "112 = 16h/7d hub; 168 = 24/7."
+            ),
+        },
+        "rooftop_pv_coverage": {
+            "type": "NUMBER",
+            "description": "Fraction of roof area covered by PV (0.0-0.9).",
+        },
+    },
+    "required": [
+        "structure_retention_ratio",
+        "facade_action",
+        "primary_material",
+        "roof_intervention",
+        "hvac_cop",
+        "operating_hours_per_week",
+        "rooftop_pv_coverage",
+    ],
+}
+
 PROPOSAL_PARAMETERS_SCHEMA = {
     "type": "OBJECT",
     "properties": {
@@ -157,6 +234,12 @@ PROPOSAL_PARAMETERS_SCHEMA = {
         # --- optional cost overrides ---
         "capex_delta_rm": {"type": "NUMBER"},
         "opex_delta_rm": {"type": "NUMBER"},
+
+        # P1 — Structured engineering parameters. Optional; when
+        # present, the deterministic engine replaces the aggregate
+        # `energy_efficiency_gain` path with a physics-derived cooling
+        # and embodied-carbon model.
+        "engineering_spec": ENGINEERING_SPEC_SCHEMA,
     },
 }
 

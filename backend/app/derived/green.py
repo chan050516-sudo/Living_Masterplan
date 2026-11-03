@@ -25,8 +25,6 @@ from .context import DerivationContext
 from ..taxonomy import get_subtype_or_default
 from .environmental import (
     shade_proxy_score_from_canopy,
-    calculate_surface_temp_delta,
-    effective_canopy_for_uhi
 )
 
 
@@ -146,12 +144,6 @@ def derive_green(ctx: DerivationContext) -> dict:
 
     shade = shade_proxy_score_from_canopy(canopy_coverage)
 
-    canopy_for_uhi = effective_canopy_for_uhi(canopy_coverage, "green_space")
-    uhi = calculate_surface_temp_delta(
-        canopy_coverage_ratio=canopy_for_uhi,
-        is_hard_surface=False,
-    )
-
     return {
         "asset_id": asset["asset_id"],
         "year": year,
@@ -163,7 +155,7 @@ def derive_green(ctx: DerivationContext) -> dict:
         "accessibility_score": ctx.accessibility_score,  # deprecated bridge
         "shade_proxy_score": shade,
         "neighborhood_diversity": ctx.neighborhood_diversity,
-        "surface_temp_delta_c": uhi,
+        "surface_temp_delta_c": None,
         "metric_source": "derived",
         "model_version": __version__,
     }
