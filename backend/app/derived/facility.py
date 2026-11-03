@@ -4,7 +4,7 @@ Phase 11 additions:
   - Energy sub-system split.
   - Productive vs stranded carbon (utilisation-based).
   - Life-cycle carbon.
-  - UHI surface temperature proxy.
+  - Landsat 8 Level-2 temperature is attached by the shared derivation engine.
 """
 
 import math
@@ -20,7 +20,6 @@ from .environmental import (
     productive_stranded_carbon,
     embodied_amortised,
     maintenance_carbon_annual,
-    calculate_surface_temp_delta,
     embodied_amortised_for_subtype,
     MATERIAL_INTENSITY_REPURPOSE,
 )
@@ -102,16 +101,6 @@ def derive_facility(ctx: DerivationContext) -> dict:
     amortised = embodied_amortised_for_subtype(floor_area, subtype)
     maint_carbon = maintenance_carbon_annual(amortised["embodied_carbon_total_tco2e"])
 
-    # Phase 11 — UHI
-    from .environmental import effective_canopy_for_uhi
-    canopy_for_uhi = effective_canopy_for_uhi(
-        ctx.canopy_coverage, "community_facility"
-    )
-    uhi = calculate_surface_temp_delta(
-        canopy_coverage_ratio=canopy_for_uhi,
-        is_hard_surface=True,
-    )
-
     # --- Demographic mismatch ---
     mismatch = None
     if ctx.catchment_population_profile:
@@ -138,7 +127,7 @@ def derive_facility(ctx: DerivationContext) -> dict:
         "embodied_carbon_total_tco2e": amortised["embodied_carbon_total_tco2e"],
         "embodied_carbon_amortised_tco2e": amortised["embodied_carbon_amortised_tco2e"],
         "maintenance_carbon_tco2e": maint_carbon,
-        "surface_temp_delta_c": uhi,
+        "surface_temp_delta_c": None,
         "demographic_mismatch": mismatch,
         "neighborhood_diversity": ctx.neighborhood_diversity,
         "accessibility_score": ctx.accessibility_score,

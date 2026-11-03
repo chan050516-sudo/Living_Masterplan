@@ -68,6 +68,90 @@ def _energy_split_for(asset_type: str) -> dict:
     }
 
 
+# ------------------------------------------------------------------
+# P1 — Engineering spec translation
+# ------------------------------------------------------------------
+
+# Roof intervention → observed cooling ambient temperature relief
+# (°C reduction relative to the baseline Landsat observation).
+# Sourced from US DOE cool-roof data, EPA green-roof guidance, and
+# typical solar-canopy shading measurements for tropical Malaysia.
+# Conservative: reported values are ambient air temperature, not
+# surface temperature, and are lower than the raw surface delta.
+_ROOF_COOLING_RELIEF_C = {
+    "none":          0.0,
+    "cool_roof":     1.5,
+    "green_roof":    2.2,
+    "solar_canopy":  1.8,
+}
+
+
+def _apply_engineering_spec(
+    asset: dict, spec: dict, intervention: dict,
+) -> None:
+    """Translate the engineering spec into B4-internal fields.
+
+    The environmental block in `simulation/engine.py` reads these
+    fields. Any field not written here falls back to the legacy
+    aggregate-efficiency path, so a partially-populated spec is safe.
+    """
+    if not isinstance(spec, dict):
+        return
+
+    # ---- Structural retention ----
+    try:
+        retention = float(spec.get("structure_retention_ratio", 1.0))
+        retention = max(0.0, min(1.0, retention))
+    except (TypeError, ValueError):
+        retention = 1.0
+    asset["_structure_retention_ratio"] = retention
+
+    # ---- Facade and material ----
+    facade = spec.get("facade_action")
+    if facade in {"retain", "insulated_overclad", "curtain_wall", "timber_clad"}:
+        asset["_facade_action"] = facade
+
+    material = spec.get("primary_material")
+    if material in {
+        "standard_concrete", "ggbs_concrete",
+        "mass_timber", "recycled_steel",
+    }:
+        asset["_primary_material"] = material
+
+    # ---- Roof / microclimate ----
+    roof = spec.get("roof_intervention")
+    if roof in _ROOF_COOLING_RELIEF_C:
+        asset["_roof_intervention"] = roof
+        asset["_cooling_from_roof_c"] = _ROOF_COOLING_RELIEF_C[roof]
+    else:
+        asset["_roof_intervention"] = "none"
+        asset["_cooling_from_roof_c"] = 0.0
+
+    # ---- HVAC efficiency ----
+    try:
+        cop = float(spec.get("hvac_cop", 3.0))
+        cop = max(2.0, min(6.0, cop))
+    except (TypeError, ValueError):
+        cop = 3.0
+    asset["_hvac_cop"] = cop
+
+    # ---- Operating hours ----
+    try:
+        hours_week = float(spec.get("operating_hours_per_week", 70.0))
+        hours_week = max(20.0, min(168.0, hours_week))
+    except (TypeError, ValueError):
+        hours_week = 70.0
+    asset["_operating_hours_per_week"] = hours_week
+
+    # ---- Rooftop PV ----
+    try:
+        pv_cov = float(spec.get("rooftop_pv_coverage", 0.0))
+        pv_cov = max(0.0, min(0.9, pv_cov))
+    except (TypeError, ValueError):
+        pv_cov = 0.0
+    asset["_rooftop_pv_coverage"] = pv_cov
+
+
 def apply_intervention(asset: dict, intervention: dict) -> dict:
     new_asset = dict(asset)
     itype = intervention["intervention_type"]
@@ -75,6 +159,14 @@ def apply_intervention(asset: dict, intervention: dict) -> dict:
         params = json.loads(intervention.get("parameters_json") or "{}")
     except (json.JSONDecodeError, TypeError):
         params = {}
+
+    # P1 — Apply the engineering spec BEFORE the type-specific
+    # logic, so retrofit/repurpose can read the derived fields
+    # without a second pass and skip the legacy multiplier path
+    # when the spec is present.
+    _spec = params.get("engineering_spec")
+    if isinstance(_spec, dict):
+        _apply_engineering_spec(new_asset, _spec, intervention)
 
     if itype == "repurpose":
         _apply_repurpose(new_asset, params, intervention)
@@ -277,22 +369,29 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
     """
     Apply a retrofit intervention.
 
-    Supports two modes:
+    Supports THREE modes:
 
-    1. Aggregate (legacy): `energy_efficiency_gain` applies a single
-       multiplier to the whole building's energy.
+    1. Engineering spec (P1, preferred): `engineering_spec` carries
+       physical parameters (COP, roof strategy, PV coverage). The
+       spec's fields were already written to `asset` by
+       `_apply_engineering_spec`; this function only handles CAPEX
+       and maintenance here, then returns without writing the
+       legacy multiplier so the engine's physics path takes over.
 
-    2. Per-subsystem (P1): `measure_breakdown` carries per-measure
-       capex and energy gain, each mapped to one or more subsystems
-       (hvac / lighting_equipment / base_load). The engine applies a
-       per-subsystem multiplier.
+    2. Per-subsystem (legacy mid-tier): `measure_breakdown` carries
+       per-measure capex and energy gain, each mapped to one or
+       more subsystems (hvac / lighting_equipment / base_load).
 
-    Capex resolution order:
+    3. Aggregate (legacy): `energy_efficiency_gain` applies a
+       single multiplier to the whole building's energy.
+
+    Capex resolution order (all modes):
       1. Sum of measure_breakdown[*].capex_rm
       2. params["capex_delta_rm"]
       3. intervention["capex_delta_rm"]
     """
     breakdown = params.get("measure_breakdown") or []
+    _has_spec = isinstance(params.get("engineering_spec"), dict)
 
     # --- CAPEX ---
     capex_from_breakdown = 0.0
@@ -317,13 +416,20 @@ def _apply_retrofit(asset: dict, params: dict, intervention: dict) -> None:
             float(asset["capex_initial_rm"]) + float(capex_total)
         )
 
-    # --- Maintenance reduction ---
+    # --- Maintenance reduction (applies to every retrofit mode) ---
     if _is_number(asset.get("maintenance_annual_rm")):
         asset["maintenance_annual_rm"] = (
             float(asset["maintenance_annual_rm"]) * 0.8
         )
 
-    # --- Energy multipliers ---
+    # --- Energy model branch ---
+    # Spec mode: _apply_engineering_spec has already written
+    # _hvac_cop / _cooling_from_roof_c / _rooftop_pv_coverage.
+    # Do NOT write _energy_efficiency_multiplier — doing so would
+    # short-circuit the LST-coupled cooling model in engine.py.
+    if _has_spec:
+        return
+
     if breakdown:
         hvac_mult = 1.0
         lighting_mult = 1.0

@@ -29,6 +29,7 @@ const LABELS: Record<string, string> = {
   coverage_ratio_15min_walk: '15-min walk coverage',
   coverage_ratio_10min_walk: '10-min walk coverage',
   coverage_ratio_5min_walk: '5-min walk coverage',
+  surface_temp_delta_c: 'Surface Temp ΔT',
 }
 
 function pretty(s: string) {
@@ -84,6 +85,12 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
   const current = data.assets_analysis.find((a) => a.asset_id === active)
   const t = data.township_metrics
   const j = data.decision.justification
+
+  // The backend emits `carbon_delta_pct: null` whenever the before-state
+  // carbon total is zero or unreachable (e.g. a plan whose targets are
+  // all green space, or a selected set with no reported operational
+  // carbon). Multiplying null by 100 throws and blanks the whole modal.
+  const carbonDeltaPct = t.carbon_delta_pct ?? 0
 
   // Totals across every asset in the plan.
   let capexSaved = 0
@@ -155,9 +162,9 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
           />
           <Headline
             label="Township carbon"
-            value={`${(t.carbon_delta_pct * 100).toFixed(2)}%`}
-            unit={t.carbon_delta_pct < 0 ? 'reduction' : 'increase'}
-            good={t.carbon_delta_pct < 0}
+            value={`${(carbonDeltaPct * 100).toFixed(2)}%`}
+            unit={carbonDeltaPct < 0 ? 'reduction' : 'increase'}
+            good={carbonDeltaPct < 0}
           />
         </div>
 

@@ -28,6 +28,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+import math
 
 import pandas as pd
 
@@ -73,6 +74,71 @@ _NEW_BUILD_CAPEX_RM_PER_M2 = {
     "undeveloped_parcel":    0.0,
 }
 
+def _lst_to_apparent_temp(lst_celsius, asset_type, wind_speed_ms=1.5):
+    """
+    Convert Land Surface Temperature (LST) to Apparent Temperature (AT) 
+    using LCZ-based aerodynamic damping, calibrated for tropical Malaysia.
+    """
+    if lst_celsius is None or pd.isna(lst_celsius):
+        return None
+        
+    BASE_TA = 32.0 
+    
+    # 1. Stratified Aerodynamic Damping based on Local Climate Zones (LCZ)
+    if asset_type in ['commercial', 'industrial', 'infrastructure']:
+        damping = 0.25
+        rh = 0.58
+    elif asset_type in ['residential', 'community_facility', 'mixed_use', 'religious', 'education', 'facility']:
+        damping = 0.35
+        rh = 0.60
+    elif asset_type in ['green_space', 'undeveloped_parcel']:
+        damping = 0.70
+        rh = 0.65
+    else:
+        damping = 0.30
+        rh = 0.60
+
+    # 2. Estimate 1.5m Air Temperature (Ta)
+    ta = BASE_TA + (lst_celsius - BASE_TA) * damping
+
+    # 3. Calculate Vapour Pressure (e) using WMO standard Magnus-Tetens formula
+    e = rh * 6.105 * math.exp((17.27 * ta) / (237.7 + ta))
+    
+    # 4. Steadman Apparent Temperature (BOM standard)
+    at = ta + (0.33 * e) - (0.70 * wind_speed_ms) - 4.00
+    
+    return round(at, 2)
+
+
+def _get_baseline_lst(repo_root: Path = None) -> float:
+    """Dynamically read the true township baseline LST from the thermal obs file.
+
+    `repo_root` is optional so that `_build_frontend_payload` can call
+    this without threading the root through — it falls back to the
+    repository root, and the data path is resolved through paths.yml
+    so switching datasets (Bukit Jelutong → Elmina) works without a
+    code change.
+    """
+    default_baseline = 39.33
+    try:
+        from ..config import load_paths
+
+        paths = load_paths()
+        root = repo_root or Path(__file__).resolve().parents[3]
+        base_dir = root / paths["base"]
+        thermal_path = base_dir / paths.get("thermal", {}).get(
+            "observations", "business/thermal_observations.csv",
+        )
+        if thermal_path.exists():
+            df = pd.read_csv(thermal_path)
+            if (
+                "t_township_c" in df.columns
+                and not df["t_township_c"].dropna().empty
+            ):
+                return float(df["t_township_c"].dropna().iloc[0])
+    except Exception:
+        pass
+    return default_baseline
 
 # ------------------------------------------------------------------
 # Public entry points
@@ -391,13 +457,6 @@ def _generate_candidates(
     import time
 
     prompt = _load_prompt("candidate_generator.md")
-
-    user_content = {
-        "context_pack": context_pack,
-        "attempt": attempt,
-    }
-    if candidate_feedback:
-        user_content["candidate_feedback"] = candidate_feedback
 
     user_content = {
         "context_pack": context_pack,
@@ -942,8 +1001,62 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             except Exception:
                 pass
 
+        # --- 2.5 Engineering spec extraction (P1) ---
+        # Pull the plan item's engineering_spec (if present) and the
+        # PV yield the engine derived from it, so the frontend can
+        # render the "Engineered Param Spec Extracted" card.
+        _eng_spec = None
+        if asset_intv is not None:
+            try:
+                _intv_params = json.loads(
+                    asset_intv.get("parameters_json") or "{}"
+                )
+                _raw_spec = _intv_params.get("engineering_spec")
+                if isinstance(_raw_spec, dict):
+                    _eng_spec = {
+                        "structure_retention_ratio": _raw_spec.get(
+                            "structure_retention_ratio",
+                        ),
+                        "facade_action": _raw_spec.get("facade_action"),
+                        "primary_material": _raw_spec.get(
+                            "primary_material",
+                        ),
+                        "roof_intervention": _raw_spec.get(
+                            "roof_intervention",
+                        ),
+                        "hvac_cop": _raw_spec.get("hvac_cop"),
+                        "operating_hours_per_week": _raw_spec.get(
+                            "operating_hours_per_week",
+                        ),
+                        "rooftop_pv_coverage": _raw_spec.get(
+                            "rooftop_pv_coverage",
+                        ),
+                        "pv_yield_kwh_year": _get(
+                            final_state, "energy_kwh_pv_offset", 0.0,
+                        ),
+                    }
+            except (json.JSONDecodeError, TypeError):
+                _eng_spec = None
+
         # --- 3. Assemble Summary Card ---
+        baseline_lst = _get_baseline_lst()
+        base_lst_delta = _get(base_final_state, "surface_temp_delta_c", default=None)
+        intv_lst_delta = _get(final_state, "surface_temp_delta_c", default=None)
+        
+        # Get the effective asset type for LCZ damping logic
+        effective_atype = final_state.get("_effective_asset_type", "commercial")
+        
+        base_at = _lst_to_apparent_temp(
+            baseline_lst + base_lst_delta if base_lst_delta is not None else None, 
+            effective_atype
+        )
+        intv_at = _lst_to_apparent_temp(
+            baseline_lst + intv_lst_delta if intv_lst_delta is not None else None, 
+            effective_atype
+        )
+
         card = {
+            "engineering_spec": _eng_spec,
             "financial": {
                 "main_metric": {
                     "label": "Annual NOI",
@@ -988,7 +1101,19 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                         "baseline": _get(base_final_state, "carbon_stranded_tco2e"),
                         "intervention": _get(final_state, "carbon_stranded_tco2e"),
                         "unit": "tCO2e/yr"
-                    }
+                    },
+                    {
+                        "label": "Surface Temp ΔT",
+                        "baseline": _get(base_final_state, "surface_temp_delta_c"),
+                        "intervention": _get(final_state, "surface_temp_delta_c"),
+                        "unit": "°C"
+                    },
+                    {
+                        "label": "Perceived Temp (AT)",
+                        "baseline": base_at,
+                        "intervention": intv_at,
+                        "unit": "°C"
+                    },
                 ],
                 "counterfactual": {
                     "embodied_if_new_build_tco2e": round(carbon_new_build, 1),
@@ -1004,7 +1129,8 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             "noi_rm": {"baseline": [], "intervention": []},
             "carbon_operational_tco2e": {"baseline": [], "intervention": []},
             "carbon_stranded_tco2e": {"baseline": [], "intervention": []},
-            "space_utilization": {"baseline": [], "intervention": []}
+            "space_utilization": {"baseline": [], "intervention": []},
+            "surface_temp_delta_c": {"baseline": [], "intervention": []},
         }
 
         for y in years_list:
@@ -1022,6 +1148,9 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             
             timeline_metrics["space_utilization"]["baseline"].append(_get_util(b_asset))
             timeline_metrics["space_utilization"]["intervention"].append(_get_util(i_asset))
+
+            timeline_metrics["surface_temp_delta_c"]["baseline"].append(_get(b_asset, "surface_temp_delta_c"))
+            timeline_metrics["surface_temp_delta_c"]["intervention"].append(_get(i_asset, "surface_temp_delta_c"))
 
         assets_payload.append({
             "asset_id": aid,

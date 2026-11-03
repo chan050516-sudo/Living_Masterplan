@@ -1,8 +1,7 @@
 """Human-readable evidence strings for the diagnosis card.
 
-Phase 11 addition: surfaces the productive vs stranded carbon split
-and the UHI surface temperature proxy so the LLM (and the UI) can
-reference them directly.
+Surfaces the productive vs stranded carbon split and observed Landsat
+surface temperatures so the LLM and UI can reference their provenance.
 """
 
 
@@ -203,20 +202,14 @@ def _add_carbon_evidence(lines: list, metrics: dict,
                          asset_type: str) -> None:
     """
     Surface the productive/stranded carbon split, embodied carbon,
-    and UHI proxy. Phase 16 changes:
+    and observed Landsat temperatures.
 
     - Embodied carbon is labelled as a subtype benchmark estimate,
       not a building-level BOM figure. The value is
       material_intensity × floor area from taxonomy.yml, identical
       for every building of the same subtype — it does not encode
       actual material choices.
-    - UHI is classified via classify_uhi_meaning so a green space's
-      cooling benefit is never presented as if it were heat
-      exposure, and a building's negative delta is flagged as a
-      data anomaly.
     """
-    from ..derived.environmental import classify_uhi_meaning
-
     total = metrics.get("carbon_operational_tco2e")
     productive = metrics.get("carbon_productive_tco2e")
     stranded = metrics.get("carbon_stranded_tco2e")
@@ -249,23 +242,18 @@ def _add_carbon_evidence(lines: list, metrics: dict,
                 f"(subtype benchmark estimate): {ev} tCO2e"
             )
 
-    uhi = metrics.get("surface_temp_delta_c")
-    if uhi is not None:
-        classification = classify_uhi_meaning(asset_type, uhi)
-        uv = _fmt(uhi, 1)
-        if uv is not None:
-            if classification["kind"] == "cooling_benefit":
-                lines.append(
-                    f"Cooling benefit vs open-field baseline: {uv} °C"
-                )
-            elif classification["is_anomaly"]:
-                lines.append(
-                    f"Surface temperature delta (UHI proxy): {uv} °C "
-                    f"[data anomaly — verify canopy overlay]"
-                )
-            else:
-                sign = "+" if float(uhi) > 0 else ""
-                lines.append(
-                    f"Surface temperature delta (UHI proxy): "
-                    f"{sign}{uv} °C"
-                )
+    t_asset = metrics.get("t_asset_c")
+    t_township = metrics.get("t_township_c")
+    delta = metrics.get("surface_temp_delta_c")
+    provenance = metrics.get("surface_temp_provenance")
+    if t_asset is not None and t_township is not None and delta is not None:
+        asset_temp = _fmt(t_asset, 1)
+        township_temp = _fmt(t_township, 1)
+        delta_temp = _fmt(abs(float(delta)), 1)
+        sign = "+" if float(delta) > 0 else ("-" if float(delta) < 0 else "")
+        source = f" [{provenance}]" if provenance else ""
+        lines.append(
+            f"Observed land surface temperature{source}: parcel "
+            f"{asset_temp} °C; township baseline {township_temp} °C; "
+            f"T = Tasset − Ttownship = {sign}{delta_temp} °C"
+        )
