@@ -142,7 +142,7 @@ export default function App() {
   const [profilesData, setProfilesData] = useState<Record<string, AssetProfile>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [year, setYear] = useState(2026)
-  
+  const [listFilter, setListFilter] = useState<string>('all')
   const [history, setHistory] = useState<AnalyzeHistoryItem[]>(() => {
     try { return JSON.parse(localStorage.getItem('lm_history') || '[]') } catch { return [] }
   })
@@ -693,23 +693,39 @@ export default function App() {
     threeRef.current?.setInterventions(heroList)
   }, [assets, selectedIds, activeRunId, mapReady, history])
 
-  // Load and decode the click sound once. Browsers block audio until the user
-  // interacts with the page, so the context is created on first click.
+  // Load the click sound as soon as the page opens. Browsers only allow audio to
+  // start after the user interacts, so the context is resumed on first pointer down.
   useEffect(() => {
     if (!SOUND) return
     let dead = false
-    const arm = async () => {
-      if (!audioCtx) audioCtx = new AudioContext()
-      if (audioCtx.state === 'suspended') await audioCtx.resume()
-      if (clickBuf || dead) return
-      try {
-        const buf = await (await fetch('/click.mp3')).arrayBuffer()
-        const decoded = await audioCtx.decodeAudioData(buf)
-        if (!dead) clickBuf = decoded
-      } catch { /* no sound is fine */ }
+    const ctx = new AudioContext()
+    audioCtx = ctx
+
+    fetch('/click.mp3')
+      .then((r) => r.arrayBuffer())
+      .then((b) => ctx.decodeAudioData(b))
+      .then((d) => { if (!dead) clickBuf = d })
+      .catch(() => { /* no sound is fine */ })
+
+    // Inaudible tone that keeps the sound device awake, so Windows doesn't put
+    // it to sleep and swallow the first clicks.
+    const keepAlive = ctx.createOscillator()
+    const silent = ctx.createGain()
+    keepAlive.frequency.value = 20
+    silent.gain.value = 0.0001
+    keepAlive.connect(silent).connect(ctx.destination)
+    keepAlive.start()
+
+    const unlock = () => { if (ctx.state === 'suspended') ctx.resume() }
+    window.addEventListener('pointerdown', unlock)
+    return () => {
+      dead = true
+      window.removeEventListener('pointerdown', unlock)
+      keepAlive.stop()
+      ctx.close()
+      if (audioCtx === ctx) audioCtx = null
+      clickBuf = null
     }
-    window.addEventListener('pointerdown', arm)
-    return () => { dead = true; window.removeEventListener('pointerdown', arm) }
   }, [])
 
   const fittedRef = useRef(false)
@@ -755,6 +771,24 @@ export default function App() {
     }  
   }, [selectedIds, previewing, assets, mapReady])
 
+
+  // Mirror the list filter on the map: only matching assets (plus selected ones) stay visible and clickable.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const ids = listFilter === 'all'
+      ? null
+      : [...new Set([
+          ...assets.filter((a) => a.diagnosis?.status === listFilter).map((a) => a.id),
+          ...selectedIds,
+        ])]
+    const expr = ids ? (['in', ['get', 'id'], ['literal', ids]] as never) : null
+    for (const layer of ['assets-3d', 'area-fill', 'area-outline', 'points-dot']) {
+      if (map.getLayer(layer)) map.setFilter(layer, expr)
+    }
+    threeRef.current?.setFilter(ids)
+  }, [listFilter, assets, selectedIds, mapReady])
+  
   useEffect(() => {
     const map = mapRef.current
     if (!map || !mapReady) return
@@ -859,7 +893,7 @@ export default function App() {
               history={history}
             />
           ) : (
-            <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} />
+            <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} filter={listFilter} onFilter={setListFilter} />
           )}
         </aside>
       </div>

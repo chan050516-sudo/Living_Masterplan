@@ -19,6 +19,11 @@ const ROOF_SHADE = 1.18
 const EDGE_COLOUR = '#140e13'
 const EDGE_OPACITY = 0.45
 
+// Map filter: 'hide' removes non-matching buildings, 'ghost' keeps them as faint outlines.
+const FILTER_MODE = 'ghost' as 'hide' | 'ghost'
+const GHOST_COLOUR = '#5c555e'   // muted buildings
+const GHOST_GRASS = '#3a3f3b'    // muted parks
+
 // Towers (glass curtain wall)
 const TOWER_MIN_H = 12
 const FIN_SPACING = 1.6
@@ -58,8 +63,8 @@ const FAKE_DELTA_T_DEFAULT = -0.5
 
 // Parks
 const GRASS = '#355e3b'
-const M2_PER_TREE = 150          // fallback density when a park has no canopy reading
-const CROWN_M2 = 25              // ground area one tree crown covers, seen from above
+const M2_PER_TREE = 150
+const CROWN_M2 = 25
 const MAX_TREES_PER_PARK = 400
 const MAX_TREES = 6000
 
@@ -73,6 +78,7 @@ type Cached = {
   height: number
   polys: Position[][][]
   geos: THREE.BufferGeometry[]
+  edgeGeos: THREE.BufferGeometry[]
 }
 
 type Box = { x: number; y: number; z: number; sx: number; sy: number; sz: number; yaw: number }
@@ -131,7 +137,6 @@ function boxMesh(list: Box[], material: THREE.Material): THREE.InstancedMesh | n
   return inst
 }
 
-// Simple low-poly trees, instanced. Crowns cast shadows; trunks are too thin to bother.
 function treeMeshes(spots: TreeSpot[], baseY: number): THREE.InstancedMesh[] {
   if (!spots.length) return []
   const trunks = new THREE.InstancedMesh(
@@ -140,7 +145,7 @@ function treeMeshes(spots: TreeSpot[], baseY: number): THREE.InstancedMesh[] {
     spots.length,
   )
   const crowns = new THREE.InstancedMesh(
-    new THREE.IcosahedronGeometry(1, 0), // 20 triangles per crown
+    new THREE.IcosahedronGeometry(1, 0),
     new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.9, flatShading: true }),
     spots.length,
   )
@@ -305,7 +310,6 @@ export function createThreeLayer(origin: [number, number]) {
   const gltfLoader = new GLTFLoader()
   const haloTime = { value: 0 }
 
-  // The sun never moves, so shadows only need recalculating when the scene changes.
   let shadowDirty = true
   function redraw() {
     shadowDirty = true
@@ -373,6 +377,11 @@ export function createThreeLayer(origin: [number, number]) {
   let selectedColour = '#2196f3'
   let heroes = new Map<string, string>()
   let deltas = new Map<string, number>()
+  let visibleIds: Set<string> | null = null // null = no filter, show everything
+  let lastParks: FeatureCollection | null = null
+
+  // Selected and intervened assets always stay visible, whatever the filter.
+  const isShown = (id: string) => !visibleIds || visibleIds.has(id) || selected.has(id) || heroes.has(id)
 
   function toShapePoint(p: Position): THREE.Vector2 {
     const m = maplibregl.MercatorCoordinate.fromLngLat([p[0], p[1]], 0)
@@ -446,13 +455,30 @@ export function createThreeLayer(origin: [number, number]) {
     const groups: Record<string, THREE.BufferGeometry[]> = {}
     for (const c of cache) {
       if (heroes.has(c.id)) continue
-      const key = selected.has(c.id) ? '__selected' : c.status + (c.tall ? '|tower' : '')
+      let key: string
+      if (!isShown(c.id)) {
+        if (FILTER_MODE === 'hide') continue
+        key = '__ghost'
+      } else {
+        key = selected.has(c.id) ? '__selected' : c.status + (c.tall ? '|tower' : '')
+      }
       ;(groups[key] ??= []).push(...c.geos)
     }
 
     for (const [key, geos] of Object.entries(groups)) {
       const merged = mergeGeometries(geos)
       if (!merged) continue
+
+      if (key === '__ghost') {
+        const ghost = new THREE.Mesh(merged, new THREE.MeshStandardMaterial({
+          color: GHOST_COLOUR, vertexColors: true, roughness: 0.9,
+        }))
+        ghost.castShadow = true
+        ghost.receiveShadow = true
+        buildings.add(ghost)
+        continue
+      }
+
       const isSel = key === '__selected'
       const isTower = key.endsWith('|tower')
       const status = key.replace('|tower', '')
@@ -471,6 +497,20 @@ export function createThreeLayer(origin: [number, number]) {
       mesh.castShadow = true
       mesh.receiveShadow = true
       buildings.add(mesh)
+    }
+    redraw()
+  }
+
+  // Edge lines only for visible buildings. Rebuilt when data or the filter changes, not on every click.
+  function rebuildEdges() {
+    disposeGroup(edges)
+    const geos = cache.filter((c) => isShown(c.id)).flatMap((c) => c.edgeGeos)
+    if (!geos.length) return
+    const merged = mergeGeometries(geos)
+    if (merged) {
+      edges.add(new THREE.LineSegments(merged, new THREE.LineBasicMaterial({
+        color: EDGE_COLOUR, transparent: true, opacity: EDGE_OPACITY,
+      })))
     }
     redraw()
   }
@@ -681,7 +721,10 @@ export function createThreeLayer(origin: [number, number]) {
   }
 
   function setBuildings(fc: FeatureCollection) {
-    for (const c of cache) c.geos.forEach((g) => g.dispose())
+    for (const c of cache) {
+      c.geos.forEach((g) => g.dispose())
+      c.edgeGeos.forEach((g) => g.dispose())
+    }
     cache = []
     for (const f of fc.features) {
       const props = (f.properties ?? {}) as Record<string, unknown>
@@ -694,23 +737,15 @@ export function createThreeLayer(origin: [number, number]) {
         const geo = buildingGeometry(rings, height)
         if (geo) geos.push(geo)
       }
-      if (geos.length) cache.push({ id, status, tall: height > TOWER_MIN_H, height, polys, geos })
+      if (geos.length) {
+        const edgeGeos = geos.map((g) => new THREE.EdgesGeometry(g, 30))
+        cache.push({ id, status, tall: height > TOWER_MIN_H, height, polys, geos, edgeGeos })
+      }
     }
     rebuild()
     fitShadows()
     updateHero()
-
-    disposeGroup(edges)
-    const edgeGeos = cache.flatMap((c) => c.geos.map((g) => new THREE.EdgesGeometry(g, 30)))
-    if (edgeGeos.length) {
-      const merged = mergeGeometries(edgeGeos)
-      edgeGeos.forEach((g) => g.dispose())
-      if (merged) {
-        edges.add(new THREE.LineSegments(merged, new THREE.LineBasicMaterial({
-          color: EDGE_COLOUR, transparent: true, opacity: EDGE_OPACITY,
-        })))
-      }
-    }
+    rebuildEdges()
   }
 
   function setSelection(ids: string[], colour: string) {
@@ -734,26 +769,44 @@ export function createThreeLayer(origin: [number, number]) {
     updateHero()
   }
 
-  // ---------- Parks: grass + trees from real satellite canopy ----------
+  // Only these asset ids stay on the map (plus selected and intervened). null = show everything.
+  function setFilter(ids: string[] | null) {
+    const next = ids ? new Set(ids) : null
+    const same =
+      (next === null && visibleIds === null) ||
+      (next !== null && visibleIds !== null && next.size === visibleIds.size && [...next].every((x) => visibleIds!.has(x)))
+    if (same) return
+    visibleIds = next
+    rebuild()
+    rebuildEdges()
+    if (lastParks) setParks(lastParks)
+  }
 
+  // ---------- Parks: grass + trees from real satellite canopy ----------
   function setParks(fc: FeatureCollection) {
+    lastParks = fc
     disposeGroup(parks)
     const grassGeos: THREE.BufferGeometry[] = []
+    const mutedGeos: THREE.BufferGeometry[] = []
     const spots: TreeSpot[] = []
 
     for (const f of fc.features) {
       const props = (f.properties ?? {}) as Record<string, unknown>
       const id = String(props.id ?? '')
       if (!id.startsWith('G-')) continue
+      const muted = !isShown(id)
+      if (muted && FILTER_MODE === 'hide') continue
+
       for (const rings of polysOf(f.geometry)) {
         const shape = shapeOf(rings)
         if (!shape) continue
+        // Filtered-out parks: dull grass, no trees.
+        if (muted) { mutedGeos.push(flatGeometry(shape, 0.3)); continue }
         grassGeos.push(flatGeometry(shape, 0.3))
 
         const outer = ringToPoints(rings[0])
         const holes = rings.slice(1).map(ringToPoints)
         const area = Math.abs(THREE.ShapeUtils.area(outer))
-        // Real canopy when available: trees = covered area / one crown's area.
         const rawCanopy = props.canopy
         const hasCanopy = rawCanopy != null && Number.isFinite(Number(rawCanopy))
         const want = Math.min(
@@ -773,14 +826,14 @@ export function createThreeLayer(origin: [number, number]) {
       }
     }
 
-    if (grassGeos.length) {
-      const merged = mergeGeometries(grassGeos)
-      grassGeos.forEach((g) => g.dispose())
-      if (merged) {
-        const grass = new THREE.Mesh(merged, new THREE.MeshStandardMaterial({ color: GRASS, roughness: 1 }))
-        grass.receiveShadow = true
-        parks.add(grass)
-      }
+    for (const [geos, colour] of [[grassGeos, GRASS], [mutedGeos, GHOST_GRASS]] as const) {
+      if (!geos.length) continue
+      const merged = mergeGeometries(geos)
+      geos.forEach((g) => g.dispose())
+      if (!merged) continue
+      const grass = new THREE.Mesh(merged, new THREE.MeshStandardMaterial({ color: colour, roughness: 1 }))
+      grass.receiveShadow = true
+      parks.add(grass)
     }
 
     treeMeshes(spots.slice(0, MAX_TREES), 0.3).forEach((m) => parks.add(m))
@@ -829,7 +882,7 @@ export function createThreeLayer(origin: [number, number]) {
       renderer.autoClear = false
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFShadowMap
-      renderer.shadowMap.autoUpdate = false // recalculated only when redraw() marks it dirty
+      renderer.shadowMap.autoUpdate = false
 
       fetch('/water.geojson')
         .then((r) => r.json())
@@ -848,7 +901,6 @@ export function createThreeLayer(origin: [number, number]) {
       }
       renderer.render(scene, camera)
 
-      // Halo animation only repaints the view; shadows stay cached.
       if (halos.children.length) {
         haloTime.value = performance.now() / 1000
         map?.triggerRepaint()
@@ -856,5 +908,5 @@ export function createThreeLayer(origin: [number, number]) {
     },
   }
 
-  return { layer, setBuildings, setSelection, setParks, setInterventions }
+  return { layer, setBuildings, setSelection, setParks, setInterventions, setFilter }
 }
