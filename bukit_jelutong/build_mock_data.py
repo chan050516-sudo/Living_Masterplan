@@ -1113,7 +1113,17 @@ def process_amenities_geometry(
 
 
 def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """Generate population nodes from residential buildings."""
+    """
+    Generate TWO layers of population nodes:
+    1. Nighttime Residents (linked to residential occupancy).
+    2. Daytime Workers (linked to commercial/office GFA).
+    Age demographics are skewed based on the specific residential subtype.
+    """
+    rows = []
+    
+    # ---------------------------------------------------------
+    # 1. Nighttime Residents
+    # ---------------------------------------------------------
     residential = buildings[
         buildings["subtype"].isin({
             "terrace", "semidetached", "detached",
@@ -1122,52 +1132,157 @@ def generate_population(buildings: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
         })
     ].copy()
 
-    if residential.empty:
-        return _empty_population_gdf()
+    if not residential.empty:
+        residential = residential.to_crs(COMPUTE_CRS)
+        centroids = residential.geometry.representative_point()
 
-    residential = residential.to_crs(COMPUTE_CRS)
-    centroids = residential.geometry.representative_point()
+        grid = 400.0
+        residential = residential.assign(
+            _cell=list(zip((centroids.x // grid).astype(int),
+                           (centroids.y // grid).astype(int))),
+        )
 
-    grid = 400.0
-    residential = residential.assign(
-        _cell=list(zip((centroids.x // grid).astype(int),
-                       (centroids.y // grid).astype(int))),
-    )
+        # Build a quick lookup for occupancy rates (fallback to 1.0 if missing)
+        # In a real pipeline, we would join the actual occupancy from asset_metrics.
+        # Here we assume buildings are mostly occupied unless they are dead shoplots.
+        
+        for i, (cell, group) in enumerate(residential.groupby("_cell"), 1):
+            total_res_pop = 0.0
+            total_0_14 = 0.0
+            total_15_64 = 0.0
+            total_65_plus = 0.0
+            
+            for _, b in group.iterrows():
+                gfa = _safe_float(b.get("gfa_m2"), 0.0)
+                if gfa <= 0:
+                    continue
+                
+                # Assume 95% occupancy for residential for now
+                occ = 0.95 
+                pop = gfa * CAPACITY_PER_M2.get(b["subtype"], 1 / 60) * occ
+                
+                # Demographic skew based on subtype
+                if b["subtype"] == "affordable_housing":
+                    r014, r1564 = 0.32, 0.58  # Family-heavy
+                elif b["subtype"] in {"apartment_highrise", "apartment_lowrise"}:
+                    r014, r1564 = 0.15, 0.70  # Young singles / couples
+                else:
+                    r014, r1564 = 0.22, 0.62  # Standard terrace families
+                    
+                total_res_pop += pop
+                total_0_14 += pop * r014
+                total_15_64 += pop * r1564
+                total_65_plus += pop * (1.0 - r014 - r1564)
+                
+            if total_res_pop < 30:
+                continue
 
-    rows = []
-    for i, (cell, group) in enumerate(residential.groupby("_cell"), 1):
-        total = 0.0
-        for _, b in group.iterrows():
+            centroid = group.geometry.union_all().centroid
+            pop_id = f"RES-{i:04d}"
+            
+            rows.append({
+                "population_id": pop_id,
+                "total_population": int(round(total_res_pop)),
+                "age_0_14": int(round(total_0_14)),
+                "age_15_64": int(round(total_15_64)),
+                "age_65_plus": int(round(total_65_plus)),
+                "household_size": round(seeded_uniform(f"{pop_id}-hh", 3.2, 4.5), 2),
+                "source": "nighttime_residents",
+                "geometry": centroid,
+            })
+
+    # ---------------------------------------------------------
+    # 2. Daytime Workers
+    # ---------------------------------------------------------
+    # Commercial, Office, and Facilities draw people during the day.
+    commercial = buildings[
+        buildings["subtype"].isin({"office", "supermarket", "f_and_b", "retail", "restaurant", "kopitiam", "cafe", "services", "medical_retail"})
+    ].copy()
+    
+    if not commercial.empty:
+        commercial = commercial.to_crs(COMPUTE_CRS)
+        
+        for i, (_, b) in enumerate(commercial.iterrows(), 1):
             gfa = _safe_float(b.get("gfa_m2"), 0.0)
-            total += gfa * CAPACITY_PER_M2.get(b["subtype"], 1 / 60)
-        total = int(round(total))
-        if total < 50:
-            continue
-
-        has_apartment = group["subtype"].isin(
-            {"apartment_highrise", "apartment_lowrise"}
-        ).any()
-        if has_apartment:
-            r014, r1564 = 0.18, 0.68
-        else:
-            r014, r1564 = 0.22, 0.62
-
-        p014 = int(round(total * r014))
-        p1564 = int(round(total * r1564))
-        p65 = total - p014 - p1564
-        centroid = group.geometry.union_all().centroid
-        pop_id = f"POP-{i:04d}"
-        rows.append({
-            "population_id": pop_id,
-            "total_population": total,
-            "age_0_14": p014, "age_15_64": p1564, "age_65_plus": p65,
-            "household_size": round(seeded_uniform(f"{pop_id}-hh", 3.2, 4.5), 2),
-            "source": "mock_from_residential_buildings",
-            "geometry": centroid,
-        })
+            if gfa <= 0:
+                continue
+                
+            # Daytime density: ~15 sqm per worker for commercial/office
+            day_pop = gfa / 15.0
+            
+            if day_pop < 10:
+                continue
+                
+            centroid = b.geometry.centroid
+            pop_id = f"DAY-{i:04d}"
+            
+            rows.append({
+                "population_id": pop_id,
+                "total_population": int(round(day_pop)),
+                "age_0_14": 0, # Mostly working-age
+                "age_15_64": int(round(day_pop * 0.90)),
+                "age_65_plus": int(round(day_pop * 0.10)),
+                "household_size": 1.0,
+                "source": "daytime_workers",
+                "geometry": centroid,
+            })
 
     if not rows:
         return _empty_population_gdf()
+
+    # ---------------------------------------------------------
+    # 3. External Spillover Population (Commuter + Consumer)
+    # ---------------------------------------------------------
+    # Simulate people coming from outside the township to work
+    # or consume, concentrated at major road entry points and
+    # commercial nodes.
+    try:
+        network = gpd.read_file(PROCESSED_GEOM_DIR / f"network_edges{SUFFIX}.geojson").to_crs(COMPUTE_CRS)
+        # Filter for major roads (trunk, primary, secondary)
+        major_roads = network[network["edge_type"].isin(["trunk", "primary", "secondary"])]
+        
+        if not major_roads.empty:
+            # Extract the endpoints of these major roads as "Entry Nodes"
+            # Union them and pick representative points.
+            road_union = major_roads.geometry.union_all()
+            # We can grab the start/end points by looking at boundaries
+            boundaries = road_union.boundary
+            
+            # Use a simplified approach: pick some boundary points
+            # (Or in a real GIS, you'd find intersections with the township boundary)
+            entry_points = []
+            if boundaries.geom_type == "MultiPoint":
+                # Sample a few extreme boundary points (e.g., left, right, top, bottom)
+                pts = list(boundaries.geoms)
+                # Pick 4 extreme points
+                min_x = min(pts, key=lambda p: p.x)
+                max_x = max(pts, key=lambda p: p.x)
+                min_y = min(pts, key=lambda p: p.y)
+                max_y = max(pts, key=lambda p: p.y)
+                entry_points = [min_x, max_x, min_y, max_y]
+            elif boundaries.geom_type == "Point":
+                entry_points = [boundaries]
+
+            # Base external population per entry point
+            external_commuters = 2500  # People coming in to work
+            external_consumers = 3500  # People coming in for F&B/retail/nightlife
+
+            for i, pt in enumerate(entry_points):
+                pop_id = f"EXT-{i:02d}"
+                # Combine commuters and consumers into a single spillover node
+                # for simplicity, but you could split them into DAY-EXT and NIGHT-EXT
+                rows.append({
+                    "population_id": pop_id,
+                    "total_population": external_commuters + external_consumers,
+                    "age_0_14": 0,
+                    "age_15_64": int((external_commuters + external_consumers) * 0.85),
+                    "age_65_plus": int((external_commuters + external_consumers) * 0.15),
+                    "household_size": 1.0,
+                    "source": "external_spillover",
+                    "geometry": pt,
+                })
+    except Exception as e:
+        print(f"Could not generate external spillover nodes: {e}")
 
     return gpd.GeoDataFrame(
         rows, geometry="geometry", crs=COMPUTE_CRS,
@@ -2688,11 +2803,34 @@ def main():
     # from existing parcels. Copying produced overlapping geometries
     # on the 3D map and put "undeveloped" outlines under real
     # buildings.
-    undeveloped_mocks = _synthesize_vacant_parcels(
-        buildings_p, green_blue,
-        n=9,
-        start_index=n_evicted,
-    )
+    # B fix: Load the curated golden parcels instead of synthesizing
+    # weird fragmented shapes from the grid.
+    golden_path = BUKIT_DIR / "golden_parcels.geojson"
+    if golden_path.exists():
+        print(f"  Loading {golden_path.name}...")
+        # Read and align CRS with the existing parcels GDF
+        golden_gdf = gpd.read_file(golden_path)
+        golden_gdf = golden_gdf.to_crs(parcels.crs)
+        
+        # Ensure the columns match what the rest of the code expects
+        if "geometry_source" not in golden_gdf.columns:
+            golden_gdf["geometry_source"] = "Curated GIS extraction"
+            golden_gdf["geometry_confidence"] = "high"
+        if "land_use" not in golden_gdf.columns:
+            golden_gdf["land_use"] = "undeveloped"
+            
+        # Rename column if needed (make sure parcel_id is unique)
+        if "parcel_id" in golden_gdf.columns:
+            golden_gdf["parcel_id"] = golden_gdf["parcel_id"].apply(lambda x: f"P-VAC-GOLD-{x.split('-')[-1]}" if "-" in x else x)
+            
+        undeveloped_mocks = golden_gdf
+    else:
+        print("  golden_parcels.geojson not found. Falling back to synthesis...")
+        undeveloped_mocks = _synthesize_vacant_parcels(
+            buildings_p, green_blue,
+            n=9,
+            start_index=n_evicted,
+        )
     if not undeveloped_mocks.empty:
         parcels = gpd.GeoDataFrame(
             pd.concat([parcels, undeveloped_mocks], ignore_index=True),

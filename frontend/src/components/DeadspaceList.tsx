@@ -34,11 +34,12 @@ const FILTERS = [
 
 const PAGE = 40
 
-export function DeadspaceList({ assets, onPick }: {
+export function DeadspaceList({ assets, onPick, filter, onFilter }: {
   assets: Asset[]
   onPick: (a: Asset) => void
+  filter: string
+  onFilter: (f: string) => void
 }) {
-  const [filter, setFilter] = useState<string>('all')
   const [shown, setShown] = useState(PAGE)
 
   const flagged = assets.filter(
@@ -64,7 +65,7 @@ export function DeadspaceList({ assets, onPick }: {
           <button
             key={f.key}
             className={`chip${filter === f.key ? ' on' : ''}`}
-            onClick={() => { setFilter(f.key); setShown(PAGE) }}
+            onClick={() => { onFilter(f.key); setShown(PAGE) }}
             style={{
               padding: '4px 10px', borderRadius: 999, fontSize: 11,
               letterSpacing: '.06em', cursor: 'pointer', font: 'inherit',
