@@ -150,6 +150,8 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [year, setYear] = useState(2026)
   const [listFilter, setListFilter] = useState<string>('all')
+  const [showHeat, setShowHeat] = useState(false)
+
   const [history, setHistory] = useState<AnalyzeHistoryItem[]>(() => {
     try { return JSON.parse(localStorage.getItem('lm_history') || '[]') } catch { return [] }
   })
@@ -569,6 +571,35 @@ export default function App() {
           },
         })
       }
+      // Land surface temperature heat map (Landsat), drawn under the 3D buildings. Hidden until toggled.
+      map.addSource('heat', { type: 'geojson', data: EMPTY })
+      const heatRadius = ['interpolate', ['linear'], ['zoom'], 13, 18, 15, 40, 17, 90] as never
+      const heatIntensity = ['interpolate', ['linear'], ['zoom'], 13, 0.8, 17, 2] as never
+      map.addLayer({
+        id: 'heat-hot', type: 'heatmap', source: 'heat', layout: { visibility: 'none' },
+        filter: ['>', ['get', 'dT'], 0],
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'dT'], 0, 0, 4.5, 1] as never,
+          'heatmap-radius': heatRadius,
+          'heatmap-intensity': heatIntensity,
+          'heatmap-opacity': 0.8,
+          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.2, 'rgba(255,205,90,0.25)', 0.5, 'rgba(255,130,40,0.5)', 1, 'rgba(225,35,35,0.75)'] as never,
+        },
+      })
+      map.addLayer({
+        id: 'heat-cool', type: 'heatmap', source: 'heat', layout: { visibility: 'none' },
+        filter: ['<', ['get', 'dT'], 0],
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'dT'], -2.5, 1, 0, 0] as never,
+          'heatmap-radius': heatRadius,
+          'heatmap-intensity': heatIntensity,
+          'heatmap-opacity': 0.8,
+          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.2, 'rgba(120,205,255,0.25)', 0.5, 'rgba(70,160,245,0.5)', 1, 'rgba(40,100,230,0.75)'] as never,
+        },
+      })
+
       if (REALISTIC) {
         threeRef.current = createThreeLayer([101.528, 3.112])
         map.addLayer(threeRef.current.layer)
@@ -803,6 +834,24 @@ export default function App() {
     }  
   }, [selectedIds, previewing, assets, mapReady])
 
+  // Heat map points: one per asset with a real satellite temperature, weighted by how far from the town average.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const features: Feature[] = assets
+      .filter((a) => a.center[0] !== 0 && (a.profile as any)?.environmental?.surface_temp_delta_c != null)
+      .map((a) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: a.center },
+        properties: { dT: Number((a.profile as any).environmental.surface_temp_delta_c) },
+      }))
+    ;(map.getSource('heat') as maplibregl.GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features })
+    for (const id of ['heat-hot', 'heat-cool']) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', showHeat ? 'visible' : 'none')
+    }
+  }, [assets, mapReady, showHeat])
+
+  const heatCount = assets.filter((a) => (a.profile as any)?.environmental?.surface_temp_delta_c != null).length
 
   // Mirror the list filter on the map: only matching assets (plus selected ones) stay visible and clickable.
   useEffect(() => {
@@ -915,6 +964,26 @@ export default function App() {
             <span style={{ color: C.faint }}>+ click to select multiple assets</span>
           </div>
           <MapLegend preview={previewing} />
+
+          <div style={{ position: 'absolute', left: 20, bottom: 24, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+            {showHeat && (
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(31,24,30,.92)', border: `1px solid ${C.line}`, fontSize: 11, color: C.muted, width: 220 }}>
+                <div style={{ color: C.text, fontWeight: 600, marginBottom: 6 }}>Surface temperature vs town average</div>
+                <div style={{ height: 8, borderRadius: 4, background: 'linear-gradient(90deg, rgb(40,100,230), rgb(120,205,255), rgba(255,255,255,.15), rgb(255,205,90), rgb(225,35,35))' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}><span>Cooler</span><span>Hotter</span></div>
+                <div style={{ marginTop: 6, color: C.faint }}>Observed, Landsat 8 · {heatCount} assets</div>
+              </div>
+            )}
+            <button
+              onClick={() => setShowHeat((v) => !v)}
+              disabled={heatCount === 0}
+              title={heatCount === 0 ? 'No temperature data from the backend yet' : ''}
+              style={{ ...btn(showHeat), opacity: heatCount === 0 ? 0.4 : 1, cursor: heatCount === 0 ? 'not-allowed' : 'pointer' }}
+            >
+              Heat map
+            </button>
+          </div>
+          
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
 
