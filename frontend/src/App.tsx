@@ -603,7 +603,7 @@ export default function App() {
       if (REALISTIC) {
         threeRef.current = createThreeLayer([101.528, 3.112])
         map.addLayer(threeRef.current.layer)
-        map.addLayer({ id: 'area-outline', type: 'line', source: 'area', paint: { 'line-color': STATUS_PAINT as never, 'line-width': 1, 'line-opacity': 0.35, 'line-blur': 0.5 } })
+
       }
       map.addLayer({ id: 'points-dot', type: 'circle', source: 'points', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never, 'circle-color': STATUS_PAINT as never, 'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(0,0,0,.55)' } })
 
@@ -826,12 +826,7 @@ export default function App() {
       map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
     }    map.setPaintProperty('area-fill', 'fill-color', expr as never)
     map.setPaintProperty('points-dot', 'circle-color', expr as never)
-    if (REALISTIC) {
-      const isSel = ['in', ['get', 'id'], ['literal', selectedIds]]
-      map.setPaintProperty('area-outline', 'line-color', expr as never)
-      map.setPaintProperty('area-outline', 'line-width', ['case', isSel, 3, 1] as never)
-      map.setPaintProperty('area-outline', 'line-opacity', ['case', isSel, 1, 0.35] as never)
-    }  
+
   }, [selectedIds, previewing, assets, mapReady])
 
   // Heat map points: one per asset with a real satellite temperature, weighted by how far from the town average.
@@ -983,7 +978,7 @@ export default function App() {
               Heat map
             </button>
           </div>
-          
+
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
 

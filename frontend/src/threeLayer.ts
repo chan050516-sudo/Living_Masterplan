@@ -40,7 +40,7 @@ const LAMP_POLE = '#2a2628'
 const LAMP_LIGHT = '#ffcf7a'
 
 // Empty-land interventions (vacant parcels)
-const NEW_DEV_H = 18            // metres, height of the proposed "ghost" building
+const NEW_DEV_H = 18
 const NEW_DEV_COLOUR = '#bfe9ff'
 const FARM_MAX_PANELS = 1500
 const HOLD_COLOUR = '#f2a900'
@@ -53,12 +53,10 @@ const SETBACK = 1.2
 const MAX_PANELS = 300
 
 // Cooling halo: ground glow sized by temperature reduction (deltaT, negative = cooler).
-// No halo when deltaT is zero or positive (no cooling).
 const HALO_COLOUR = '#6ee7d8'
 const HALO_BASE_R = 60
 const HALO_R_PER_DEG = 70
 const HALO_STRENGTH = 1.0
-// Placeholder cooling per type, used only when the analysis result has no real value.
 const FAKE_DELTA_T: Record<string, number> = {
   green_corridor: -1.8,
   pedestrian_upgrade: -0.9,
@@ -71,12 +69,16 @@ const FAKE_DELTA_T: Record<string, number> = {
 }
 const FAKE_DELTA_T_DEFAULT = -0.5
 
-// Parks
+// Trees from real satellite canopy (canopy = share of an asset's area covered by tree tops)
 const GRASS = '#355e3b'
-const M2_PER_TREE = 150
-const CROWN_M2 = 25
+const M2_PER_TREE = 150              // park fallback density when there's no canopy reading
+const CROWN_M2 = 25                  // ground area one tree crown covers, seen from above
 const MAX_TREES_PER_PARK = 400
-const MAX_TREES = 6000
+const MAX_TREES = 6000               // parks + empty land combined
+const MAX_TREES_PER_BUILDING = 25
+const MAX_BUILDING_TREES = 3000
+const TREE_RING_MIN = 3              // metres from the wall, closest a building's tree can stand
+const TREE_RING_MAX = 7              // and furthest
 
 // Water
 const WATER = '#0d5560'
@@ -86,6 +88,7 @@ type Cached = {
   status: string
   tall: boolean
   height: number
+  canopy: number | null
   polys: Position[][][]
   geos: THREE.BufferGeometry[]
   edgeGeos: THREE.BufferGeometry[]
@@ -95,6 +98,23 @@ type Box = { x: number; y: number; z: number; sx: number; sy: number; sz: number
 type TreeSpot = { x: number; z: number; h: number }
 
 export type HeroIntervention = { id: string; type: string; deltaT?: number }
+
+// Repeatable random numbers from an asset id, so each asset's trees land in the same spots every time.
+function seeded(key: string): () => number {
+  let h = 2166136261
+  for (let i = 0; i < key.length; i++) { h ^= key.charCodeAt(i); h = Math.imul(h, 16777619) }
+  let a = h >>> 0
+  return () => {
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function canopyOf(raw: unknown): number | null {
+  return raw != null && Number.isFinite(Number(raw)) ? Number(raw) : null
+}
 
 function makeSkyEnv() {
   const c = document.createElement('canvas')
@@ -216,6 +236,27 @@ function ringOutward(outer: THREE.Vector2[], offset: number, spacing: number) {
   return out
 }
 
+// Scatter trees inside a polygon, density from its canopy. Used for parks and empty land.
+// `blocked` rejects spots where the crown would overlap a building.
+function scatterInside(
+  outer: THREE.Vector2[], holes: THREE.Vector2[][], want: number, rnd: () => number,
+  blocked: (x: number, y: number, r: number) => boolean = () => false,
+): TreeSpot[] {
+  const spots: TreeSpot[] = []
+  if (want <= 0) return spots
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+  for (const p of outer) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y) }
+  for (let tries = 0; spots.length < want && tries < want * 4; tries++) {
+    const x = minX + rnd() * (maxX - minX)
+    const y = minY + rnd() * (maxY - minY)
+    const h = 5 + rnd() * 6
+    if (!pointInRing(x, y, outer) || holes.some((hole) => pointInRing(x, y, hole))) continue
+    if (blocked(x, y, h * 0.35)) continue
+    spots.push({ x, z: -y, h })
+  }
+  return spots
+}
+
 function makeTowerMaterial(colour: string, env: THREE.Texture): THREE.MeshStandardMaterial {
   const mat = new THREE.MeshStandardMaterial({
     color: colour,
@@ -295,7 +336,6 @@ function makeHaloMaterial(time: { value: number }, phase: number): THREE.ShaderM
   })
 }
 
-// Diagonal amber stripes for "on hold" parcels. Uses ground position, so stripes stay a fixed size.
 function makeHatchMaterial(): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     transparent: true,
@@ -331,12 +371,14 @@ export function createThreeLayer(origin: [number, number]) {
   const scene = new THREE.Scene()
   const camera = new THREE.Camera()
   const buildings = new THREE.Group()
+  const buildingTrees = new THREE.Group()
   const parks = new THREE.Group()
   const water = new THREE.Group()
   const edges = new THREE.Group()
   const hero = new THREE.Group()
   const halos = new THREE.Group()
-  scene.add(buildings, parks, water, edges, hero, halos)
+  const outlines = new THREE.Group()
+  scene.add(buildings, buildingTrees, parks, water, edges, hero, halos, outlines)
 
   const skyEnv = makeSkyEnv()
   const gltfLoader = new GLTFLoader()
@@ -405,7 +447,7 @@ export function createThreeLayer(origin: [number, number]) {
   scene.add(ground)
 
   let cache: Cached[] = []
-  let areaPolys = new Map<string, Position[][][]>() // every flat area (parks, vacant parcels) by id
+  let areaPolys = new Map<string, Position[][][]>()
   let selected = new Set<string>()
   let selectedColour = '#2196f3'
   let heroes = new Map<string, string>()
@@ -413,8 +455,87 @@ export function createThreeLayer(origin: [number, number]) {
   let visibleIds: Set<string> | null = null
   let lastParks: FeatureCollection | null = null
 
+  // Building footprints sorted into a coarse grid, so trees can quickly avoid standing inside buildings.
+  const GRID_M = 25
+  type Footprint = { ring: THREE.Vector2[]; minX: number; maxX: number; minY: number; maxY: number }
+  let footprintGrid = new Map<string, Footprint[]>()
+
+  function indexFootprints() {
+    footprintGrid = new Map()
+    for (const c of cache) for (const rings of c.polys) {
+      const ring = ringToPoints(rings[0])
+      if (ring.length < 3) continue
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+      for (const p of ring) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y) }
+      const fp = { ring, minX, maxX, minY, maxY }
+      for (let gx = Math.floor(minX / GRID_M); gx <= Math.floor(maxX / GRID_M); gx++) {
+        for (let gy = Math.floor(minY / GRID_M); gy <= Math.floor(maxY / GRID_M); gy++) {
+          const k = `${gx},${gy}`
+          let arr = footprintGrid.get(k)
+          if (!arr) footprintGrid.set(k, (arr = []))
+          arr.push(fp)
+        }
+      }
+    }
+  }
+
+  // True if a tree crown of radius r at (x, y) would overlap any building: checks the centre and four edge points.
+  function blocked(x: number, y: number, r: number): boolean {
+    const probes = [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]]
+    for (const [dx, dy] of probes) {
+      const px = x + dx, py = y + dy
+      const arr = footprintGrid.get(`${Math.floor(px / GRID_M)},${Math.floor(py / GRID_M)}`)
+      if (!arr) continue
+      for (const fp of arr) {
+        if (px < fp.minX || px > fp.maxX || py < fp.minY || py > fp.maxY) continue
+        if (pointInRing(px, py, fp.ring)) return true
+      }
+    }
+    return false
+  }
   const isShown = (id: string) => !visibleIds || visibleIds.has(id) || selected.has(id) || heroes.has(id)
 
+  // Outlines around parks and other areas, drawn in 3D so buildings in front hide them naturally.
+  let areaStatus = new Map<string, string>()
+
+  function rebuildOutlines() {
+    disposeGroup(outlines)
+    const thin: Record<string, THREE.Vector3[]> = {} // colour -> line segment points
+    const thick: Box[] = []                          // selected areas: solid band
+    for (const [id, polys] of areaPolys) {
+      if (heroes.has(id)) continue
+      const sel = selected.has(id)
+      if (!sel && !isShown(id)) continue
+      const colour = STATUS_HEX[areaStatus.get(id) ?? ''] ?? STATUS_FALLBACK
+      for (const rings of polys) {
+        const outer = ringToPoints(rings[0])
+        if (outer.length < 3) continue
+        for (let i = 0; i < outer.length; i++) {
+          const a = outer[i], b = outer[(i + 1) % outer.length]
+          if (sel) {
+            const len = a.distanceTo(b)
+            if (len < 0.1) continue
+            thick.push({ x: (a.x + b.x) / 2, y: 0.5, z: -(a.y + b.y) / 2, sx: len + 1.2, sy: 0.15, sz: 1.2, yaw: Math.atan2(b.y - a.y, b.x - a.x) })
+          } else {
+            ;(thin[colour] ??= []).push(new THREE.Vector3(a.x, 0.45, -a.y), new THREE.Vector3(b.x, 0.45, -b.y))
+          }
+        }
+      }
+    }
+    for (const [colour, pts] of Object.entries(thin)) {
+      outlines.add(new THREE.LineSegments(
+        new THREE.BufferGeometry().setFromPoints(pts),
+        new THREE.LineBasicMaterial({ color: colour, transparent: true, opacity: 0.35 }),
+      ))
+    }
+    const band = boxMesh(thick, new THREE.MeshBasicMaterial({ color: selectedColour }))
+    if (band) {
+      band.castShadow = false
+      band.receiveShadow = false
+      outlines.add(band)
+    }
+    redraw()
+  }
   function toShapePoint(p: Position): THREE.Vector2 {
     const m = maplibregl.MercatorCoordinate.fromLngLat([p[0], p[1]], 0)
     const x = (m.x - merc.x) / scale
@@ -546,6 +667,37 @@ export function createThreeLayer(origin: [number, number]) {
     redraw()
   }
 
+  // Trees around each building, count from its real canopy. Placed in a ring a few metres from the walls.
+  function rebuildBuildingTrees() {
+    disposeGroup(buildingTrees)
+    const spots: TreeSpot[] = []
+    for (const c of cache) {
+      if (spots.length >= MAX_BUILDING_TREES) break
+      if (c.canopy == null || c.canopy <= 0 || !isShown(c.id) || heroes.has(c.id)) continue
+      const rnd = seeded(c.id)
+      for (const rings of c.polys) {
+        const outer = ringToPoints(rings[0])
+        if (outer.length < 3) continue
+        const area = Math.abs(THREE.ShapeUtils.area(outer))
+        const want = Math.min(MAX_TREES_PER_BUILDING, Math.round((area * c.canopy) / CROWN_M2))
+        if (want <= 0) continue
+        const ring = ringOutward(outer, (TREE_RING_MIN + TREE_RING_MAX) / 2, 4)
+        if (!ring.length) continue
+        for (let k = 0; k < want; k++) {
+          // Spread evenly round the building, with a little jitter in and out.
+          const p = ring[Math.floor(((k + rnd()) * ring.length) / want) % ring.length]
+          const jitter = (rnd() - 0.5) * (TREE_RING_MAX - TREE_RING_MIN)
+          const h = 5 + rnd() * 5
+          const tx = p.x + p.n.x * jitter, ty = p.y + p.n.y * jitter
+          if (blocked(tx, ty, h * 0.35)) continue // would poke into this or a neighbouring building
+          spots.push({ x: tx, z: -ty, h })
+        }
+      }
+    }
+    treeMeshes(spots.slice(0, MAX_BUILDING_TREES), 0.3).forEach((m) => buildingTrees.add(m))
+    redraw()
+  }
+
   function fitShadows() {
     const box = new THREE.Box3().setFromObject(buildings)
     if (box.isEmpty()) return
@@ -567,7 +719,6 @@ export function createThreeLayer(origin: [number, number]) {
 
   // ---------- Intervention upgrades ----------
 
-  // Solar rows along the longest edge. Used for retrofit (roof) and interim solar farm (ground).
   function addSolar(outer: THREE.Vector2[], baseY: number, maxPanels = MAX_PANELS) {
     if (!panelParts) return
     const f = frameOf(outer)
@@ -696,7 +847,6 @@ export function createThreeLayer(origin: [number, number]) {
     for (const mesh of [boxMesh(poles, poleMat), boxMesh(heads, lightMat)]) if (mesh) hero.add(mesh)
   }
 
-  // new_development: translucent glass massing with floor outlines, showing a proposed building.
   function addNewDevelopment(outer: THREE.Vector2[]) {
     const f = frameOf(outer)
     const w = (f.maxU - f.minU) * 0.6
@@ -729,7 +879,6 @@ export function createThreeLayer(origin: [number, number]) {
     }
   }
 
-  // delay_development: amber hatched overlay with an amber border, reading as "on hold".
   function addHold(shape: THREE.Shape, outer: THREE.Vector2[]) {
     const hatch = new THREE.Mesh(flatGeometry(shape, 0.45), makeHatchMaterial())
     hatch.renderOrder = 1
@@ -771,7 +920,6 @@ export function createThreeLayer(origin: [number, number]) {
     }
   }
 
-  // Interventions on empty land (vacant parcels), which have no building to modify.
   function buildParcelHero(polys: Position[][][], type: string) {
     for (const rings of polys) {
       const shape = shapeOf(rings)
@@ -788,7 +936,7 @@ export function createThreeLayer(origin: [number, number]) {
 
   function buildHalo(id: string, type: string, centre: THREE.Vector3, index: number) {
     const dT = deltas.get(id) ?? FAKE_DELTA_T[type] ?? FAKE_DELTA_T_DEFAULT
-    if (dT >= 0) return // no cooling, no halo
+    if (dT >= 0) return
     const r = HALO_BASE_R + Math.abs(dT) * HALO_R_PER_DEG
     const disc = new THREE.Mesh(
       new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2),
@@ -840,19 +988,22 @@ export function createThreeLayer(origin: [number, number]) {
       }
       if (geos.length) {
         const edgeGeos = geos.map((g) => new THREE.EdgesGeometry(g, 30))
-        cache.push({ id, status, tall: height > TOWER_MIN_H, height, polys, geos, edgeGeos })
+        cache.push({ id, status, tall: height > TOWER_MIN_H, height, canopy: canopyOf(props.canopy), polys, geos, edgeGeos })
       }
     }
+    indexFootprints()
     rebuild()
     fitShadows()
     updateHero()
     rebuildEdges()
+    rebuildBuildingTrees()
   }
 
   function setSelection(ids: string[], colour: string) {
     selected = new Set(ids)
     selectedColour = colour
     rebuild()
+    rebuildOutlines()
     updateHero()
   }
 
@@ -867,7 +1018,9 @@ export function createThreeLayer(origin: [number, number]) {
     heroes = next
     deltas = nextDeltas
     rebuild()
-    updateHero()
+    rebuildBuildingTrees()
+    if (lastParks) setParks(lastParks) // also redraws heroes
+    else updateHero()
   }
 
   function setFilter(ids: string[] | null) {
@@ -879,20 +1032,23 @@ export function createThreeLayer(origin: [number, number]) {
     visibleIds = next
     rebuild()
     rebuildEdges()
+    rebuildBuildingTrees()
     if (lastParks) setParks(lastParks)
   }
 
-  // ---------- Areas: parks (grass + real canopy trees), plus remembering parcel shapes ----------
+  // ---------- Areas: parks (grass + trees) and empty land (trees), both from real canopy ----------
 
   function setParks(fc: FeatureCollection) {
     lastParks = fc
     disposeGroup(parks)
 
-    // Remember every area's shape so empty-land interventions can be drawn on it.
     areaPolys = new Map()
+    areaStatus = new Map()
     for (const f of fc.features) {
       const id = String((f.properties as any)?.id ?? '')
-      if (id) areaPolys.set(id, polysOf(f.geometry))
+      if (!id) continue
+      areaPolys.set(id, polysOf(f.geometry))
+      areaStatus.set(id, String((f.properties as any)?.status ?? ''))
     }
 
     const grassGeos: THREE.BufferGeometry[] = []
@@ -902,35 +1058,35 @@ export function createThreeLayer(origin: [number, number]) {
     for (const f of fc.features) {
       const props = (f.properties ?? {}) as Record<string, unknown>
       const id = String(props.id ?? '')
-      if (!id.startsWith('G-')) continue
+      if (!id) continue
+      const isPark = id.startsWith('G-')
       const muted = !isShown(id)
-      if (muted && FILTER_MODE === 'hide') continue
+      const canopy = canopyOf(props.canopy)
+      const rnd = seeded(id)
 
       for (const rings of polysOf(f.geometry)) {
         const shape = shapeOf(rings)
         if (!shape) continue
-        if (muted) { mutedGeos.push(flatGeometry(shape, 0.3)); continue }
-        grassGeos.push(flatGeometry(shape, 0.3))
+
+        if (isPark) {
+          if (muted) {
+            if (FILTER_MODE === 'ghost') mutedGeos.push(flatGeometry(shape, 0.3))
+            continue
+          }
+          grassGeos.push(flatGeometry(shape, 0.3))
+        } else if (muted || heroes.has(id) || canopy == null || canopy <= 0) {
+          // Empty land: trees only where the satellite saw some, never under an intervention look.
+          continue
+        }
 
         const outer = ringToPoints(rings[0])
         const holes = rings.slice(1).map(ringToPoints)
         const area = Math.abs(THREE.ShapeUtils.area(outer))
-        const rawCanopy = props.canopy
-        const hasCanopy = rawCanopy != null && Number.isFinite(Number(rawCanopy))
         const want = Math.min(
           MAX_TREES_PER_PARK,
-          Math.floor(hasCanopy ? (area * Number(rawCanopy)) / CROWN_M2 : area / M2_PER_TREE),
+          Math.floor(canopy != null ? (area * canopy) / CROWN_M2 : isPark ? area / M2_PER_TREE : 0),
         )
-        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-        for (const p of outer) { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y) }
-        let placed = 0
-        for (let tries = 0; placed < want && tries < want * 4; tries++) {
-          const x = minX + Math.random() * (maxX - minX)
-          const y = minY + Math.random() * (maxY - minY)
-          if (!pointInRing(x, y, outer) || holes.some((h) => pointInRing(x, y, h))) continue
-          spots.push({ x, z: -y, h: 5 + Math.random() * 6 })
-          placed++
-        }
+        spots.push(...scatterInside(outer, holes, want, rnd, blocked))
       }
     }
 
@@ -945,7 +1101,8 @@ export function createThreeLayer(origin: [number, number]) {
     }
 
     treeMeshes(spots.slice(0, MAX_TREES), 0.3).forEach((m) => parks.add(m))
-    updateHero() // parcels are known now, so empty-land interventions can draw
+    rebuildOutlines()
+    updateHero()
   }
 
   // ---------- Water ----------
