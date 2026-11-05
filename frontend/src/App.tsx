@@ -573,8 +573,9 @@ export default function App() {
       }
       // Land surface temperature heat map (Landsat), drawn under the 3D buildings. Hidden until toggled.
       map.addSource('heat', { type: 'geojson', data: EMPTY })
-      const heatRadius = ['interpolate', ['linear'], ['zoom'], 13, 18, 15, 40, 17, 90] as never
-      const heatIntensity = ['interpolate', ['linear'], ['zoom'], 13, 0.8, 17, 2] as never
+      // Radius doubles each zoom level so the glow covers the same ground area at any zoom.
+      const heatRadius = ['interpolate', ['exponential', 2], ['zoom'], 13, 14, 20, 1792] as never
+      const heatIntensity = 1
       map.addLayer({
         id: 'heat-hot', type: 'heatmap', source: 'heat', layout: { visibility: 'none' },
         filter: ['>', ['get', 'dT'], 0],
@@ -960,7 +961,7 @@ export default function App() {
           </div>
           <MapLegend preview={previewing} />
 
-          <div style={{ position: 'absolute', left: 20, bottom: 24, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+          <div style={{ position: 'absolute', left: 20, bottom: 175, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
             {showHeat && (
               <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(31,24,30,.92)', border: `1px solid ${C.line}`, fontSize: 11, color: C.muted, width: 220 }}>
                 <div style={{ color: C.text, fontWeight: 600, marginBottom: 6 }}>Surface temperature vs town average</div>
