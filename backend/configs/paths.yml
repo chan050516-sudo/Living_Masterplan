@@ -14,6 +14,15 @@ business:
   development_projects:    "business/development_projects.csv"
   development_candidates:  "business/development_candidates.csv"
   interventions:           "business/interventions.csv"
+  asset_business_presence: "business/asset_business_presence.csv"
+  asset_lbs_metrics:       "business/asset_lbs_metrics.csv"
+  population_worldpop:     "business/population_worldpop.csv"
+
+external_data:
+  mock_directory:          "external_data_mock"
+  google_places_snapshots: "external_data_mock/google_places_snapshots.csv"
+  kido_grid:               "external_data_mock/kido_grid.csv"
+  worldpop_grid:           "external_data_mock/worldpop_grid.csv"
 
 thermal:
   directory:               "thermal"

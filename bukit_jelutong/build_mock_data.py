@@ -41,6 +41,7 @@ import argparse
 import hashlib
 import math
 import json
+from datetime import date
 from pathlib import Path
 
 import geopandas as gpd
@@ -645,6 +646,95 @@ _AUTHORITY_BY_OWNERSHIP = {
     "public_transferred":  "advisory",
     "strata_jmb":          "shared",
 }
+
+_AUTHORITY_CONFIDENCE = {
+    "full_control": "high",
+    "shared": "medium",
+    "advisory": "low",
+}
+
+_AUTHORITY_REDACTED_METRICS = (
+    "occupancy_rate",
+    "vacancy_rate",
+    "vacancy_duration_months",
+    "footfall_daily",
+    "utilisation_rate",
+    "rental_income_rm",
+    "energy_kwh",
+    "occupied_units",
+    "occupancy_by_subtype_json",
+)
+
+
+def _attach_sale_and_confidence_fields(assets_df, base_year=BASE_YEAR):
+    """Add synthetic transaction examples and authority-based confidence.
+
+    Sale fields are explicit mock values in this demo dataset. They do not
+    represent observed Sime Darby transactions.
+    """
+    assets_df = assets_df.copy()
+    assets_df["data_confidence"] = assets_df["authority"].map(
+        _AUTHORITY_CONFIDENCE
+    ).fillna("low")
+    assets_df["sale_price_rm"] = None
+    assets_df["sale_date"] = None
+    assets_df["sale_data_source"] = None
+
+    sold = assets_df["ownership_status"].eq("sold")
+    for idx, row in assets_df.loc[sold].iterrows():
+        capex = _safe_float(row.get("capex_initial_rm"), 0.0)
+        if capex > 0:
+            assets_df.loc[idx, "sale_price_rm"] = round(
+                capex * seeded_uniform(f"{row['asset_id']}-sale-price", 0.85, 1.30),
+                2,
+            )
+
+        completion = _safe_int(row.get("completion_year"), base_year - 5)
+        sale_year = max(completion, base_year - seeded_int(
+            f"{row['asset_id']}-sale-year-offset", 0, 5
+        ))
+        sale_year = min(sale_year, base_year)
+        month = seeded_int(f"{row['asset_id']}-sale-month", 1, 12)
+        day = seeded_int(f"{row['asset_id']}-sale-day", 1, 28)
+        assets_df.loc[idx, "sale_date"] = date(sale_year, month, day).isoformat()
+        assets_df.loc[idx, "sale_data_source"] = "synthetic_transaction_mock"
+
+    return assets_df
+
+
+def _apply_authority_data_gate(assets_df, metrics_df):
+    """Withhold operational records where the developer lacks authority.
+
+    full_control records retain their generated operating trajectory. Sold,
+    shared, and public-transfer records receive external proxies in Phase 1.
+    """
+    out = metrics_df.copy()
+    authority_by_asset = assets_df.set_index("asset_id")["authority"].to_dict()
+    restricted = out["asset_id"].map(authority_by_asset).ne("full_control")
+    for field in _AUTHORITY_REDACTED_METRICS:
+        if field in out.columns:
+            out.loc[restricted, field] = None
+    if "metric_source" in out.columns:
+        out.loc[restricted, "metric_source"] = "authority_redacted"
+        out.loc[~restricted, "metric_source"] = "synthetic_mock"
+    return out
+
+
+def _apply_authority_lease_gate(assets_df, lease_records):
+    """Remove private lease terms for assets outside full developer control."""
+    restricted_ids = set(
+        assets_df.loc[assets_df["authority"].ne("full_control"), "asset_id"].astype(str)
+    )
+    restricted_fields = (
+        "lease_start_year", "lease_end_year", "rental_income_rm_annual",
+        "lease_status", "tenant_type",
+    )
+    for record in lease_records:
+        if str(record.get("asset_id")) not in restricted_ids:
+            continue
+        for field in restricted_fields:
+            record[field] = None
+    return lease_records
 
 # ================================================================
 # 5. Geometry processors
@@ -2480,6 +2570,26 @@ def _mark_unsold_inventory(
         na_position="last",
     )
     com_picked = list(com_pool.head(n_commercial)["asset_id"])
+
+    # Most delivered shoplots have been sold. Keep only the selected
+    # developer-held inventory under full control. Converted residential
+    # shoplots are outside com_pool, so mark those sold as well.
+    assets_df.loc[
+        assets_df["asset_id"].isin(exclude), "ownership_status",
+    ] = "sold"
+    assets_df.loc[
+        assets_df["asset_id"].isin(exclude), "authority",
+    ] = "advisory"
+    assets_df.loc[com_pool.index, "ownership_status"] = "sold"
+    assets_df.loc[com_pool.index, "authority"] = "advisory"
+    if com_picked:
+        assets_df.loc[
+            assets_df["asset_id"].isin(com_picked), "ownership_status",
+        ] = "developer_held"
+        assets_df.loc[
+            assets_df["asset_id"].isin(com_picked), "authority",
+        ] = "full_control"
+
     unsold_ids |= set(com_picked)
 
     print(
@@ -3103,6 +3213,7 @@ def main():
             _units += sum(info.get("count", 1) for info in m.values())
     print(f"  commercial assets: {len(_comm)}  (internal units: {_units})")
 
+    assets_df = _attach_sale_and_confidence_fields(assets_df)
     assets_df.to_csv(PROCESSED_BIZ_DIR / "assets.csv", index=False)
     print(f"  {len(assets_df)} assets total")
     print(f"    by type:    {dict(assets_df['asset_type'].value_counts())}")
@@ -3157,6 +3268,7 @@ def main():
         if col not in multi_year_df.columns:
             multi_year_df[col] = None
     multi_year_df = multi_year_df[ordered_cols]
+    multi_year_df = _apply_authority_data_gate(assets_df, multi_year_df)
     multi_year_df.to_csv(
         PROCESSED_BIZ_DIR / "asset_metrics.csv", index=False,
     )
@@ -3168,6 +3280,7 @@ def main():
     lease_records = _generate_lease_records(
         assets_df, multi_year_df, base_year=BASE_YEAR,
     )
+    lease_records = _apply_authority_lease_gate(assets_df, lease_records)
     lease_cols = [
         "lease_id", "asset_id", "unit_index", "subtype",
         "floor_area_m2", "lease_start_year", "lease_end_year",

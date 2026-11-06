@@ -1,51 +1,97 @@
-# Field-level Tier / Source / Unit map.
-# This is the single source of truth for provenance.
-# UI reads this to render Tier labels. Validators read this to check units.
+# Field-level Tier / source / unit map for the authority-aware data model.
+# Tier describes evidence strength; `is_mock` separately discloses synthetic
+# demo values. UI reads this file for provenance labels and validators use it
+# to check units.
 #
-# tier:   1 = Observed | 2 = Estimated | 3 = Scenario | null = metadata
-# source: observed | derived | assumed | simulated | identity | system
-# unit:   string
+# tier: 1 = Observed | 2 = Derived | 3a = Operational estimate |
+#       3b = Counterfactual estimate | 4 = Unknown | null = metadata
+# source: named pipeline or source; unit: string
 
-version: "0.2.0"
+version: "1.0.0"
+
+dataset_context:
+  is_synthetic_demo: true
+  note: >
+    This checkout contains synthetic township data. Tier records the intended
+    evidence class and authority scope; it does not turn mock values into
+    observed SDP records.
+
+tiers:
+  1: { name: observed, definition: "Direct record or observation" }
+  2: { name: derived, definition: "Computed from Tier 1 inputs" }
+  3a: { name: operational_estimate, definition: "Proxy for operational judgement" }
+  3b: { name: counterfactual_estimate, definition: "Simulation only; excluded from deadspace flags" }
+  4: { name: unknown, definition: "No defensible source" }
+
+authority_rules:
+  full_control: "Operating performance may use available operational metrics."
+  sold: "Developer realization plus community value; operational values are proxies."
+  shared: "Full-control scope only for fields actually shared by the JMB; otherwise proxies."
+  public_transferred: "Community and environmental value; operational values are proxies or unknown."
 
 assets:
-  asset_id:                 { tier: null, source: identity, unit: null }
-  asset_type:               { tier: null, source: identity, unit: null }
-  parcel_id:                { tier: null, source: identity, unit: null }
-  building_id:              { tier: null, source: identity, unit: null }
-  asset_name:               { tier: null, source: identity, unit: null }
-  land_use:                 { tier: null, source: identity, unit: null }
-  development_phase:        { tier: null, source: identity, unit: null }
-  status:                   { tier: null, source: identity, unit: null }
-  completion_year:          { tier: null, source: identity, unit: year }
-  target_demographic:       { tier: null, source: identity, unit: null }
-  floor_area_m2:            { tier: 1, source: observed, unit: m2 }
-  lettable_area_m2:         { tier: 1, source: observed, unit: m2 }
-  land_area_m2:             { tier: 1, source: derived, unit: m2 }
-  capex_initial_rm:         { tier: 1, source: observed, unit: RM }
-  opex_annual_rm:           { tier: 1, source: observed, unit: RM }
-  maintenance_annual_rm:    { tier: 1, source: observed, unit: RM }
-  capacity:                 { tier: 1, source: observed, unit: count }
-  data_completeness:        { tier: null, source: derived, unit: ratio }
+  asset_id:                 { tier: 1, source: asset_register, unit: id }
+  asset_type:               { tier: 1, source: asset_register, unit: enum }
+  parcel_id:                { tier: 1, source: cadastral_record, unit: id }
+  building_id:              { tier: 1, source: building_register, unit: id }
+  asset_name:               { tier: 1, source: asset_register, unit: null }
+  land_use:                 { tier: 1, source: planning_record, unit: enum }
+  development_phase:        { tier: 1, source: planning_record, unit: count }
+  status:                   { tier: 1, source: asset_register, unit: enum }
+  completion_year:          { tier: 1, source: asset_register, unit: year }
+  target_demographic:       { tier: 1, source: planning_record, unit: enum }
+  floor_area_m2:            { tier: 1, source: asset_register, unit: m2 }
+  lettable_area_m2:         { tier: 1, source: asset_register, unit: m2 }
+  land_area_m2:             { tier: 1, source: cadastral_record, unit: m2 }
+  capex_initial_rm:         { tier: 1, source: capital_record, unit: RM }
+  opex_annual_rm:           { tier: 1, source: operating_cost_record, unit: RM,
+                              authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+  maintenance_annual_rm:    { tier: 1, source: maintenance_record, unit: RM,
+                              authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+  capacity:                 { tier: 1, source: asset_register, unit: count }
+  data_completeness:        { tier: 2, source: derived_data_quality, unit: ratio }
   data_sources:             { tier: null, source: identity, unit: null }
-  subtype:                  { tier: null, source: identity, unit: null }   # NEW
+  subtype:                  { tier: 1, source: asset_register, unit: enum }
+  ownership_status:         { tier: 1, source: asset_register, unit: enum }
+  authority:                { tier: 1, source: ownership_mapping, unit: enum }
+  unit_count:               { tier: 1, source: asset_register, unit: count }
+  developer_held_units:     { tier: 1, source: inventory_register, unit: count }
+  unit_mix_json:            { tier: 1, source: asset_register, unit: json }
+  sale_price_rm:            { tier: 1, source: synthetic_transaction_mock, unit: RM,
+                              authority_scope: sold, is_mock: true }
+  sale_date:                { tier: 1, source: synthetic_transaction_mock, unit: date,
+                              authority_scope: sold, is_mock: true }
+  sale_data_source:         { tier: null, source: provenance, unit: enum }
+  data_confidence:          { tier: null, source: authority_mapping, unit: enum,
+                              enum: [high, medium, low] }
 
 asset_metrics:
   year:                             { tier: null, source: identity, unit: year }
 
   # Identity and observed
   subtype:                          { tier: null, source: identity, unit: null }
-  occupancy_rate:                   { tier: 1, source: observed, unit: ratio }
-  vacancy_rate:                     { tier: 1, source: derived, unit: ratio }
-  vacancy_duration_months:          { tier: 1, source: observed, unit: month }
-  footfall_daily:                   { tier: 1, source: observed, unit: person/day }
-  utilisation_rate:                 { tier: 1, source: observed, unit: ratio }
-  rental_income_rm:                 { tier: 1, source: observed, unit: RM }
-  energy_kwh:                       { tier: 1, source: observed, unit: kWh }
+  occupancy_rate:                   { tier: 1, source: internal_occupancy_record, unit: ratio,
+                                      authority_scope: full_control, is_mock: true }
+  vacancy_rate:                     { tier: 2, source: derived_from_occupancy, unit: ratio,
+                                      authority_scope: full_control, is_mock: true }
+  vacancy_duration_months:          { tier: 1, source: internal_occupancy_record, unit: month,
+                                      authority_scope: full_control, is_mock: true }
+  footfall_daily:                   { tier: 1, source: internal_footfall_record, unit: person/day,
+                                      authority_scope: full_control, is_mock: true }
+  utilisation_rate:                 { tier: 1, source: internal_utilisation_record, unit: ratio,
+                                      authority_scope: full_control, is_mock: true }
+  rental_income_rm:                 { tier: 1, source: internal_lease_record, unit: RM,
+                                      authority_scope: full_control, is_mock: true,
+                                      authority_tiers: { sold: 3a, shared: 3a } }
+  energy_kwh:                       { tier: 1, source: internal_meter, unit: kWh,
+                                      authority_scope: full_control, is_mock: true,
+                                      authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
 
   # Derived financial
-  noi_rm:                           { tier: 2, source: derived, unit: RM }
-  noi_yield:                        { tier: 2, source: derived, unit: ratio }
+  noi_rm:                           { tier: 2, source: derived, unit: RM,
+                                      authority_tiers: { sold: 3b, shared: 3b, public_transferred: 3b } }
+  noi_yield:                        { tier: 2, source: derived, unit: ratio,
+                                      authority_tiers: { sold: 3b, shared: 3b, public_transferred: 3b } }
   maintenance_surge_rm:             { tier: 2, source: derived, unit: RM }
   rental_income_per_visit_proxy:    { tier: 2, source: derived, unit: "RM/person/day" }
 
@@ -78,9 +124,9 @@ asset_metrics:
   reachable_population_drive:       { tier: 2, source: derived, unit: count }
 
   # Demand
-  effective_demand:                 { tier: 3, source: assumed, unit: count }
+  effective_demand:                 { tier: 3b, source: huff_assumption, unit: count }
   effective_demand_m2:              { tier: 2, source: derived, unit: m2 }
-  effective_supply:                 { tier: 3, source: assumed, unit: count }
+  effective_supply:                 { tier: 3b, source: supply_assumption, unit: count }
   dsr:                              { tier: 2, source: derived, unit: ratio }
 
   # Environment
@@ -143,6 +189,23 @@ asset_metrics:
   demographic_mismatch:             { tier: 2, source: derived, unit: ratio }
   neighborhood_diversity:           { tier: 2, source: derived, unit: ratio }
 
+asset_leases:
+  lease_id:                { tier: null, source: identity, unit: id }
+  asset_id:                { tier: 1, source: asset_register, unit: id }
+  unit_index:              { tier: 1, source: unit_mix, unit: count }
+  subtype:                 { tier: 1, source: asset_register, unit: enum }
+  floor_area_m2:           { tier: 1, source: asset_register, unit: m2 }
+  lease_start_year:        { tier: 1, source: private_lease_schedule, unit: year,
+                             authority_tiers: { sold: 4, shared: 4, public_transferred: 4 } }
+  lease_end_year:          { tier: 1, source: private_lease_schedule, unit: year,
+                             authority_tiers: { sold: 4, shared: 4, public_transferred: 4 } }
+  rental_income_rm_annual: { tier: 1, source: private_lease_schedule, unit: RM/year,
+                             authority_tiers: { sold: 4, shared: 4, public_transferred: 4 } }
+  lease_status:            { tier: 1, source: private_lease_schedule, unit: enum,
+                             authority_tiers: { sold: 4, shared: 4, public_transferred: 4 } }
+  tenant_type:             { tier: 1, source: private_lease_schedule, unit: enum,
+                             authority_tiers: { sold: 4, shared: 4, public_transferred: 4 } }
+
 population:
   population_id:      { tier: null, source: identity, unit: null }
   asset_id:           { tier: null, source: identity, unit: null }
@@ -154,30 +217,104 @@ population:
   household_size:     { tier: 1, source: observed, unit: person }
   source:             { tier: null, source: identity, unit: null }
 
+external_data:
+  # Google Places API (New) structure-faithful mock.
+  google_place_id:             { tier: 3a, source: google_places_mock,
+                                 schema_ref: "Place Details (New): id",
+                                 is_mock: true, live_swap_ready: true }
+  business_status:             { tier: 3a, source: google_places_mock,
+                                 schema_ref: "Place Details (New): businessStatus",
+                                 enum: [OPERATIONAL, CLOSED_TEMPORARILY, CLOSED_PERMANENTLY, FUTURE_OPENING],
+                                 is_mock: true, live_swap_ready: true }
+  business_presence_ratio:     { tier: 3a, source: derived_from_google_places_mock,
+                                 unit: ratio, is_mock: true, live_swap_ready: true }
+  business_subtype_counts_json: { tier: 3a, source: google_places_type_mapping,
+                                 unit: json, is_mock: true, live_swap_ready: true }
+  business_vitality_score:     { tier: 3a, source: derived_from_google_places_mock,
+                                 formula: "minmax(rating * log1p(user_rating_count))",
+                                 unit: ratio, is_mock: true, live_swap_ready: true }
+  proxied_vacancy_duration:    { tier: 3a, source: derived_from_google_places_mock,
+                                 unit: month, note: "Requires at least 2 quarterly snapshots",
+                                 is_mock: true, live_swap_ready: true }
+  business_turnover_count:     { tier: 3a, source: derived_from_google_places_mock,
+                                 unit: count, is_mock: true, live_swap_ready: true }
+
+  # Kido Dynamics / LBS structure-faithful mock.
+  lbs_unique_users_daily:      { tier: 3a, source: kido_dynamics_mock,
+                                 schema_ref: "POI analytics: unique_users", unit: person/day,
+                                 is_mock: true, live_swap_ready: true }
+  grid_unique_users_daily:     { tier: 3a, source: kido_dynamics_mock,
+                                 schema_ref: "400m grid: unique_users", unit: person/day,
+                                 is_mock: true, live_swap_ready: true }
+  lbs_dwell_time_minutes:      { tier: 3a, source: kido_dynamics_mock,
+                                 schema_ref: "POI analytics: dwell_time", unit: minute,
+                                 is_mock: true, live_swap_ready: true }
+  lbs_visit_frequency_monthly: { tier: 3a, source: derived_from_kido_mock,
+                                 schema_ref: "Monthly visits per unique user", unit: visit/person/month,
+                                 is_mock: true, live_swap_ready: true }
+  lbs_hourly_splits:           { tier: 3a, source: derived_from_kido_mock,
+                                 schema_ref: "24-element normalized array, hours 0-23",
+                                 is_mock: true, live_swap_ready: true }
+  lbs_visitor_demographics:    { tier: 3a, source: derived_from_kido_mock,
+                                 schema_ref: "{age_bands, socioeconomic_class}",
+                                 is_mock: true, live_swap_ready: true }
+  proxied_occupancy_lbs:       { tier: 3a, source: derived_from_kido_mock,
+                                 formula: "unique_users * avg_dwell / 60 / operating_hours / capacity_users",
+                                 unit: ratio, is_mock: true, live_swap_ready: true }
+  proxied_occupancy_google:    { tier: 3a, source: derived_from_google_places_mock,
+                                 formula: "min(1, business_presence_ratio * 1.15)",
+                                 unit: ratio, is_mock: true, live_swap_ready: true }
+  traffic_exposure_vpd:        { tier: 3a, source: kido_dynamics_mock,
+                                 schema_ref: "Traffic: vehicle_count_by_hour summed",
+                                 unit: vehicles/day, is_mock: true, live_swap_ready: true }
+  traffic_exposure_source:     { tier: null, source: provenance,
+                                 enum: [kido_mock, osm_proxy] }
+
+  # Derived activity and population signals.
+  flow_island_ratio:           { tier: 3a, source: derived_from_kido_mock,
+                                 formula: "reachable_neighbor_users / (local_users + reachable_neighbor_users)",
+                                 unit: ratio, note: "Below 0.3 indicates network isolation",
+                                 is_mock: true, live_swap_ready: true }
+  observed_demand_ratio:       { tier: 3a, source: derived_from_kido_mock,
+                                 formula: "lbs_unique_users_daily / capacity_users",
+                                 unit: ratio, note: "Cross-check for Huff-derived DSR",
+                                 is_mock: true, live_swap_ready: true }
+  worldpop_raw_pop:            { tier: 3a, source: worldpop_global2, unit: person,
+                                 dataset: "MYS 2026 constrained 100m R2025A v1" }
+  worldpop_effective_pop:      { tier: 3a, source: derived_from_worldpop,
+                                 formula: "min(worldpop_raw_pop, residential_unit_capacity)",
+                                 unit: person }
+  residential_population:      { tier: 3a, source: worldpop_zonal_sum,
+                                 authority_tiers: { full_control: 2, public_transferred: 4 },
+                                 unit: person }
+
+unknown_fields:
+  lease_schedule: { tier: 4, source: unavailable_private_lease_terms, unit: date_range }
+
 network:
   canopy_coverage_ratio: { tier: 1, source: observed, unit: ratio }
 
 development_projects:
   project_id:               { tier: null, source: identity, unit: null }
   project_status:           { tier: null, source: identity, unit: null }
-  planned_start_year:       { tier: 3, source: assumed, unit: year }
-  planned_delivery_year:    { tier: 3, source: assumed, unit: year }
+  planned_start_year:       { tier: 3b, source: scenario_assumption, unit: year }
+  planned_delivery_year:    { tier: 3b, source: scenario_assumption, unit: year }
   gfa_m2:                   { tier: 2, source: derived, unit: m2 }
   units:                    { tier: 2, source: derived, unit: count }
-  capex_rm:                 { tier: 3, source: assumed, unit: RM }
+  capex_rm:                 { tier: 3b, source: scenario_assumption, unit: RM }
 
 development_candidates:
   candidate_id:             { tier: null, source: identity, unit: null }
   development_type:         { tier: null, source: identity, unit: null }
-  target_gfa_m2:            { tier: 3, source: assumed, unit: m2 }
-  target_units:             { tier: 3, source: assumed, unit: count }
+  target_gfa_m2:            { tier: 3b, source: scenario_assumption, unit: m2 }
+  target_units:             { tier: 3b, source: scenario_assumption, unit: count }
   target_demographic:       { tier: null, source: identity, unit: null }
-  expected_capex_rm:        { tier: 3, source: assumed, unit: RM }
-  expected_completion_year: { tier: 3, source: assumed, unit: year }
-  expected_demand_coverage: { tier: 3, source: assumed, unit: ratio }
-  expected_utilisation:     { tier: 3, source: assumed, unit: ratio }
-  expected_carbon_tco2e:    { tier: 3, source: assumed, unit: tCO2e }
-  expected_accessibility_delta: { tier: 3, source: assumed, unit: score }
+  expected_capex_rm:        { tier: 3b, source: scenario_assumption, unit: RM }
+  expected_completion_year: { tier: 3b, source: scenario_assumption, unit: year }
+  expected_demand_coverage: { tier: 3b, source: scenario_assumption, unit: ratio }
+  expected_utilisation:     { tier: 3b, source: scenario_assumption, unit: ratio }
+  expected_carbon_tco2e:    { tier: 3b, source: scenario_assumption, unit: tCO2e }
+  expected_accessibility_delta: { tier: 3b, source: scenario_assumption, unit: score }
   feasibility_status:       { tier: null, source: system, unit: null }
   constraint_notes:         { tier: null, source: system, unit: null }
 
@@ -187,12 +324,12 @@ interventions:
   target_asset_id:          { tier: null, source: identity, unit: null }
   intervention_type:        { tier: null, source: identity, unit: null }
   parameters_json:          { tier: null, source: identity, unit: null }
-  expected_derived_json:    { tier: 3, source: assumed, unit: mixed }
+  expected_derived_json:    { tier: 3b, source: scenario_assumption, unit: mixed }
   expected_source:          { tier: null, source: identity, unit: null }
-  construction_start_year:  { tier: 3, source: assumed, unit: year }
-  construction_duration_months: { tier: 3, source: assumed, unit: month }
-  activation_year:          { tier: 3, source: assumed, unit: year }
-  during_construction_status: { tier: 3, source: assumed, unit: null }
+  construction_start_year:  { tier: 3b, source: scenario_assumption, unit: year }
+  construction_duration_months: { tier: 3b, source: scenario_assumption, unit: month }
+  activation_year:          { tier: 3b, source: scenario_assumption, unit: year }
+  during_construction_status: { tier: 3b, source: scenario_assumption, unit: null }
   capex_delta_rm:           { tier: 2, source: derived, unit: RM }
   opex_delta_rm:            { tier: 2, source: derived, unit: RM }
   validation_status:        { tier: null, source: system, unit: null }
@@ -202,9 +339,13 @@ interventions:
 ui:
   tier_labels:
     1: "Observed"
-    2: "Estimated"
-    3: "Scenario"
+    2: "Derived"
+    3a: "Operational estimate"
+    3b: "Counterfactual"
+    4: "Unknown"
   tier_colors:
     1: "blue"
-    2: "yellow"
-    3: "red"
+    2: "green"
+    3a: "yellow"
+    3b: "orange"
+    4: "gray"

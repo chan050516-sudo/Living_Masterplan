@@ -1,0 +1,519 @@
+"""Generate schema-faithful Google Places and Kido/LBS mock feeds.
+
+The generated values are synthetic and deterministic. On the initial upgrade,
+pass the pre-gate asset_metrics.csv with --occupancy-reference so external
+signals reflect the same trajectory before sold-asset occupancy is withheld.
+On later runs, the latest Google snapshots provide a public-safe occupancy
+reference for advisory assets.
+
+Run from the repository root or backend folder:
+    python backend/scripts/generate_external_data_mocks.py
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+import sys
+from datetime import date, timedelta
+from pathlib import Path
+
+import geopandas as gpd
+import pandas as pd
+import yaml
+from shapely.geometry import Point, box
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+BACKEND_DIR = REPO_ROOT / "backend"
+sys.path.insert(0, str(BACKEND_DIR))
+
+from app.derived.traffic import estimate_osm_traffic_vpd  # noqa: E402
+
+with (BACKEND_DIR / "configs" / "paths.yml").open(encoding="utf-8") as f:
+    PATHS = yaml.safe_load(f)
+with (BACKEND_DIR / "configs" / "taxonomy.yml").open(encoding="utf-8") as f:
+    TAXONOMY = yaml.safe_load(f)
+with (BACKEND_DIR / "configs" / "google_places_type_mapping.yml").open(encoding="utf-8") as f:
+    TYPE_MAPPING = yaml.safe_load(f)
+
+BASE = REPO_ROOT / PATHS["base"]
+GRID_SIZE_M = 400
+GRID_CRS = "EPSG:32647"
+DISPLAY_CRS = "EPSG:4326"
+SNAPSHOT_DATES = [date(2026, month, day) for month, day in ((1, 15), (4, 15), (7, 15), (10, 15))]
+WEEK_DATES = [date(2026, 1, 7) + timedelta(days=7 * i) for i in range(52)]
+
+GOOGLE_COLUMNS = [
+    "snapshot_date", "place_id", "asset_id", "display_name", "business_status",
+    "rating", "user_rating_count", "types_json", "regular_opening_hours_json",
+    "location_lat", "location_lng", "match_confidence",
+]
+KIDO_COLUMNS = [
+    "grid_id", "grid_lat", "grid_lng", "date", "unique_users", "total_visits",
+    "avg_dwell_time_minutes", "hourly_visitors_json", "age_0_14_ratio",
+    "age_15_64_ratio", "age_65_plus_ratio", "socioeconomic_class_a_ratio",
+    "socioeconomic_class_bc_ratio", "socioeconomic_class_de_ratio",
+    "od_inbound_trips", "od_outbound_trips", "vehicle_flow_vpd",
+]
+
+
+def _unit_uniform(key: str) -> float:
+    raw = hashlib.sha256(key.encode("utf-8")).digest()[:8]
+    return int.from_bytes(raw, "big") / (2**64 - 1)
+
+
+def _uniform(key: str, low: float, high: float) -> float:
+    return low + (high - low) * _unit_uniform(key)
+
+
+def _integer(key: str, low: int, high: int) -> int:
+    return low + int(_unit_uniform(key) * (high - low + 1))
+
+
+def _place_id(key: str) -> str:
+    # Google documents Place IDs as opaque strings; this recognizable
+    # synthetic prefix is not a real or resolvable Place ID.
+    return "ChIJ" + hashlib.sha1(key.encode("utf-8")).hexdigest()[:24]
+
+
+def _read_layer(relative_path: str) -> gpd.GeoDataFrame:
+    path = BASE / relative_path
+    if not path.exists():
+        return gpd.GeoDataFrame(geometry=[], crs=DISPLAY_CRS)
+    layer = gpd.read_file(path)
+    if layer.crs is None:
+        layer = layer.set_crs(DISPLAY_CRS)
+    return layer
+
+
+def _parse_unit_mix(raw, unit_count) -> list[tuple[str, int]]:
+    if isinstance(raw, str) and raw.strip():
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict) and parsed:
+                values = []
+                for subtype, info in parsed.items():
+                    count = info.get("count", 1) if isinstance(info, dict) else 1
+                    values.append((str(subtype), max(1, int(float(count)))))
+                return values
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+    subtype = str(unit_count[0]) if isinstance(unit_count, tuple) else "other_commercial"
+    count_value = unit_count[1] if isinstance(unit_count, tuple) else unit_count
+    try:
+        count = max(1, int(float(count_value)))
+    except (TypeError, ValueError):
+        count = 1
+    return [(subtype, count)]
+
+
+def _unit_mix_for_asset(row) -> list[tuple[str, int]]:
+    return _parse_unit_mix(row.get("unit_mix_json"), (row.get("subtype"), row.get("unit_count", 1)))
+
+
+def _unit_total(row) -> int:
+    return sum(count for _, count in _unit_mix_for_asset(row))
+
+
+def _load_existing_google(path: Path) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame(columns=GOOGLE_COLUMNS)
+    try:
+        return pd.read_csv(path)
+    except (pd.errors.EmptyDataError, pd.errors.ParserError):
+        return pd.DataFrame(columns=GOOGLE_COLUMNS)
+
+
+def _occupancy_reference(assets: pd.DataFrame, metrics_path: Path, google_path: Path) -> dict[str, float]:
+    values: dict[str, float] = {}
+    if metrics_path.exists():
+        try:
+            metrics = pd.read_csv(metrics_path)
+            if {"asset_id", "occupancy_rate"}.issubset(metrics.columns):
+                metrics["occupancy_rate"] = pd.to_numeric(metrics["occupancy_rate"], errors="coerce")
+                metrics = metrics.dropna(subset=["occupancy_rate"])
+                if not metrics.empty:
+                    metrics = metrics.sort_values("year").drop_duplicates("asset_id", keep="last")
+                    values.update({str(r.asset_id): float(r.occupancy_rate) for r in metrics.itertuples()})
+        except (pd.errors.EmptyDataError, pd.errors.ParserError, KeyError):
+            pass
+
+    google = _load_existing_google(google_path)
+    if not google.empty and {"asset_id", "business_status"}.issubset(google.columns):
+        latest_date = google["snapshot_date"].max()
+        latest = google[google["snapshot_date"] == latest_date]
+        presence = latest.groupby("asset_id")["business_status"].apply(
+            lambda col: float((col == "OPERATIONAL").mean())
+        )
+        for aid, ratio in presence.items():
+            values.setdefault(str(aid), float(ratio))
+
+    for row in assets.itertuples(index=False):
+        aid = str(getattr(row, "asset_id"))
+        if aid not in values:
+            subtype = str(getattr(row, "subtype", "other_commercial"))
+            benchmark = float(TAXONOMY.get("subtypes", {}).get(subtype, {}).get("occupancy_benchmark", 0.70))
+            values[aid] = max(0.0, min(1.0, benchmark + _uniform(f"{aid}-fallback-occ", -0.18, 0.12)))
+    return values
+
+
+def _asset_geometry_points(assets: pd.DataFrame, buildings: gpd.GeoDataFrame, parcels: gpd.GeoDataFrame):
+    buildings_by_id = {}
+    if not buildings.empty and "building_id" in buildings.columns:
+        buildings_by_id = {
+            str(r.get("building_id")): r.geometry
+            for _, r in buildings.iterrows()
+            if r.get("building_id") is not None and r.geometry is not None and not r.geometry.is_empty
+        }
+    parcels_by_id = {}
+    if not parcels.empty and "parcel_id" in parcels.columns:
+        parcels_by_id = {
+            str(r.get("parcel_id")): r.geometry
+            for _, r in parcels.iterrows()
+            if r.get("parcel_id") is not None and r.geometry is not None and not r.geometry.is_empty
+        }
+
+    points = {}
+    match_quality = {}
+    for _, row in assets.iterrows():
+        aid = str(row["asset_id"])
+        geom = buildings_by_id.get(str(row.get("building_id"))) if pd.notna(row.get("building_id")) else None
+        quality = "exact_containment"
+        if geom is None:
+            geom = parcels_by_id.get(str(row.get("parcel_id"))) if pd.notna(row.get("parcel_id")) else None
+            quality = "nearest_parcel" if geom is not None else "no_match"
+        if geom is not None and not geom.is_empty:
+            point = geom.representative_point() if geom.geom_type in {"Polygon", "MultiPolygon"} else geom
+            points[aid] = point
+            match_quality[aid] = quality
+        else:
+            points[aid] = None
+            match_quality[aid] = "no_match"
+    return points, match_quality
+
+
+def _grid_id(x: float, y: float) -> str:
+    ix = math.floor(x / GRID_SIZE_M)
+    iy = math.floor(y / GRID_SIZE_M)
+    return f"G-{ix:04d}-{iy:04d}"
+
+
+def _get_subtype_types(subtype: str) -> list[str]:
+    choices = {
+        "convenience_retail": ["convenience_store", "store", "point_of_interest"],
+        "supermarket": ["supermarket", "grocery_store", "food"],
+        "restaurant": ["restaurant", "food", "point_of_interest"],
+        "f_and_b": ["cafe", "food", "point_of_interest"],
+        "kopitiam": ["restaurant", "food", "point_of_interest"],
+        "cafe": ["cafe", "food", "point_of_interest"],
+        "medical_retail": ["pharmacy", "health", "point_of_interest"],
+        "office": ["corporate_office", "business_center", "point_of_interest"],
+        "services": ["store", "business", "point_of_interest"],
+        "showroom": ["car_dealer", "store", "point_of_interest"],
+        "entertainment": ["movie_theater", "point_of_interest"],
+        "other_commercial": ["store", "point_of_interest"],
+    }
+    result = choices.get(subtype, choices["other_commercial"])
+    # Keep only names recognized by the configured type map, preserving the
+    # generic Places response tags used in the published response schema.
+    known = set(TYPE_MAPPING.get("direct_match", {})) | set(TYPE_MAPPING.get("category_fallback", {}))
+    return [name for name in result if name in known] or ["point_of_interest"]
+
+
+def _opening_hours(subtype: str) -> str:
+    if subtype == "office":
+        open_hour, close_hour = 9, 18
+    elif subtype in {"restaurant", "f_and_b", "kopitiam", "cafe", "entertainment"}:
+        open_hour, close_hour = 10, 22
+    else:
+        open_hour, close_hour = 9, 21
+    periods = [
+        {"open": {"day": day, "hour": open_hour}, "close": {"day": day, "hour": close_hour}}
+        for day in range(7)
+    ]
+    return json.dumps({"periods": periods}, separators=(",", ":"))
+
+
+def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict, match_quality: dict) -> list[dict]:
+    rows = []
+    target = assets[
+        assets["asset_type"].eq("commercial")
+        & assets["authority"].isin(["advisory", "shared"])
+    ]
+    for _, asset in target.iterrows():
+        aid = str(asset["asset_id"])
+        occupancy = max(0.0, min(1.0, occ.get(aid, 0.5)))
+        unit_mix = _unit_mix_for_asset(asset)
+        unit_specs = [(subtype, unit) for subtype, count in unit_mix for unit in range(1, count + 1)]
+        if not unit_specs:
+            unit_specs = [(str(asset.get("subtype") or "other_commercial"), 1)]
+
+        point = points.get(aid)
+        projected_point = None
+        if point is not None:
+            projected_point = gpd.GeoSeries([point], crs=DISPLAY_CRS).to_crs(GRID_CRS).iloc[0]
+
+        for quarter, snapshot_day in enumerate(SNAPSHOT_DATES):
+            for subtype, unit_no in unit_specs:
+                chance = _unit_uniform(f"{aid}-{unit_no}-{snapshot_day}-status")
+                if occupancy > 0.70:
+                    status = "OPERATIONAL"
+                elif occupancy >= 0.30:
+                    status = "OPERATIONAL" if chance < 0.60 else "CLOSED_TEMPORARILY"
+                else:
+                    status = "OPERATIONAL" if chance < 0.20 else "CLOSED_PERMANENTLY"
+
+                turnover_prob = min(0.45, 0.02 + 0.40 * (1.0 - occupancy))
+                place_key = f"{aid}-{unit_no}"
+                if quarter > 0 and _unit_uniform(f"{place_key}-turnover-{quarter}") < turnover_prob:
+                    place_key += f"-replacement-{quarter}"
+                pid = _place_id(place_key)
+
+                if occupancy > 0.70:
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 3.8, 4.8)
+                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 80, 800)
+                elif occupancy >= 0.30:
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 3.0, 4.2)
+                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 20, 200)
+                else:
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 2.5, 3.8)
+                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 5, 80)
+
+                loc = projected_point
+                if loc is not None:
+                    loc = Point(
+                        loc.x + _uniform(f"{pid}-dx", -3.0, 3.0),
+                        loc.y + _uniform(f"{pid}-dy", -3.0, 3.0),
+                    )
+                    latlng = gpd.GeoSeries([loc], crs=GRID_CRS).to_crs(DISPLAY_CRS).iloc[0]
+                    lat, lng = float(latlng.y), float(latlng.x)
+                else:
+                    lat, lng = None, None
+
+                rows.append({
+                    "snapshot_date": snapshot_day.isoformat(),
+                    "place_id": pid,
+                    "asset_id": aid,
+                    "display_name": f"{asset.get('asset_name') or aid} unit {unit_no}",
+                    "business_status": status,
+                    "rating": round(rating, 1),
+                    "user_rating_count": rating_count,
+                    "types_json": json.dumps(_get_subtype_types(subtype), separators=(",", ":")),
+                    "regular_opening_hours_json": _opening_hours(subtype),
+                    "location_lat": lat,
+                    "location_lng": lng,
+                    "match_confidence": match_quality.get(aid, "no_match"),
+                })
+    return rows
+
+
+def _normalized_ratios(vals: list[float], fallback: list[float]) -> list[float]:
+    total = sum(max(0.0, v) for v in vals)
+    if total <= 0:
+        vals = fallback
+        total = sum(vals)
+    rounded = [round(max(0.0, v) / total, 4) for v in vals]
+    rounded[-1] = round(1.0 - sum(rounded[:-1]), 4)
+    return rounded
+
+
+def _hourly_counts(total: int, key: str, office_weight: float, retail_weight: float) -> list[int]:
+    weights = []
+    for hour in range(24):
+        if office_weight > 0.5:
+            base = 0.12 if 8 <= hour <= 17 else 0.018
+        elif retail_weight > 0.5:
+            base = 0.09 if 11 <= hour <= 20 else (0.05 if 8 <= hour <= 10 else 0.015)
+        else:
+            base = 0.06 if hour in (7, 8, 17, 18, 19) else 0.025
+        weights.append(base * _uniform(f"{key}-hour-{hour}", 0.9, 1.1))
+    scale = total / sum(weights) if sum(weights) else 0.0
+    values = [int(math.floor(w * scale)) for w in weights]
+    for i in range(total - sum(values)):
+        values[i % 24] += 1
+    return values
+
+
+def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population: gpd.GeoDataFrame,
+                         asset_points: dict, network: gpd.GeoDataFrame):
+    population_proj = population.to_crs(GRID_CRS) if not population.empty else population
+    network_proj = network.to_crs(GRID_CRS) if not network.empty else network
+    asset_grid: dict[str, str] = {}
+    cells: dict[str, dict] = {}
+
+    for aid, point in asset_points.items():
+        if point is None:
+            continue
+        p = gpd.GeoSeries([point], crs=DISPLAY_CRS).to_crs(GRID_CRS).iloc[0]
+        gid = _grid_id(p.x, p.y)
+        asset_grid[aid] = gid
+        cells.setdefault(gid, {"assets": [], "population": []})["assets"].append(aid)
+
+    if not population_proj.empty:
+        for _, row in population_proj.iterrows():
+            geom = row.geometry
+            if geom is None or geom.is_empty:
+                continue
+            gid = _grid_id(geom.x, geom.y)
+            cells.setdefault(gid, {"assets": [], "population": []})["population"].append(row)
+
+    asset_by_id = {str(row.asset_id): row for row in assets.itertuples(index=False)}
+    for gid, cell in cells.items():
+        ix, iy = [int(part) for part in gid.split("-")[1:]]
+        geom = box(ix * GRID_SIZE_M, iy * GRID_SIZE_M, (ix + 1) * GRID_SIZE_M, (iy + 1) * GRID_SIZE_M)
+        center = geom.centroid
+        center_ll = gpd.GeoSeries([center], crs=GRID_CRS).to_crs(DISPLAY_CRS).iloc[0]
+
+        total_pop = sum(float(r.get("total_population", 0) or 0) for r in cell["population"])
+        ages = [
+            sum(float(r.get(c, 0) or 0) for r in cell["population"])
+            for c in ("age_0_14", "age_15_64", "age_65_plus")
+        ]
+        age_ratios = _normalized_ratios(ages, [0.20, 0.70, 0.10])
+
+        cell_assets = [asset_by_id[aid] for aid in cell["assets"] if aid in asset_by_id]
+        commercial = [a for a in cell_assets if getattr(a, "asset_type", None) == "commercial"]
+        occupied_capacity = sum(
+            max(1.0, float(getattr(a, "capacity", 1) or 1)) * occ.get(str(getattr(a, "asset_id")), 0.5)
+            for a in commercial
+        )
+        density = len(commercial) / max(1, len(cell_assets))
+        office_share = sum(1 for a in commercial if getattr(a, "subtype", None) == "office") / max(1, len(commercial))
+        retail_share = 1.0 - office_share if commercial else 0.0
+
+        cell["geometry"] = geom
+        cell["grid_lat"] = float(center_ll.y)
+        cell["grid_lng"] = float(center_ll.x)
+        cell["population"] = total_pop
+        cell["adult_population"] = ages[1] if ages[1] else total_pop * 0.67
+        cell["age_ratios"] = age_ratios
+        cell["assets"] = cell["assets"]
+        cell["commercial_assets"] = commercial
+        cell["occupied_capacity"] = occupied_capacity
+        cell["commercial_density"] = density
+        cell["office_share"] = office_share
+        cell["retail_share"] = retail_share
+        cell["population_users"] = max(0.0, cell["adult_population"] * _uniform(f"{gid}-penetration", 0.35, 0.45))
+
+    base_samples = [c["population_users"] for c in cells.values() if c["population_users"] > 0]
+    occ_samples = [c["occupied_capacity"] for c in cells.values() if c["occupied_capacity"] > 0]
+    if base_samples and occ_samples:
+        base_samples.sort()
+        occ_samples.sort()
+        med_base = base_samples[len(base_samples) // 2]
+        med_occ = occ_samples[len(occ_samples) // 2]
+        occupancy_scale = med_base / max(1.0, med_occ)
+    else:
+        occupancy_scale = 1.0
+
+    # Keep the LBS baseline anchored to resident population while making a
+    # substantial part of each mixed-use cell's signal move with occupied
+    # commercial capacity.
+    for gid, cell in cells.items():
+        base = cell["population_users"]
+        if cell["occupied_capacity"] > 0:
+            users = 0.35 * base + 0.65 * cell["occupied_capacity"] * occupancy_scale
+        else:
+            users = base
+        cell["unique_users"] = max(1, int(round(users)))
+
+    kido_rows = []
+    for gid, cell in sorted(cells.items()):
+        road_vpd = estimate_osm_traffic_vpd(network_proj, cell["geometry"], GRID_SIZE_M**2)
+        for sample_day in WEEK_DATES:
+            seasonal = _uniform(f"{gid}-{sample_day}-season", 0.90, 1.10)
+            unique_users = max(1, int(round(cell["unique_users"] * seasonal)))
+            visit_multiplier = (1.2 + 2.5 * cell["commercial_density"]) * _uniform(
+                f"{gid}-{sample_day}-visits", 0.92, 1.08
+            )
+            total_visits = max(unique_users, int(round(unique_users * visit_multiplier)))
+
+            if cell["office_share"] > 0.50:
+                dwell = _uniform(f"{gid}-{sample_day}-dwell", 360, 540)
+            elif cell["retail_share"] > 0.50:
+                dwell = _uniform(f"{gid}-{sample_day}-dwell", 25, 65)
+            else:
+                dwell = _uniform(f"{gid}-{sample_day}-dwell", 10, 30)
+
+            age = cell["age_ratios"]
+            # The current generated population layer has age bands but no
+            # socioeconomic field. SES bands are therefore explicit,
+            # deterministic assumptions rather than inferred observations.
+            ses = _normalized_ratios([
+                _uniform(f"{gid}-ses-a", 0.12, 0.20),
+                _uniform(f"{gid}-ses-bc", 0.50, 0.62),
+                _uniform(f"{gid}-ses-de", 0.22, 0.34),
+            ], [0.16, 0.56, 0.28])
+            inbound_factor = 0.15 + 0.22 * cell["commercial_density"]
+            outbound_factor = 0.15 + 0.22 * cell["commercial_density"]
+            inbound = int(round(unique_users * inbound_factor * _uniform(f"{gid}-{sample_day}-in", 0.9, 1.1)))
+            outbound = int(round(unique_users * outbound_factor * _uniform(f"{gid}-{sample_day}-out", 0.9, 1.1)))
+            hourly = _hourly_counts(total_visits, f"{gid}-{sample_day}", cell["office_share"], cell["retail_share"])
+
+            kido_rows.append({
+                "grid_id": gid,
+                "grid_lat": cell["grid_lat"],
+                "grid_lng": cell["grid_lng"],
+                "date": sample_day.isoformat(),
+                "unique_users": unique_users,
+                "total_visits": total_visits,
+                "avg_dwell_time_minutes": round(dwell, 1),
+                "hourly_visitors_json": json.dumps(hourly, separators=(",", ":")),
+                "age_0_14_ratio": age[0],
+                "age_15_64_ratio": age[1],
+                "age_65_plus_ratio": age[2],
+                "socioeconomic_class_a_ratio": ses[0],
+                "socioeconomic_class_bc_ratio": ses[1],
+                "socioeconomic_class_de_ratio": ses[2],
+                "od_inbound_trips": inbound,
+                "od_outbound_trips": outbound,
+                "vehicle_flow_vpd": road_vpd,
+            })
+    return cells, asset_grid, kido_rows
+
+
+def generate(occupancy_reference: Path | None = None) -> tuple[int, int]:
+    assets_rel = PATHS["business"]["assets"]
+    metrics_rel = PATHS["business"]["asset_metrics"]
+    mock_dir = BASE / PATHS["external_data"]["mock_directory"]
+    mock_dir.mkdir(parents=True, exist_ok=True)
+    google_path = BASE / PATHS["external_data"]["google_places_snapshots"]
+    metrics_path = occupancy_reference or (BASE / metrics_rel)
+
+    assets = pd.read_csv(BASE / assets_rel)
+    if "authority" not in assets.columns:
+        raise ValueError("assets.csv must include the authority column")
+    occupancy = _occupancy_reference(assets, metrics_path, google_path)
+    buildings = _read_layer(PATHS["geometry"]["buildings"])
+    parcels = _read_layer(PATHS["geometry"]["parcels"])
+    population = _read_layer(PATHS["geometry"]["population"])
+    network = _read_layer(PATHS["geometry"]["network"])
+    points, quality = _asset_geometry_points(assets, buildings, parcels)
+
+    google_rows = _build_google_rows(assets, occupancy, points, quality)
+    pd.DataFrame(google_rows, columns=GOOGLE_COLUMNS).to_csv(google_path, index=False)
+
+    cells, asset_grid, kido_rows = _build_grid_and_kido(
+        assets, occupancy, population, points, network
+    )
+    kido_path = BASE / PATHS["external_data"]["kido_grid"]
+    pd.DataFrame(kido_rows, columns=KIDO_COLUMNS).to_csv(kido_path, index=False)
+    print(f"Wrote {google_path} ({len(google_rows)} rows)")
+    print(f"Wrote {kido_path} ({len(kido_rows)} rows, {len(cells)} 400m cells)")
+    return len(google_rows), len(kido_rows)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--occupancy-reference", type=Path,
+        help="Optional pre-authority-gate asset_metrics.csv used only to condition mocks.",
+    )
+    args = parser.parse_args()
+    generate(args.occupancy_reference)
+
+
+if __name__ == "__main__":
+    main()
