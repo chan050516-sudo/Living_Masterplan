@@ -149,6 +149,10 @@ export type MainMetric = {
   baseline: number | null
   intervention: number | null
   unit: string
+  // Surface Temp only: splits the temperature change into its causes
+  cooling_from_canopy_c?: number | null
+  cooling_from_roof_c?: number | null
+  cooling_source?: string
 }
 
 export type EngineeringSpec = {
@@ -175,6 +179,12 @@ export type AssetAnalysis = {
       metrics?: Record<string, { baseline: number; intervention: number }>
     }
     environmental?: {
+      observed_2026?: {
+        surface_temp_delta_c: number | null
+        t_asset_c: number | null
+        t_township_c: number | null
+        label: string
+      }
       main_metrics?: MainMetric[]
       counterfactual?: Record<string, number>
     }

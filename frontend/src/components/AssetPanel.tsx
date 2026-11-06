@@ -410,6 +410,19 @@ export function AssetPanel(props: {
                   <div key={a.asset_id} style={{ padding: 16, background: C.card, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                     <div style={{ ...mono, fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#fff' }}>{a.asset_id}</div>
 
+
+                    {/* Raw 2026 satellite reading, shown apart from the 2033 comparison so they aren't confused */}
+                    {card.environmental?.observed_2026?.surface_temp_delta_c != null && (
+                      <div style={{
+                        padding: '6px 10px', marginBottom: 12, borderRadius: 6, fontSize: 11.5, color: '#cfc6cd',
+                        background: 'rgba(33,150,243,0.08)', border: '1px solid rgba(33,150,243,0.25)',
+                      }}>
+                        <span style={{ color: '#2196f3', fontWeight: 600 }}>2026 OBSERVED</span>
+                        {' · '}parcel {card.environmental.observed_2026.t_asset_c?.toFixed(1)} °C
+                        {' · '}ΔT {card.environmental.observed_2026.surface_temp_delta_c.toFixed(2)} °C
+                      </div>
+                    )}
+
                     {/* P1 — Extracted engineering spec card */}
                     {spec && (
                       <div style={{
@@ -495,6 +508,23 @@ export function AssetPanel(props: {
                       {soc && <MetricLine m={soc} />}
                       {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
     
+                      {env.map((m) => (
+                        <div key={m.label}>
+                          <MetricLine m={m} lowerIsBetter />
+                          {m.cooling_source && m.cooling_source !== 'none' && (
+                            <div style={{ fontSize: 10.5, color: C.faint, paddingLeft: 8, marginTop: -2, marginBottom: 4, fontStyle: 'italic' }}>
+                              cooling source: {m.cooling_source.replace(/_/g, ' ')}
+                              {m.cooling_from_roof_c != null && m.cooling_from_roof_c > 0 && (
+                                <> · roof −{m.cooling_from_roof_c.toFixed(2)} °C</>
+                              )}
+                              {m.cooling_from_canopy_c != null && m.cooling_from_canopy_c < 0 && (
+                                <> · canopy −{Math.abs(m.cooling_from_canopy_c).toFixed(2)} °C</>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      
                     {card.subunits && card.subunits.length > 0 && (
                       <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.line}` }}>
                         <div style={{ ...cap, fontSize: 10, color: C.accent, marginBottom: 8 }}>Subtype Breakdown</div>
