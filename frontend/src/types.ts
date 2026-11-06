@@ -9,6 +9,8 @@ export type AssetStatus =
   | 'underperforming_facility'
   | 'development_risk'
   | 'improvement_opportunity'
+  | 'community_value_gap'   // sold asset with proxy evidence of a community shortfall
+  | 'strategic_learning'    // sold asset worth tracking, not actionable
 
 export type DeadspaceLayer = {
   triggered: boolean

@@ -93,6 +93,8 @@ const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'underperforming_facility', '#d71920',
   'intervened', '#00d2ff',
   'vacant', '#9e9e9e',
+  'community_value_gap', '#e0739a',
+  'strategic_learning', '#8d9bbd',
   '#5a4f59',
 ]
 
@@ -106,6 +108,7 @@ const STATUS_HEX: Record<string, string> = {
   healthy: '#3fb27f', monitor: '#f7931d', improvement_opportunity: '#f7931d',
   development_risk: '#f15c22', deadspace_candidate: '#d71920', underperforming_facility: '#d71920',
   intervened: '#00d2ff', vacant: '#9e9e9e',
+  community_value_gap: '#e0739a', strategic_learning: '#8d9bbd',
 }
 const STATUS_FALLBACK = '#5a4f59'
 const H = ['coalesce', ['get', 'height'], 8]
@@ -856,7 +859,9 @@ export default function App() {
     const ids = listFilter === 'all'
       ? null
       : [...new Set([
-          ...assets.filter((a) => a.diagnosis?.status === listFilter).map((a) => a.id),
+          ...assets.filter((a) => listFilter === 'flow_island'
+            ? a.diagnosis?.flags?.includes('flow_island')
+            : a.diagnosis?.status === listFilter).map((a) => a.id),
           ...selectedIds,
         ])]
     const expr = ids ? (['in', ['get', 'id'], ['literal', ids]] as never) : null

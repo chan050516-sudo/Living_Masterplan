@@ -13,6 +13,8 @@ const STATUS_COLOR: Record<string, string> = {
   improvement_opportunity: '#f7931d',
   vacant: '#9e9e9e',
   intervened: '#2196f3',
+  community_value_gap: '#e0739a',
+  strategic_learning: '#8d9bbd',
 }
 
 function pretty(s: string) {

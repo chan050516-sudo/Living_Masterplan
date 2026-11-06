@@ -10,6 +10,8 @@ const STATUS_COLOR: Record<AssetStatus, string> = {
   underperforming_facility: '#d71920',
   development_risk: '#f15c22',
   improvement_opportunity: '#f7931d',
+  community_value_gap: '#e0739a',
+  strategic_learning: '#8d9bbd',
 }
 
 /** "deadspace_candidate" → "Deadspace candidate" */
@@ -30,6 +32,8 @@ const FILTERS = [
   { key: 'underperforming_facility', label: 'Facilities' },
   { key: 'improvement_opportunity', label: 'Opportunities' },
   { key: 'monitor', label: 'Monitor' },
+  { key: 'community_value_gap', label: 'Community gap' },
+  { key: 'flow_island', label: 'Flow island' },
 ] as const
 
 const PAGE = 40
@@ -47,7 +51,10 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
   )
 
   const list = flagged
-    .filter((a) => filter === 'all' || a.diagnosis!.status === filter)
+    // 'flow_island' is a flag, not a status: network-isolated assets
+    .filter((a) => filter === 'all' || (filter === 'flow_island'
+      ? a.diagnosis!.flags.includes('flow_island')
+      : a.diagnosis!.status === filter))
     .sort((a, b) => b.diagnosis!.urgency_index - a.diagnosis!.urgency_index)
 
   const visible = list.slice(0, shown)
