@@ -16,6 +16,11 @@ from pydantic import BaseModel, Field, field_validator
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.config import load_paths
+from app.derived.thermal import (
+    empty_thermal_metrics,
+    format_thermal_evidence_line,
+    load_thermal_observations,
+)
 from app.llm.orchestrator import orchestrate_and_simulate_batch
 from app.llm.vertex_client import VertexGeminiClient
 from app.llm.file_parser import parse_uploaded_file
@@ -150,7 +155,36 @@ async def get_asset_profiles():
         )
     
     with open(profile_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+        profiles = json.load(f)
+
+    thermal_path = BASE_DIR / _PATHS.get("thermal", {}).get(
+        "observations", "business/thermal_observations.csv"
+    )
+    thermal = load_thermal_observations(thermal_path)
+    for asset_id, profile in profiles.items():
+        observed = thermal.get(asset_id, empty_thermal_metrics())
+        environmental = profile.setdefault("environmental", {})
+        environmental.update(observed)
+        diagnosis = profile.get("deadspace_diagnosis") or {}
+        # Drop every thermal evidence line already present (they may
+        # have been written by B6's evidence builder or by the offline
+        # profile builder) and inject exactly one at this layer.
+        diagnosis["evidence"] = [
+            line for line in diagnosis.get("evidence", [])
+            if "UHI proxy" not in str(line)
+            and "open-field baseline" not in str(line)
+            and "Observed land surface temperature" not in str(line)
+        ]
+        line = _thermal_evidence_line(observed)
+        if line:
+            diagnosis["evidence"].append(line)
+        profile["deadspace_diagnosis"] = diagnosis
+    return profiles
+
+
+def _thermal_evidence_line(metrics: dict) -> Optional[str]:
+    """Thin wrapper — single source of truth lives in thermal.py."""
+    return format_thermal_evidence_line(metrics)
 
 
 # =====================================================================
@@ -176,23 +210,29 @@ async def get_map_geometry(
     """
     paths = load_paths()
 
+    # Resolve scenario_id from run_id if present
+    scenario_id = "SC-CURRENT"
+    run_data = None
+    # Overlay LLM intervention status if run_id is provided
+    if run_data:
+        for asset in (
+            run_data.get("frontend", {}).get("assets_analysis", [])
+        ):
+            ds_dict[asset["asset_id"]] = "intervened"
+
     # ---- 1. Load the year's deadspace records ----
     if year == 2026:
         ds_path = BASE_DIR / "business" / "deadspace_2026.json"
     else:
-        # The year selector defaults to the baseline scenario. A
-        # future scenario picker would pass scenario_id as a query
-        # parameter; the filename is already shaped for that.
         ds_path = (
             BASE_DIR / "business" / "scenarios"
-            / f"deadspace_SC-CURRENT_{year}.json"
+            / f"deadspace_{scenario_id}_{year}.json"
         )
         if not ds_path.exists():
-            log.warning(
-                "No deadspace records for year %d at %s; falling back "
-                "to the 2026 baseline. Run run_phase4.py to generate.",
-                year, ds_path,
-            )
+            # Fallback to baseline if the candidate file isn't generated
+            log.warning("No deadspace records for %s year %d; using SC-CURRENT.", scenario_id, year)
+            ds_path = BASE_DIR / "business" / "scenarios" / f"deadspace_SC-CURRENT_{year}.json"
+        if not ds_path.exists():
             ds_path = BASE_DIR / "business" / "deadspace_2026.json"
 
     ds_dict = {}
@@ -200,16 +240,31 @@ async def get_map_geometry(
     urgency_dict = {}
     evidence_dict = {}
     factors_dict = {}
+    thermal_path = BASE_DIR / paths.get("thermal", {}).get(
+        "observations", "business/thermal_observations.csv"
+    )
+    thermal = load_thermal_observations(thermal_path)
 
     if ds_path.exists():
         with open(ds_path, "r", encoding="utf-8") as f:
             ds_list = json.load(f)
         ds_dict = {d["asset_id"]: d.get("status") for d in ds_list}
-        flags_dict = {d["asset_id"]: d.get("flags", []) for d in ds_list}
+        flags_dict = {
+            d["asset_id"]: d.get("flags", [])
+            for d in ds_list
+        }
         urgency_dict = {
             d["asset_id"]: d.get("urgency_index", 0) for d in ds_list
         }
-        evidence_dict = {d["asset_id"]: d.get("evidence", []) for d in ds_list}
+        evidence_dict = {
+            d["asset_id"]: [
+                line for line in d.get("evidence", [])
+                if "UHI proxy" not in str(line)
+                and "open-field baseline" not in str(line)
+                and "Observed land surface temperature" not in str(line)
+            ]
+            for d in ds_list
+        }
         factors_dict = {
             d["asset_id"]: d.get("contributing_factors", [])
             for d in ds_list
@@ -218,11 +273,18 @@ async def get_map_geometry(
     # ---- 1b. Metrics for non-2026 display (from B4's SC-CURRENT) ----
     # Used by the frontend to override the 2026 profile values on the
     # asset summary card.
-    metrics_dict = {}
+    metrics_dict = {
+        asset_id: dict(metrics)
+        for asset_id, metrics in thermal.items()
+    }
     if year != 2026:
+        # Read the metrics for the specific scenario that produced this run_id
         sc_path = (
-            BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
+            BASE_DIR / "business" / "scenarios" / f"{scenario_id}.json"
         )
+        if not sc_path.exists():
+            sc_path = BASE_DIR / "business" / "scenarios" / "SC-CURRENT.json"
+            
         if sc_path.exists():
             with open(sc_path, "r", encoding="utf-8") as f:
                 sc_data = json.load(f)
@@ -236,7 +298,7 @@ async def get_map_geometry(
                     continue
                 occ = state.get("occupancy_rate")
                 util = state.get("utilisation_rate")
-                metrics_dict[aid] = {
+                metrics_dict.setdefault(aid, {}).update({
                     "occupancy": occ if occ is not None else util,
                     "noi_rm": state.get("noi_rm"),
                     "carbon_operational_tco2e": state.get(
@@ -248,7 +310,7 @@ async def get_map_geometry(
                     "stranded_carbon_ratio": state.get(
                         "stranded_carbon_ratio"
                     ),
-                }
+                })
 
     # Overlay LLM intervention status if run_id is provided
     if run_id:
@@ -301,6 +363,11 @@ async def get_map_geometry(
     gdf_green["map_status"] = gdf_green["asset_id"].map(
         lambda x: ds_dict.get(x, "healthy")
     )
+
+    for asset_id, observation in thermal.items():
+        line = _thermal_evidence_line(observation)
+        if line:
+            evidence_dict.setdefault(asset_id, []).append(line)
 
     # ---- 4. Attach diagnostic metadata to geometry properties ----
     def _attach_metadata(df):

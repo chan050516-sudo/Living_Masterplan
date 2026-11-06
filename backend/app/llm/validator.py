@@ -100,6 +100,7 @@ _CAPEX_RATE_BY_CLASS = {
 # least this much to execute the intervention.
 _CAPEX_FLOOR = {
     "repurpose":          100_000.0,
+    "renovation":          40_000.0,
     "retrofit":            50_000.0,
     "green_corridor":     250_000.0,
     "pedestrian_upgrade": 180_000.0,
@@ -127,6 +128,29 @@ _OPEX_DELTA_BY_TARGET_CLASS = {
     "undeveloped_parcel":  0.0,
 }
 _RETROFIT_OPEX_SAVING_FRACTION = -0.10  # 10% reduction
+
+
+# ------------------------------------------------------------------
+# P1 — Engineering spec validation constants
+# ------------------------------------------------------------------
+
+ENGINEERING_SPEC_FIELDS = {
+    "structure_retention_ratio": (0.0, 1.0),
+    "facade_action": frozenset({
+        "retain", "insulated_overclad", "curtain_wall", "timber_clad",
+    }),
+    "primary_material": frozenset({
+        "standard_concrete", "ggbs_concrete",
+        "mass_timber", "recycled_steel",
+    }),
+    "roof_intervention": frozenset({
+        "none", "cool_roof", "green_roof", "solar_canopy",
+    }),
+    "hvac_cop": (2.0, 6.0),
+    "operating_hours_per_week": (20.0, 168.0),
+    "rooftop_pv_coverage": (0.0, 0.9),
+}
+
 
 # ------------------------------------------------------------------
 # Retrofit measures — allowed vocabulary
@@ -620,6 +644,38 @@ class ProposalValidator:
             )
             catalytic_link = None
 
+        # P1 — Validate the engineering spec if the plan supplied one.
+        # Spec is an optional strict contract that drives physics-level
+        # carbon accounting. It coexists with the legacy
+        # `energy_efficiency_gain` path — the spec takes precedence.
+        _engineering_spec = params.get("engineering_spec")
+        if _engineering_spec is not None:
+            _validate_engineering_spec(
+                asset_id, _engineering_spec, errors, warnings,
+            )
+            if errors:
+                return errors, warnings, None
+
+            # Legacy-vs-spec coexistence: warn when both are present
+            # on a retrofit. The engine ignores the aggregate
+            # multiplier when a spec is provided.
+            if (
+                itype == "retrofit"
+                and params.get("energy_efficiency_gain") is not None
+            ):
+                warnings.append(
+                    f"{asset_id}: engineering_spec overrides "
+                    f"energy_efficiency_gain; the aggregate multiplier "
+                    f"will be ignored."
+                )
+
+            # Spec on a non-retrofit/non-repurpose type is meaningless.
+            if itype not in ("retrofit", "repurpose"):
+                warnings.append(
+                    f"{asset_id}: engineering_spec is only meaningful "
+                    f"on retrofit or repurpose; ignored for '{itype}'."
+                )
+
         # Retrofit: measures must be declared and legal.
         if itype == "retrofit":
             measures = params.get("measures")
@@ -1011,8 +1067,8 @@ class ProposalValidator:
             if floor_area > 0:
                 # Renovation costs ~50% of a full repurpose because
                 # there is no structural change.
-                return max(40_000.0, floor_area * rate * 0.5)
-            return 40_000.0
+                return max(_CAPEX_FLOOR["renovation"], floor_area * rate * 0.5)
+            return _CAPEX_FLOOR["renovation"]
 
         # 3. Retrofit: fraction of the current-class rate
         if itype == "retrofit":
@@ -1174,6 +1230,66 @@ class ProposalValidator:
         if isinstance(atype, str):
             return default_authority_for(atype)
         return "advisory"
+
+
+def _validate_engineering_spec(asset_id, spec, errors, warnings):
+    """Validate the `engineering_spec` block from a plan item.
+
+    Errors block the item (wrong type, out-of-range enum). Warnings
+    flag values that are legal but physically unusual.
+    """
+    if not isinstance(spec, dict):
+        errors.append(
+            f"{asset_id}: engineering_spec must be an object."
+        )
+        return
+
+    for field, constraint in ENGINEERING_SPEC_FIELDS.items():
+        if field not in spec:
+            warnings.append(
+                f"{asset_id}: engineering_spec missing '{field}'; "
+                f"engine will fall back to a default."
+            )
+            continue
+
+        value = spec[field]
+
+        if isinstance(constraint, frozenset):
+            if value not in constraint:
+                errors.append(
+                    f"{asset_id}: engineering_spec.{field} = '{value}' "
+                    f"is not one of {sorted(constraint)}."
+                )
+            continue
+
+        lo, hi = constraint
+        try:
+            f_val = float(value)
+        except (TypeError, ValueError):
+            errors.append(
+                f"{asset_id}: engineering_spec.{field} must be numeric."
+            )
+            continue
+        if not (lo <= f_val <= hi):
+            errors.append(
+                f"{asset_id}: engineering_spec.{field} = {f_val} "
+                f"outside range [{lo}, {hi}]."
+            )
+            continue
+
+        # Field-specific advisory warnings (do not block).
+        if field == "structure_retention_ratio" and f_val < 0.20:
+            warnings.append(
+                f"{asset_id}: structure_retention_ratio = {f_val} is "
+                f"very low; consider `new_development` instead of "
+                f"`repurpose`."
+            )
+        if field == "rooftop_pv_coverage" and f_val > 0.75:
+            warnings.append(
+                f"{asset_id}: rooftop_pv_coverage = {f_val} is "
+                f"unusually high for a commercial roof with MEP "
+                f"setbacks; verify against the site plan."
+            )
 
 # ------------------------------------------------------------------
 # Utilities
