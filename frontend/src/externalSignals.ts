@@ -22,7 +22,14 @@ export type PlacesSignals = {
   isMock: boolean
 }
 
-export type ExternalSignals = { lbs?: LbsSignals; places?: PlacesSignals }
+export type SaleSignals = {
+  price: number | null      // what Sime Darby sold it for
+  date: string | null
+  source: string | null
+  capex: number | null      // what it cost to build, to compare against
+}
+
+export type ExternalSignals = { lbs?: LbsSignals; places?: PlacesSignals; sale?: SaleSignals }
 
 const num = (v: unknown): number | null => {
   if (v === null || v === undefined || v === '') return null
@@ -46,10 +53,11 @@ let cache: Promise<Map<string, ExternalSignals>> | null = null
 
 export function loadExternalSignals(): Promise<Map<string, ExternalSignals>> {
   if (cache) return cache
-  cache = Promise.all([
+    cache = Promise.all([
     rows('/mock/asset_lbs_metrics.json'),
     rows('/mock/asset_business_presence.json'),
-  ]).then(([lbs, places]) => {
+    rows('/mock/asset_sales.json'),
+  ]).then(([lbs, places, sales]) => {
     const map = new Map<string, ExternalSignals>()
     for (const r of lbs) {
       const id = String(r.asset_id ?? '')
@@ -80,6 +88,19 @@ export function loadExternalSignals(): Promise<Map<string, ExternalSignals>> {
           vacancyMonths: num(r.proxied_vacancy_duration),
           turnover: num(r.business_turnover_count),
           isMock: bool(r.is_mock),
+        },
+      })
+    }
+    for (const r of sales) {
+      const id = String(r.asset_id ?? '')
+      if (!id) continue
+      map.set(id, {
+        ...map.get(id),
+        sale: {
+          price: num(r.sale_price_rm),
+          date: r.sale_date ? String(r.sale_date) : null,
+          source: r.sale_data_source ? String(r.sale_data_source) : null,
+          capex: num(r.capex_initial_rm),
         },
       })
     }
