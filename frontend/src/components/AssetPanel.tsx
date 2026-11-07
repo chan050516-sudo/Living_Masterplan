@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { C, cap, mono, btn } from '../theme'
 import { Bar } from './ui'
 import { ExternalSignalsPanel } from './ExternalSignalsPanel'
+import { TierBadge, type Tier } from './TierBadge'
 import type { Asset, AnalyzeResult, MainMetric } from '../types'
 import type { AnalyzeHistoryItem } from '../App'
 
@@ -58,7 +59,16 @@ function MetricLine({ m, lowerIsBetter }: { m: MainMetric; lowerIsBetter?: boole
     </div>
   )
 }
-
+// One Core Metrics row: label, value, and how trustworthy the value is for this asset.
+function Metric({ label, value, tier, color }: { label: string; value: string; tier: Tier; color?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
+      <span style={{ color: C.muted }}>{label}</span>
+      <span style={{ ...mono, fontWeight: 500, marginLeft: 'auto', textAlign: 'right', color: color ?? C.text }}>{value}</span>
+      <TierBadge tier={tier} />
+    </div>
+  )
+}
 // 2. Update the props definition of the component
 export function AssetPanel(props: {
   assets: Asset[]
@@ -230,49 +240,57 @@ export function AssetPanel(props: {
                   )}
               </div>
 
-              {/* 1. Key Figures */}
-              {p && (
-                <>
-                  <SectionTitle title="Core Metrics" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: 13 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Occupancy</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.occupancy_rate ?? p.social.utilisation_rate, 'ratio')}</span>
+              {/* 1. Key Figures: the tier on each row depends on whether SDP still runs the asset */}
+              {p && (() => {
+                const level = p.authority?.level
+                const sold = !!level && level !== 'full_control'
+                const occ = p.social.occupancy_rate ?? p.social.utilisation_rate
+                const stranded = p.environmental.stranded_carbon_ratio
+                const noi = p.financial.noi_rm
+                const dT = p.environmental.surface_temp_delta_c
+                return (
+                  <>
+                    <SectionTitle title="Core Metrics" />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, fontSize: 13 }}>
+                      <Metric
+                        label={sold ? 'Occupancy (estimated)' : 'Occupancy'}
+                        value={fmt(occ, 'ratio')}
+                        tier={occ == null ? 'U' : sold ? '3a' : '1'}
+                      />
+                      <Metric
+                        label="Stranded carbon"
+                        value={fmt(stranded, 'ratio')}
+                        tier={stranded == null ? 'U' : sold ? '3a' : '2'}
+                        color={(stranded ?? 0) > 0.5 ? '#d71920' : undefined}
+                      />
+                      <Metric
+                        label={sold ? 'Annual NOI (if retained)' : 'Annual NOI'}
+                        value={fmt(noi, 'RM')}
+                        tier={noi == null ? 'U' : sold ? '3b' : '2'}
+                        color={(noi ?? 0) < 0 ? '#d71920' : undefined}
+                      />
+                      <Metric
+                        label="Walk coverage (10 min)"
+                        value={fmt(p.social.coverage_ratio_10min_walk, 'ratio')}
+                        tier={p.social.coverage_ratio_10min_walk == null ? 'U' : '2'}
+                      />
+                      <Metric
+                        label="Surface temp vs town"
+                        value={dT == null ? '—' : `${fmt(p.environmental.t_asset_c, 'number')} °C · Δ ${dT > 0 ? '+' : ''}${fmt(dT, 'number')} °C`}
+                        tier={dT == null ? 'U' : '1'}
+                        color={dT != null && dT > 3 ? '#d71920' : undefined}
+                      />
+                      <div style={{ color: C.faint, fontSize: 10.5, marginTop: -2 }}>
+                        {p.environmental.surface_temp_provenance ?? 'No Landsat observation available'}
+                        {p.environmental.surface_temp_source_catalog ? ` · ${p.environmental.surface_temp_source_catalog}` : ''}
+                        {p.environmental.surface_temp_period_start && p.environmental.surface_temp_period_end
+                          ? ` · ${p.environmental.surface_temp_period_start} to ${p.environmental.surface_temp_period_end}`
+                          : ''}
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Stranded Carbon</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.environmental.stranded_carbon_ratio ?? 0) > 0.5 ? '#d71920' : C.text }}>
-                        {fmt(p.environmental.stranded_carbon_ratio, 'ratio')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Annual NOI</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.financial.noi_rm ?? 0) < 0 ? '#d71920' : C.text }}>
-                        {fmt(p.financial.noi_rm, 'RM')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Walk Coverage</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.coverage_ratio_10min_walk, 'ratio')}</span>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Observed surface temp</span>
-                      <span style={{ ...mono, marginLeft: 'auto', textAlign: 'right' }}>
-                        {fmt(p.environmental.t_asset_c, 'number')} °C parcel · {fmt(p.environmental.t_township_c, 'number')} °C township · Δ {fmt(p.environmental.surface_temp_delta_c, 'number')} °C
-                      </span>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', color: C.faint, fontSize: 10.5, marginTop: -6 }}>
-                      {p.environmental.surface_temp_provenance ?? 'No Landsat observation available'}
-                      {p.environmental.surface_temp_source_catalog
-                        ? ` · ${p.environmental.surface_temp_source_catalog}`
-                        : ''}
-                      {p.environmental.surface_temp_period_start && p.environmental.surface_temp_period_end
-                        ? ` · ${p.environmental.surface_temp_period_start} to ${p.environmental.surface_temp_period_end}`
-                        : ''}
-                    </div>
-                  </div>
-                </>
-              )}
+                  </>
+                )
+                              })()}
               <ExternalSignalsPanel asset={asset} />
               {/* 2. Intervention Alerts */}
               {isPrimaryIntervened && (
@@ -509,8 +527,6 @@ export function AssetPanel(props: {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
-                      {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
-    
                       {env.map((m) => (
                         <div key={m.label}>
                           <MetricLine m={m} lowerIsBetter />

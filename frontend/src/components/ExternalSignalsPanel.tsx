@@ -48,6 +48,10 @@ export function ExternalSignalsPanel({ asset }: { asset: Asset }) {
   }
 
   const lbs = sold ? signals?.lbs : undefined
+  const sale = sold ? signals?.sale : undefined
+  const profit = sale?.price != null && sale.capex != null ? sale.price - sale.capex : null
+  const saleReturn = profit != null && sale?.capex ? profit / sale.capex : null
+  const rm = (v: number | null) => (v == null ? '—' : `RM ${Math.round(v).toLocaleString()}`)
   const places = sold ? signals?.places : undefined
   const isolated = lbs?.flowIsland != null && lbs.flowIsland < 0.3
 
@@ -63,6 +67,16 @@ export function ExternalSignalsPanel({ asset }: { asset: Asset }) {
         <p style={{ margin: '6px 0 0', fontSize: 11.5, color: C.faint, lineHeight: 1.5 }}>
           {why[level] ?? 'Operating figures for this asset are estimates from external proxies, not records.'}
         </p>
+      )}
+
+      {sale && (
+        <>
+          <Title text="Developer realisation" />
+          <Row label="Sale price" value={rm(sale.price)} tier="1" />
+          {sale.date && <Row label="Sold on" value={sale.date} tier="1" />}
+          <Row label="Profit vs build cost" value={rm(profit)} tier="2" warn={profit != null && profit < 0} />
+          <Row label="Return on build cost" value={pct(saleReturn)} tier="2" warn={saleReturn != null && saleReturn < 0} />
+        </>
       )}
 
       {lbs && (
