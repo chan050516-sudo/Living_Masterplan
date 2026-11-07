@@ -12,13 +12,22 @@ def _fmt(v, decimals=2):
         f = float(v)
     except (TypeError, ValueError):
         return None
+    if f != f:  # NaN
+        return None
     if abs(f) >= 1000:
         return f"{f:,.0f}"
     return f"{round(f, decimals)}"
 
 
-def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
+def build_evidence(asset_type: str, subtype, metrics: dict,
+                   proxy=None, survival=None, external=None) -> list:
+    """
+    `proxy` is set only for sold / advisory commercial assets. Their
+    occupancy, vacancy and NOI are not visible to the developer, so those
+    lines give way to the Google Places and LBS proxy lines (v6.0 §7.1).
+    """
     lines = []
+    sold = proxy is not None
 
     def _add(label, key, suffix="", decimals=2):
         v = _fmt(metrics.get(key), decimals)
@@ -28,9 +37,14 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
     if subtype:
         lines.append(f"Subtype: {subtype}")
 
-    _add_carbon_evidence(lines, metrics, asset_type)
+    _add_carbon_evidence(lines, metrics, asset_type,
+                         proxied_occ=proxy.get("proxied_occupancy") if sold else None,
+                         sold=sold)
 
-    if asset_type == "commercial":
+    if asset_type == "commercial" and sold:
+        _add_proxy_evidence(lines, external or {}, proxy, survival)
+        _add("Counterfactual NOI if SDP had retained (RM, annual)", "noi_rm")
+    elif asset_type == "commercial":
         occ = metrics.get("occupancy_rate")
         if occ is not None:
             lines.append(f"Occupancy: {round(occ * 100, 1)}%")
@@ -39,6 +53,7 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
             lines.append(f"Vacancy: {int(vac)} months")
         _add("NOI (RM, annual)", "noi_rm")
         _add("NOI yield (annual)", "noi_yield", decimals=4)
+    if asset_type == "commercial":
         _add("DSR", "dsr")
         _add("Demographic mismatch", "demographic_mismatch", decimals=2)
         _add("Neighborhood diversity", "neighborhood_diversity", decimals=2)
@@ -50,7 +65,8 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
         if dcov is not None:
             lines.append(f"Drive 10-min coverage: {round(dcov * 100, 1)}%")
         _add("Median walk distance (m)", "median_walk_distance_m")
-        _add_subtype_mix_evidence(lines, metrics)
+        if not sold:
+            _add_subtype_mix_evidence(lines, metrics)
 
     elif asset_type == "community_facility":
         util = metrics.get("utilisation_rate")
@@ -88,7 +104,9 @@ def build_evidence(asset_type: str, subtype, metrics: dict) -> list:
     # Phase B.3 — trajectory narrative appended after the type-specific
     # evidence lines. The trajectory summary is what tells the reader
     # whether the flag is describing a fresh fall or a long decline.
-    _add_trajectory_evidence(lines, metrics)
+    # The trajectory is an occupancy history, which a sold asset lacks.
+    if not sold:
+        _add_trajectory_evidence(lines, metrics)
 
     return lines
 
@@ -199,7 +217,8 @@ def _add_subtype_mix_evidence(lines: list, metrics: dict) -> None:
 
 
 def _add_carbon_evidence(lines: list, metrics: dict,
-                         asset_type: str) -> None:
+                         asset_type: str, proxied_occ=None,
+                         sold=False) -> None:
     """
     Surface the productive/stranded carbon split, embodied carbon,
     and observed Landsat temperatures.
@@ -209,11 +228,23 @@ def _add_carbon_evidence(lines: list, metrics: dict,
       material_intensity × floor area from taxonomy.yml, identical
       for every building of the same subtype — it does not encode
       actual material choices.
+    - For sold assets the split uses the proxied occupancy (tier 3a),
+      because the observed occupancy is not available to the developer.
     """
     total = metrics.get("carbon_operational_tco2e")
     productive = metrics.get("carbon_productive_tco2e")
     stranded = metrics.get("carbon_stranded_tco2e")
     ratio = metrics.get("stranded_carbon_ratio")
+    label = ""
+
+    if sold:
+        productive = stranded = ratio = None
+        if total is not None and proxied_occ is not None:
+            occ = min(max(float(proxied_occ), 0.0), 1.0)
+            ratio = 1.0 - occ
+            stranded = float(total) * ratio
+            productive = float(total) * occ
+            label = ", proxy estimate"
 
     if total is not None:
         tv = _fmt(total, 1)
@@ -225,13 +256,13 @@ def _add_carbon_evidence(lines: list, metrics: dict,
         if sv is not None:
             pct = round(float(ratio) * 100, 1)
             lines.append(
-                f"Stranded carbon (unused capacity): {sv} tCO2e/yr ({pct}%)"
+                f"Stranded carbon (unused capacity{label}): {sv} tCO2e/yr ({pct}%)"
             )
 
     if productive is not None:
         pv = _fmt(productive, 1)
         if pv is not None:
-            lines.append(f"Productive carbon (serving users): {pv} tCO2e/yr")
+            lines.append(f"Productive carbon (serving users{label}): {pv} tCO2e/yr")
 
     embodied = metrics.get("embodied_carbon_total_tco2e")
     if embodied is not None:
@@ -246,7 +277,7 @@ def _add_carbon_evidence(lines: list, metrics: dict,
     t_township = metrics.get("t_township_c")
     delta = metrics.get("surface_temp_delta_c")
     provenance = metrics.get("surface_temp_provenance")
-    if t_asset is not None and t_township is not None and delta is not None:
+    if all(_fmt(v) is not None for v in (t_asset, t_township, delta)):
         asset_temp = _fmt(t_asset, 1)
         township_temp = _fmt(t_township, 1)
         delta_temp = _fmt(abs(float(delta)), 1)
@@ -257,3 +288,44 @@ def _add_carbon_evidence(lines: list, metrics: dict,
             f"{asset_temp} °C; township baseline {township_temp} °C; "
             f"T = Tasset − Ttownship = {sign}{delta_temp} °C"
         )
+
+
+def _add_proxy_evidence(lines: list, ext: dict, proxy: dict,
+                        survival) -> None:
+    """
+    Tier-3a proxy lines for a sold / advisory asset. Worded so the LLM
+    cites the source, never a bare occupancy or vacancy figure (v6.0 §7.1).
+    """
+    units = ext.get("unit_mix_unit_count")
+    operating = ext.get("operational_place_count")
+    if units and operating is not None:
+        lines.append(
+            f"Google Places business presence (mock): {int(operating)} of "
+            f"{int(units)} units have an operating business"
+        )
+    turnover = ext.get("business_turnover_count")
+    if turnover:
+        lines.append(f"Google Places business turnover (mock): {int(turnover)} change(s) this year")
+    vitality = _fmt(ext.get("business_vitality_score"), 2)
+    if vitality is not None:
+        lines.append(f"Google Places vitality score (mock, 0-1): {vitality}")
+
+    users = _fmt(ext.get("lbs_unique_users_daily"), 0)
+    dwell = _fmt(ext.get("lbs_dwell_time_minutes"), 0)
+    if users is not None:
+        tail = f", average dwell {dwell} min" if dwell is not None else ""
+        lines.append(f"LBS foot traffic (mock): {users} daily visitors{tail}")
+    island = _fmt(ext.get("flow_island_ratio"), 2)
+    if island is not None:
+        lines.append(f"LBS flow-island ratio (mock, below 0.3 = isolated): {island}")
+
+    if survival and survival.get("estimated_revenue_rm") is not None:
+        rev = _fmt(survival["estimated_revenue_rm"], 0)
+        floor = _fmt(survival["survival_opex_floor_rm"], 0)
+        lines.append(
+            f"Survival check (estimate): footfall revenue RM {rev}/yr "
+            f"vs minimum operating cost RM {floor}/yr"
+        )
+
+    if "data_conflict" in (proxy or {}).get("reasons", []):
+        lines.append("Google Places and LBS disagree; proxies not conclusive")

@@ -2,6 +2,8 @@
 
 import math
 
+from .tiers import ACCESS_FLAGS, OPERATING_PROXY_FLAGS
+
 
 # ------------------------------------------------------------------
 # Ramp-up grace period
@@ -62,8 +64,37 @@ def _is_in_ramp_up_window(asset_type, completion_year, base_year):
     return age < grace
 
 
+def decide_sold_commercial_status(flags) -> str:
+    """
+    v6.0 §1.3 / §4.4 — a sold / advisory commercial asset can never be
+    a deadspace_candidate. The developer does not operate it, so the
+    question becomes "what does the community lose, and what can we learn?"
+
+      no flags                        -> healthy
+      data_conflict                   -> monitor (the proxies disagree)
+      operating proxy + access cause  -> community_value_gap
+                                         (fixable around the asset:
+                                         walkways, corridors, catalysts)
+      operating proxy, no access      -> strategic_learning
+                                         (cause is demand or design; a
+                                         lesson for future phases)
+      context flags only              -> monitor (businesses are fine)
+    """
+    flags = set(flags)
+    if not flags:
+        return "healthy"
+    if "data_conflict" in flags:
+        return "monitor"
+    operating = flags & OPERATING_PROXY_FLAGS
+    if operating and flags & ACCESS_FLAGS:
+        return "community_value_gap"
+    if operating:
+        return "strategic_learning"
+    return "monitor"
+
+
 def decide_status(asset_type, layer1, layer2, layer3, authority=None,
-                  completion_year=None, base_year=2026):
+                  completion_year=None, base_year=2026, proxy=None):
     """
     Decide the final status for a single asset.
 
@@ -111,6 +142,19 @@ def decide_status(asset_type, layer1, layer2, layer3, authority=None,
     l1 = layer1["triggered"]
     l2 = layer2["triggered"]
     l3 = bool(layer3.get("candidate_interventions"))
+
+    # v6.0 Phase 2 — sold / advisory commercial assets are judged on
+    # tier-2 and tier-3a evidence only (the detector already removed
+    # their operational tier-1 flags).
+    if asset_type == "commercial" and proxy is not None:
+        flags = (
+            list(layer1.get("reasons", []))
+            + list(layer2.get("reasons", []))
+            + list(proxy.get("reasons", []))
+        )
+        if flags and _is_in_ramp_up_window(asset_type, completion_year, base_year):
+            return "monitor"
+        return decide_sold_commercial_status(flags)
 
     if not (l1 or l2):
         return "healthy"

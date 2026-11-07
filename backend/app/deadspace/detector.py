@@ -8,6 +8,10 @@ from .. import __version__
 from .layer1 import evaluate as layer1_eval
 from .layer2 import evaluate as layer2_eval
 from .layer3 import evaluate as layer3_eval
+from .layer3_lbs import evaluate as layer3_lbs_eval
+from .layer3_survival import evaluate_survival_floor
+from .external import external_for
+from .tiers import OPERATIONAL_FLAGS, evaluation_mode, is_full_control, tier_of
 from .factors import compute_factors
 from .evidence import build_evidence
 from .status import decide_status
@@ -43,6 +47,24 @@ def detect_deadspace_for_asset(
     # residential cannot.
     authority = asset.get("authority") if hasattr(asset, "get") else None
 
+    # v6.0 Phase 2 — a sold / advisory asset's operational record is not
+    # visible to the developer, so its tier-1 operational flags are
+    # dropped and replaced by tier-3a proxy flags (Google Places, LBS).
+    proxy = None
+    survival = None
+    external = None
+    suppressed = []
+    if atype == "commercial" and not is_full_control(authority):
+        layer1, layer2, suppressed = _drop_operational(layer1, layer2)
+        external = external_for(asset["asset_id"], asset.get("subtype"))
+        proxy = layer3_lbs_eval(external, thresholds=ds_cfg.get("proxy", {}))
+        survival = evaluate_survival_floor(
+            asset.to_dict(), external, assumptions, year=metrics.get("year"),
+        )
+        if survival.get("triggered"):
+            proxy["reasons"].append("operating_hemorrhage")
+            proxy["triggered"] = True
+
     # Ramp-up exemption needs completion_year and base_year so a
     # newly delivered asset (age < grace window) can be held at
     # "monitor" rather than escalated to deadspace_candidate while
@@ -60,19 +82,22 @@ def detect_deadspace_for_asset(
         authority=authority,
         completion_year=completion_year,
         base_year=base_year,
+        proxy=proxy,
     )
 
     # Collect all flags into one list for urgency computation
     all_flags = (
         list(layer1.get("reasons", []))
         + list(layer2.get("reasons", []))
+        + list((proxy or {}).get("reasons", []))
     )
 
     # Contributing factors (relative importance of what is going wrong)
-    factors = compute_factors(layer1, layer2)
+    factors = compute_factors(layer1, layer2, extra_flags=(proxy or {}).get("reasons"))
 
     # Human-readable evidence
-    evidence = build_evidence(atype, asset.get("subtype"), metrics.to_dict())
+    evidence = build_evidence(atype, asset.get("subtype"), metrics.to_dict(),
+                              proxy=proxy, survival=survival, external=external)
 
     return {
         "asset_id": asset["asset_id"],
@@ -83,7 +108,25 @@ def detect_deadspace_for_asset(
         "layer1": layer1,
         "layer2": layer2,
         "layer3": layer3,
+        "layer3a": proxy,
+        "survival": survival,
+        "flag_tiers": {f: tier_of(f) for f in all_flags},
+        "suppressed_flags": suppressed,
+        "evaluation_mode": evaluation_mode(authority),
         "contributing_factors": factors,
         "evidence": evidence,
         "model_version": __version__,
     }
+
+
+def _drop_operational(layer1: dict, layer2: dict):
+    """Remove flags built on operational data the developer cannot see."""
+    suppressed = []
+
+    def keep(layer):
+        kept = []
+        for f in layer.get("reasons", []):
+            (suppressed if f in OPERATIONAL_FLAGS else kept).append(f)
+        return {**layer, "reasons": kept, "triggered": len(kept) > 0}
+
+    return keep(layer1), keep(layer2), suppressed

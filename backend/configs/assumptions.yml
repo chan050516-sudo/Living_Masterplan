@@ -186,6 +186,64 @@ deadspace:
     maintenance_surge_ratio_above: 1.5
     walking_coverage_10min_below: 0.30
 
+  # v6.0 Phase 2 — tier-3a proxy flags for sold / advisory commercial
+  # assets (Google Places + LBS mocks). See deadspace/layer3_lbs.py.
+  proxy:
+    proxied_occupancy_below: 0.50
+    proxied_vacancy_above_months: 12.0
+    business_presence_below: 0.30
+    business_turnover_at_least: 2
+    business_vitality_below: 0.30
+    lbs_footfall_peer_factor: 0.40
+    lbs_dwell_peer_factor: 0.50
+    flow_island_ratio_below: 0.30
+
+# v6.0 §4.5 — survival OPEX floor (operating_hemorrhage flag).
+# kopitiam has no plan value; it copies f_and_b until calibrated.
+survival_analysis:
+  conversion_rate_by_subtype:
+    convenience_retail: 0.08
+    f_and_b: 0.05
+    kopitiam: 0.05
+    cafe: 0.04
+    restaurant: 0.03
+    supermarket: 0.12
+    services: 0.06
+    medical_retail: 0.10
+  avg_spend_rm_by_subtype:
+    convenience_retail: 25
+    f_and_b: 18
+    kopitiam: 18
+    cafe: 22
+    restaurant: 45
+    supermarket: 85
+    services: 60
+    medical_retail: 120
+  survival_opex_per_m2_by_subtype:
+    convenience_retail: 180
+    f_and_b: 240
+    kopitiam: 240
+    cafe: 220
+    restaurant: 280
+    supermarket: 200
+    services: 160
+    medical_retail: 220
+  operating_days_by_subtype:
+    convenience_retail: 360
+    f_and_b: 340
+    kopitiam: 340
+    cafe: 340
+    restaurant: 340
+    supermarket: 365
+    services: 300
+    medical_retail: 300
+  inflation_index:
+    2026: 1.00
+    2027: 1.03
+    2028: 1.06
+    2030: 1.12
+    2033: 1.24
+
 mode_networks:
   walking:
     allowed_edge_types:

@@ -59,6 +59,18 @@ FLAG_WEIGHTS = {
     "rapid_decline":        2,   # abrupt drop; asset is failing now
     "chronic_stagnation":   1,   # long-term low; stable at low level
     "falling_from_healthy": 1,   # was healthy, drifting down
+    # v6.0 Phase 2 — tier-3a proxies for sold assets. Weighted one
+    # step below their observed counterparts: they are estimates.
+    "low_occupancy_proxied":   1,
+    "long_vacancy_proxied":    1,
+    "business_presence_low":   1,
+    "business_turnover_high":  1,
+    "business_vitality_low":   1,
+    "low_footfall_lbs":        1,
+    "short_dwell_lbs":         1,
+    "flow_island":             1,
+    "operating_hemorrhage":    2,
+    "data_conflict":           0,   # says "unsure", not "worse"
 }
 
 
@@ -77,9 +89,19 @@ _FLAG_GROUPS = {
         "below_benchmark_occupancy",
         "built_value_not_realized",
         "chronic_stagnation",   # the temporal version of low_occupancy
+        # Google Places proxies describe the same empty units
+        "low_occupancy_proxied",
+        "long_vacancy_proxied",
+        "business_presence_low",
+    },
+    "footfall": {
+        "low_footfall_lbs",
+        "short_dwell_lbs",
+        "business_vitality_low",
     },
     "financial": {
         "negative_noi",
+        "operating_hemorrhage",
         "dsr_below_threshold",
         "maintenance_surge_high",
     },
@@ -88,6 +110,7 @@ _FLAG_GROUPS = {
         "driving_accessibility_deficit",
         "low_accessibility",
         "low_accessibility_high_ecological_value",
+        "flow_island",
     },
     "environmental": {
         "high_uhi_exposure",
