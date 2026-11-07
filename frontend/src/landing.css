@@ -104,13 +104,13 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 /* story */
 .lp-story { position: relative; color: var(--night-soft); padding: 0 var(--gutter); background: rgba(36,28,35,.15); }
 .lp:not(.lp-3d) .lp-story { background: var(--plum); }
-.lp-story-head { min-height: 90svh; display: flex; flex-direction: column; justify-content: center; max-width: 500px; margin-left: auto; }
+.lp-story-head { min-height: 70svh; display: flex; flex-direction: column; justify-content: center; max-width: 500px; margin-left: auto; }
 .lp .lp-story h2 { color: var(--night-text); }
 .lp-story-head > * { text-shadow: 0 2px 14px rgba(20,14,19,.95), 0 0 3px rgba(20,14,19,.9); }
 .lp-story .lp-kicker { color: var(--orange); }
-.lp-steps { max-width: 500px; margin-left: auto; padding-bottom: 28svh; }
+.lp-steps { max-width: 500px; margin-left: auto; padding-bottom: 20svh; }
 .lp-steps li {
-  margin-bottom: 52svh; padding: 26px 28px;
+  margin-bottom: 34svh; padding: 26px 28px;
   background: rgba(36,28,35,.74); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   border: 1px solid rgba(255,255,255,.12); border-radius: 16px;
   opacity: .45; transform: scale(.97); transition: opacity .5s ease, transform .5s ease, border-color .5s ease;

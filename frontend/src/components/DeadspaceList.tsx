@@ -74,8 +74,8 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
             className={`chip${filter === f.key ? ' on' : ''}`}
             onClick={() => { onFilter(f.key); setShown(PAGE) }}
             style={{
-              padding: '4px 10px', borderRadius: 999, fontSize: 11,
-              letterSpacing: '.06em', cursor: 'pointer', font: 'inherit',
+              padding: '5px 12px', borderRadius: 999, fontSize: 11.5,
+              letterSpacing: '.04em', cursor: 'pointer', fontFamily: 'inherit',
               fontWeight: filter === f.key ? 600 : 400,
             }}
           >

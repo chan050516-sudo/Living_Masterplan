@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { CSSProperties } from 'react'
 import type { Scene3D } from './township3d'
-import { fetchProfiles } from './api'
+import { fetchProfiles, fetchGeometry } from './api'
 import { Evidence } from './Evidence'
 import './landing.css'
 
@@ -9,10 +9,10 @@ const DEMO_HREF = '#/demo'
 
 // Shown until GET /api/assets/profiles answers, and kept if it fails.
 const HEADLINE = [
-  { value: '916', label: 'assets analysed' },
+  { value: '870', label: 'assets analysed' },
   { value: '81', label: 'deadspace candidates' },
   { value: '31,011', label: 'tCO₂e a year stranded' },
-  { value: '5 years', label: 'simulated for every plan' },
+  { value: '2033', label: 'every plan simulated out to' },
 ]
 
 const STEPS = [
@@ -33,7 +33,7 @@ const STEPS = [
   },
   {
     name: 'Simulate',
-    what: 'Every valid plan runs through the same five-year model.',
+    what: 'Every valid plan runs through the same model, year by year out to 2033.',
     example: 'The reuse plans avoid about 2,020 tCO₂e of embodied carbon compared with building new.',
   },
   {
@@ -46,12 +46,10 @@ const STEPS = [
 const CONCEPTS = [
   { term: 'Deadspace', text: 'A building or space that cost money and carbon to create, but no longer gives enough value back.' },
   { term: 'Stranded carbon', text: 'The operational carbon spent on capacity nobody is using, such as cooling an empty floor.' },
-  { term: 'Embodied carbon', text: 'The carbon already locked into a building by making and moving its materials.' },
-  { term: 'Avoided embodied carbon', text: 'The carbon saved by reusing a structure: the new-build figure minus the reuse figure.' },
-  { term: 'Urban heat island', text: 'Built-up areas become hotter than their surroundings. Tree canopy helps cool them.' },
-  { term: 'Huff model', text: 'Estimates where people will choose to shop, based on how large each place is and how far away it is.' },
-  { term: 'Catalytic project', text: 'A project on one asset that also lifts the assets around it.' },
+  { term: 'Avoided embodied carbon', text: 'Making and moving a building’s materials already released carbon. Reusing the structure avoids releasing it again: the new-build figure minus the reuse figure.' },
   { term: 'Adaptive reuse', text: 'Changing how an existing building is used, instead of demolishing it and building again.' },
+  { term: 'Catalytic project', text: 'A project on one asset that also lifts the assets around it.' },
+  { term: 'Urban heat island', text: 'Built-up areas become hotter than their surroundings. Tree canopy and cool roofs help bring them down.' },
 ]
 
 // Same five tiers and colours as the app's TierBadge.
@@ -125,8 +123,14 @@ function useHeadline() {
   const [stats, setStats] = useState(HEADLINE)
   useEffect(() => {
     let live = true
-    fetchProfiles().then((profiles) => {
-      const all = Object.values(profiles)
+        // Count only assets that appear on the map, so the numbers match the demo's list.
+    Promise.all([fetchProfiles(), fetchGeometry(undefined, 2026)]).then(([profiles, geo]) => {
+      const onMap = new Set(
+        geo.features
+          .filter((f) => f.geometry && f.geometry.type !== 'LineString' && f.geometry.type !== 'MultiLineString')
+          .map((f) => String(f.properties?.asset_id ?? '')),
+      )
+      const all = Object.entries(profiles).filter(([id]) => onMap.has(id)).map(([, p]) => p)
       if (!live || all.length === 0) return
       const dead = all.filter((p) => p.deadspace_diagnosis?.status === 'deadspace_candidate').length
       const stranded = all.reduce((sum, p) => sum + (p.environmental?.carbon_stranded_tco2e ?? 0), 0)
@@ -250,7 +254,7 @@ export function Landing() {
           <h1 className="rise">Don’t just build greener. <em>Build only what the future still needs.</em></h1>
           <p className="lp-lede rise">
             Works for any township. Connect your own data, find the assets that have stopped giving
-            value back, then test whether to reuse, improve or build, five years ahead.
+            value back, then test whether to reuse, improve or build, out to 2033.
           </p>
           <div className="lp-hero-actions rise">
             <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
@@ -372,7 +376,7 @@ export function Landing() {
             </p>
             <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
           </div>
-          <img src="/landing/app-screenshot.jpg" width="1600" height="900" alt="Living Masterplan app showing a 3D map of the example township, Bukit Jelutong, beside a list of flagged assets." />
+          <img src="/landing/app-screenshot.png" width="1600" height="900" alt="Living Masterplan app showing a 3D map of the example township, Bukit Jelutong, beside a list of flagged assets." />
         </section>
 
         <Evidence />

@@ -10,6 +10,12 @@ body { font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing
 .btn:disabled { opacity: .55; cursor: default; }
 .btn:disabled:hover { background: transparent; border-color: #473b46; }
 
+
+/* filter chips */
+.chip { background: transparent; border: 1px solid #473b46; color: #cfc6cd; transition: background .18s ease, border-color .18s ease, color .18s ease; }
+.chip:hover { border-color: #6d5c6a; color: #fff; }
+.chip.on { background: #f7931d; border-color: #f7931d; color: #1a1419; }
+
 /* map controls */
 .ctrl { transition: background .15s ease, color .15s ease; }
 .ctrl:hover { background: rgba(247,147,29,.14); color: #f7931d; }
