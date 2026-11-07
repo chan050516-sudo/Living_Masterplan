@@ -290,49 +290,7 @@ export function AssetPanel(props: {
                     </div>
                   </>
                 )
-              })()}
-              {p && (
-                <>
-                  <SectionTitle title="Core Metrics" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: 13 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Occupancy</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.occupancy_rate ?? p.social.utilisation_rate, 'ratio')}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Stranded Carbon</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.environmental.stranded_carbon_ratio ?? 0) > 0.5 ? '#d71920' : C.text }}>
-                        {fmt(p.environmental.stranded_carbon_ratio, 'ratio')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Annual NOI</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.financial.noi_rm ?? 0) < 0 ? '#d71920' : C.text }}>
-                        {fmt(p.financial.noi_rm, 'RM')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Walk Coverage</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.coverage_ratio_10min_walk, 'ratio')}</span>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Observed surface temp</span>
-                      <span style={{ ...mono, marginLeft: 'auto', textAlign: 'right' }}>
-                        {fmt(p.environmental.t_asset_c, 'number')} °C parcel · {fmt(p.environmental.t_township_c, 'number')} °C township · Δ {fmt(p.environmental.surface_temp_delta_c, 'number')} °C
-                      </span>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', color: C.faint, fontSize: 10.5, marginTop: -6 }}>
-                      {p.environmental.surface_temp_provenance ?? 'No Landsat observation available'}
-                      {p.environmental.surface_temp_source_catalog
-                        ? ` · ${p.environmental.surface_temp_source_catalog}`
-                        : ''}
-                      {p.environmental.surface_temp_period_start && p.environmental.surface_temp_period_end
-                        ? ` · ${p.environmental.surface_temp_period_start} to ${p.environmental.surface_temp_period_end}`
-                        : ''}
-                    </div>
-                  </div>
-                </>
-              )}
+                              })()}
               <ExternalSignalsPanel asset={asset} />
               {/* 2. Intervention Alerts */}
               {isPrimaryIntervened && (
@@ -569,8 +527,6 @@ export function AssetPanel(props: {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
-                      {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
-    
                       {env.map((m) => (
                         <div key={m.label}>
                           <MetricLine m={m} lowerIsBetter />
