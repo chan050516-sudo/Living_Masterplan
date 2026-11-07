@@ -233,7 +233,7 @@ export default function App() {
         ? 28                                      // already centred: pick a side
         : Math.sign(off) * (18 + Math.abs(off) * 22)
 
-      const baseZoom = tall ? 15.6 : 16.0 
+      const baseZoom = tall ? 16.8 : 17.2
       
       m.flyTo({
         center: a.center,

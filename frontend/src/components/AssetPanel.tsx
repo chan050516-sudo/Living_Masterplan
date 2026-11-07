@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { C, cap, mono, btn } from '../theme'
 import { Bar } from './ui'
+import { ExternalSignalsPanel } from './ExternalSignalsPanel'
 import type { Asset, AnalyzeResult, MainMetric } from '../types'
 import type { AnalyzeHistoryItem } from '../App'
 
@@ -272,7 +273,7 @@ export function AssetPanel(props: {
                   </div>
                 </>
               )}
-
+              <ExternalSignalsPanel asset={asset} />
               {/* 2. Intervention Alerts */}
               {isPrimaryIntervened && (
                 <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,210,255,0.1)', border: '1px solid rgba(0,210,255,0.3)', borderRadius: 6 }}>
