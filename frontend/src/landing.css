@@ -91,10 +91,10 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lp-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; }
 .lp-legend span { display: inline-flex; align-items: center; gap: 7px; }
 .lp-legend i { width: 10px; height: 10px; border-radius: 2px; }
-.lp-legend i.ok { background: #5f5566; }
-.lp-legend i.watch { background: #a79bb0; }
-.lp-legend i.dead { background: var(--orange); box-shadow: 0 0 10px var(--orange); }
-.lp-legend i.smoke { border-radius: 50%; background: #ffb066; opacity: .7; }
+.lp-legend i.ok { background: #3fb27f; }
+.lp-legend i.watch { background: #f7931d; }
+.lp-legend i.dead { background: #d71920; box-shadow: 0 0 10px #d71920; }
+.lp-legend i.smoke { border-radius: 50%; background: #ff6b4a; opacity: .7; }
 .lp:not(.lp-3d) .lp-legend span:last-child { display: none; }
 .lp-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 32px; padding: 18px 0 22px; border-top: 1px solid rgba(255,255,255,.14); }
 .lp-stats strong { display: block; color: var(--night-text); font-size: clamp(26px, 3vw, 40px); font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
@@ -141,11 +141,13 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lp .lp-trust h2, .lp .lp-trust h3 { color: var(--night-text); }
 .lp-trust-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(32px, 6vw, 80px); margin-top: 38px; }
 .lp-tiers, .lp-rules { margin-top: 14px; }
-.lp-tiers li { display: grid; grid-template-columns: 10px 96px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 13px 0; border-top: 1px solid #473b46; font-size: 15.5px; }
+.lp-tiers li { display: grid; grid-template-columns: 10px 128px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 13px 0; border-top: 1px solid #473b46; font-size: 15.5px; }
 .lp-tiers i { width: 10px; height: 10px; border-radius: 50%; }
-.lp-tiers i.observed { background: #2196f3; }
-.lp-tiers i.estimated { background: #ecaa00; }
-.lp-tiers i.scenario { background: #e8474d; }
+.lp-tiers i.observed { background: #3fb27f; }
+.lp-tiers i.derived { background: #2196f3; }
+.lp-tiers i.estimate { background: #f7931d; }
+.lp-tiers i.counterfactual { background: #a855f7; }
+.lp-tiers i.unknown { background: #7b7080; }
 .lp-tiers b { color: var(--night-text); font-weight: 600; }
 .lp-rules li { padding: 13px 0; border-top: 1px solid #473b46; font-size: 15.5px; }
 
@@ -198,7 +200,7 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lp-ev-card { min-height: 372px; padding: clamp(20px, 3vw, 30px); background: rgba(255,255,255,.06); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.14); border-radius: 18px; animation: lpCard .45s cubic-bezier(.2,.8,.2,1) both; }
 .lp .lp-ev-card h3 { font-size: 26px; }
 .lp-ev-card > p { margin-top: 4px; font-size: 16px; }
-.lp-ev-fact { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 16px; margin-top: 16px; padding: 12px 16px; border-left: 4px solid var(--orange); background: rgba(247,147,29,.1); }
+.lp-ev-fact { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 16px; margin-top: 16px; padding: 12px 16px; border: 1px solid rgba(247,147,29,.35); border-radius: 10px; background: rgba(247,147,29,.08); }
 .lp-ev-fact strong { color: var(--orange); font-size: clamp(26px, 3vw, 34px); font-weight: 700; line-height: 1.2; white-space: nowrap; }
 .lp-ev-fact span { flex: 1 1 180px; font-size: 14.5px; line-height: 1.4; }
 .lp-ev-card ul { margin-top: 12px; }
@@ -239,8 +241,8 @@ html:has(.lp) { scroll-behavior: smooth; scroll-padding-top: 76px; }
 .lp-block .n { left: 0; right: 0; bottom: 100%; height: var(--h); transform-origin: bottom; transform: rotateX(-90deg); }
 .lp-block .w { top: 0; bottom: 0; right: 100%; width: var(--h); transform-origin: right; transform: rotateY(90deg); background: #6d6274; }
 .lp-block .e { top: 0; bottom: 0; left: 100%; width: var(--h); transform-origin: left; transform: rotateY(-90deg); background: #6d6274; }
-.lp-block.dead .t { background: #ffc27a; box-shadow: 0 0 34px 8px rgba(247,147,29,.75); }
-.lp-block.dead b:not(.t) { background: var(--orange); }
+.lp-block.dead .t { background: #ff8a7a; box-shadow: 0 0 34px 8px rgba(215,25,32,.75); }
+.lp-block.dead b:not(.t) { background: #d71920; }
 
 @media (max-width: 960px) {
   .rise { animation: none; }

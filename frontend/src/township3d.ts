@@ -37,19 +37,21 @@ const buildingFragment = /* glsl */ `
   varying vec3 vNormal; varying float vStatus, vTarget, vTop, vWorldY;
   void main() {
     float light = 0.5 + 0.5 * max(dot(normalize(vNormal), normalize(vec3(0.5, 0.8, 0.3))), 0.0);
-    vec3 base = vec3(0.15, 0.125, 0.17);
-    if (vStatus > 0.5 && vStatus < 1.5) base = vec3(0.23, 0.20, 0.26);
-    if (vStatus > 2.5) base = vec3(0.05, 0.13, 0.09);
+    // Same status colours as the app, darkened so the red deadspace still stands out.
+    vec3 base = vec3(0.10, 0.22, 0.16);                                // healthy: muted green
+    if (vStatus > 0.5 && vStatus < 1.5) base = vec3(0.36, 0.22, 0.08); // watch: muted orange
+    if (vStatus > 2.5) base = vec3(0.05, 0.13, 0.09);                  // park
     vec3 color = base * light;
     color += vec3(0.05, 0.04, 0.07) * vTop;
 
     float isDead = step(1.5, vStatus) * step(vStatus, 2.5);
     float pulse = 0.82 + 0.18 * sin(uTime * 2.2 + vWorldY * 0.2);
-    vec3 glow = vec3(1.0, 0.4, 0.05) * (0.75 + 0.5 * vTop) * pulse;
+    vec3 glow = vec3(1.0, 0.1, 0.08) * (0.75 + 0.5 * vTop) * pulse;    // deadspace: glowing red
     color = mix(color, glow, isDead * uDead);
 
     color *= mix(1.0, 0.32, uFocus * (1.0 - vTarget));
-    vec3 focused = mix(vec3(1.0, 0.42, 0.05), vec3(0.15, 0.85, 0.48), uFixed) * (0.62 + 0.3 * vTop);
+    // Story building: red while flagged, cyan (the app's "intervened") once the plan is chosen.
+    vec3 focused = mix(vec3(1.0, 0.1, 0.08), vec3(0.0, 0.82, 1.0), uFixed) * (0.62 + 0.3 * vTop);
     color = mix(color, focused, vTarget * uFocus);
     gl_FragColor = vec4(color, 1.0);
   }
@@ -77,7 +79,7 @@ const smokeFragment = /* glsl */ `
   varying float vAlpha;
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    gl_FragColor = vec4(1.0, 0.6, 0.2, smoothstep(0.5, 0.05, d) * vAlpha * 0.55);
+    gl_FragColor = vec4(1.0, 0.35, 0.25, smoothstep(0.5, 0.05, d) * vAlpha * 0.55);
   }
 `
 

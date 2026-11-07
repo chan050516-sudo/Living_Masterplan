@@ -54,10 +54,13 @@ const CONCEPTS = [
   { term: 'Adaptive reuse', text: 'Changing how an existing building is used, instead of demolishing it and building again.' },
 ]
 
+// Same five tiers and colours as the app's TierBadge.
 const TIERS = [
-  { name: 'Observed', tier: 'observed', text: 'Comes directly from the township’s data.' },
-  { name: 'Estimated', tier: 'estimated', text: 'Calculated from that data using a model or benchmark.' },
-  { name: 'Scenario', tier: 'scenario', text: 'A simulated future, not a promise.' },
+  { name: 'Observed', tier: 'observed', text: 'Sime Darby records and satellite measurements.' },
+  { name: 'Derived', tier: 'derived', text: 'Calculated from observed data with physics or economics formulas.' },
+  { name: 'Estimate', tier: 'estimate', text: 'From outside signals like foot traffic and business listings, for assets Sime Darby no longer runs.' },
+  { name: 'Counterfactual', tier: 'counterfactual', text: 'What an asset would earn if Sime Darby had kept it. Used only inside simulations.' },
+  { name: 'Unknown', tier: 'unknown', text: 'No defensible source, so it is shown as a gap instead of guessed.' },
 ]
 
 const RULES = [
