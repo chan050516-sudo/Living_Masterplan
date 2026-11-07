@@ -1,6 +1,8 @@
 import { useState, useRef } from 'react'
 import { C, cap, mono, btn } from '../theme'
 import { Bar } from './ui'
+import { ExternalSignalsPanel } from './ExternalSignalsPanel'
+import { TierBadge, type Tier } from './TierBadge'
 import type { Asset, AnalyzeResult, MainMetric } from '../types'
 import type { AnalyzeHistoryItem } from '../App'
 
@@ -13,6 +15,8 @@ const STATUS_COLOR: Record<string, string> = {
   improvement_opportunity: '#f7931d',
   vacant: '#9e9e9e',
   intervened: '#2196f3',
+  community_value_gap: '#e0739a',
+  strategic_learning: '#8d9bbd',
 }
 
 function pretty(s: string) {
@@ -55,7 +59,16 @@ function MetricLine({ m, lowerIsBetter }: { m: MainMetric; lowerIsBetter?: boole
     </div>
   )
 }
-
+// One Core Metrics row: label, value, and how trustworthy the value is for this asset.
+function Metric({ label, value, tier, color }: { label: string; value: string; tier: Tier; color?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
+      <span style={{ color: C.muted }}>{label}</span>
+      <span style={{ ...mono, fontWeight: 500, marginLeft: 'auto', textAlign: 'right', color: color ?? C.text }}>{value}</span>
+      <TierBadge tier={tier} />
+    </div>
+  )
+}
 // 2. Update the props definition of the component
 export function AssetPanel(props: {
   assets: Asset[]
@@ -227,35 +240,58 @@ export function AssetPanel(props: {
                   )}
               </div>
 
-              {/* 1. Key Figures */}
-              {p && (
-                <>
-                  <SectionTitle title="Core Metrics" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: 13 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Occupancy</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.occupancy_rate ?? p.social.utilisation_rate, 'ratio')}</span>
+              {/* 1. Key Figures: the tier on each row depends on whether SDP still runs the asset */}
+              {p && (() => {
+                const level = p.authority?.level
+                const sold = !!level && level !== 'full_control'
+                const occ = p.social.occupancy_rate ?? p.social.utilisation_rate
+                const stranded = p.environmental.stranded_carbon_ratio
+                const noi = p.financial.noi_rm
+                const dT = p.environmental.surface_temp_delta_c
+                return (
+                  <>
+                    <SectionTitle title="Core Metrics" />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8, fontSize: 13 }}>
+                      <Metric
+                        label={sold ? 'Occupancy (estimated)' : 'Occupancy'}
+                        value={fmt(occ, 'ratio')}
+                        tier={occ == null ? 'U' : sold ? '3a' : '1'}
+                      />
+                      <Metric
+                        label="Stranded carbon"
+                        value={fmt(stranded, 'ratio')}
+                        tier={stranded == null ? 'U' : sold ? '3a' : '2'}
+                        color={(stranded ?? 0) > 0.5 ? '#d71920' : undefined}
+                      />
+                      <Metric
+                        label={sold ? 'Annual NOI (if retained)' : 'Annual NOI'}
+                        value={fmt(noi, 'RM')}
+                        tier={noi == null ? 'U' : sold ? '3b' : '2'}
+                        color={(noi ?? 0) < 0 ? '#d71920' : undefined}
+                      />
+                      <Metric
+                        label="Walk coverage (10 min)"
+                        value={fmt(p.social.coverage_ratio_10min_walk, 'ratio')}
+                        tier={p.social.coverage_ratio_10min_walk == null ? 'U' : '2'}
+                      />
+                      <Metric
+                        label="Surface temp vs town"
+                        value={dT == null ? '—' : `${fmt(p.environmental.t_asset_c, 'number')} °C · Δ ${dT > 0 ? '+' : ''}${fmt(dT, 'number')} °C`}
+                        tier={dT == null ? 'U' : '1'}
+                        color={dT != null && dT > 3 ? '#d71920' : undefined}
+                      />
+                      <div style={{ color: C.faint, fontSize: 10.5, marginTop: -2 }}>
+                        {p.environmental.surface_temp_provenance ?? 'No Landsat observation available'}
+                        {p.environmental.surface_temp_source_catalog ? ` · ${p.environmental.surface_temp_source_catalog}` : ''}
+                        {p.environmental.surface_temp_period_start && p.environmental.surface_temp_period_end
+                          ? ` · ${p.environmental.surface_temp_period_start} to ${p.environmental.surface_temp_period_end}`
+                          : ''}
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Stranded Carbon</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.environmental.stranded_carbon_ratio ?? 0) > 0.5 ? '#d71920' : C.text }}>
-                        {fmt(p.environmental.stranded_carbon_ratio, 'ratio')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Annual NOI</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.financial.noi_rm ?? 0) < 0 ? '#d71920' : C.text }}>
-                        {fmt(p.financial.noi_rm, 'RM')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Walk Coverage</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.coverage_ratio_10min_walk, 'ratio')}</span>
-                    </div>
-                  </div>
-                </>
-              )}
-
+                  </>
+                )
+                              })()}
+              <ExternalSignalsPanel asset={asset} />
               {/* 2. Intervention Alerts */}
               {isPrimaryIntervened && (
                 <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,210,255,0.1)', border: '1px solid rgba(0,210,255,0.3)', borderRadius: 6 }}>
@@ -309,7 +345,8 @@ export function AssetPanel(props: {
                     {d.evidence.map((line, i) => {
                       const splitIdx = line.indexOf(':')
                       const isMultiLine = line.includes('\n')
-                      if (splitIdx !== -1 && !isMultiLine) {
+                      const isThermalEvidence = line.startsWith('Observed land surface temperature')
+                      if (splitIdx !== -1 && !isMultiLine && !isThermalEvidence) {
                         const label = line.slice(0, splitIdx).trim()
                         let value = line.slice(splitIdx + 1).trim()
                           value = value.replace(/nan/gi, '—')
@@ -330,7 +367,15 @@ export function AssetPanel(props: {
                               {line.slice(0, splitIdx).trim()}
                             </div>
                           )}
-                          <div style={{ fontSize: 12.5, color: '#cfc6cd', whiteSpace: 'pre-wrap', lineHeight: 1.5, fontFamily: mono.fontFamily }}>
+                          <div style={{
+                            fontSize: 12.5,
+                            color: '#cfc6cd',
+                            whiteSpace: 'pre-wrap',
+                            overflowWrap: 'anywhere',
+                            wordBreak: 'break-word',
+                            lineHeight: 1.5,
+                            fontFamily: mono.fontFamily,
+                          }}>
                             {safeLine}
                           </div>
                         </div>
@@ -375,6 +420,7 @@ export function AssetPanel(props: {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
               {analysis.assets_analysis.map((a) => {
                 const card = a.summary_card
+                const spec = a.engineering_spec
                 const fin = card.financial?.main_metric
                 const soc = card.social?.main_metric
                 const env = card.environmental?.main_metrics ?? []
@@ -384,11 +430,120 @@ export function AssetPanel(props: {
                 return (
                   <div key={a.asset_id} style={{ padding: 16, background: C.card, border: `1px solid ${C.line}`, borderRadius: 8 }}>
                     <div style={{ ...mono, fontSize: 13, fontWeight: 600, marginBottom: 12, color: '#fff' }}>{a.asset_id}</div>
+
+
+                    {/* Raw 2026 satellite reading, shown apart from the 2033 comparison so they aren't confused */}
+                    {card.environmental?.observed_2026?.surface_temp_delta_c != null && (
+                      <div style={{
+                        padding: '6px 10px', marginBottom: 12, borderRadius: 6, fontSize: 11.5, color: '#cfc6cd',
+                        background: 'rgba(33,150,243,0.08)', border: '1px solid rgba(33,150,243,0.25)',
+                      }}>
+                        <span style={{ color: '#2196f3', fontWeight: 600 }}>2026 OBSERVED</span>
+                        {' · '}parcel {card.environmental.observed_2026.t_asset_c?.toFixed(1)} °C
+                        {' · '}ΔT {card.environmental.observed_2026.surface_temp_delta_c.toFixed(2)} °C
+                      </div>
+                    )}
+
+                    {/* P1 — Extracted engineering spec card */}
+                    {spec && (
+                      <div style={{
+                        marginBottom: 14, padding: 12,
+                        background: 'rgba(0,210,255,0.06)',
+                        border: '1px solid rgba(0,210,255,0.25)',
+                        borderRadius: 6,
+                      }}>
+                        <div style={{ ...cap, fontSize: 9.5, color: '#00d2ff', marginBottom: 8, letterSpacing: '.08em' }}>
+                          ⚙️ ENGINEERED PARAM SPEC EXTRACTED
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: 11.5 }}>
+                          {spec.structure_retention_ratio !== null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Structure retained</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {(spec.structure_retention_ratio * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          )}
+                          {spec.primary_material && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Primary material</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.primary_material.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {spec.facade_action && spec.facade_action !== 'retain' && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Facade</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.facade_action.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {spec.roof_intervention && spec.roof_intervention !== 'none' && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Roof</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.roof_intervention.replace(/_/g, ' ')}
+                              </span>
+                            </div>
+                          )}
+                          {spec.hvac_cop !== null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>HVAC COP</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.hvac_cop.toFixed(1)}
+                              </span>
+                            </div>
+                          )}
+                          {spec.operating_hours_per_week !== null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Op. hours/week</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {spec.operating_hours_per_week.toFixed(0)}
+                              </span>
+                            </div>
+                          )}
+                          {spec.rooftop_pv_coverage !== null && spec.rooftop_pv_coverage > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>PV coverage</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {(spec.rooftop_pv_coverage * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          )}
+                          {spec.pv_yield_kwh_year !== null && spec.pv_yield_kwh_year > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gridColumn: '1 / -1', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>PV yield (annual)</span>
+                              <span style={{ ...mono, color: '#00d2ff', fontWeight: 600 }}>
+                                {Math.round(spec.pv_yield_kwh_year).toLocaleString()} kWh/yr
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
-                      {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
-    
+                      {env.map((m) => (
+                        <div key={m.label}>
+                          <MetricLine m={m} lowerIsBetter />
+                          {m.cooling_source && m.cooling_source !== 'none' && (
+                            <div style={{ fontSize: 10.5, color: C.faint, paddingLeft: 8, marginTop: -2, marginBottom: 4, fontStyle: 'italic' }}>
+                              cooling source: {m.cooling_source.replace(/_/g, ' ')}
+                              {m.cooling_from_roof_c != null && m.cooling_from_roof_c > 0 && (
+                                <> · roof −{m.cooling_from_roof_c.toFixed(2)} °C</>
+                              )}
+                              {m.cooling_from_canopy_c != null && m.cooling_from_canopy_c < 0 && (
+                                <> · canopy −{Math.abs(m.cooling_from_canopy_c).toFixed(2)} °C</>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      
                     {card.subunits && card.subunits.length > 0 && (
                       <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.line}` }}>
                         <div style={{ ...cap, fontSize: 10, color: C.accent, marginBottom: 8 }}>Subtype Breakdown</div>

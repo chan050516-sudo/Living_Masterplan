@@ -9,6 +9,7 @@ import { AssetPanel } from './components/AssetPanel'
 import { ComparisonModal } from './components/ComparisonModal'
 import { HistoryPanel } from './components/HistoryPanel'
 import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
+import { createThreeLayer } from './threeLayer'
 import type { Asset, AssetProfile, AnalyzeResult } from './types'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
@@ -92,6 +93,8 @@ const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'underperforming_facility', '#d71920',
   'intervened', '#00d2ff',
   'vacant', '#9e9e9e',
+  'community_value_gap', '#e0739a',
+  'strategic_learning', '#8d9bbd',
   '#5a4f59',
 ]
 
@@ -105,6 +108,7 @@ const STATUS_HEX: Record<string, string> = {
   healthy: '#3fb27f', monitor: '#f7931d', improvement_opportunity: '#f7931d',
   development_risk: '#f15c22', deadspace_candidate: '#d71920', underperforming_facility: '#d71920',
   intervened: '#00d2ff', vacant: '#9e9e9e',
+  community_value_gap: '#e0739a', strategic_learning: '#8d9bbd',
 }
 const STATUS_FALLBACK = '#5a4f59'
 const H = ['coalesce', ['get', 'height'], 8]
@@ -124,7 +128,14 @@ const BODY_PAINT = statusMatch((hex) => [
 ])
 const ROOF_PAINT = statusMatch((hex) => mix(hex, '#ffffff', 0.35))
 
-const ASSET_LAYERS = ['assets-3d', 'area-fill', 'points-dot']
+// `assets-roof` only exists when REALISTIC=true (the extra
+// 0.8m cap that visually closes the extrusion). Without it in the
+// click set, clicking the top of any building hits an unregistered
+// layer and the selection is silently dropped — roughly 50% of the
+// visible footprint becomes unclickable.
+const ASSET_LAYERS = REALISTIC
+  ? ['assets-3d', 'assets-roof', 'area-fill', 'points-dot']
+  : ['assets-3d', 'area-fill', 'points-dot']
 
 export default function App() {
   const mapContainer = useRef<HTMLDivElement>(null)
@@ -136,11 +147,14 @@ export default function App() {
   const areaRef = useRef<FeatureCollection>(EMPTY)
   const pointsRef = useRef<FeatureCollection>(EMPTY)
 
+  const threeRef = useRef<ReturnType<typeof createThreeLayer> | null>(null)
   const [assets, setAssets] = useState<Asset[]>([])
   const [profilesData, setProfilesData] = useState<Record<string, AssetProfile>>({})
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [year, setYear] = useState(2026)
-  
+  const [listFilter, setListFilter] = useState<string>('all')
+  const [showHeat, setShowHeat] = useState(false)
+
   const [history, setHistory] = useState<AnalyzeHistoryItem[]>(() => {
     try { return JSON.parse(localStorage.getItem('lm_history') || '[]') } catch { return [] }
   })
@@ -171,7 +185,16 @@ export default function App() {
   const primary = selectedAssets[0] ?? null
 
   useEffect(() => {
-    localStorage.setItem('lm_history', JSON.stringify(history.slice(0, 10)))
+    try {
+      localStorage.setItem('lm_history', JSON.stringify(history.slice(0, 10)))
+    } catch {
+      // localStorage can throw QuotaExceededError if the AnalyzeResult
+      // payloads push past the ~5 MB origin quota, or if storage is
+      // unavailable (private browsing, blocked cookies). The in-memory
+      // history stays intact — only persistence for this update is
+      // skipped. Without this guard the throw propagates out of
+      // useEffect and crashes the whole App.
+    }
   }, [history])
 
   // Sync selectedIds when activeRunId changes
@@ -210,7 +233,7 @@ export default function App() {
         ? 28                                      // already centred: pick a side
         : Math.sign(off) * (18 + Math.abs(off) * 22)
 
-      const baseZoom = tall ? 15.6 : 16.0 
+      const baseZoom = tall ? 16.8 : 17.2
       
       m.flyTo({
         center: a.center,
@@ -234,6 +257,22 @@ export default function App() {
   }
 
   function closePanel() { setSelectedIds([]); setQuestion(''); reset() }
+
+  const [search, setSearch] = useState('')
+  const [searchMiss, setSearchMiss] = useState(false)
+
+  // Exact ID first, then any ID or name containing the text.
+  function runSearch(q: string) {
+    const s = q.trim().toLowerCase()
+    if (!s) return
+    const hit =
+      assets.find((a) => a.id.toLowerCase() === s) ??
+      assets.find((a) => a.id.toLowerCase().includes(s) || a.name.toLowerCase().includes(s))
+    if (!hit) { setSearchMiss(true); return }
+    setSearchMiss(false)
+    setShowHistory(false)
+    selectOnly(hit.id)
+  }
 
   async function ask(files: File[] = []) { // 1. Add files parameter
     if (selectedAssets.length === 0) return
@@ -406,7 +445,12 @@ export default function App() {
             height: finalHeight,
           })
 
-          const tagged: Feature = { ...f, properties: { ...f.properties, id, status: mapStatus, height: finalHeight } }
+          const env = finalProfile?.environmental ?? {}
+          const tagged: Feature = { ...f, properties: {
+            ...f.properties, id, status: mapStatus, height: finalHeight,
+            canopy: env.canopy_coverage ?? null,
+            dT: env.surface_temp_delta_c ?? null,
+          } }
 
           if (f.geometry.type === 'Point') pointFeatures.push(tagged)
           else if (finalHeight > 0) buildingFeatures.push(tagged)
@@ -425,6 +469,8 @@ export default function App() {
           ;(map.getSource('assets') as maplibregl.GeoJSONSource | undefined)?.setData(buildingsRef.current)
           ;(map.getSource('area') as maplibregl.GeoJSONSource | undefined)?.setData(areaRef.current)
           ;(map.getSource('points') as maplibregl.GeoJSONSource | undefined)?.setData(pointsRef.current)
+          threeRef.current?.setBuildings(buildingsRef.current)       
+          threeRef.current?.setParks(areaRef.current)        
         }
       })
       .catch((e) => setError(e.message))
@@ -475,13 +521,13 @@ export default function App() {
         ? { anchor: 'map', color: '#f4f0ec', intensity: 0.4, position: [1.2, 240, 40] }
         : { anchor: 'viewport', color: '#ffffff', intensity: 0.42, position: [1.4, 200, 28] })
 
-      map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': STATUS_PAINT as never, 'fill-opacity': 0.35 } })
-      if (REALISTIC) {
+      map.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': STATUS_PAINT as never, 'fill-opacity': ['case', ['==', ['slice', ['get', 'id'], 0, 2], 'G-'], REALISTIC ? 0 : 0.35, 0.35] as never } })
+        if (REALISTIC) {
         map.addLayer({
           id: 'assets-contact-shadow', type: 'line', source: 'assets',
           paint: {
             'line-color': '#000000',
-            'line-opacity': 0.45,
+            'line-opacity': 0,
             'line-width': ['interpolate', ['linear'], ['zoom'], 14, 3, 18, 14] as never,
             'line-blur': ['interpolate', ['linear'], ['zoom'], 14, 2, 18, 8] as never,
           },
@@ -499,7 +545,7 @@ export default function App() {
             id, type: 'fill', source: 'assets', filter: filter as never,
             paint: {
               'fill-color': '#120c11',
-              'fill-opacity': 0.38,
+              'fill-opacity': 0.38 * 0,
               'fill-translate-anchor': 'map',
               'fill-translate': ['interpolate', ['exponential', 2], ['zoom'],
                 14, ['literal', z14], 18, ['literal', z18]] as never,
@@ -513,8 +559,8 @@ export default function App() {
           'fill-extrusion-color': (REALISTIC ? BODY_PAINT : STATUS_PAINT) as never,
           'fill-extrusion-height': ['coalesce', ['get', 'height'], 8] as never,
           'fill-extrusion-vertical-gradient': true,
-          'fill-extrusion-opacity': REALISTIC ? 1 : 0.92,
-        },
+          'fill-extrusion-opacity': REALISTIC ? 0 : 0.92,
+                },
       })
       if (REALISTIC) {
         map.addLayer({
@@ -524,9 +570,44 @@ export default function App() {
             'fill-extrusion-base': H as never,
             'fill-extrusion-height': ['+', H, 0.8] as never,
             'fill-extrusion-vertical-gradient': false,
-            'fill-extrusion-opacity': 1,
+            'fill-extrusion-opacity': 0,
           },
         })
+      }
+      // Land surface temperature heat map (Landsat), drawn under the 3D buildings. Hidden until toggled.
+      map.addSource('heat', { type: 'geojson', data: EMPTY })
+      // Radius doubles each zoom level so the glow covers the same ground area at any zoom.
+      const heatRadius = ['interpolate', ['exponential', 2], ['zoom'], 13, 14, 20, 1792] as never
+      const heatIntensity = 1
+      map.addLayer({
+        id: 'heat-hot', type: 'heatmap', source: 'heat', layout: { visibility: 'none' },
+        filter: ['>', ['get', 'dT'], 0],
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'dT'], 0, 0, 4.5, 1] as never,
+          'heatmap-radius': heatRadius,
+          'heatmap-intensity': heatIntensity,
+          'heatmap-opacity': 0.8,
+          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.2, 'rgba(255,205,90,0.25)', 0.5, 'rgba(255,130,40,0.5)', 1, 'rgba(225,35,35,0.75)'] as never,
+        },
+      })
+      map.addLayer({
+        id: 'heat-cool', type: 'heatmap', source: 'heat', layout: { visibility: 'none' },
+        filter: ['<', ['get', 'dT'], 0],
+        paint: {
+          'heatmap-weight': ['interpolate', ['linear'], ['get', 'dT'], -2.5, 1, 0, 0] as never,
+          'heatmap-radius': heatRadius,
+          'heatmap-intensity': heatIntensity,
+          'heatmap-opacity': 0.8,
+          'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'],
+            0, 'rgba(0,0,0,0)', 0.2, 'rgba(120,205,255,0.25)', 0.5, 'rgba(70,160,245,0.5)', 1, 'rgba(40,100,230,0.75)'] as never,
+        },
+      })
+
+      if (REALISTIC) {
+        threeRef.current = createThreeLayer([101.528, 3.112])
+        map.addLayer(threeRef.current.layer)
+
       }
       map.addLayer({ id: 'points-dot', type: 'circle', source: 'points', paint: { 'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 4, 18, 11] as never, 'circle-color': STATUS_PAINT as never, 'circle-stroke-width': 1.5, 'circle-stroke-color': 'rgba(0,0,0,.55)' } })
 
@@ -626,7 +707,7 @@ export default function App() {
 
     const pointFeatures: Feature[] = []
     const arcFeatures: Feature[] = []
-
+    const heroList: { id: string; type: string; deltaT?: number }[] = []
     // 1. Gather interventions from ALL accepted history + current active preview
     const activeAndAccepted = history.filter(h => h.status === 'accepted' || h.id === activeRunId)
     
@@ -634,6 +715,13 @@ export default function App() {
       const interventions = (item.result as any)?.interventions || []
       
       interventions.forEach((intv: any) => {
+        if (intv.target_asset_id) {
+          // Real cooling from the simulation: surface temp after minus before (negative = cooler).
+          const aa = (item.result.assets_analysis || []).find((a: any) => a.asset_id === intv.target_asset_id) as any
+          const m = aa?.summary_card?.environmental?.main_metrics?.find((x: any) => /surface temp/i.test(x.label))
+          const deltaT = m && m.baseline != null && m.intervention != null ? m.intervention - m.baseline : undefined
+          heroList.push({ id: intv.target_asset_id, type: String(intv.type ?? ''), deltaT })
+        }
         const target = assets.find(x => x.id === intv.target_asset_id)
         
         // Mark the ACTUAL WORKING SITE
@@ -669,26 +757,42 @@ export default function App() {
 
     const aSource = map.getSource('interventions-arcs') as maplibregl.GeoJSONSource
     if (aSource) aSource.setData({ type: 'FeatureCollection', features: arcFeatures })
-    
+    threeRef.current?.setInterventions(heroList)
   }, [assets, selectedIds, activeRunId, mapReady, history])
 
-  // Load and decode the click sound once. Browsers block audio until the user
-  // interacts with the page, so the context is created on first click.
+  // Load the click sound as soon as the page opens. Browsers only allow audio to
+  // start after the user interacts, so the context is resumed on first pointer down.
   useEffect(() => {
     if (!SOUND) return
     let dead = false
-    const arm = async () => {
-      if (!audioCtx) audioCtx = new AudioContext()
-      if (audioCtx.state === 'suspended') await audioCtx.resume()
-      if (clickBuf || dead) return
-      try {
-        const buf = await (await fetch('/click.mp3')).arrayBuffer()
-        const decoded = await audioCtx.decodeAudioData(buf)
-        if (!dead) clickBuf = decoded
-      } catch { /* no sound is fine */ }
+    const ctx = new AudioContext()
+    audioCtx = ctx
+
+    fetch('/click.mp3')
+      .then((r) => r.arrayBuffer())
+      .then((b) => ctx.decodeAudioData(b))
+      .then((d) => { if (!dead) clickBuf = d })
+      .catch(() => { /* no sound is fine */ })
+
+    // Inaudible tone that keeps the sound device awake, so Windows doesn't put
+    // it to sleep and swallow the first clicks.
+    const keepAlive = ctx.createOscillator()
+    const silent = ctx.createGain()
+    keepAlive.frequency.value = 20
+    silent.gain.value = 0.0001
+    keepAlive.connect(silent).connect(ctx.destination)
+    keepAlive.start()
+
+    const unlock = () => { if (ctx.state === 'suspended') ctx.resume() }
+    window.addEventListener('pointerdown', unlock)
+    return () => {
+      dead = true
+      window.removeEventListener('pointerdown', unlock)
+      keepAlive.stop()
+      ctx.close()
+      if (audioCtx === ctx) audioCtx = null
+      clickBuf = null
     }
-    window.addEventListener('pointerdown', arm)
-    return () => { dead = true; window.removeEventListener('pointerdown', arm) }
   }, [])
 
   const fittedRef = useRef(false)
@@ -721,11 +825,51 @@ export default function App() {
     if (REALISTIC) {
       map.setPaintProperty('assets-3d', 'fill-extrusion-color', withSel(BODY_PAINT, selectedColour) as never)
       map.setPaintProperty('assets-roof', 'fill-extrusion-color', withSel(ROOF_PAINT, mix(selectedColour, '#FCFBF4', 0.15)) as never)
+      threeRef.current?.setSelection(selectedIds, selectedColour)
     } else {
       map.setPaintProperty('assets-3d', 'fill-extrusion-color', expr as never)
     }    map.setPaintProperty('area-fill', 'fill-color', expr as never)
     map.setPaintProperty('points-dot', 'circle-color', expr as never)
+
   }, [selectedIds, previewing, assets, mapReady])
+
+  // Heat map points: one per asset with a real satellite temperature, weighted by how far from the town average.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const features: Feature[] = assets
+      .filter((a) => a.center[0] !== 0 && (a.profile as any)?.environmental?.surface_temp_delta_c != null)
+      .map((a) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: a.center },
+        properties: { dT: Number((a.profile as any).environmental.surface_temp_delta_c) },
+      }))
+    ;(map.getSource('heat') as maplibregl.GeoJSONSource | undefined)?.setData({ type: 'FeatureCollection', features })
+    for (const id of ['heat-hot', 'heat-cool']) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', showHeat ? 'visible' : 'none')
+    }
+  }, [assets, mapReady, showHeat])
+
+  const heatCount = assets.filter((a) => (a.profile as any)?.environmental?.surface_temp_delta_c != null).length
+
+  // Mirror the list filter on the map: only matching assets (plus selected ones) stay visible and clickable.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !mapReady) return
+    const ids = listFilter === 'all'
+      ? null
+      : [...new Set([
+          ...assets.filter((a) => listFilter === 'flow_island'
+            ? a.diagnosis?.flags?.includes('flow_island')
+            : a.diagnosis?.status === listFilter).map((a) => a.id),
+          ...selectedIds,
+        ])]
+    const expr = ids ? (['in', ['get', 'id'], ['literal', ids]] as never) : null
+    for (const layer of ['assets-3d', 'area-fill', 'area-outline', 'points-dot']) {
+      if (map.getLayer(layer)) map.setFilter(layer, expr)
+    }
+    threeRef.current?.setFilter(ids)
+  }, [listFilter, assets, selectedIds, mapReady])
 
   useEffect(() => {
     const map = mapRef.current
@@ -767,13 +911,32 @@ export default function App() {
         ::-webkit-scrollbar-track { background: transparent !important; }
       `}</style>
       <header style={{ height: 58, flex: 'none', padding: '0 22px', borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 14, background: '#241c23' }}>
-        <strong style={{ fontSize: 14, letterSpacing: '.14em' }}>LIVING MASTERPLAN</strong>
+        <a href="#/" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '.14em', color: 'inherit', textDecoration: 'none' }}>LIVING MASTERPLAN</a>
         <span style={{ fontSize: 13, color: C.muted }}>Bukit Jelutong</span>
         
         <button className={`btn ${showHistory ? 'primary' : ''}`} onClick={() => setShowHistory(!showHistory)} style={{...btn(showHistory), marginLeft: 20}}>
           History ({history.length})
         </button>
 
+        <input
+          list="asset-ids"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value)
+            setSearchMiss(false)
+            if (assets.some((a) => a.id === e.target.value)) runSearch(e.target.value)
+          }}
+          onKeyDown={(e) => { if (e.key === 'Enter') runSearch(search) }}
+          placeholder="Search asset, e.g. BLD-0141"
+          style={{
+            width: 230, padding: '7px 12px', borderRadius: 6, fontSize: 13, fontFamily: 'inherit',
+            border: `1px solid ${searchMiss ? C.bad : C.line}`, background: C.card, color: C.text, outline: 'none',
+          }}
+        />
+        <datalist id="asset-ids">
+          {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+        </datalist>
+        
         <span style={{ flex: 1 }} />
         <span style={{ ...cap, marginRight: 4 }}>Horizon</span>
         {YEARS.map((y) => (
@@ -802,10 +965,50 @@ export default function App() {
             <span style={{ color: C.faint }}>+ click to select multiple assets</span>
           </div>
           <MapLegend preview={previewing} />
+
+          <div style={{ position: 'absolute', left: 20, bottom: 175, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+            {showHeat && (
+              <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(31,24,30,.92)', border: `1px solid ${C.line}`, fontSize: 11, color: C.muted, width: 220 }}>
+                <div style={{ color: C.text, fontWeight: 600, marginBottom: 6 }}>Surface temperature vs town average</div>
+                <div style={{ height: 8, borderRadius: 4, background: 'linear-gradient(90deg, rgb(40,100,230), rgb(120,205,255), rgba(255,255,255,.15), rgb(255,205,90), rgb(225,35,35))' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}><span>Cooler</span><span>Hotter</span></div>
+                <div style={{ marginTop: 6, color: C.faint }}>Observed, Landsat 8 · {heatCount} assets</div>
+              </div>
+            )}
+            <button
+              onClick={() => setShowHeat((v) => !v)}
+              disabled={heatCount === 0}
+              title={heatCount === 0 ? 'No temperature data from the backend yet' : ''}
+              style={{ ...btn(showHeat), opacity: heatCount === 0 ? 0.4 : 1, cursor: heatCount === 0 ? 'not-allowed' : 'pointer' }}
+            >
+              Heat map
+            </button>
+          </div>
+
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
 
         <aside style={{ width: 440, flex: 'none', padding: 22, overflowY: 'auto', overflowX: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
+          <input
+            list="asset-ids"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setSearchMiss(false)
+              if (assets.some((a) => a.id === e.target.value)) runSearch(e.target.value)
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') runSearch(search) }}
+            placeholder="Search assets, e.g. BLD-0141 or Residential 109"
+            style={{
+              width: '100%', boxSizing: 'border-box', padding: '10px 14px', marginBottom: 18,
+              borderRadius: 8, fontSize: 13, fontFamily: 'inherit',
+              border: `1px solid ${searchMiss ? C.bad : C.line}`, background: C.card, color: C.text, outline: 'none',
+            }}
+          />
+          <datalist id="asset-ids">
+            {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </datalist>
+          
           {showHistory ? (
             <HistoryPanel 
               history={history} 
@@ -831,7 +1034,7 @@ export default function App() {
               history={history}
             />
           ) : (
-            <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} />
+            <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} filter={listFilter} onFilter={setListFilter} />
           )}
         </aside>
       </div>

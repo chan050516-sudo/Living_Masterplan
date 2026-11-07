@@ -9,6 +9,8 @@ export type AssetStatus =
   | 'underperforming_facility'
   | 'development_risk'
   | 'improvement_opportunity'
+  | 'community_value_gap'   // sold asset with proxy evidence of a community shortfall
+  | 'strategic_learning'    // sold asset worth tracking, not actionable
 
 export type DeadspaceLayer = {
   triggered: boolean
@@ -95,7 +97,17 @@ export type AssetProfile = {
     energy_kwh_hvac: number | null
     energy_kwh_lighting: number | null
     energy_kwh_base_load: number | null
+    t_asset_c: number | null
+    t_township_c: number | null
     surface_temp_delta_c: number | null
+    surface_temp_provenance: string | null
+    surface_temp_collection_id: string | null
+    surface_temp_band: string | null
+    surface_temp_source_catalog: string | null
+    surface_temp_valid_pixel_count: number | null
+    surface_temp_period_start: string | null
+    surface_temp_period_end: string | null
+    surface_temp_source_image_count: number | null
   }
   trajectory: {
     class: string | null
@@ -139,10 +151,26 @@ export type MainMetric = {
   baseline: number | null
   intervention: number | null
   unit: string
+  // Surface Temp only: splits the temperature change into its causes
+  cooling_from_canopy_c?: number | null
+  cooling_from_roof_c?: number | null
+  cooling_source?: string
+}
+
+export type EngineeringSpec = {
+  structure_retention_ratio: number | null
+  facade_action: string | null
+  primary_material: string | null
+  roof_intervention: string | null
+  hvac_cop: number | null
+  operating_hours_per_week: number | null
+  rooftop_pv_coverage: number | null
+  pv_yield_kwh_year: number | null
 }
 
 export type AssetAnalysis = {
   asset_id: string
+  engineering_spec?: EngineeringSpec | null
   summary_card: {
     financial?: {
       main_metric?: MainMetric
@@ -153,6 +181,12 @@ export type AssetAnalysis = {
       metrics?: Record<string, { baseline: number; intervention: number }>
     }
     environmental?: {
+      observed_2026?: {
+        surface_temp_delta_c: number | null
+        t_asset_c: number | null
+        t_township_c: number | null
+        label: string
+      }
       main_metrics?: MainMetric[]
       counterfactual?: Record<string, number>
     }
