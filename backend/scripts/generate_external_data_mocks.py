@@ -58,6 +58,141 @@ KIDO_COLUMNS = [
     "od_inbound_trips", "od_outbound_trips", "vehicle_flow_vpd",
 ]
 
+# ---------------------------------------------------------------------------
+# v6.1 — subtype-conditioned templates
+# ---------------------------------------------------------------------------
+# Every mock value is now derived from the asset's own subtype, so a
+# medical_retail asset's Google Places record always looks like a pharmacy,
+# never like a restaurant. This is the "semantic faithfulness" layer that
+# keeps mocks consistent with assets.csv.
+
+CONSUMER_FACING_SUBTYPES = frozenset({
+    "restaurant", "cafe", "kopitiam", "f_and_b", "convenience_retail",
+    "supermarket", "medical_retail", "services", "showroom", "entertainment",
+    # office is deliberately excluded — office buildings have no
+    # consumer-facing Google Places listing.
+})
+
+
+GOOGLE_PLACES_SUBTYPE_TEMPLATES: dict[str, dict] = {
+    "restaurant": {
+        "types": ["restaurant", "food", "point_of_interest"],
+        "hours_open": 11, "hours_close": 22,
+        "rating_range": (3.5, 4.6),
+        "rating_count_range": (100, 800),
+        "name_suffix": "Restoran",
+    },
+    "cafe": {
+        "types": ["cafe", "food", "point_of_interest"],
+        "hours_open": 7, "hours_close": 19,
+        "rating_range": (3.8, 4.7),
+        "rating_count_range": (20, 300),
+        "name_suffix": "Coffee",
+    },
+    "kopitiam": {
+        "types": ["cafe", "food", "point_of_interest"],
+        "hours_open": 6, "hours_close": 15,
+        "rating_range": (3.5, 4.3),
+        "rating_count_range": (10, 150),
+        "name_suffix": "Kedai Kopi",
+    },
+    "f_and_b": {
+        "types": ["restaurant", "food", "point_of_interest"],
+        "hours_open": 10, "hours_close": 22,
+        "rating_range": (3.4, 4.4),
+        "rating_count_range": (30, 400),
+        "name_suffix": "Kitchen",
+    },
+    "convenience_retail": {
+        "types": ["convenience_store", "food", "store"],
+        "hours_open": 7, "hours_close": 23,
+        "rating_range": (3.6, 4.4),
+        "rating_count_range": (20, 200),
+        "name_suffix": "Speedmart",
+    },
+    "supermarket": {
+        "types": ["supermarket", "grocery_store", "food"],
+        "hours_open": 8, "hours_close": 22,
+        "rating_range": (3.7, 4.5),
+        "rating_count_range": (500, 3000),
+        "name_suffix": "Supermarket",
+    },
+    "medical_retail": {
+        "types": ["pharmacy", "health", "point_of_interest"],
+        "hours_open": 9, "hours_close": 21,
+        "rating_range": (3.8, 4.6),
+        "rating_count_range": (30, 200),
+        "name_suffix": "Farmasi",
+    },
+    "services": {
+        "types": ["store", "business", "point_of_interest"],
+        "hours_open": 9, "hours_close": 18,
+        "rating_range": (3.5, 4.3),
+        "rating_count_range": (20, 200),
+        "name_suffix": "Services",
+    },
+    "showroom": {
+        "types": ["car_dealer", "store", "point_of_interest"],
+        "hours_open": 10, "hours_close": 19,
+        "rating_range": (3.8, 4.5),
+        "rating_count_range": (30, 250),
+        "name_suffix": "Auto",
+    },
+    "entertainment": {
+        "types": ["movie_theater", "point_of_interest"],
+        "hours_open": 12, "hours_close": 23,
+        "rating_range": (3.5, 4.4),
+        "rating_count_range": (100, 800),
+        "name_suffix": "Entertainment",
+    },
+}
+
+
+SUBTYPE_HOUR_TEMPLATES: dict[str, list[float]] = {
+    # 24-element arrays (not normalized here — `_hourly_counts` normalizes).
+    #           h0  h1  h2  h3  h4  h5  h6  h7  h8  h9  h10 h11 h12 h13 h14 h15 h16 h17 h18 h19 h20 h21 h22 h23
+    "office":             [0,  0,  0,  0,  0,  0,  1,  4,  8,  7,  6,  6,  7,  6,  6,  6,  6,  8,  4,  2,  1,  0,  0,  0],
+    "f_and_b":            [0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  2,  5,  8,  6,  3,  2,  3,  6,  9,  7,  5,  2,  1,  0],
+    "restaurant":         [0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  2,  4,  7,  5,  3,  2,  3,  5,  9,  8,  5,  2,  1,  0],
+    "cafe":               [0,  0,  0,  0,  0,  0,  1,  3,  6,  7,  6,  4,  3,  2,  3,  3,  3,  2,  1,  1,  0,  0,  0,  0],
+    "kopitiam":           [0,  0,  0,  0,  0,  1,  4,  8,  9,  6,  4,  3,  3,  2,  2,  2,  2,  2,  1,  0,  0,  0,  0,  0],
+    "supermarket":        [0,  0,  0,  0,  0,  0,  0,  1,  2,  4,  5,  4,  3,  2,  2,  2,  3,  5,  7,  6,  4,  2,  1,  0],
+    "convenience_retail": [0,  0,  0,  0,  0,  0,  1,  3,  4,  4,  3,  3,  2,  2,  2,  2,  2,  3,  4,  3,  2,  1,  0,  0],
+    "medical_retail":     [0,  0,  0,  0,  0,  0,  0,  1,  2,  4,  5,  4,  3,  2,  2,  3,  4,  3,  2,  1,  0,  0,  0,  0],
+    "residential":        [8,  7,  5,  4,  3,  4,  5,  7,  6,  4,  3,  3,  3,  3,  4,  5,  7,  9,  9,  8,  7,  7,  7,  8],
+}
+
+
+SUBTYPE_DWELL_MINUTES: dict[str, tuple[float, float]] = {
+    "office":             (360, 540),
+    "supermarket":        (15, 30),
+    "cafe":               (25, 60),
+    "restaurant":         (45, 90),
+    "kopitiam":           (15, 35),
+    "convenience_retail": (5, 15),
+    "f_and_b":            (20, 50),
+    "medical_retail":     (15, 45),
+    "services":           (10, 30),
+    "showroom":           (20, 60),
+    "entertainment":      (90, 180),
+    "residential":        (480, 720),
+}
+
+
+# Bukit Jelutong is an upscale suburb. Use a township-level socioeconomic
+# baseline instead of per-grid random noise. The previous version drew
+# independent SES for every cell, which contradicts the reality that a
+# single township has a stable income composition.
+TOWNSHIP_SOCIOECONOMIC: dict[str, dict[str, float]] = {
+    "bukit_jelutong": {"a": 0.35, "bc": 0.50, "de": 0.15},
+}
+
+CURRENT_TOWNSHIP = "bukit_jelutong"
+
+
+def _current_socioeconomic_baseline() -> tuple[float, float, float]:
+    cfg = TOWNSHIP_SOCIOECONOMIC.get(CURRENT_TOWNSHIP, {"a": 0.30, "bc": 0.55, "de": 0.15})
+    return cfg["a"], cfg["bc"], cfg["de"]
 
 def _unit_uniform(key: str) -> float:
     raw = hashlib.sha256(key.encode("utf-8")).digest()[:8]
@@ -201,34 +336,23 @@ def _grid_id(x: float, y: float) -> str:
 
 
 def _get_subtype_types(subtype: str) -> list[str]:
-    choices = {
-        "convenience_retail": ["convenience_store", "store", "point_of_interest"],
-        "supermarket": ["supermarket", "grocery_store", "food"],
-        "restaurant": ["restaurant", "food", "point_of_interest"],
-        "f_and_b": ["cafe", "food", "point_of_interest"],
-        "kopitiam": ["restaurant", "food", "point_of_interest"],
-        "cafe": ["cafe", "food", "point_of_interest"],
-        "medical_retail": ["pharmacy", "health", "point_of_interest"],
-        "office": ["corporate_office", "business_center", "point_of_interest"],
-        "services": ["store", "business", "point_of_interest"],
-        "showroom": ["car_dealer", "store", "point_of_interest"],
-        "entertainment": ["movie_theater", "point_of_interest"],
-        "other_commercial": ["store", "point_of_interest"],
-    }
-    result = choices.get(subtype, choices["other_commercial"])
-    # Keep only names recognized by the configured type map, preserving the
-    # generic Places response tags used in the published response schema.
+    """Return the Google Places `types` array for a subtype."""
+    template = GOOGLE_PLACES_SUBTYPE_TEMPLATES.get(subtype)
+    if template is None:
+        return ["point_of_interest"]
     known = set(TYPE_MAPPING.get("direct_match", {})) | set(TYPE_MAPPING.get("category_fallback", {}))
-    return [name for name in result if name in known] or ["point_of_interest"]
+    filtered = [t for t in template["types"] if t in known]
+    return filtered or ["point_of_interest"]
 
 
 def _opening_hours(subtype: str) -> str:
-    if subtype == "office":
+    """Return the JSON opening-hours string for a subtype."""
+    template = GOOGLE_PLACES_SUBTYPE_TEMPLATES.get(subtype)
+    if template is None:
         open_hour, close_hour = 9, 18
-    elif subtype in {"restaurant", "f_and_b", "kopitiam", "cafe", "entertainment"}:
-        open_hour, close_hour = 10, 22
     else:
-        open_hour, close_hour = 9, 21
+        open_hour = template["hours_open"]
+        close_hour = template["hours_close"]
     periods = [
         {"open": {"day": day, "hour": open_hour}, "close": {"day": day, "hour": close_hour}}
         for day in range(7)
@@ -236,7 +360,8 @@ def _opening_hours(subtype: str) -> str:
     return json.dumps({"periods": periods}, separators=(",", ":"))
 
 
-def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict, match_quality: dict) -> list[dict]:
+def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float],
+                       points: dict, match_quality: dict) -> list[dict]:
     rows = []
     target = assets[
         assets["asset_type"].eq("commercial")
@@ -246,9 +371,14 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
         aid = str(asset["asset_id"])
         occupancy = max(0.0, min(1.0, occ.get(aid, 0.5)))
         unit_mix = _unit_mix_for_asset(asset)
-        unit_specs = [(subtype, unit) for subtype, count in unit_mix for unit in range(1, count + 1)]
+        unit_specs = [
+            (subtype, unit)
+            for subtype, count in unit_mix
+            if subtype in CONSUMER_FACING_SUBTYPES
+            for unit in range(1, count + 1)
+        ]
         if not unit_specs:
-            unit_specs = [(str(asset.get("subtype") or "other_commercial"), 1)]
+            continue
 
         point = points.get(aid)
         projected_point = None
@@ -257,6 +387,11 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
 
         for quarter, snapshot_day in enumerate(SNAPSHOT_DATES):
             for subtype, unit_no in unit_specs:
+                template = GOOGLE_PLACES_SUBTYPE_TEMPLATES.get(subtype, {})
+                if not template:
+                    continue
+
+                # Business status
                 chance = _unit_uniform(f"{aid}-{unit_no}-{snapshot_day}-status")
                 if occupancy > 0.70:
                     status = "OPERATIONAL"
@@ -265,21 +400,47 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
                 else:
                     status = "OPERATIONAL" if chance < 0.20 else "CLOSED_PERMANENTLY"
 
+                # Place ID with turnover
                 turnover_prob = min(0.45, 0.02 + 0.40 * (1.0 - occupancy))
                 place_key = f"{aid}-{unit_no}"
                 if quarter > 0 and _unit_uniform(f"{place_key}-turnover-{quarter}") < turnover_prob:
                     place_key += f"-replacement-{quarter}"
                 pid = _place_id(place_key)
 
+                # Rating & rating_count from SUBTYPE envelope, scaled by
+                # occupancy within that envelope.
+                r_lo, r_hi = template["rating_range"]
+                c_lo, c_hi = template["rating_count_range"]
+
                 if occupancy > 0.70:
-                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 3.8, 4.8)
-                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 80, 800)
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", r_lo, r_hi)
+                    rating_count = _integer(
+                        f"{pid}-{snapshot_day}-reviews", c_lo, c_hi
+                    )
                 elif occupancy >= 0.30:
-                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 3.0, 4.2)
-                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 20, 200)
+                    mid = r_lo + (r_hi - r_lo) * 0.3
+                    rating = _uniform(
+                        f"{pid}-{snapshot_day}-rating", r_lo, mid + 0.4
+                    )
+                    count_lo = max(1, int(c_lo * 0.4))
+                    count_hi = max(count_lo + 1, int(c_hi * 0.5))
+                    rating_count = _integer(
+                        f"{pid}-{snapshot_day}-reviews", count_lo, count_hi
+                    )
                 else:
-                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 2.5, 3.8)
-                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 5, 80)
+                    low_hi = r_lo + (r_hi - r_lo) * 0.3
+                    rating = _uniform(
+                        f"{pid}-{snapshot_day}-rating",
+                        max(1.0, r_lo - 0.5), low_hi
+                    )
+                    count_lo = 1
+                    count_hi = max(5, int(c_lo * 0.5))
+                    rating_count = _integer(
+                        f"{pid}-{snapshot_day}-reviews", count_lo, count_hi
+                    )
+
+                suffix = template.get("name_suffix", "Business")
+                display_name = f"{suffix} {aid} #{unit_no}"
 
                 loc = projected_point
                 if loc is not None:
@@ -296,11 +457,13 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
                     "snapshot_date": snapshot_day.isoformat(),
                     "place_id": pid,
                     "asset_id": aid,
-                    "display_name": f"{asset.get('asset_name') or aid} unit {unit_no}",
+                    "display_name": display_name,
                     "business_status": status,
                     "rating": round(rating, 1),
                     "user_rating_count": rating_count,
-                    "types_json": json.dumps(_get_subtype_types(subtype), separators=(",", ":")),
+                    "types_json": json.dumps(
+                        _get_subtype_types(subtype), separators=(",", ":")
+                    ),
                     "regular_opening_hours_json": _opening_hours(subtype),
                     "location_lat": lat,
                     "location_lng": lng,
@@ -319,17 +482,44 @@ def _normalized_ratios(vals: list[float], fallback: list[float]) -> list[float]:
     return rounded
 
 
-def _hourly_counts(total: int, key: str, office_weight: float, retail_weight: float) -> list[int]:
-    weights = []
-    for hour in range(24):
-        if office_weight > 0.5:
-            base = 0.12 if 8 <= hour <= 17 else 0.018
-        elif retail_weight > 0.5:
-            base = 0.09 if 11 <= hour <= 20 else (0.05 if 8 <= hour <= 10 else 0.015)
-        else:
-            base = 0.06 if hour in (7, 8, 17, 18, 19) else 0.025
-        weights.append(base * _uniform(f"{key}-hour-{hour}", 0.9, 1.1))
-    scale = total / sum(weights) if sum(weights) else 0.0
+def _hourly_counts(total: int, key: str, composition: dict[str, float]) -> list[int]:
+    """Build a 24-hour visitor curve from a mixture of subtype templates.
+
+    The composition is {subtype: area_share}. An office-heavy grid gets a
+    curve dominated by the office template (peak at 10:00, zero at 22:00);
+    a mixed grid blends the templates. This replaces the three-tier
+    office/retail/other approximation, which produced implausible night
+    traffic in office grids.
+    """
+    normalized: dict[str, list[float]] = {}
+    for subtype, template in SUBTYPE_HOUR_TEMPLATES.items():
+        s = sum(template)
+        if s <= 0:
+            continue
+        normalized[subtype] = [v / s * 24 for v in template]
+
+    weights = [0.0] * 24
+    total_share = sum(composition.values()) if composition else 0.0
+    if total_share <= 0:
+        fallback = normalized.get("residential") or normalized.get("convenience_retail")
+        if fallback is not None:
+            weights = list(fallback)
+    else:
+        for subtype, share in composition.items():
+            template = normalized.get(subtype)
+            if template is None:
+                continue
+            w = share / total_share
+            for h in range(24):
+                weights[h] += w * template[h]
+
+    for h in range(24):
+        weights[h] *= _uniform(f"{key}-hour-{h}", 0.9, 1.1)
+
+    total_weight = sum(weights)
+    if total_weight <= 0:
+        return [0] * 24
+    scale = total / total_weight
     values = [int(math.floor(w * scale)) for w in weights]
     for i in range(total - sum(values)):
         values[i % 24] += 1
@@ -360,6 +550,7 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
             cells.setdefault(gid, {"assets": [], "population": []})["population"].append(row)
 
     asset_by_id = {str(row.asset_id): row for row in assets.itertuples(index=False)}
+
     for gid, cell in cells.items():
         ix, iy = [int(part) for part in gid.split("-")[1:]]
         geom = box(ix * GRID_SIZE_M, iy * GRID_SIZE_M, (ix + 1) * GRID_SIZE_M, (iy + 1) * GRID_SIZE_M)
@@ -375,13 +566,20 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
 
         cell_assets = [asset_by_id[aid] for aid in cell["assets"] if aid in asset_by_id]
         commercial = [a for a in cell_assets if getattr(a, "asset_type", None) == "commercial"]
+
+        # v6.1 — area-weighted subtype composition drives hourly and dwell
+        composition: dict[str, float] = {}
+        for asset in commercial:
+            subtype = str(getattr(asset, "subtype", "other_commercial"))
+            area = max(0.0, float(getattr(asset, "lettable_area_m2", 0) or 0))
+            if area > 0:
+                composition[subtype] = composition.get(subtype, 0.0) + area
+
         occupied_capacity = sum(
             max(1.0, float(getattr(a, "capacity", 1) or 1)) * occ.get(str(getattr(a, "asset_id")), 0.5)
             for a in commercial
         )
         density = len(commercial) / max(1, len(cell_assets))
-        office_share = sum(1 for a in commercial if getattr(a, "subtype", None) == "office") / max(1, len(commercial))
-        retail_share = 1.0 - office_share if commercial else 0.0
 
         cell["geometry"] = geom
         cell["grid_lat"] = float(center_ll.y)
@@ -393,8 +591,7 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
         cell["commercial_assets"] = commercial
         cell["occupied_capacity"] = occupied_capacity
         cell["commercial_density"] = density
-        cell["office_share"] = office_share
-        cell["retail_share"] = retail_share
+        cell["composition"] = composition
         cell["population_users"] = max(0.0, cell["adult_population"] * _uniform(f"{gid}-penetration", 0.35, 0.45))
 
     base_samples = [c["population_users"] for c in cells.values() if c["population_users"] > 0]
@@ -408,16 +605,16 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
     else:
         occupancy_scale = 1.0
 
-    # Keep the LBS baseline anchored to resident population while making a
-    # substantial part of each mixed-use cell's signal move with occupied
-    # commercial capacity.
     for gid, cell in cells.items():
         base = cell["population_users"]
         if cell["occupied_capacity"] > 0:
-            users = 0.35 * base + 0.65 * cell["occupied_capacity"] * occupancy_scale
+            users = 0.15 * base + 0.85 * cell["occupied_capacity"] * occupancy_scale
         else:
             users = base
         cell["unique_users"] = max(1, int(round(users)))
+
+    # v6.1 — township-level SES baseline, not per-grid random
+    ses_a, ses_bc, ses_de = _current_socioeconomic_baseline()
 
     kido_rows = []
     for gid, cell in sorted(cells.items()):
@@ -430,27 +627,31 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
             )
             total_visits = max(unique_users, int(round(unique_users * visit_multiplier)))
 
-            if cell["office_share"] > 0.50:
-                dwell = _uniform(f"{gid}-{sample_day}-dwell", 360, 540)
-            elif cell["retail_share"] > 0.50:
-                dwell = _uniform(f"{gid}-{sample_day}-dwell", 25, 65)
+            # v6.1 — subtype-weighted dwell time
+            if cell["composition"]:
+                total_share = sum(cell["composition"].values())
+                weighted_dwell = 0.0
+                for subtype, share in cell["composition"].items():
+                    lo, hi = SUBTYPE_DWELL_MINUTES.get(subtype, (10, 30))
+                    weighted_dwell += (share / total_share) * ((lo + hi) / 2)
+                dwell = weighted_dwell * _uniform(f"{gid}-{sample_day}-dwell", 0.9, 1.1)
             else:
-                dwell = _uniform(f"{gid}-{sample_day}-dwell", 10, 30)
+                lo, hi = SUBTYPE_DWELL_MINUTES["residential"]
+                dwell = _uniform(f"{gid}-{sample_day}-dwell", lo, hi)
 
             age = cell["age_ratios"]
-            # The current generated population layer has age bands but no
-            # socioeconomic field. SES bands are therefore explicit,
-            # deterministic assumptions rather than inferred observations.
-            ses = _normalized_ratios([
-                _uniform(f"{gid}-ses-a", 0.12, 0.20),
-                _uniform(f"{gid}-ses-bc", 0.50, 0.62),
-                _uniform(f"{gid}-ses-de", 0.22, 0.34),
-            ], [0.16, 0.56, 0.28])
+            ses_raw = [
+                ses_a * _uniform(f"{gid}-ses-a", 0.90, 1.10),
+                ses_bc * _uniform(f"{gid}-ses-bc", 0.92, 1.08),
+                ses_de * _uniform(f"{gid}-ses-de", 0.90, 1.10),
+            ]
+            ses = _normalized_ratios(ses_raw, [ses_a, ses_bc, ses_de])
+
             inbound_factor = 0.15 + 0.22 * cell["commercial_density"]
             outbound_factor = 0.15 + 0.22 * cell["commercial_density"]
             inbound = int(round(unique_users * inbound_factor * _uniform(f"{gid}-{sample_day}-in", 0.9, 1.1)))
             outbound = int(round(unique_users * outbound_factor * _uniform(f"{gid}-{sample_day}-out", 0.9, 1.1)))
-            hourly = _hourly_counts(total_visits, f"{gid}-{sample_day}", cell["office_share"], cell["retail_share"])
+            hourly = _hourly_counts(total_visits, f"{gid}-{sample_day}", cell["composition"])
 
             kido_rows.append({
                 "grid_id": gid,
@@ -475,11 +676,32 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
 
 
 def generate(occupancy_reference: Path | None = None) -> tuple[int, int]:
+    """Generate external mocks, conditioned on the pre-gate metrics.
+
+    If `occupancy_reference` is not supplied, automatically fall back to
+    `asset_metrics_pre_gate.csv` (written by build_mock_data.py before the
+    authority gate). This removes the manual ordering dependency that
+    previously required users to remember `--occupancy-reference`.
+    """
     assets_rel = PATHS["business"]["assets"]
     metrics_rel = PATHS["business"]["asset_metrics"]
     mock_dir = BASE / PATHS["external_data"]["mock_directory"]
     mock_dir.mkdir(parents=True, exist_ok=True)
     google_path = BASE / PATHS["external_data"]["google_places_snapshots"]
+
+    if occupancy_reference is None:
+        pre_gate = BASE / "business" / "asset_metrics_pre_gate.csv"
+        if pre_gate.exists():
+            occupancy_reference = pre_gate
+            print(f"Using pre-gate metrics: {pre_gate}")
+        else:
+            print(
+                "WARNING: asset_metrics_pre_gate.csv not found. "
+                "External mocks will use post-gate occupancy (sold assets "
+                "fall back to benchmark + noise). Run build_mock_data.py "
+                "first to produce the pre-gate snapshot."
+            )
+
     metrics_path = occupancy_reference or (BASE / metrics_rel)
 
     assets = pd.read_csv(BASE / assets_rel)

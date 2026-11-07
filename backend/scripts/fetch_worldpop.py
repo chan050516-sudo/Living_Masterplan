@@ -35,6 +35,7 @@ DEFAULT_URL = (
     "2026/MYS/v1/100m/constrained/mys_pop_2026_CN_100m_R2025A_v1.tif"
 )
 WORLDPOP_SOURCE = "worldpop_global2"
+DEFAULT_OCCUPANCY_WHEN_UNKNOWN = 0.85
 
 
 def _download(url: str, target: Path) -> None:
@@ -53,23 +54,71 @@ def _grid_geometry(grid_id: str):
                (ix + 1) * GRID_SIZE_M, (iy + 1) * GRID_SIZE_M)
 
 
-def _residential_capacity_by_grid() -> dict[str, float]:
+def _residential_data_by_grid() -> dict[str, dict]:
+    """Return per-grid residential capacity and occupancy for each 400m cell.
+
+    Capacity is dwelling_count × 3.5 residents per dwelling. Occupancy is
+    the capacity-weighted mean of the observed (full_control) residential
+    occupancy in the cell, with a township-typical fallback when no observed
+    value is available.
+
+    This replaces the previous `_residential_capacity_by_grid` function,
+    which returned capacity only. Occupancy is needed so that
+    `worldpop_effective_pop` reflects real household presence rather than
+    raw WorldPop population (which counts "could live here", not
+    "does live here").
+    """
     assets = pd.read_csv(BASE / PATHS["business"]["assets"])
+    metrics_path = BASE / PATHS["business"]["asset_metrics"]
+
+    occupancy_lookup: dict[str, float] = {}
+    if metrics_path.exists():
+        try:
+            metrics = pd.read_csv(metrics_path)
+            if {"asset_id", "year", "occupancy_rate"}.issubset(metrics.columns):
+                current = metrics[metrics["year"] == 2026]
+                occupancy_lookup = dict(zip(
+                    current["asset_id"].astype(str),
+                    pd.to_numeric(current["occupancy_rate"], errors="coerce"),
+                ))
+        except (pd.errors.EmptyDataError, pd.errors.ParserError):
+            occupancy_lookup = {}
+
     buildings = _read_layer(PATHS["geometry"]["buildings"])
     parcels = _read_layer(PATHS["geometry"]["parcels"])
     points, _ = _asset_geometry_points(assets, buildings, parcels)
     residential = assets[assets["asset_type"].eq("residential")]
-    result: dict[str, float] = {}
+
+    result: dict[str, dict] = {}
     for _, row in residential.iterrows():
-        point = points.get(str(row["asset_id"]))
+        aid = str(row["asset_id"])
+        point = points.get(aid)
         if point is None:
             continue
         projected = gpd.GeoSeries([point], crs="EPSG:4326").to_crs(GRID_CRS).iloc[0]
         grid_id = f"G-{int(projected.x // GRID_SIZE_M):04d}-{int(projected.y // GRID_SIZE_M):04d}"
+
         units = pd.to_numeric(pd.Series([row.get("unit_count", 1)]), errors="coerce").iloc[0]
         units = 1.0 if pd.isna(units) else max(0.0, float(units))
-        # A conservative local capacity bound uses 3.5 residents per dwelling.
-        result[grid_id] = result.get(grid_id, 0.0) + units * 3.5
+        capacity = units * 3.5
+
+        occ_raw = occupancy_lookup.get(aid)
+        if occ_raw is None or pd.isna(occ_raw):
+            occupancy = DEFAULT_OCCUPANCY_WHEN_UNKNOWN
+        else:
+            occupancy = float(occ_raw)
+        occupancy = max(0.0, min(1.0, occupancy))
+
+        entry = result.setdefault(grid_id, {"capacity": 0.0, "occupancy_numerator": 0.0})
+        entry["capacity"] += capacity
+        entry["occupancy_numerator"] += capacity * occupancy
+
+    for gid, entry in result.items():
+        if entry["capacity"] > 0:
+            entry["occupancy"] = entry["occupancy_numerator"] / entry["capacity"]
+        else:
+            entry["occupancy"] = DEFAULT_OCCUPANCY_WHEN_UNKNOWN
+        entry.pop("occupancy_numerator", None)
     return result
 
 
@@ -91,8 +140,9 @@ def build_worldpop_csv(raster_path: Path, output_path: Path) -> int:
     if not kido_path.exists():
         raise FileNotFoundError(f"Generate Kido grid first: {kido_path}")
     grids = pd.read_csv(kido_path)[["grid_id", "grid_lat", "grid_lng"]].drop_duplicates("grid_id")
-    capacity = _residential_capacity_by_grid()
-    residential_grids = sorted(set(capacity))
+
+    residential_by_grid = _residential_data_by_grid()
+    residential_grids = sorted(residential_by_grid.keys())
     if not residential_grids:
         raise ValueError("No residential assets could be assigned to 400m cells")
 
@@ -101,12 +151,29 @@ def build_worldpop_csv(raster_path: Path, output_path: Path) -> int:
         for row in grids[grids["grid_id"].isin(residential_grids)].itertuples(index=False):
             geom = _grid_geometry(row.grid_id)
             raw = max(0.0, _population_sum(dataset, geom))
-            cap = max(0.0, capacity.get(row.grid_id, 0.0))
+            entry = residential_by_grid.get(row.grid_id, {})
+            capacity = max(0.0, entry.get("capacity", 0.0))
+            occupancy = float(entry.get("occupancy", DEFAULT_OCCUPANCY_WHEN_UNKNOWN))
+
+            # Effective population = WorldPop raw × observed occupancy.
+            #
+            # v6.1 fix: the previous implementation capped this at
+            # `capacity`, silently discarding the WorldPop signal on every
+            # cell whose raw count exceeded the residential-unit capacity
+            # estimate (itself systematically low because
+            # `_compute_unit_count` only returns a real value for
+            # residential subtypes). The revised formula preserves the
+            # raw signal, scaled by the fraction of those residents who
+            # actually live there. `residential_unit_capacity` is kept as
+            # a diagnostic column but not used as a hard ceiling.
+            effective = raw * occupancy
+
             rows.append({
                 "grid_id": row.grid_id,
                 "worldpop_raw_pop": round(raw, 2),
-                "worldpop_effective_pop": round(min(raw, cap), 2),
-                "residential_unit_capacity": round(cap, 2),
+                "worldpop_effective_pop": round(effective, 2),
+                "worldpop_occupancy_estimate": round(occupancy, 4),
+                "residential_unit_capacity": round(capacity, 2),
                 "source": WORLDPOP_SOURCE,
                 "dataset_year": 2026,
                 "tier": "3a",
