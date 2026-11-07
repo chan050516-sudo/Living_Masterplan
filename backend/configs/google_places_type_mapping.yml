@@ -1,0 +1,137 @@
+version: "1.0.0"
+source: "Google Places API (New) Place type values; project subtype targets use taxonomy.yml"
+
+# First match wins according to priority_order. Direct matches represent a
+# close business-type fit; category_fallback intentionally groups broader
+# Google categories into an existing project subtype.
+direct_match:
+  restaurant: restaurant
+  cafe: cafe
+  supermarket: supermarket
+  convenience_store: convenience_retail
+  pharmacy: medical_retail
+  corporate_office: office
+  office: office
+  business_center: office
+  coworking_space: office
+  shopping_mall: other_commercial
+  department_store: other_commercial
+  grocery_store: supermarket
+  clothing_store: other_commercial
+  electronics_store: other_commercial
+  furniture_store: showroom
+  hardware_store: other_commercial
+  home_goods_store: other_commercial
+  jewelry_store: other_commercial
+  shoe_store: other_commercial
+  pet_store: other_commercial
+  liquor_store: other_commercial
+  book_store: other_commercial
+  bank: services
+  atm: services
+  accounting: services
+  insurance_agency: services
+  lawyer: services
+  real_estate_agency: services
+  travel_agency: services
+  hair_care: services
+  beauty_salon: services
+  spa: services
+  laundry: services
+  car_repair: services
+  car_dealer: showroom
+  gas_station: services
+  car_wash: services
+  auto_parts_store: other_commercial
+  doctor: medical_retail
+  dentist: medical_retail
+  medical_clinic: medical_retail
+  physiotherapist: medical_retail
+  optician: medical_retail
+  health: medical_retail
+  gym: other_commercial
+  movie_theater: entertainment
+  hotel: other_commercial
+
+category_fallback:
+  bakery: f_and_b
+  bar: f_and_b
+  meal_delivery: f_and_b
+  meal_takeaway: f_and_b
+  food: f_and_b
+  point_of_interest: other_commercial
+  establishment: other_commercial
+  store: other_commercial
+  general_contractor: services
+  plumber: services
+  electrician: services
+  locksmith: services
+  moving_company: services
+  storage: services
+  repair: services
+  event_venue: entertainment
+  night_club: entertainment
+  bowling_alley: entertainment
+  amusement_center: entertainment
+  school: other_commercial
+  library: other_commercial
+  community_center: other_commercial
+
+fallback_subtype: other_commercial
+
+# Place may return several type tags; use the most specific recognized tag.
+priority_order:
+  - supermarket
+  - grocery_store
+  - convenience_store
+  - pharmacy
+  - medical_clinic
+  - doctor
+  - dentist
+  - restaurant
+  - cafe
+  - bakery
+  - meal_takeaway
+  - meal_delivery
+  - bar
+  - corporate_office
+  - business_center
+  - coworking_space
+  - department_store
+  - shopping_mall
+  - clothing_store
+  - electronics_store
+  - furniture_store
+  - hardware_store
+  - home_goods_store
+  - jewelry_store
+  - shoe_store
+  - pet_store
+  - liquor_store
+  - book_store
+  - bank
+  - atm
+  - accounting
+  - insurance_agency
+  - lawyer
+  - real_estate_agency
+  - travel_agency
+  - hair_care
+  - beauty_salon
+  - spa
+  - laundry
+  - car_repair
+  - car_dealer
+  - gas_station
+  - car_wash
+  - auto_parts_store
+  - physiotherapist
+  - optician
+  - health
+  - gym
+  - movie_theater
+  - hotel
+  - event_venue
+  - night_club
+  - bowling_alley
+  - amusement_center

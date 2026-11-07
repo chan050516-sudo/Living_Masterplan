@@ -187,6 +187,21 @@ subtypes:
     is_core_amenity: false
     source: "Retail benchmark placeholder"
 
+  other_commercial:
+    asset_class: commercial
+    display_name: "Other commercial business"
+    target_area_m2: [20, 5000]
+    occupancy_benchmark: 0.70
+    market_rent_rm_per_m2_year: 160
+    energy_intensity_kwh_m2_year: 250
+    material_intensity_tco2e_m2: 0.35
+    structural_lifespan_years: 30
+    target_demographics: [all]
+    competition_radius_m: 800
+    demand_coefficient_m2_per_person: 0.05
+    is_core_amenity: false
+    source: "Conservative fallback for unmapped Google Places types"
+
 # ============ Community Facility ============
   clinic:
     asset_class: community_facility
