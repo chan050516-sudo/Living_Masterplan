@@ -29,6 +29,9 @@ from scripts.generate_external_data_mocks import (  # noqa: E402
     DISPLAY_CRS,
     GRID_CRS,
     GRID_SIZE_M,
+    POI_AVG_UTILISATION,
+    poi_capacity,
+    poi_profile,
     _asset_geometry_points,
     _normalized_ratios,
     _read_layer,
@@ -190,7 +193,7 @@ def _build_grid_network_graph(grid_geom: dict, network_proj) -> dict[str, set[st
     """Estimate reachable neighbour activity through mapped road/path cells.
 
     A simple grid graph is formed where OSM linework crosses a shared edge
-    between adjacent 400m cells. This keeps flow-island signals sensitive to
+    between adjacent 100m cells. This keeps flow-island signals sensitive to
     mapped network breaks without pretending that straight-line distance is
     walking access.
     """
@@ -218,6 +221,27 @@ def _build_grid_network_graph(grid_geom: dict, network_proj) -> dict[str, set[st
     return adjacency
 
 
+def _nearby_users(grid_id: str, grid_mean: dict, max_hops: int = 3) -> float:
+    """Users in cells within `max_hops` grid steps, ignoring the network.
+
+    Same 1/hops weighting as `_network_reachable_users`, so the two are
+    directly comparable.
+    """
+    if not grid_id:
+        return 0.0
+    ix, iy = (int(part) for part in grid_id.split("-")[1:])
+    total = 0.0
+    for dx in range(-max_hops, max_hops + 1):
+        for dy in range(-max_hops, max_hops + 1):
+            hops = abs(dx) + abs(dy)
+            if hops == 0 or hops > max_hops:
+                continue
+            cell = grid_mean.get(f"G-{ix + dx:04d}-{iy + dy:04d}")
+            if cell:
+                total += cell["unique"] / hops
+    return total
+
+
 def _network_reachable_users(grid_id: str, adjacency: dict, grid_mean: dict) -> float:
     if grid_id not in adjacency:
         return 0.0
@@ -241,7 +265,8 @@ def _network_reachable_users(grid_id: str, adjacency: dict, grid_mean: dict) -> 
 
 def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
                       points: dict, network: gpd.GeoDataFrame,
-                      business_presence: pd.DataFrame | None = None) -> pd.DataFrame:
+                      business_presence: pd.DataFrame | None = None,
+                      poi: pd.DataFrame | None = None) -> pd.DataFrame:
     columns = [
         "asset_id", "grid_id", "lbs_unique_users_daily", "grid_unique_users_daily",
         "lbs_dwell_time_minutes",
@@ -256,12 +281,17 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
     if eligible.empty:
         return pd.DataFrame(columns=columns)
 
-    google_proxy_by_asset = {}
-    if business_presence is not None and not business_presence.empty:
-        google_proxy_by_asset = dict(zip(
-            business_presence["asset_id"].astype(str),
-            pd.to_numeric(business_presence["proxied_occupancy_google"], errors="coerce").fillna(0.0),
-        ))
+    # D-19: LBS no longer borrows Google's occupancy signal (it used to scale
+    # visitors by it), so the two proxies stay independent and can be
+    # cross-checked. `business_presence` is kept in the signature for callers.
+    poi_mean = {}
+    if poi is not None and not poi.empty:
+        for aid, group in poi.groupby("asset_id"):
+            poi_mean[str(aid)] = {
+                "unique": float(pd.to_numeric(group["unique_visitors"], errors="coerce").fillna(0).mean()),
+                "visits": float(pd.to_numeric(group["total_visits"], errors="coerce").fillna(0).mean()),
+                "dwell": float(pd.to_numeric(group["avg_dwell_time_minutes"], errors="coerce").fillna(0).mean()),
+            }
 
     grid_lookup = _asset_grid_lookup(assets, points)
     commercial_area_by_grid: dict[str, float] = {}
@@ -327,27 +357,39 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
             ses = _normalized_ratios(local["ses"], [0.16, 0.56, 0.28])
             kido_vpd = local["vpd"]
 
-        capacity_users = max(1.0, float(getattr(asset, "lettable_area_m2", 0) or 0) / 15.0)
-        try:
-            asset_area = max(0.0, float(getattr(asset, "lettable_area_m2", 0) or 0))
-        except (TypeError, ValueError):
-            asset_area = 0.0
-        area_share = asset_area / max(1.0, commercial_area_by_grid.get(gid, asset_area))
-        # The Kido feed is cell-level. Allocate a conservative share of cell
-        # users to this business by lettable area before computing an
-        # asset-level occupancy proxy; otherwise every shop in a busy cell
-        # would inherit the entire cell population and saturate at 100%.
-        occupancy_signal = max(0.0, min(1.0, float(google_proxy_by_asset.get(aid, 0.5))))
-        asset_users = (
-            local_users * min(1.0, max(0.0, area_share))
-            * (0.15 + 0.85 * occupancy_signal) * 0.25
-        )
-        proxied_occ = min(1.0, max(0.0, asset_users * (dwell / 60.0) / 12.0 / capacity_users))
+        capacity_users = poi_capacity(asset)
+        typical_dwell, open_hours = poi_profile(getattr(asset, "subtype", None))
+        poi = poi_mean.get(aid)
+        if poi is not None:
+            # D-19: Kido POI analytics count visitors to this shop's own
+            # polygon, so no cell-to-shop allocation is needed.
+            asset_users = poi["unique"]
+            dwell = poi["dwell"]
+            monthly_frequency = poi["visits"] / max(1.0, asset_users) * 30.4
+            source = "derived_from_kido_dynamics_poi_mock"
+        else:
+            # No POI record: share the cell's users by lettable area (no
+            # Google input, so LBS stays an independent signal).
+            try:
+                asset_area = max(0.0, float(getattr(asset, "lettable_area_m2", 0) or 0))
+            except (TypeError, ValueError):
+                asset_area = 0.0
+            area_share = asset_area / max(1.0, commercial_area_by_grid.get(gid, asset_area))
+            asset_users = local_users * min(1.0, max(0.0, area_share))
+            source = "derived_from_kido_dynamics_mock" if local is not None else "osm_proxy"
 
-        # Reachable neighbourhood activity excludes the local grid so an
-        # isolated cell can produce a low ratio.
-        neighbor_users = _network_reachable_users(gid, grid_adjacency, grid_mean)
-        flow_island = neighbor_users / max(1.0, local_users + neighbor_users)
+        # D-19: occupancy proxy = average people inside / what an occupied
+        # shop of this size normally holds.
+        #   people inside on average = visitors x dwell / opening minutes
+        people_inside = asset_users * (dwell or typical_dwell) / (open_hours * 60.0)
+        proxied_occ = min(1.0, max(0.0, people_inside / (capacity_users * POI_AVG_UTILISATION)))
+
+        # D-20: flow island = share of the footfall around the asset that the
+        # street/path network actually connects to it. Low = people are
+        # nearby but cannot easily walk in (cut off by roads, walls, drains).
+        reachable = _network_reachable_users(gid, grid_adjacency, grid_mean)
+        nearby = _nearby_users(gid, grid_mean)
+        flow_island = reachable / nearby if nearby > 0 else 1.0
 
         if gid in grid_geom:
             traffic, traffic_source = resolve_traffic_exposure(kido_vpd, network_proj, grid_geom[gid])
@@ -370,9 +412,12 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
             "traffic_exposure_vpd": int(traffic),
             "traffic_exposure_source": traffic_source,
             "flow_island_ratio": round(flow_island, 4),
-            "observed_demand_ratio": round(asset_users / capacity_users, 4),
+            # D-19: footfall vs what a normally-run shop of this size draws
+            # (1.0 = normal). Daily visitors / capacity was not comparable
+            # across subtypes once visitors became realistic.
+            "observed_demand_ratio": round(proxied_occ, 4),
             "tier": "3a",
-            "source": "derived_from_kido_dynamics_mock" if local is not None else "osm_proxy",
+            "source": source,
             "is_mock": True,
         })
     return pd.DataFrame(rows_out, columns=columns)
@@ -417,7 +462,9 @@ def ingest() -> dict[str, int]:
     parcels = _read_layer(PATHS["geometry"]["parcels"])
     network = _read_layer(PATHS["geometry"]["network"])
     points, _ = _asset_geometry_points(assets, buildings, parcels)
-    lbs_metrics = build_lbs_metrics(assets, kido, points, network, business_presence)
+    poi_path = BASE / external_paths["kido_poi"]
+    poi = pd.read_csv(poi_path) if poi_path.exists() else None
+    lbs_metrics = build_lbs_metrics(assets, kido, points, network, business_presence, poi)
 
     if not worldpop.empty:
         worldpop["tier"] = worldpop.get("tier", "3a").fillna("3a") if isinstance(worldpop.get("tier"), pd.Series) else "3a"

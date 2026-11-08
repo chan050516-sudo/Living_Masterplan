@@ -27,11 +27,13 @@ DEFAULTS = {
     "conflict_demand_high": 0.50,
 }
 
-# Google's presence ratio tracks unit occupancy far better than the LBS
-# footfall-to-capacity ratio, so it is tried first.
+# D-21: LBS footfall is tried first. Counting real visitors to the shop is
+# a more reliable occupancy signal than Google listings, which stay
+# "OPERATIONAL" long after a shop goes quiet (mock check vs hidden truth:
+# LBS r=0.95, Google r=0.76). Google is the fallback.
 _OCCUPANCY_PROXIES = (
-    ("proxied_occupancy_google", "google_places_mock"),
     ("proxied_occupancy_lbs", "kido_dynamics_mock"),
+    ("proxied_occupancy_google", "google_places_mock"),
 )
 
 

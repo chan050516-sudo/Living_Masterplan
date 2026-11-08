@@ -134,11 +134,11 @@ BLD-0137,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0137,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0137,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0137,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0210,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0210,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0210,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0210,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0210,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
+BLD-0210,2022,terrace,0.755,0.245,2.0,,,,,15.0,,synthetic_mock,0.4.0
+BLD-0210,2023,terrace,0.761,0.239,3.0,,,,,15.0,,synthetic_mock,0.4.0
+BLD-0210,2024,terrace,0.775,0.225,1.0,,,,,16.0,,synthetic_mock,0.4.0
+BLD-0210,2025,terrace,0.845,0.155,0.0,,,,,17.0,,synthetic_mock,0.4.0
+BLD-0210,2026,terrace,0.094,0.906,32.0,,,,,2.0,,synthetic_mock,0.4.0
 BLD-0146,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0146,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0146,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -314,16 +314,16 @@ BLD-0421,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0421,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0421,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0421,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0300,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0300,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0300,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0300,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0300,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0256,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0256,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0256,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0256,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0256,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
+BLD-0300,2022,detached,0.755,0.245,1.0,,,,,5.0,,synthetic_mock,0.4.0
+BLD-0300,2023,detached,0.855,0.145,1.0,,,,,5.0,,synthetic_mock,0.4.0
+BLD-0300,2024,detached,0.845,0.155,1.0,,,,,5.0,,synthetic_mock,0.4.0
+BLD-0300,2025,detached,0.851,0.149,2.0,,,,,5.0,,synthetic_mock,0.4.0
+BLD-0300,2026,detached,0.172,0.828,13.0,,,,,1.0,,synthetic_mock,0.4.0
+BLD-0256,2022,terrace,0.796,0.204,3.0,,,,,14.0,,synthetic_mock,0.4.0
+BLD-0256,2023,terrace,0.815,0.185,2.0,,,,,14.0,,synthetic_mock,0.4.0
+BLD-0256,2024,terrace,0.761,0.239,2.0,,,,,13.0,,synthetic_mock,0.4.0
+BLD-0256,2025,terrace,0.887,0.113,2.0,,,,,15.0,,synthetic_mock,0.4.0
+BLD-0256,2026,terrace,0.072,0.928,28.0,,,,,1.0,,synthetic_mock,0.4.0
 BLD-0253,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0253,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0253,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -464,11 +464,11 @@ BLD-0527,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0527,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0527,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0527,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0255,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0255,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0255,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0255,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0255,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
+BLD-0255,2022,terrace,0.0,1.0,60.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0255,2023,terrace,0.0,1.0,72.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0255,2024,terrace,0.0,1.0,84.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0255,2025,terrace,0.0,1.0,96.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0255,2026,terrace,0.0,1.0,108.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0259,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0259,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0259,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -524,11 +524,11 @@ BLD-0416,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0416,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0416,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0416,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0257,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0257,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0257,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0257,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0257,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
+BLD-0257,2022,terrace,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0257,2023,terrace,0.0,1.0,12.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0257,2024,terrace,0.0,1.0,24.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0257,2025,terrace,0.0,1.0,36.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0257,2026,terrace,0.0,1.0,48.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0529,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0529,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0529,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -949,11 +949,11 @@ BLD-0236,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0236,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0236,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0236,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0307,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0307,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0307,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0307,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0307,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0307,2022,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0307,2023,detached,0.0,1.0,12.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0307,2024,detached,0.0,1.0,24.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0307,2025,detached,0.0,1.0,36.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0307,2026,detached,0.0,1.0,48.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0405,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0405,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0405,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1159,11 +1159,11 @@ BLD-0217,2023,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0217,2024,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0217,2025,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0217,2026,semidetached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0279,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0279,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0279,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0279,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0279,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0279,2022,detached,0.854,0.146,0.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0279,2023,detached,0.894,0.106,2.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0279,2024,detached,0.871,0.129,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0279,2025,detached,0.873,0.127,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0279,2026,detached,0.009,0.991,12.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0517,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0517,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0517,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1214,11 +1214,11 @@ BLD-0291,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0291,2024,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0291,2025,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0291,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0284,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0284,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0284,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0284,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0284,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0284,2022,detached,0.8,0.2,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0284,2023,detached,0.867,0.133,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0284,2024,detached,0.802,0.198,2.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0284,2025,detached,0.816,0.184,2.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0284,2026,detached,0.036,0.964,48.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0126,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0126,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0126,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1384,11 +1384,11 @@ BLD-0429,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0429,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0429,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0429,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0288,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0288,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0288,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0288,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0288,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0288,2022,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0288,2023,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0288,2024,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0288,2025,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0288,2026,detached,0.0,1.0,12.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0375,2022,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0375,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0375,2024,detached,,,,,,,,,,authority_redacted,0.4.0
@@ -1414,11 +1414,11 @@ BLD-0599,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0599,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0599,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0599,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0199,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0199,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0199,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0199,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0199,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
+BLD-0199,2022,terrace,0.0,1.0,60.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0199,2023,terrace,0.0,1.0,72.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0199,2024,terrace,0.0,1.0,84.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0199,2025,terrace,0.0,1.0,96.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0199,2026,terrace,0.0,1.0,108.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0666,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0666,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0666,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1459,11 +1459,11 @@ BLD-0437,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0437,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0437,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0437,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0314,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0314,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0314,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0314,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0314,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0314,2022,detached,0.867,0.133,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0314,2023,detached,0.85,0.15,2.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0314,2024,detached,0.863,0.137,0.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0314,2025,detached,0.871,0.129,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0314,2026,detached,0.141,0.859,27.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0648,2022,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 BLD-0648,2023,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 BLD-0648,2024,kopitiam,,,,,,,,,,authority_redacted,0.4.0
@@ -1474,11 +1474,11 @@ BLD-0200,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0200,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0200,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0200,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0289,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0289,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0289,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0289,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0289,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0289,2022,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0289,2023,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0289,2024,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0289,2025,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0289,2026,detached,0.0,1.0,12.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0431,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0431,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0431,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1534,11 +1534,11 @@ BLD-0807,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0807,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0807,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0807,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0215,2022,semidetached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0215,2023,semidetached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0215,2024,semidetached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0215,2025,semidetached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0215,2026,semidetached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0215,2022,semidetached,0.0,1.0,60.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0215,2023,semidetached,0.0,1.0,72.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0215,2024,semidetached,0.0,1.0,84.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0215,2025,semidetached,0.0,1.0,96.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0215,2026,semidetached,0.0,1.0,108.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0220,2022,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0220,2023,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0220,2024,semidetached,,,,,,,,,,authority_redacted,0.4.0
@@ -1569,11 +1569,11 @@ BLD-0276,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0276,2024,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0276,2025,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0276,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0287,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0287,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0287,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0287,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0287,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0287,2022,detached,0.855,0.145,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0287,2023,detached,0.765,0.235,3.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0287,2024,detached,0.845,0.155,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0287,2025,detached,0.782,0.218,1.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0287,2026,detached,0.172,0.828,18.0,,,,,1.0,,synthetic_mock,0.4.0
 BLD-0404,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0404,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0404,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1629,11 +1629,11 @@ BLD-0808,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0808,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0808,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0808,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0302,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0302,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0302,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0302,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0302,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0302,2022,detached,0.848,0.152,2.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0302,2023,detached,0.802,0.198,2.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0302,2024,detached,0.806,0.194,3.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0302,2025,detached,0.757,0.243,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0302,2026,detached,0.175,0.825,28.0,,,,,1.0,,synthetic_mock,0.4.0
 BLD-0361,2022,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0361,2023,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0361,2024,semidetached,,,,,,,,,,authority_redacted,0.4.0
@@ -1794,11 +1794,11 @@ BLD-0282,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0282,2024,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0282,2025,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0282,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0281,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0281,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0281,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0281,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0281,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0281,2022,detached,0.0,1.0,1.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0281,2023,detached,0.0,1.0,12.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0281,2024,detached,0.0,1.0,24.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0281,2025,detached,0.0,1.0,36.0,,,,,0.0,,synthetic_mock,0.4.0
+BLD-0281,2026,detached,0.0,1.0,48.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0455,2022,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0455,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0455,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
@@ -1824,11 +1824,11 @@ BLD-0232,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0232,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0232,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0232,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0280,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0280,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0280,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0280,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0280,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0280,2022,detached,0.76,0.24,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0280,2023,detached,0.843,0.157,1.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0280,2024,detached,0.841,0.159,3.0,,,,,3.0,,synthetic_mock,0.4.0
+BLD-0280,2025,detached,0.752,0.248,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0280,2026,detached,0.097,0.903,19.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0352,2022,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0352,2023,semidetached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0352,2024,semidetached,,,,,,,,,,authority_redacted,0.4.0
@@ -1919,11 +1919,11 @@ BLD-0295,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0295,2024,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0295,2025,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0295,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0270,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0270,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0270,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0270,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0270,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0270,2022,detached,0.826,0.174,2.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0270,2023,detached,0.815,0.185,3.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0270,2024,detached,0.788,0.212,1.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0270,2025,detached,0.804,0.196,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0270,2026,detached,0.199,0.801,19.0,,,,,1.0,,synthetic_mock,0.4.0
 BLD-0319,2022,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0319,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0319,2024,detached,,,,,,,,,,authority_redacted,0.4.0
@@ -2104,11 +2104,11 @@ BLD-0317,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0317,2024,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0317,2025,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0317,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0303,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0303,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0303,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0303,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0303,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0303,2022,detached,0.806,0.194,2.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0303,2023,detached,0.895,0.105,3.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0303,2024,detached,0.774,0.226,1.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0303,2025,detached,0.866,0.134,2.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0303,2026,detached,0.098,0.902,22.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0538,2022,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0538,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0538,2024,detached,,,,,,,,,,authority_redacted,0.4.0
@@ -2439,11 +2439,11 @@ BLD-0400,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0400,2024,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0400,2025,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0400,2026,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0332,2022,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0332,2023,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0332,2024,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0332,2025,detached,,,,,,,,,,authority_redacted,0.4.0
-BLD-0332,2026,detached,,,,,,,,,,authority_redacted,0.4.0
+BLD-0332,2022,detached,0.886,0.114,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0332,2023,detached,0.776,0.224,0.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0332,2024,detached,0.864,0.136,1.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0332,2025,detached,0.876,0.124,1.0,,,,,2.0,,synthetic_mock,0.4.0
+BLD-0332,2026,detached,0.175,0.825,26.0,,,,,0.0,,synthetic_mock,0.4.0
 BLD-0401,2022,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0401,2023,detached,,,,,,,,,,authority_redacted,0.4.0
 BLD-0401,2024,detached,,,,,,,,,,authority_redacted,0.4.0
@@ -4044,11 +4044,11 @@ BLD-0057,2023,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0057,2024,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0057,2025,terrace,,,,,,,,,,authority_redacted,0.4.0
 BLD-0057,2026,terrace,,,,,,,,,,authority_redacted,0.4.0
-BLD-0037,2022,supermarket,,,,,,,,,,authority_redacted,0.4.0
-BLD-0037,2023,supermarket,,,,,,,,,,authority_redacted,0.4.0
-BLD-0037,2024,supermarket,,,,,,,,,,authority_redacted,0.4.0
-BLD-0037,2025,supermarket,,,,,,,,,,authority_redacted,0.4.0
-BLD-0037,2026,supermarket,,,,,,,,,,authority_redacted,0.4.0
+BLD-0037,2022,supermarket,0.651,0.349,17.0,361.0,,1001597.82,,,"{""restaurant"": 0.543, ""kopitiam"": 0.55, ""cafe"": 0.542, ""convenience_retail"": 0.907, ""services"": 0.55, ""medical_retail"": 0.55, ""office"": 0.796}",synthetic_mock,0.4.0
+BLD-0037,2023,supermarket,0.654,0.346,12.0,363.0,,1005364.87,,,"{""restaurant"": 0.629, ""kopitiam"": 0.55, ""cafe"": 0.533, ""convenience_retail"": 0.914, ""services"": 0.55, ""medical_retail"": 0.55, ""office"": 0.765}",synthetic_mock,0.4.0
+BLD-0037,2024,supermarket,0.659,0.341,7.0,365.0,,1013439.53,,,"{""restaurant"": 0.626, ""kopitiam"": 0.55, ""cafe"": 0.555, ""convenience_retail"": 0.871, ""services"": 0.55, ""medical_retail"": 0.55, ""office"": 0.815}",synthetic_mock,0.4.0
+BLD-0037,2025,supermarket,0.653,0.347,14.0,362.0,,1004435.29,,,"{""restaurant"": 0.542, ""kopitiam"": 0.55, ""cafe"": 0.553, ""convenience_retail"": 0.893, ""services"": 0.55, ""medical_retail"": 0.55, ""office"": 0.811}",synthetic_mock,0.4.0
+BLD-0037,2026,supermarket,0.639,0.361,14.0,354.0,,982070.5,,,"{""restaurant"": 0.554, ""kopitiam"": 0.55, ""cafe"": 0.527, ""convenience_retail"": 0.86, ""services"": 0.55, ""medical_retail"": 0.55, ""office"": 0.771}",synthetic_mock,0.4.0
 A-0002,2022,school,,,,,,,,,,authority_redacted,0.4.0
 A-0002,2023,school,,,,,,,,,,authority_redacted,0.4.0
 A-0002,2024,school,,,,,,,,,,authority_redacted,0.4.0
@@ -4074,11 +4074,11 @@ A-0014,2023,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0014,2024,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0014,2025,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0014,2026,clinic,,,,,,,,,,authority_redacted,0.4.0
-A-0018,2022,community_hall,,,,,,,,,,authority_redacted,0.4.0
-A-0018,2023,community_hall,,,,,,,,,,authority_redacted,0.4.0
-A-0018,2024,community_hall,,,,,,,,,,authority_redacted,0.4.0
-A-0018,2025,community_hall,,,,,,,,,,authority_redacted,0.4.0
-A-0018,2026,community_hall,,,,,,,,,,authority_redacted,0.4.0
+A-0018,2022,community_hall,0.614,0.386,15.0,,0.614,,,,,synthetic_mock,0.4.0
+A-0018,2023,community_hall,0.642,0.358,14.0,,0.642,,,,,synthetic_mock,0.4.0
+A-0018,2024,community_hall,0.581,0.419,16.0,,0.581,,,,,synthetic_mock,0.4.0
+A-0018,2025,community_hall,0.661,0.339,17.0,,0.661,,,,,synthetic_mock,0.4.0
+A-0018,2026,community_hall,0.595,0.405,8.0,,0.595,,,,,synthetic_mock,0.4.0
 A-0019,2022,school,,,,,,,,,,authority_redacted,0.4.0
 A-0019,2023,school,,,,,,,,,,authority_redacted,0.4.0
 A-0019,2024,school,,,,,,,,,,authority_redacted,0.4.0
@@ -4094,26 +4094,26 @@ A-0025,2023,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0025,2024,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0025,2025,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0025,2026,clinic,,,,,,,,,,authority_redacted,0.4.0
-A-0029,2022,clinic,0.844,0.156,1.0,,0.844,,,,,synthetic_mock,0.4.0
-A-0029,2023,clinic,0.771,0.229,1.0,,0.771,,,,,synthetic_mock,0.4.0
-A-0029,2024,clinic,0.828,0.172,1.0,,0.828,,,,,synthetic_mock,0.4.0
-A-0029,2025,clinic,0.777,0.223,0.0,,0.777,,,,,synthetic_mock,0.4.0
-A-0029,2026,clinic,0.824,0.176,2.0,,0.824,,,,,synthetic_mock,0.4.0
-A-0031,2022,clinic,0.381,0.619,16.0,,0.381,,,,,synthetic_mock,0.4.0
-A-0031,2023,clinic,0.376,0.624,11.0,,0.376,,,,,synthetic_mock,0.4.0
-A-0031,2024,clinic,0.383,0.617,13.0,,0.383,,,,,synthetic_mock,0.4.0
-A-0031,2025,clinic,0.42,0.58,11.0,,0.42,,,,,synthetic_mock,0.4.0
-A-0031,2026,clinic,0.368,0.632,15.0,,0.368,,,,,synthetic_mock,0.4.0
-A-0032,2022,clinic,0.605,0.395,12.0,,0.605,,,,,synthetic_mock,0.4.0
-A-0032,2023,clinic,0.579,0.421,13.0,,0.579,,,,,synthetic_mock,0.4.0
-A-0032,2024,clinic,0.584,0.416,6.0,,0.584,,,,,synthetic_mock,0.4.0
-A-0032,2025,clinic,0.58,0.42,14.0,,0.58,,,,,synthetic_mock,0.4.0
-A-0032,2026,clinic,0.576,0.424,18.0,,0.576,,,,,synthetic_mock,0.4.0
-A-0034,2022,clinic,0.456,0.544,12.0,,0.456,,,,,synthetic_mock,0.4.0
-A-0034,2023,clinic,0.541,0.459,9.0,,0.541,,,,,synthetic_mock,0.4.0
-A-0034,2024,clinic,0.504,0.496,16.0,,0.504,,,,,synthetic_mock,0.4.0
-A-0034,2025,clinic,0.476,0.524,8.0,,0.476,,,,,synthetic_mock,0.4.0
-A-0034,2026,clinic,0.55,0.45,16.0,,0.55,,,,,synthetic_mock,0.4.0
+A-0029,2022,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0029,2023,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0029,2024,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0029,2025,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0029,2026,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0031,2022,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0031,2023,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0031,2024,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0031,2025,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0031,2026,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0032,2022,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0032,2023,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0032,2024,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0032,2025,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0032,2026,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0034,2022,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0034,2023,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0034,2024,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0034,2025,clinic,,,,,,,,,,authority_redacted,0.4.0
+A-0034,2026,clinic,,,,,,,,,,authority_redacted,0.4.0
 A-0038,2022,school,,,,,,,,,,authority_redacted,0.4.0
 A-0038,2023,school,,,,,,,,,,authority_redacted,0.4.0
 A-0038,2024,school,,,,,,,,,,authority_redacted,0.4.0
@@ -4134,11 +4134,11 @@ A-0041,2023,school,,,,,,,,,,authority_redacted,0.4.0
 A-0041,2024,school,,,,,,,,,,authority_redacted,0.4.0
 A-0041,2025,school,,,,,,,,,,authority_redacted,0.4.0
 A-0041,2026,school,,,,,,,,,,authority_redacted,0.4.0
-A-0042,2022,school,0.525,0.475,7.0,,0.525,,,,,synthetic_mock,0.4.0
-A-0042,2023,school,0.532,0.468,11.0,,0.532,,,,,synthetic_mock,0.4.0
-A-0042,2024,school,0.485,0.515,16.0,,0.485,,,,,synthetic_mock,0.4.0
-A-0042,2025,school,0.509,0.491,17.0,,0.509,,,,,synthetic_mock,0.4.0
-A-0042,2026,school,0.566,0.434,12.0,,0.566,,,,,synthetic_mock,0.4.0
+A-0042,2022,school,,,,,,,,,,authority_redacted,0.4.0
+A-0042,2023,school,,,,,,,,,,authority_redacted,0.4.0
+A-0042,2024,school,,,,,,,,,,authority_redacted,0.4.0
+A-0042,2025,school,,,,,,,,,,authority_redacted,0.4.0
+A-0042,2026,school,,,,,,,,,,authority_redacted,0.4.0
 A-0043,2022,school,,,,,,,,,,authority_redacted,0.4.0
 A-0043,2023,school,,,,,,,,,,authority_redacted,0.4.0
 A-0043,2024,school,,,,,,,,,,authority_redacted,0.4.0
@@ -4164,21 +4164,21 @@ A-0052,2023,community_hall,0.501,0.499,12.0,,0.501,,,,,synthetic_mock,0.4.0
 A-0052,2024,community_hall,0.422,0.578,12.0,,0.422,,,,,synthetic_mock,0.4.0
 A-0052,2025,community_hall,0.444,0.556,10.0,,0.444,,,,,synthetic_mock,0.4.0
 A-0052,2026,community_hall,0.517,0.483,8.0,,0.517,,,,,synthetic_mock,0.4.0
-A-0003,2022,restaurant,0.818,0.182,1.0,215.0,,1849437.93,,,"{""restaurant"": 0.872, ""kopitiam"": 0.761, ""cafe"": 0.815, ""convenience_retail"": 0.791, ""services"": 0.768, ""medical_retail"": 0.832, ""office"": 0.884}",synthetic_mock,0.4.0
-A-0003,2023,restaurant,0.807,0.193,2.0,213.0,,1825754.38,,,"{""restaurant"": 0.764, ""kopitiam"": 0.804, ""cafe"": 0.821, ""convenience_retail"": 0.842, ""services"": 0.77, ""medical_retail"": 0.758, ""office"": 0.892}",synthetic_mock,0.4.0
-A-0003,2024,restaurant,0.83,0.17,2.0,219.0,,1876751.62,,,"{""restaurant"": 0.891, ""kopitiam"": 0.84, ""cafe"": 0.866, ""convenience_retail"": 0.803, ""services"": 0.813, ""medical_retail"": 0.765, ""office"": 0.831}",synthetic_mock,0.4.0
-A-0003,2025,restaurant,0.816,0.184,0.0,215.0,,1845068.8,,,"{""restaurant"": 0.756, ""kopitiam"": 0.879, ""cafe"": 0.765, ""convenience_retail"": 0.832, ""services"": 0.828, ""medical_retail"": 0.835, ""office"": 0.815}",synthetic_mock,0.4.0
-A-0003,2026,restaurant,0.067,0.933,33.0,18.0,,151436.99,,,"{""restaurant"": 0.174, ""kopitiam"": 0.023, ""cafe"": 0.037, ""convenience_retail"": 0.109, ""services"": 0.046, ""medical_retail"": 0.041, ""office"": 0.04}",synthetic_mock,0.4.0
+A-0003,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0003,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0003,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0003,2025,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0003,2026,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0004,2022,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0004,2023,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0004,2024,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0004,2025,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0004,2026,kopitiam,,,,,,,,,,authority_redacted,0.4.0
-A-0006,2022,restaurant,0.0,1.0,132.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0006,2023,restaurant,0.0,1.0,144.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0006,2024,restaurant,0.0,1.0,156.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0006,2025,restaurant,0.0,1.0,168.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0006,2026,restaurant,0.0,1.0,180.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
+A-0006,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0006,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0006,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0006,2025,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0006,2026,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0007,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0007,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0007,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
@@ -4199,11 +4199,11 @@ A-0011,2023,restaurant,0.0,1.0,1.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_
 A-0011,2024,restaurant,0.0,1.0,1.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
 A-0011,2025,restaurant,0.0,1.0,12.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
 A-0011,2026,restaurant,0.0,1.0,24.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0012,2022,cafe,0.888,0.112,2.0,399.0,,927777.42,,,"{""cafe"": 0.888}",synthetic_mock,0.4.0
-A-0012,2023,cafe,0.896,0.104,2.0,403.0,,936658.94,,,"{""cafe"": 0.896}",synthetic_mock,0.4.0
-A-0012,2024,cafe,0.895,0.105,3.0,403.0,,935585.74,,,"{""cafe"": 0.895}",synthetic_mock,0.4.0
-A-0012,2025,cafe,0.83,0.17,3.0,374.0,,867810.39,,,"{""cafe"": 0.83}",synthetic_mock,0.4.0
-A-0012,2026,cafe,0.083,0.917,30.0,38.0,,87273.49,,,"{""cafe"": 0.083}",synthetic_mock,0.4.0
+A-0012,2022,cafe,,,,,,,,,,authority_redacted,0.4.0
+A-0012,2023,cafe,,,,,,,,,,authority_redacted,0.4.0
+A-0012,2024,cafe,,,,,,,,,,authority_redacted,0.4.0
+A-0012,2025,cafe,,,,,,,,,,authority_redacted,0.4.0
+A-0012,2026,cafe,,,,,,,,,,authority_redacted,0.4.0
 A-0015,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0015,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0015,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
@@ -4244,11 +4244,11 @@ A-0027,2023,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0027,2024,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0027,2025,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0027,2026,kopitiam,,,,,,,,,,authority_redacted,0.4.0
-A-0028,2022,restaurant,0.0,1.0,120.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0028,2023,restaurant,0.0,1.0,132.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0028,2024,restaurant,0.0,1.0,144.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0028,2025,restaurant,0.0,1.0,156.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0028,2026,restaurant,0.0,1.0,168.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
+A-0028,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0028,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0028,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0028,2025,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0028,2026,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0030,2022,restaurant,0.0,1.0,1.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
 A-0030,2023,restaurant,0.0,1.0,1.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
 A-0030,2024,restaurant,0.0,1.0,12.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
@@ -4264,21 +4264,21 @@ A-0035,2023,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0035,2024,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0035,2025,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 A-0035,2026,kopitiam,,,,,,,,,,authority_redacted,0.4.0
-A-0036,2022,restaurant,0.0,1.0,96.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0036,2023,restaurant,0.0,1.0,108.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0036,2024,restaurant,0.0,1.0,120.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0036,2025,restaurant,0.0,1.0,132.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
-A-0036,2026,restaurant,0.0,1.0,144.0,0.0,,0.0,,,"{""restaurant"": 0.0}",synthetic_mock,0.4.0
+A-0036,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0036,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0036,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0036,2025,restaurant,,,,,,,,,,authority_redacted,0.4.0
+A-0036,2026,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0037,2022,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0037,2023,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0037,2024,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0037,2025,restaurant,,,,,,,,,,authority_redacted,0.4.0
 A-0037,2026,restaurant,,,,,,,,,,authority_redacted,0.4.0
-A-0047,2022,kopitiam,0.757,0.243,0.0,273.0,,1002255.1,,,"{""kopitiam"": 0.757}",synthetic_mock,0.4.0
-A-0047,2023,kopitiam,0.871,0.129,0.0,314.0,,1152484.63,,,"{""kopitiam"": 0.871}",synthetic_mock,0.4.0
-A-0047,2024,kopitiam,0.779,0.221,2.0,281.0,,1031110.39,,,"{""kopitiam"": 0.779}",synthetic_mock,0.4.0
-A-0047,2025,kopitiam,0.809,0.191,3.0,291.0,,1070223.61,,,"{""kopitiam"": 0.809}",synthetic_mock,0.4.0
-A-0047,2026,kopitiam,0.156,0.844,17.0,56.0,,206180.68,,,"{""kopitiam"": 0.156}",synthetic_mock,0.4.0
+A-0047,2022,kopitiam,,,,,,,,,,authority_redacted,0.4.0
+A-0047,2023,kopitiam,,,,,,,,,,authority_redacted,0.4.0
+A-0047,2024,kopitiam,,,,,,,,,,authority_redacted,0.4.0
+A-0047,2025,kopitiam,,,,,,,,,,authority_redacted,0.4.0
+A-0047,2026,kopitiam,,,,,,,,,,authority_redacted,0.4.0
 G-0013,2022,park,,,,,,,,,,authority_redacted,0.4.0
 G-0013,2023,park,,,,,,,,,,authority_redacted,0.4.0
 G-0013,2024,park,,,,,,,,,,authority_redacted,0.4.0

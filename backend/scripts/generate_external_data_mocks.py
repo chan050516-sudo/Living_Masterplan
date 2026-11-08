@@ -39,7 +39,7 @@ with (BACKEND_DIR / "configs" / "google_places_type_mapping.yml").open(encoding=
     TYPE_MAPPING = yaml.safe_load(f)
 
 BASE = REPO_ROOT / PATHS["base"]
-GRID_SIZE_M = 400
+GRID_SIZE_M = 100
 GRID_CRS = "EPSG:32647"
 DISPLAY_CRS = "EPSG:4326"
 SNAPSHOT_DATES = [date(2026, month, day) for month, day in ((1, 15), (4, 15), (7, 15), (10, 15))]
@@ -57,6 +57,99 @@ KIDO_COLUMNS = [
     "socioeconomic_class_bc_ratio", "socioeconomic_class_de_ratio",
     "od_inbound_trips", "od_outbound_trips", "vehicle_flow_vpd",
 ]
+
+
+KIDO_POI_COLUMNS = [
+    "poi_id", "asset_id", "grid_id", "date", "unique_visitors", "total_visits",
+    "avg_dwell_time_minutes",
+]
+
+# D-19: Kido-style POI analytics (visitors per shop polygon). Typical
+# visit length (minutes) and daily opening hours per subtype; shared with
+# ingest_external_data.py so its LBS occupancy proxy uses the same scale.
+POI_DWELL_MINUTES = {
+    "kopitiam": 45, "cafe": 50, "restaurant": 70, "f_and_b": 50,
+    "convenience_retail": 12, "supermarket": 30, "medical_retail": 15,
+    "services": 35, "office": 420,
+}
+POI_OPEN_HOURS = {"office": 9}
+DEFAULT_POI_DWELL = 30
+DEFAULT_POI_OPEN_HOURS = 12
+# Average share of an occupied shop's seats / floor capacity in use over
+# its opening hours (peaks at lunch/dinner, near-empty mid-afternoon).
+POI_AVG_UTILISATION = 0.35
+
+
+def poi_capacity(asset) -> float:
+    """People an asset can hold at once (assets.csv capacity, else area/15)."""
+    cap = getattr(asset, "capacity", None) if not isinstance(asset, dict) else asset.get("capacity")
+    try:
+        cap = float(cap)
+    except (TypeError, ValueError):
+        cap = float("nan")
+    if not math.isfinite(cap) or cap <= 0:
+        area = getattr(asset, "lettable_area_m2", None) if not isinstance(asset, dict) else asset.get("lettable_area_m2")
+        try:
+            cap = float(area) / 15.0
+        except (TypeError, ValueError):
+            cap = 1.0
+    return max(1.0, cap)
+
+
+def poi_profile(subtype) -> tuple[float, float]:
+    """(typical dwell minutes, open hours per day) for a subtype."""
+    st = str(subtype or "")
+    return (
+        float(POI_DWELL_MINUTES.get(st, DEFAULT_POI_DWELL)),
+        float(POI_OPEN_HOURS.get(st, DEFAULT_POI_OPEN_HOURS)),
+    )
+
+
+def poi_expected_visitors(asset, occupancy: float) -> float:
+    """Expected daily visitors = people inside on average x turnovers/day."""
+    dwell, hours = poi_profile(getattr(asset, "subtype", None))
+    occupancy = max(0.0, min(1.0, float(occupancy)))
+    return poi_capacity(asset) * occupancy * POI_AVG_UTILISATION * hours * 60.0 / dwell
+
+
+def _build_kido_poi(assets: pd.DataFrame, occ: dict[str, float], asset_grid: dict) -> list[dict]:
+    """Weekly visitor counts per sold / shared commercial asset.
+
+    Visitors follow the asset's own occupancy (busy shop -> many visitors)
+    with realistic noise: a fixed per-asset bias (catchment, frontage),
+    week-to-week variation, and a small GPS-noise floor so an empty shop
+    still records a handful of passers-by.
+    """
+    rows = []
+    target = assets[
+        assets["asset_type"].eq("commercial")
+        & assets["authority"].isin(["advisory", "shared"])
+    ]
+    for asset in target.itertuples(index=False):
+        aid = str(asset.asset_id)
+        expected = poi_expected_visitors(asset, occ.get(aid, 0.5))
+        dwell_base, _ = poi_profile(getattr(asset, "subtype", None))
+        # Per-asset bias: phone-panel sampling, staff and delivery riders
+        # counted as visitors, polygon spillover from the shop next door.
+        bias = _uniform(f"{aid}-poi-bias", 0.70, 1.35)
+        # Spillover from a busy shared corridor / car park (in visitors/day).
+        spill = poi_capacity(asset) * _uniform(f"{aid}-poi-spill", 0.0, 0.8)
+        for sample_day in WEEK_DATES:
+            weekly = _uniform(f"{aid}-{sample_day}-poi-week", 0.85, 1.15)
+            floor = spill + _uniform(f"{aid}-{sample_day}-poi-floor", 2.0, 6.0)
+            visitors = max(1, int(round(expected * bias * weekly + floor)))
+            repeat = _uniform(f"{aid}-{sample_day}-poi-repeat", 1.05, 1.25)
+            dwell = dwell_base * _uniform(f"{aid}-{sample_day}-poi-dwell", 0.90, 1.10)
+            rows.append({
+                "poi_id": f"POI-{aid}",
+                "asset_id": aid,
+                "grid_id": asset_grid.get(aid),
+                "date": sample_day.isoformat(),
+                "unique_visitors": visitors,
+                "total_visits": max(visitors, int(round(visitors * repeat))),
+                "avg_dwell_time_minutes": round(dwell, 1),
+            })
+    return rows
 
 
 def _unit_uniform(key: str) -> float:
@@ -375,10 +468,6 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
 
         cell_assets = [asset_by_id[aid] for aid in cell["assets"] if aid in asset_by_id]
         commercial = [a for a in cell_assets if getattr(a, "asset_type", None) == "commercial"]
-        occupied_capacity = sum(
-            max(1.0, float(getattr(a, "capacity", 1) or 1)) * occ.get(str(getattr(a, "asset_id")), 0.5)
-            for a in commercial
-        )
         density = len(commercial) / max(1, len(cell_assets))
         office_share = sum(1 for a in commercial if getattr(a, "subtype", None) == "office") / max(1, len(commercial))
         retail_share = 1.0 - office_share if commercial else 0.0
@@ -391,32 +480,20 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
         cell["age_ratios"] = age_ratios
         cell["assets"] = cell["assets"]
         cell["commercial_assets"] = commercial
-        cell["occupied_capacity"] = occupied_capacity
         cell["commercial_density"] = density
         cell["office_share"] = office_share
         cell["retail_share"] = retail_share
         cell["population_users"] = max(0.0, cell["adult_population"] * _uniform(f"{gid}-penetration", 0.35, 0.45))
 
-    base_samples = [c["population_users"] for c in cells.values() if c["population_users"] > 0]
-    occ_samples = [c["occupied_capacity"] for c in cells.values() if c["occupied_capacity"] > 0]
-    if base_samples and occ_samples:
-        base_samples.sort()
-        occ_samples.sort()
-        med_base = base_samples[len(base_samples) // 2]
-        med_occ = occ_samples[len(occ_samples) // 2]
-        occupancy_scale = med_base / max(1.0, med_occ)
-    else:
-        occupancy_scale = 1.0
-
-    # Keep the LBS baseline anchored to resident population while making a
-    # substantial part of each mixed-use cell's signal move with occupied
-    # commercial capacity.
+    # D-19: a cell's users = residents seen in the cell + the visitors of
+    # the shops inside it. Shop visitors come from the same expected-visitor
+    # model as the POI feed, so the grid and POI products agree.
     for gid, cell in cells.items():
-        base = cell["population_users"]
-        if cell["occupied_capacity"] > 0:
-            users = 0.35 * base + 0.65 * cell["occupied_capacity"] * occupancy_scale
-        else:
-            users = base
+        shop_visitors = sum(
+            poi_expected_visitors(a, occ.get(str(getattr(a, "asset_id")), 0.5))
+            for a in cell["commercial_assets"]
+        )
+        users = cell["population_users"] + shop_visitors
         cell["unique_users"] = max(1, int(round(users)))
 
     kido_rows = []
@@ -480,7 +557,10 @@ def generate(occupancy_reference: Path | None = None) -> tuple[int, int]:
     mock_dir = BASE / PATHS["external_data"]["mock_directory"]
     mock_dir.mkdir(parents=True, exist_ok=True)
     google_path = BASE / PATHS["external_data"]["google_places_snapshots"]
-    metrics_path = occupancy_reference or (BASE / metrics_rel)
+    # D-18: condition the mocks on the hidden pre-gate occupancy when it
+    # exists (sold assets have none in asset_metrics.csv by design).
+    truth_path = BASE / PATHS["external_data"]["mock_truth_occupancy"]
+    metrics_path = occupancy_reference or (truth_path if truth_path.exists() else BASE / metrics_rel)
 
     assets = pd.read_csv(BASE / assets_rel)
     if "authority" not in assets.columns:
@@ -500,8 +580,12 @@ def generate(occupancy_reference: Path | None = None) -> tuple[int, int]:
     )
     kido_path = BASE / PATHS["external_data"]["kido_grid"]
     pd.DataFrame(kido_rows, columns=KIDO_COLUMNS).to_csv(kido_path, index=False)
+    poi_rows = _build_kido_poi(assets, occupancy, asset_grid)
+    poi_path = BASE / PATHS["external_data"]["kido_poi"]
+    pd.DataFrame(poi_rows, columns=KIDO_POI_COLUMNS).to_csv(poi_path, index=False)
     print(f"Wrote {google_path} ({len(google_rows)} rows)")
-    print(f"Wrote {kido_path} ({len(kido_rows)} rows, {len(cells)} 400m cells)")
+    print(f"Wrote {kido_path} ({len(kido_rows)} rows, {len(cells)} {GRID_SIZE_M}m cells)")
+    print(f"Wrote {poi_path} ({len(poi_rows)} rows)")
     return len(google_rows), len(kido_rows)
 
 

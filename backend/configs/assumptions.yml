@@ -196,20 +196,23 @@ deadspace:
     business_vitality_below: 0.30
     lbs_footfall_peer_factor: 0.40
     lbs_dwell_peer_factor: 0.50
-    flow_island_ratio_below: 0.30
+    flow_island_ratio_below: 0.60   # D-20: new reachable/nearby definition
 
 # v6.0 §4.5 — survival OPEX floor (operating_hemorrhage flag).
 # kopitiam has no plan value; it copies f_and_b until calibrated.
 survival_analysis:
+  # D-22: LBS now counts visitors to the shop itself (Kido POI), not people
+  # passing through the area, so "conversion" is the share of shop visitors
+  # who pay (was 0.03-0.12, a passer-by rate).
   conversion_rate_by_subtype:
-    convenience_retail: 0.08
-    f_and_b: 0.05
-    kopitiam: 0.05
-    cafe: 0.04
-    restaurant: 0.03
-    supermarket: 0.12
-    services: 0.06
-    medical_retail: 0.10
+    convenience_retail: 0.70
+    f_and_b: 0.85
+    kopitiam: 0.85
+    cafe: 0.80
+    restaurant: 0.90
+    supermarket: 0.80
+    services: 0.60
+    medical_retail: 0.50
   avg_spend_rm_by_subtype:
     convenience_retail: 25
     f_and_b: 18
@@ -219,15 +222,17 @@ survival_analysis:
     supermarket: 85
     services: 60
     medical_retail: 120
+  # D-22: minimum yearly cost to stay open per m2 (rent + minimum staff +
+  # utilities), Klang Valley suburban shoplot levels (was 160-280).
   survival_opex_per_m2_by_subtype:
-    convenience_retail: 180
-    f_and_b: 240
-    kopitiam: 240
-    cafe: 220
-    restaurant: 280
-    supermarket: 200
-    services: 160
-    medical_retail: 220
+    convenience_retail: 450
+    f_and_b: 600
+    kopitiam: 600
+    cafe: 650
+    restaurant: 700
+    supermarket: 400
+    services: 450
+    medical_retail: 550
   operating_days_by_subtype:
     convenience_retail: 360
     f_and_b: 340
@@ -296,3 +301,9 @@ off_network_defaults:
 carbon_accounting:
   sequestration:
     canopy_uptake_tco2e_per_m2_year: 0.0015
+
+# v6.0 §8.4 — rollout gates for Phase 3. Both stay false until
+# validate_upgrade.py passes (Huff stability, simulation seed).
+feature_flags:
+  huff_lbs_attractiveness: false   # blend LBS footfall into Huff attractiveness
+  simulation_seed_from_lbs: false  # seed sold assets' occupancy from proxies

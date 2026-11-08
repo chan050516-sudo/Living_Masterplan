@@ -2564,6 +2564,7 @@ def _mark_unsold_inventory(
         (assets_df["asset_type"] == "commercial")
         & (assets_df["ownership_status"] == "developer_held")
         & (~assets_df["asset_id"].isin(exclude))
+        & (~assets_df["subtype"].isin(["supermarket", "mall"]))
     ].sort_values(
         ["completion_year", "asset_id"],
         ascending=[False, True],
@@ -2590,6 +2591,16 @@ def _mark_unsold_inventory(
             assets_df["asset_id"].isin(com_picked), "authority",
         ] = "full_control"
 
+    # D-17: anchor retail (supermarket / mall) is kept by the developer
+    # as a leased investment asset, so it stays under full control. It is
+    # leased, not unsold, so it is not added to com_picked / unsold_ids.
+    anchor = (
+        assets_df["asset_type"].eq("commercial")
+        & assets_df["subtype"].isin(["supermarket", "mall"])
+    )
+    assets_df.loc[anchor, "ownership_status"] = "developer_held"
+    assets_df.loc[anchor, "authority"] = "full_control"
+
     unsold_ids |= set(com_picked)
 
     print(
@@ -2610,6 +2621,7 @@ def _mark_developer_held_facilities(assets_df, n=6):
     fac = assets_df[
         (assets_df["asset_type"] == "community_facility")
         & (assets_df["ownership_status"] == "public_transferred")
+        & (assets_df["subtype"] == "community_hall")
     ].sort_values(
         ["completion_year", "asset_id"],
         ascending=[False, True],
@@ -3022,13 +3034,20 @@ def main():
     # commercial deadspace narrative.
     assets_df, unsold_ids = _mark_unsold_inventory(
         assets_df,
-        n_residential=30,
-        n_commercial=10,
+        # D-24: 50 unsold houses (~6.6% of 759) so the demo has 40-60
+        # deadspace candidates (was 30). Elmina-type townships carry
+        # 5-15% built-but-unsold stock mid-development.
+        n_residential=50,
+        # D-17: most shoplots are sold to investors; only a few recent
+        # unsold / unleased ones stay with the developer (was 10).
+        n_commercial=4,
         exclude_ids=shoplot_ids,
     )
     _assign_unsold_units(assets_df, unsold_ids)
 
-    assets_df = _mark_developer_held_facilities(assets_df, n=6)
+    # D-17: only a not-yet-handed-over community hall / clubhouse stays with
+    # the developer; schools and clinics are handed over (was 6, any type).
+    assets_df = _mark_developer_held_facilities(assets_df, n=2)
 
     # ------------------------------------------------------------------
     # FIX (2026-10-15c) — amenity independent parcels
@@ -3268,6 +3287,19 @@ def main():
         if col not in multi_year_df.columns:
             multi_year_df[col] = None
     multi_year_df = multi_year_df[ordered_cols]
+    # D-18: keep the pre-gate commercial occupancy as hidden mock "truth".
+    # Only the external-data mock generator reads it (to make Google / LBS
+    # signals behave like the real world) and the correlation check. The
+    # app never loads it, so sold assets still have no occupancy in-app.
+    truth_dir = PROCESSED_BIZ_DIR.parent / "external_data_mock"
+    truth_dir.mkdir(parents=True, exist_ok=True)
+    commercial_ids = set(
+        assets_df.loc[assets_df["asset_type"] == "commercial", "asset_id"]
+    )
+    multi_year_df.loc[
+        multi_year_df["asset_id"].isin(commercial_ids),
+        ["asset_id", "year", "occupancy_rate"],
+    ].to_csv(truth_dir / "mock_truth_occupancy.csv", index=False)
     multi_year_df = _apply_authority_data_gate(assets_df, multi_year_df)
     multi_year_df.to_csv(
         PROCESSED_BIZ_DIR / "asset_metrics.csv", index=False,

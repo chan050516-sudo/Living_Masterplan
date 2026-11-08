@@ -22,6 +22,9 @@ external_data:
   mock_directory:          "external_data_mock"
   google_places_snapshots: "external_data_mock/google_places_snapshots.csv"
   kido_grid:               "external_data_mock/kido_grid.csv"
+  kido_poi:                "external_data_mock/kido_poi.csv"
+  # Mock-only hidden truth; read by the mock generator, never by the app.
+  mock_truth_occupancy:    "external_data_mock/mock_truth_occupancy.csv"
   worldpop_grid:           "external_data_mock/worldpop_grid.csv"
 
 thermal:

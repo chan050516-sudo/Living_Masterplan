@@ -41,6 +41,7 @@ from .schemas import (
 from .tool_service import TownshipDataSource
 from .validator import ProposalValidator
 from ..derived.environmental import MATERIAL_INTENSITY_REPURPOSE
+from ..deadspace.tiers import is_full_control
 from ..simulation.engine import (
     PROJECT_ID_PREFIX,
     simulate_scenario,
@@ -613,7 +614,9 @@ def _verify_catalytic_links(candidates):
         primary   coverage_ratio_10min_walk
         The walk coverage ratio is a physical measurement of the
         network, independent of the Huff allocation. A positive delta
-        confirms the mechanism.
+        confirms the mechanism. v6.0: if the beneficiary carries LBS
+        footfall, 'verified' also needs lbs_unique_users_daily to
+        rise; coverage alone is 'partially_verified'.
 
       catchment_growth
         primary   reachable_population_walk
@@ -710,8 +713,20 @@ def _verify_catalytic_links(candidates):
             secondary_true = any(v is True for v in secondary.values())
             secondary_present = any(v is not None for v in secondary.values())
 
+            # v6.0 §5.5 — when the beneficiary has LBS footfall, a
+            # walkability claim needs both kinds of evidence: the
+            # network got better (physics) AND more people came
+            # (behaviour). Physics alone is only partial.
+            lbs_improved = _improved("lbs_unique_users_daily")
+            needs_lbs = (
+                link.get("mechanism") == "walkability_improvement"
+                and lbs_improved is not None
+            )
+
             # Achievable level from simulation evidence alone.
-            if primary_true:
+            if needs_lbs and primary_true:
+                achievable = "verified" if lbs_improved else "partially_verified"
+            elif primary_true:
                 achievable = "verified"
             elif secondary_true:
                 achievable = "partially_verified"
@@ -1123,6 +1138,41 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             },
             "subunits": subunits if subunits else None
         }
+
+        # v6.0 §5.6 — two-track card. A sold asset's NOI is a
+        # counterfactual, and its community picture comes from the
+        # Google Places and LBS proxies (tier 3a).
+        authority = final_state.get("_authority") or base_final_state.get("_authority")
+        card["authority"] = authority or "full_control"
+        card["evaluation_mode"] = (
+            "operating_performance" if is_full_control(authority)
+            else "developer_realization"
+        )
+        if not is_full_control(authority):
+            card["financial"]["main_metric"]["label"] = "Counterfactual NOI (if SDP had retained)"
+            card["financial"]["main_metric"]["tier"] = "3b"
+
+            def _lbs(key):
+                return _get(final_state, key, default=None)
+
+            def _lbs_pair(key):
+                return {
+                    "baseline": _get(base_final_state, key, default=None),
+                    "intervention": _get(final_state, key, default=None),
+                }
+
+            card["community"] = {
+                "lbs": {
+                    "unique_users": _lbs_pair("lbs_unique_users_daily"),
+                    "dwell_minutes": _lbs("lbs_dwell_time_minutes"),
+                    "flow_island_ratio": _lbs("flow_island_ratio"),
+                    "tier": "3a",
+                    "source": final_state.get("_lbs_source"),
+                },
+                "business_presence_ratio": _lbs("business_presence_ratio"),
+                "business_turnover_count": _lbs("business_turnover_count"),
+                "occupancy_seed_source": final_state.get("_occupancy_seed_source"),
+            }
 
         # --- 4. Timeline Data ---
         timeline_metrics = {

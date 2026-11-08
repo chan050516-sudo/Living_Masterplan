@@ -90,7 +90,12 @@ def _load(repo_root_str: str) -> dict:
         st: {f: float(pd.Series(v).median()) for f, v in fields.items()}
         for st, fields in peers.items()
     }
-    return {"by_asset": by_asset, "peer_median": peer_median}
+    peer_users = {
+        st: sorted(fields.get("lbs_unique_users_daily", []))
+        for st, fields in peers.items()
+    }
+    return {"by_asset": by_asset, "peer_median": peer_median,
+            "peer_users": peer_users}
 
 
 def external_for(asset_id: str, subtype, repo_root: Path = None) -> dict:
@@ -113,3 +118,38 @@ def external_for(asset_id: str, subtype, repo_root: Path = None) -> dict:
         "lbs_peer_users_median": peer.get("lbs_unique_users_daily"),
         "lbs_peer_dwell_median": peer.get("lbs_dwell_time_minutes"),
     }
+
+
+def lbs_users_percentile(asset_id: str, subtype, repo_root: Path = None):
+    """Where this asset's LBS footfall sits among its subtype peers (0-1).
+
+    None when the asset has no LBS data or has no peers to compare with.
+    """
+    repo_root = repo_root or Path(__file__).resolve().parents[3]
+    try:
+        data = _load(str(repo_root))
+    except Exception as e:
+        log.warning("Could not load external proxy tables: %s", e)
+        return None
+    users = (data["by_asset"].get(asset_id) or {}).get("lbs_unique_users_daily")
+    peers = data["peer_users"].get(subtype) or []
+    if users is None or len(peers) < 2:
+        return None
+    return sum(1 for p in peers if p <= users) / len(peers)
+
+
+def huff_vitality(asset_id: str, subtype, occupancy, use_lbs: bool) -> float:
+    """Huff attractiveness multiplier for a commercial asset (v6.0 §5.2).
+
+    Legacy: occupancy clamped to [0.1, 1.0]. With `use_lbs` (feature
+    flag huff_lbs_attractiveness) and LBS data available, blend 60%
+    footfall percentile within the subtype with 40% occupancy, so a
+    busy small kopitiam can outcompete a quiet large supermarket.
+    """
+    occ_score = max(0.1, min(1.0, occupancy))
+    if not use_lbs:
+        return occ_score
+    lbs_score = lbs_users_percentile(asset_id, subtype)
+    if lbs_score is None:
+        return occ_score
+    return max(0.1, 0.6 * lbs_score + 0.4 * occ_score)

@@ -36,8 +36,12 @@ def test_data_conflict_when_sources_disagree():
     assert "data_conflict" in proxy_eval(ext)["reasons"]
 
 
-def test_occupancy_proxy_prefers_google():
-    out = proxy_eval({"proxied_occupancy_google": 0.8, "proxied_occupancy_lbs": 0.01})
+def test_occupancy_proxy_prefers_lbs():
+    # D-21: LBS footfall is the primary occupancy proxy, Google the fallback.
+    out = proxy_eval({"proxied_occupancy_google": 0.8, "proxied_occupancy_lbs": 0.2})
+    assert out["proxied_occupancy_source"] == "kido_dynamics_mock"
+    assert "low_occupancy_proxied" in out["reasons"]
+    out = proxy_eval({"proxied_occupancy_google": 0.8})
     assert out["proxied_occupancy_source"] == "google_places_mock"
     assert "low_occupancy_proxied" not in out["reasons"]
 

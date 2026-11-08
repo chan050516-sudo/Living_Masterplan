@@ -73,6 +73,9 @@ from ..derived.environmental import (
     DEMOLITION_CARBON_INTENSITY,
 )
 from ..derived.thermal import THERMAL_METRIC_FIELDS
+from ..deadspace.external import external_for, huff_vitality
+from ..deadspace.layer3_lbs import _OCCUPANCY_PROXIES
+from ..deadspace.tiers import is_full_control
 from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
@@ -932,7 +935,12 @@ def simulate_scenario(
 
     base_derived_records = {r["asset_id"]: r for _, r in base_derived.iterrows()}
 
+    flags = assumptions.get("feature_flags", {}) or {}
+    use_lbs_huff = bool(flags.get("huff_lbs_attractiveness"))
+    seed_from_proxy = bool(flags.get("simulation_seed_from_lbs"))
+
     occupancy_prev = {}
+    occupancy_seed_source = {}
     for _, asset in assets_df.iterrows():
         aid = asset["asset_id"]
         row = base_derived[base_derived["asset_id"] == aid]
@@ -943,6 +951,16 @@ def simulate_scenario(
                 prev_value = _safe_num(r.get("utilisation_rate"), 0.6)
             elif asset["asset_type"] in ("commercial", "residential"):
                 prev_value = _safe_num(r.get("occupancy_rate"), 0.6)
+        # v6.0 §5.3 — a sold asset's occupancy is not visible to the
+        # developer, so start its trajectory from a proxy instead.
+        if (
+            seed_from_proxy
+            and asset["asset_type"] == "commercial"
+            and not is_full_control(asset.get("authority"))
+        ):
+            prev_value, occupancy_seed_source[aid] = _proxy_occupancy_seed(
+                aid, asset.get("subtype"),
+            )
         occupancy_prev[aid] = prev_value
 
     state_by_year = {}
@@ -1117,8 +1135,9 @@ def simulate_scenario(
                 continue
 
             # Calculate vitality based on current simulated occupancy
+            # (blended with LBS footfall when the feature flag is on)
             _cur_occ = occupancy_prev.get(aid, 0.85)
-            _vitality = max(0.1, min(1.0, _cur_occ))
+            _vitality = huff_vitality(aid, eff_subtype, _cur_occ, use_lbs_huff)
 
             if eff_mix is not None:
                 # Phase B.2c — rebuild supply nodes from the
@@ -1875,6 +1894,14 @@ def simulate_scenario(
 
         state_by_year[year] = year_state
 
+    # ---- v6.0 §5.3 / §5.5 — proxy fields for sold assets ----
+    _attach_proxy_state(
+        state_by_year, base_year, assets_df, occupancy_seed_source,
+        conversion=assumptions.get("huff", {}).get(
+            "access_to_use_conversion", _DEFAULT_ACCESS_TO_USE_CONVERSION,
+        ),
+    )
+
     # ---- Comparison ----
     comparison = _build_comparison(
         state_by_year, base_year, years[-1], assets_df,
@@ -2464,15 +2491,48 @@ def _get_prev_metrics(prev_state, asset_id):
 # ------------------------------------------------------------------
 
 
-# Metrics shown per asset in the comparison block. Order matters only
-# for display; the dict preserves it.
-_COMPARISON_METRICS = [
+# v6.0 §5.1 — the comparison block depends on who controls the asset.
+# Operating metrics are observed only for full_control assets. For a
+# sold asset they are proxies (3a) or "if SDP had retained it" (3b),
+# and each entry carries that tier so the LLM and UI can say so.
+_FULL_CONTROL_COMPARISON_METRICS = [
     ("occupancy_rate", "ratio"),
     ("utilisation_rate", "ratio"),
     ("developer_held_units", "count"),   # Phase D.2
     ("noi_rm", "RM"),
     ("maintenance_surge_rm", "RM"),
     ("noi_yield", "ratio"),
+    ("carbon_productive_tco2e", "tCO2e"),
+    ("carbon_stranded_tco2e", "tCO2e"),
+    ("stranded_carbon_ratio", "ratio"),
+]
+
+_SOLD_COMPARISON_METRICS = [
+    ("occupancy_rate", "ratio"),
+    ("utilisation_rate", "ratio"),
+    ("noi_rm", "RM"),
+    ("noi_yield", "ratio"),
+    ("carbon_productive_tco2e", "tCO2e"),
+    ("carbon_stranded_tco2e", "tCO2e"),
+    ("stranded_carbon_ratio", "ratio"),
+    ("proxied_occupancy_lbs", "ratio"),
+    ("lbs_unique_users_daily", "person/day"),
+]
+
+_SOLD_METRIC_TIERS = {
+    "occupancy_rate": "3a",
+    "utilisation_rate": "3a",
+    "carbon_productive_tco2e": "3a",
+    "carbon_stranded_tco2e": "3a",
+    "stranded_carbon_ratio": "3a",
+    "proxied_occupancy_lbs": "3a",
+    "lbs_unique_users_daily": "3a",
+    "flow_island_ratio": "3a",
+    "noi_rm": "3b",
+    "noi_yield": "3b",
+}
+
+_UNIVERSAL_COMPARISON_METRICS = [
     ("effective_demand_m2", "m2"),
     ("coverage_ratio_5min_walk", "ratio"),
     ("coverage_ratio_10min_walk", "ratio"),
@@ -2481,16 +2541,93 @@ _COMPARISON_METRICS = [
     ("median_walk_distance_m", "m"),
     ("p90_walk_distance_m", "m"),
     ("carbon_operational_tco2e", "tCO2e"),
-    ("carbon_productive_tco2e", "tCO2e"),
-    ("carbon_stranded_tco2e", "tCO2e"),
-    ("stranded_carbon_ratio", "ratio"),
     ("embodied_carbon_total_tco2e", "tCO2e"),
     ("embodied_carbon_amortised_tco2e", "tCO2e/yr"),
     ("maintenance_carbon_tco2e", "tCO2e/yr"),
     ("surface_temp_delta_c", "Celsius"),
     ("operational_capacity_ratio", "ratio"),
     ("energy_kwh_pv_offset", "kWh"),   # P1
+    ("flow_island_ratio", "ratio"),
 ]
+
+# Legacy name: the full-control view, which every asset used before v6.0.
+_COMPARISON_METRICS = _FULL_CONTROL_COMPARISON_METRICS + _UNIVERSAL_COMPARISON_METRICS
+
+
+def _comparison_metrics_for(authority) -> list:
+    if is_full_control(authority):
+        return _COMPARISON_METRICS
+    return _SOLD_COMPARISON_METRICS + _UNIVERSAL_COMPARISON_METRICS
+
+
+def _proxy_occupancy_seed(asset_id, subtype):
+    """
+    v6.0 §5.3 — starting occupancy for a sold commercial asset.
+
+    Tries the proxies in the same order as the B6 proxy layer (LBS, then
+    Google Places), then falls back to a neutral 0.50. Returns
+    (value, source) so the source can be shown next to the result.
+    """
+    ext = external_for(asset_id, subtype)
+    for key, source in _OCCUPANCY_PROXIES:
+        v = ext.get(key)
+        if v is not None:
+            return max(0.0, min(1.0, float(v))), source
+    return 0.50, "neutral_default"
+
+
+def _attach_proxy_state(state_by_year, base_year, assets_df,
+                        occupancy_seed_source, conversion):
+    """
+    Copy the LBS proxy fields onto every year's state for sold
+    commercial assets, so the comparison and the catalytic check
+    can read them.
+
+    The LBS feed is a single 2026 snapshot, so later years need a
+    response model. Footfall follows walking access with the same
+    access-to-use conversion B4 uses for occupancy (Ewing & Cervero
+    2010: a 10% access gain gives about a 2.5% use gain):
+
+        users_y = users_base × (1 + conversion × Δcoverage_10min_walk / coverage_base)
+
+    Without this, footfall could never move and an LBS-backed
+    catalytic claim could never be verified.
+    """
+    base_state = state_by_year.get(base_year, {})
+    for _, asset in assets_df.iterrows():
+        if asset["asset_type"] != "commercial":
+            continue
+        if is_full_control(asset.get("authority")):
+            continue
+        aid = asset["asset_id"]
+        ext = external_for(aid, asset.get("subtype"))
+        seed_source = occupancy_seed_source.get(aid)
+        if not ext and not seed_source:
+            continue
+
+        base_cov = (base_state.get(aid) or {}).get("coverage_ratio_10min_walk")
+        for year, year_state in state_by_year.items():
+            st = year_state.get(aid)
+            if st is None:
+                continue
+            st["_authority"] = asset.get("authority")
+            if seed_source:
+                st["_occupancy_seed_source"] = seed_source
+            if not ext:
+                continue
+            factor = 1.0
+            cov = st.get("coverage_ratio_10min_walk")
+            if _is_valid_number(base_cov) and _is_valid_number(cov) and float(base_cov) > 0:
+                factor = max(0.0, 1.0 + conversion * (float(cov) / float(base_cov) - 1.0))
+            for key in ("lbs_unique_users_daily", "proxied_occupancy_lbs"):
+                if ext.get(key) is not None:
+                    v = ext[key] * factor
+                    st[key] = min(v, 1.0) if key == "proxied_occupancy_lbs" else v
+            for key in ("lbs_dwell_time_minutes", "flow_island_ratio",
+                        "business_presence_ratio", "business_turnover_count"):
+                if ext.get(key) is not None:
+                    st[key] = ext[key]
+            st["_lbs_source"] = "kido_dynamics_mock"
 
 
 def _build_comparison(state_by_year, base_year, final_year, assets_df,
@@ -2521,11 +2658,18 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
             if not aid.startswith(PROJECT_ID_PREFIX)
         ]
 
+    authority_of = (
+        dict(zip(assets_df["asset_id"], assets_df["authority"]))
+        if "authority" in assets_df.columns else {}
+    )
+
     def _compare_one(aid: str) -> dict:
         b = before_state.get(aid, {})
         a = after_state.get(aid, {})
+        authority = authority_of.get(aid)
+        sold = not is_full_control(authority)
         metrics = {}
-        for key, unit in _COMPARISON_METRICS:
+        for key, unit in _comparison_metrics_for(authority):
             bv, av = b.get(key), a.get(key)
             if _valid(bv) or _valid(av):
                 metrics[key] = {
@@ -2533,6 +2677,8 @@ def _build_comparison(state_by_year, base_year, final_year, assets_df,
                     "after": float(av) if _valid(av) else None,
                     "unit": unit,
                 }
+                if sold and key in _SOLD_METRIC_TIERS:
+                    metrics[key]["tier"] = _SOLD_METRIC_TIERS[key]
         return metrics
 
     per_asset = {aid: _compare_one(aid) for aid in ids}

@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 
 from ..config import load_paths, load_assumptions
+from ..deadspace.external import huff_vitality
 from ..taxonomy import get_taxonomy, default_subtype_for
 from ..loaders.geometry_loader import load_geometry
 from ..loaders.business_loader import load_business
@@ -530,6 +531,11 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline, asset_metrics_df=None)
             if pd.notna(occ):
                 occ_map[str(row["asset_id"])] = float(occ)
                 
+    # v6.0 §5.2 — optional LBS footfall blend, behind a feature flag.
+    use_lbs = bool(
+        load_assumptions().get("feature_flags", {}).get("huff_lbs_attractiveness")
+    )
+
     nodes = []
     for _, asset in assets_df.iterrows():
         if asset["asset_type"] != "commercial":
@@ -538,10 +544,10 @@ def _build_huff_supply_nodes(assets_df, walking_pipeline, asset_metrics_df=None)
         entry = walking_pipeline["asset_entries"].get(aid)
         if entry is None:
             continue
-        
+
         # Apply discount: 0% occupancy = 10% attractiveness, 100% = 100%
-        occ = occ_map.get(aid, 0.85) 
-        vitality = max(0.1, min(1.0, occ))
+        occ = occ_map.get(aid, 0.85)
+        vitality = huff_vitality(aid, asset.get("subtype"), occ, use_lbs)
 
         mix = _parse_unit_mix_engine(asset.get("unit_mix_json"))
         if mix:

@@ -12,6 +12,8 @@ Phase 11 additions:
   - Life-cycle (embodied + maintenance) carbon helpers.
 """
 
+import math
+
 from ..taxonomy import get_energy_intensity, get_subtype
 
 
@@ -236,12 +238,23 @@ def productive_stranded_carbon(
             "stranded_carbon_ratio": 0.0,
         }
 
+    # D-23: unknown occupancy (sold / handed-over assets, whose records the
+    # developer cannot see) means the split is unknown, not 100% stranded.
+    # Treating None as 0 flagged every sold house as wasting all its carbon.
+    unknown = {
+        "carbon_productive_tco2e": None,
+        "carbon_stranded_tco2e": None,
+        "stranded_carbon_ratio": None,
+    }
     if utilisation_rate is None:
-        utilisation_rate = 0.0
+        return unknown
     try:
-        u = max(0.0, min(1.0, float(utilisation_rate)))
+        u = float(utilisation_rate)
     except (TypeError, ValueError):
-        u = 0.0
+        return unknown
+    if math.isnan(u):
+        return unknown
+    u = max(0.0, min(1.0, u))
 
     productive = total_carbon_tco2e * u
     stranded = total_carbon_tco2e * (1.0 - u)
