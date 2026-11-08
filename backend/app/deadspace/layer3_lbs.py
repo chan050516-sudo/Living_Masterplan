@@ -76,6 +76,8 @@ def evaluate(external: dict, thresholds: dict = None) -> dict:
         "reasons": reasons,
         "proxied_occupancy": occ,
         "proxied_occupancy_source": occ_source,
+        # Carried so evidence text quotes the configured limit (D-25).
+        "flow_island_threshold": t["flow_island_ratio_below"],
     }
 
 

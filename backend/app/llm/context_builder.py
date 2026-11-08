@@ -21,10 +21,13 @@ import math
 import json
 import pandas as pd
 
+from ..config import load_assumptions
+from ..deadspace.external import external_for
 from ..deadspace.layer3 import (
     classify_by_authority,
     default_authority_for,
 )
+from ..deadspace.tiers import is_full_control
 from .tool_service import (
     get_asset_state,
     get_asset_evidence,
@@ -183,6 +186,11 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
 
+    external_signals = _build_external_signals(
+        asset_id, asset_type, authority_level,
+        state.get("identity", {}).get("subtype"),
+    )
+
     return {
         "asset_id": asset_id,
         "identity": state.get("identity", {}),
@@ -210,7 +218,59 @@ def _build_target_block(asset_id: str, ds) -> dict:
         "lease_schedule": _build_lease_schedule(ds, asset_id),
         "subtype_mix": _build_subtype_mix(ds, asset_id),
         "authority": authority_block,
+        "external_signals": external_signals,
     }
+
+
+def _build_external_signals(asset_id, asset_type, authority_level, subtype):
+    """
+    v6.0 Phase 5 — tier-3a proxy evidence for a sold / advisory shop.
+
+    The developer cannot see a sold shop's occupancy or income, so the LLM
+    gets the two external proxies instead, each labelled with its source
+    so the prompts can enforce "cite the proxy, never a bare occupancy".
+    Returns None for developer-held assets and for assets with no data.
+    """
+    if asset_type != "commercial" or is_full_control(authority_level):
+        return None
+    ext = external_for(asset_id, subtype)
+    if not ext:
+        return None
+    thresholds = (load_assumptions().get("deadspace") or {}).get("proxy") or {}
+    island_limit = thresholds.get("flow_island_ratio_below", 0.6)
+
+    def _r(key, nd=2):
+        v = ext.get(key)
+        return None if v is None else round(float(v), nd)
+
+    lbs = _drop_none({
+        "daily_visitors": _r("lbs_unique_users_daily", 0),
+        "subtype_peer_median_visitors": _r("lbs_peer_users_median", 0),
+        "avg_dwell_minutes": _r("lbs_dwell_time_minutes", 0),
+        "subtype_peer_median_dwell_minutes": _r("lbs_peer_dwell_median", 0),
+        "flow_island_ratio": _r("flow_island_ratio"),
+        "flow_island_threshold": island_limit,
+        "is_flow_island": (
+            None if ext.get("flow_island_ratio") is None
+            else ext["flow_island_ratio"] < island_limit
+        ),
+    })
+    units = ext.get("unit_mix_unit_count")
+    operating = ext.get("operational_place_count")
+    google = _drop_none({
+        "operating_units": None if operating is None else int(operating),
+        "total_units": None if units is None else int(units),
+        "business_presence_ratio": _r("business_presence_ratio"),
+        "turnover_count": None if ext.get("business_turnover_count") is None
+        else int(ext["business_turnover_count"]),
+        "vitality_score": _r("business_vitality_score"),
+    })
+    out = {"tier": "3a"}
+    if lbs:
+        out["lbs_foot_traffic"] = {**lbs, "source": "LBS / Kido Dynamics (mock, sample-based)"}
+    if google:
+        out["google_places_presence"] = {**google, "source": "Google Places (mock)"}
+    return out if len(out) > 1 else None
 
 
 def _subtypes_for_class(asset_class: str, ds) -> list:

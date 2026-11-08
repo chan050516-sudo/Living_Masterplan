@@ -340,7 +340,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.5892,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -371,7 +372,7 @@
       "Google Places business presence (mock): 18 of 18 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.43",
       "LBS foot traffic (mock): 468.0 daily visitors, average dwell 35.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 5,052,348/yr vs minimum operating cost RM 2,545,506/yr",
       "DSR: 1.14",
       "Demographic mismatch: 0.0",
@@ -809,7 +810,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.9223,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -845,7 +847,7 @@
       "Google Places business presence (mock): 25 of 25 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.88",
       "LBS foot traffic (mock): 2,586 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 13,453,568/yr vs minimum operating cost RM 3,036,186/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -1378,7 +1380,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7512,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -1422,7 +1425,7 @@
       "Google Places business presence (mock): 24 of 24 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.89",
       "LBS foot traffic (mock): 1,196 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 7,159,078/yr vs minimum operating cost RM 3,140,761/yr",
       "DSR: 0.59",
       "Demographic mismatch: 0.5",
@@ -5958,7 +5961,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0453,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -6012,7 +6016,7 @@
       "Google Places business presence (mock): 0 of 15 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.25",
       "LBS foot traffic (mock): 46.0 daily visitors, average dwell 15.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 822,780/yr vs minimum operating cost RM 1,695,490/yr",
       "DSR: 0.13",
       "Demographic mismatch: 0.0",
@@ -8383,7 +8387,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -8422,7 +8427,7 @@
       "Google Places business presence (mock): 13 of 13 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.91",
       "LBS foot traffic (mock): 883.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 5,285,488/yr vs minimum operating cost RM 1,653,483/yr",
       "DSR: 0.39",
       "Demographic mismatch: 0.5",
@@ -11766,7 +11771,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -11799,7 +11805,7 @@
       "Google Places business presence (mock): 5 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.85",
       "LBS foot traffic (mock): 582.0 daily visitors, average dwell 46.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.95",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.95",
       "Survival check (estimate): footfall revenue RM 3,028,084/yr vs minimum operating cost RM 640,866/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -12839,7 +12845,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1922,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -12900,7 +12907,7 @@
       "Google Places business presence (mock): 0 of 15 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.18",
       "LBS foot traffic (mock): 196.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.72",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.72",
       "Survival check (estimate): footfall revenue RM 1,175,138/yr vs minimum operating cost RM 1,994,948/yr",
       "DSR: 0.13",
       "Demographic mismatch: 0.5",
@@ -13320,7 +13327,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.9104,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -13348,7 +13356,7 @@
       "Google Places business presence (mock): 5 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.49",
       "LBS foot traffic (mock): 256.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.95",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.95",
       "Survival check (estimate): footfall revenue RM 3,529,940/yr vs minimum operating cost RM 699,944/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -14995,7 +15003,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0309,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -15059,7 +15068,7 @@
       "Google Places business presence (mock): 0 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.03",
       "LBS foot traffic (mock): 12.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.38",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.38",
       "Survival check (estimate): footfall revenue RM 74,529/yr vs minimum operating cost RM 412,744/yr",
       "DSR: 0.09",
       "Demographic mismatch: 0.0",
@@ -15349,7 +15358,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.8159,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -15385,7 +15395,7 @@
       "Google Places business presence (mock): 13 of 13 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.83",
       "LBS foot traffic (mock): 1,205 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.93",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.93",
       "Survival check (estimate): footfall revenue RM 6,269,034/yr vs minimum operating cost RM 1,618,140/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -15510,7 +15520,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1706,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -15564,7 +15575,7 @@
       "Google Places business presence (mock): 1 of 13 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.1",
       "LBS foot traffic (mock): 190.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.93",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.93",
       "Survival check (estimate): footfall revenue RM 1,196,055/yr vs minimum operating cost RM 1,208,992/yr",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -15919,7 +15930,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -15953,7 +15965,7 @@
       "Google Places business presence (mock): 5 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.99",
       "LBS foot traffic (mock): 560.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.72",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.72",
       "Survival check (estimate): footfall revenue RM 2,915,045/yr vs minimum operating cost RM 527,832/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -15995,7 +16007,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7303,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -16023,7 +16036,7 @@
       "Google Places business presence (mock): 13 of 13 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.95",
       "LBS foot traffic (mock): 539.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.95",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.95",
       "Survival check (estimate): footfall revenue RM 7,420,240/yr vs minimum operating cost RM 1,840,909/yr",
       "DSR: 0.22",
       "Demographic mismatch: 0.0",
@@ -16181,7 +16194,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1065,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -16230,7 +16244,7 @@
       "Google Places business presence (mock): 5 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.21",
       "LBS foot traffic (mock): 38.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.94",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.94",
       "Survival check (estimate): footfall revenue RM 239,526/yr vs minimum operating cost RM 390,082/yr",
       "DSR: 0.65",
       "Demographic mismatch: 0.0",
@@ -16947,7 +16961,8 @@
         "data_conflict"
       ],
       "proxied_occupancy": 0.6226,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -16998,7 +17013,7 @@
       "Google Places business presence (mock): 0 of 8 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.49",
       "LBS foot traffic (mock): 335.0 daily visitors, average dwell 15.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 6,030,000/yr vs minimum operating cost RM 885,550/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 0.43",
@@ -17806,7 +17821,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7329,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -17840,7 +17856,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.52",
       "LBS foot traffic (mock): 304.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,578,911/yr vs minimum operating cost RM 452,958/yr",
       "DSR: 0.05",
       "Demographic mismatch: 0.0",
@@ -17960,7 +17976,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1648,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -18008,7 +18025,7 @@
       "Google Places business presence (mock): 0 of 11 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.22",
       "LBS foot traffic (mock): 106.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.72",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.72",
       "Survival check (estimate): footfall revenue RM 1,454,525/yr vs minimum operating cost RM 1,582,042/yr",
       "DSR: 0.2",
       "Demographic mismatch: 0.0",
@@ -18229,7 +18246,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -18265,7 +18283,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.98",
       "LBS foot traffic (mock): 467.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 2,426,837/yr vs minimum operating cost RM 443,616/yr",
       "DSR: 0.05",
       "Demographic mismatch: 0.0",
@@ -18692,7 +18710,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.5809,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -18727,7 +18746,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.88",
       "LBS foot traffic (mock): 234.0 daily visitors, average dwell 44.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,217,268/yr vs minimum operating cost RM 435,684/yr",
       "DSR: 0.31",
       "Demographic mismatch: 0.0",
@@ -18851,7 +18870,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0821,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -18904,7 +18924,7 @@
       "Google Places business presence (mock): 0 of 7 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.24",
       "LBS foot traffic (mock): 39.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 234,094/yr vs minimum operating cost RM 939,939/yr",
       "DSR: 0.88",
       "Demographic mismatch: 0.5",
@@ -18957,7 +18977,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1525,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -19006,7 +19027,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.38",
       "LBS foot traffic (mock): 61.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.72",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.72",
       "Survival check (estimate): footfall revenue RM 315,709/yr vs minimum operating cost RM 432,090/yr",
       "DSR: 0.05",
       "Demographic mismatch: 0.0",
@@ -19605,7 +19626,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.9282,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -19639,7 +19661,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.99",
       "LBS foot traffic (mock): 95.0 daily visitors, average dwell 35.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,023,084/yr vs minimum operating cost RM 315,284/yr",
       "DSR: 0.09",
       "Demographic mismatch: 0.0",
@@ -20500,7 +20522,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1506,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -20554,7 +20577,7 @@
       "Google Places business presence (mock): 0 of 7 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.14",
       "LBS foot traffic (mock): 83.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 519,876/yr vs minimum operating cost RM 594,616/yr",
       "DSR: 0.2",
       "Demographic mismatch: 0.0",
@@ -20613,7 +20636,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0295,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -20678,7 +20702,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.23",
       "LBS foot traffic (mock): 11.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.56",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.56",
       "Survival check (estimate): footfall revenue RM 56,130/yr vs minimum operating cost RM 395,196/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 0.03",
@@ -21011,7 +21035,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0241,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -21065,7 +21090,7 @@
       "Google Places business presence (mock): 3 of 10 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.25",
       "LBS foot traffic (mock): 19.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 117,747/yr vs minimum operating cost RM 856,332/yr",
       "DSR: 0.21",
       "Demographic mismatch: 0.0",
@@ -21121,7 +21146,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1664,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -21177,7 +21203,7 @@
       "Google Places business presence (mock): 2 of 9 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.24",
       "LBS foot traffic (mock): 44.0 daily visitors, average dwell 35.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.82",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.82",
       "Survival check (estimate): footfall revenue RM 479,520/yr vs minimum operating cost RM 848,493/yr",
       "DSR: 0.17",
       "Demographic mismatch: 0.0",
@@ -21420,7 +21446,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1148,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -21474,7 +21501,7 @@
       "Google Places business presence (mock): 0 of 6 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.26",
       "LBS foot traffic (mock): 79.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 408,877/yr vs minimum operating cost RM 746,886/yr",
       "DSR: 0.2",
       "Demographic mismatch: 0.0",
@@ -21516,7 +21543,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -21546,7 +21574,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.97",
       "LBS foot traffic (mock): 184.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 2,536,296/yr vs minimum operating cost RM 434,847/yr",
       "DSR: 0.29",
       "Demographic mismatch: 0.0",
@@ -21772,7 +21800,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1314,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -21821,7 +21850,7 @@
       "Google Places business presence (mock): 2 of 9 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.37",
       "LBS foot traffic (mock): 95.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 600,579/yr vs minimum operating cost RM 811,296/yr",
       "DSR: 0.11",
       "Demographic mismatch: 0.0",
@@ -22142,7 +22171,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.8714,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -22176,7 +22206,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.93",
       "LBS foot traffic (mock): 75.0 daily visitors, average dwell 35.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 814,968/yr vs minimum operating cost RM 263,979/yr",
       "DSR: 0.09",
       "Demographic mismatch: 0.0",
@@ -22373,7 +22403,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.2386,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -22432,7 +22463,7 @@
       "Google Places business presence (mock): 0 of 9 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.0",
       "LBS foot traffic (mock): 137.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 820,287/yr vs minimum operating cost RM 1,131,644/yr",
       "DSR: 0.17",
       "Demographic mismatch: 0.5",
@@ -22896,7 +22927,8 @@
         "low_footfall_lbs"
       ],
       "proxied_occupancy": 0.2464,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -22947,7 +22979,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.1",
       "LBS foot traffic (mock): 39.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 536,755/yr vs minimum operating cost RM 392,392/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -23619,7 +23651,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.6606,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -23655,7 +23688,7 @@
       "Google Places business presence (mock): 8 of 8 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.69",
       "LBS foot traffic (mock): 414.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 2,605,176/yr vs minimum operating cost RM 693,792/yr",
       "DSR: 0.25",
       "Demographic mismatch: 0.0",
@@ -24545,7 +24578,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.9901,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -24578,7 +24612,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.64",
       "LBS foot traffic (mock): 404.0 daily visitors, average dwell 46.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 2,103,013/yr vs minimum operating cost RM 452,724/yr",
       "DSR: 0.15",
       "Demographic mismatch: 0.0",
@@ -24875,7 +24909,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.069,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -24928,7 +24963,7 @@
       "Google Places business presence (mock): 0 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.2",
       "LBS foot traffic (mock): 40.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.99",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 208,600/yr vs minimum operating cost RM 629,850/yr",
       "DSR: 1.58",
       "Demographic mismatch: 0.0",
@@ -28175,7 +28210,8 @@
         "data_conflict"
       ],
       "proxied_occupancy": 0.6941,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -28229,7 +28265,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.56",
       "LBS foot traffic (mock): 105.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.56",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.56",
       "Survival check (estimate): footfall revenue RM 627,841/yr vs minimum operating cost RM 299,403/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 0.04",
@@ -28805,7 +28841,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.19,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -28865,7 +28902,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.02",
       "LBS foot traffic (mock): 41.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.97",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.97",
       "Survival check (estimate): footfall revenue RM 214,270/yr vs minimum operating cost RM 237,222/yr",
       "DSR: 0.0",
       "Demographic mismatch: 0.0",
@@ -30179,7 +30216,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.6689,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -30218,7 +30256,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.5",
       "LBS foot traffic (mock): 64.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 383,694/yr vs minimum operating cost RM 190,002/yr",
       "DSR: 0.26",
       "Demographic mismatch: 0.5",
@@ -30782,7 +30820,8 @@
         "low_footfall_lbs"
       ],
       "proxied_occupancy": 0.2318,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -30831,7 +30870,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.14",
       "LBS foot traffic (mock): 17.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.82",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.82",
       "Survival check (estimate): footfall revenue RM 231,474/yr vs minimum operating cost RM 181,314/yr",
       "DSR: 0.13",
       "Demographic mismatch: 0.0",
@@ -30959,7 +30998,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0387,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -31020,7 +31060,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.09",
       "LBS foot traffic (mock): 5.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 28,195/yr vs minimum operating cost RM 154,482/yr",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -31187,7 +31227,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -31228,7 +31269,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.83",
       "LBS foot traffic (mock): 104.0 daily visitors, average dwell 15.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,865,160/yr vs minimum operating cost RM 138,996/yr",
       "DSR: 0.79",
       "Demographic mismatch: 0.0",
@@ -31319,7 +31360,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1529,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -31378,7 +31420,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.19",
       "LBS foot traffic (mock): 21.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 106,849/yr vs minimum operating cost RM 148,914/yr",
       "DSR: 0.07",
       "Demographic mismatch: 0.0",
@@ -31706,7 +31748,8 @@
         "business_presence_low"
       ],
       "proxied_occupancy": 0.457,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -31756,7 +31799,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.36",
       "LBS foot traffic (mock): 35.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 207,944/yr vs minimum operating cost RM 149,610/yr",
       "DSR: 0.05",
       "Demographic mismatch: 0.5",
@@ -31837,7 +31880,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.651,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -31871,7 +31915,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.97",
       "LBS foot traffic (mock): 79.0 daily visitors, average dwell 46.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 412,467/yr vs minimum operating cost RM 136,626/yr",
       "DSR: 0.45",
       "Demographic mismatch: 0.0",
@@ -31961,7 +32005,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1578,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -32020,7 +32065,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.3",
       "LBS foot traffic (mock): 10.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 140,592/yr vs minimum operating cost RM 157,479/yr",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -32107,7 +32152,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.038,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -32161,7 +32207,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.2",
       "LBS foot traffic (mock): 4.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 23,305/yr vs minimum operating cost RM 129,012/yr",
       "DSR: 0.83",
       "Demographic mismatch: 0.0",
@@ -32206,7 +32252,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.8367,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -32240,7 +32287,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.38",
       "LBS foot traffic (mock): 48.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.99",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 660,134/yr vs minimum operating cost RM 144,858/yr",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -32578,7 +32625,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7978,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -32613,7 +32661,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.69",
       "LBS foot traffic (mock): 67.0 daily visitors, average dwell 12.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.99",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 424,305/yr vs minimum operating cost RM 93,074/yr",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -33001,7 +33049,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.0822,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -33054,7 +33103,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.16",
       "LBS foot traffic (mock): 5.0 daily visitors, average dwell 15.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.99",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 98,640/yr vs minimum operating cost RM 106,546/yr",
       "DSR: 1.26",
       "Demographic mismatch: 0.0",
@@ -33111,7 +33160,8 @@
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.1448,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": true,
@@ -33170,7 +33220,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.1",
       "LBS foot traffic (mock): 16.0 daily visitors, average dwell 44.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 81,151/yr vs minimum operating cost RM 114,798/yr",
       "DSR: 0.02",
       "Demographic mismatch: 0.0",
@@ -35035,7 +35085,8 @@
         "data_conflict"
       ],
       "proxied_occupancy": 0.7095,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35074,7 +35125,7 @@
       "Google Places business presence (mock): 0 of 7 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.53",
       "LBS foot traffic (mock): 274.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 3,774,632/yr vs minimum operating cost RM 952,000/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 0.19",
@@ -35122,7 +35173,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35158,7 +35210,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.78",
       "LBS foot traffic (mock): 329.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 1,712,342/yr vs minimum operating cost RM 306,000/yr",
       "DSR: 0.03",
       "Demographic mismatch: 0.0",
@@ -35208,7 +35260,8 @@
         "business_vitality_low"
       ],
       "proxied_occupancy": 0.4265,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35254,7 +35307,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.24",
       "LBS foot traffic (mock): 82.0 daily visitors, average dwell 69.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 1,133,684/yr vs minimum operating cost RM 476,000/yr",
       "DSR: 0.28",
       "Demographic mismatch: 0.0",
@@ -35297,7 +35350,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7707,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35328,7 +35382,7 @@
       "Google Places business presence (mock): 7 of 7 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.5",
       "LBS foot traffic (mock): 299.0 daily visitors, average dwell 69.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 4,119,296/yr vs minimum operating cost RM 952,000/yr",
       "DSR: 0.27",
       "Demographic mismatch: 0.0",
@@ -35374,7 +35428,8 @@
         "business_vitality_low"
       ],
       "proxied_occupancy": 0.8413,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35411,7 +35466,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.27",
       "LBS foot traffic (mock): 159.0 daily visitors, average dwell 71.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 2,194,249/yr vs minimum operating cost RM 476,000/yr",
       "DSR: 0.3",
       "Demographic mismatch: 0.0",
@@ -35454,7 +35509,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.8668,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35485,7 +35541,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 1.0",
       "LBS foot traffic (mock): 165.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 2,265,440/yr vs minimum operating cost RM 476,000/yr",
       "DSR: 0.34",
       "Demographic mismatch: 0.0",
@@ -35631,7 +35687,8 @@
         "data_conflict"
       ],
       "proxied_occupancy": 0.7399,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35681,7 +35738,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.46",
       "LBS foot traffic (mock): 83.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 494,458/yr vs minimum operating cost RM 221,000/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 0.32",
@@ -35725,7 +35782,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.8154,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35756,7 +35814,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.91",
       "LBS foot traffic (mock): 157.0 daily visitors, average dwell 69.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 2,167,398/yr vs minimum operating cost RM 476,000/yr",
       "DSR: 0.23",
       "Demographic mismatch: 0.0",
@@ -35803,7 +35861,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35839,7 +35898,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.92",
       "LBS foot traffic (mock): 168.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 873,052/yr vs minimum operating cost RM 153,000/yr",
       "DSR: 0.02",
       "Demographic mismatch: 0.0",
@@ -35886,7 +35945,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7161,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -35922,7 +35982,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.98",
       "LBS foot traffic (mock): 51.0 daily visitors, average dwell 35.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.9",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 552,204/yr vs minimum operating cost RM 229,500/yr",
       "DSR: 0.19",
       "Demographic mismatch: 0.0",
@@ -35976,7 +36036,8 @@
         "flow_island"
       ],
       "proxied_occupancy": 0.7535,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36027,7 +36088,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.29",
       "LBS foot traffic (mock): 42.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.3",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.3",
       "Survival check (estimate): footfall revenue RM 251,687/yr vs minimum operating cost RM 110,500/yr",
       "DSR: 1.66",
       "Demographic mismatch: 0.5",
@@ -36074,7 +36135,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7454,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36109,7 +36171,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.55",
       "LBS foot traffic (mock): 41.0 daily visitors, average dwell 50.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 0.99",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 246,242/yr vs minimum operating cost RM 110,500/yr",
       "DSR: 1.31",
       "Demographic mismatch: 0.5",
@@ -36248,7 +36310,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.7475,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36283,7 +36346,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.56",
       "LBS foot traffic (mock): 195.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,013,298/yr vs minimum operating cost RM 288,342/yr",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.0",
@@ -36328,7 +36391,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 1.0,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36363,7 +36427,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.81",
       "LBS foot traffic (mock): 306.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,589,315/yr vs minimum operating cost RM 306,000/yr",
       "DSR: 0.17",
       "Demographic mismatch: 0.0",
@@ -36407,7 +36471,8 @@
         "data_conflict"
       ],
       "proxied_occupancy": 0.9316,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36442,7 +36507,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.47",
       "LBS foot traffic (mock): 118.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,624,860/yr vs minimum operating cost RM 310,583/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 1.19",
@@ -36674,7 +36739,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.9432,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36710,7 +36776,7 @@
       "Google Places business turnover (mock): 1 change(s) this year",
       "Google Places vitality score (mock, 0-1): 0.57",
       "LBS foot traffic (mock): 215.0 daily visitors, average dwell 45.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,118,222/yr vs minimum operating cost RM 251,772/yr",
       "DSR: 0.23",
       "Demographic mismatch: 0.0",
@@ -36754,7 +36820,8 @@
         "data_conflict"
       ],
       "proxied_occupancy": 0.6721,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36792,7 +36859,7 @@
       "Google Places business presence (mock): 0 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.54",
       "LBS foot traffic (mock): 44.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 602,713/yr vs minimum operating cost RM 162,022/yr",
       "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 1.07",
@@ -36837,7 +36904,8 @@
         "low_footfall_lbs"
       ],
       "proxied_occupancy": 0.4729,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36872,7 +36940,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.48",
       "LBS foot traffic (mock): 36.0 daily visitors, average dwell 70.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 489,386/yr vs minimum operating cost RM 189,042/yr",
       "DSR: 1.18",
       "Demographic mismatch: 0.0",
@@ -36918,7 +36986,8 @@
       "triggered": false,
       "reasons": [],
       "proxied_occupancy": 0.8135,
-      "proxied_occupancy_source": "kido_dynamics_mock"
+      "proxied_occupancy_source": "kido_dynamics_mock",
+      "flow_island_threshold": 0.6
     },
     "survival": {
       "triggered": false,
@@ -36951,7 +37020,7 @@
       "Google Places business presence (mock): 1 of 1 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.75",
       "LBS foot traffic (mock): 190.0 daily visitors, average dwell 44.0 min",
-      "LBS flow-island ratio (mock, below 0.3 = isolated): 1.0",
+      "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 989,368/yr vs minimum operating cost RM 252,888/yr",
       "DSR: 0.31",
       "Demographic mismatch: 0.0",

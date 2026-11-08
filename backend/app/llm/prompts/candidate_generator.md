@@ -88,6 +88,18 @@ Read `authority.level` and `ownership_status`:
 - `shared` (strata / JMB) → retrofit is executable; repurpose / new_development requires JMB approval. State the precondition.
 - `advisory` (sold / public_transferred) → no execution power. Phrase as "Recommend that the current owner / authority converts…". Using "we will" will be flagged by the validator.
 
+For sold / advisory shops the developer cannot see occupancy, leases or income. Read `external_signals` instead (tier 3a, mock data shaped like the real products):
+- `lbs_foot_traffic` — daily visitors and dwell vs the subtype median, plus `flow_island_ratio` (share of nearby footfall the street network actually connects to the asset).
+- `google_places_presence` — how many units have an operating business, and turnover.
+Cite them by source ("LBS shows…", "Google Places shows…"), never as "occupancy is X%". If they disagree (`data_conflict` flag), say so and do not rely on either alone.
+
+## Flow-Island Assets
+
+If an asset has the `flow_island` flag (`external_signals.lbs_foot_traffic.is_flow_island` is true, i.e. `flow_island_ratio` is below `flow_island_threshold`), this is a **network-isolation case, not an operating failure**: people are nearby, but streets, walls or drains stop them reaching the asset.
+- The correct intervention is `pedestrian_upgrade` or `green_corridor` on the network path leading to the asset, not `repurpose` on the asset itself.
+- Prefer `pedestrian_upgrade` unless the asset is also failing on several supply-side signals (e.g. `business_presence_low` and `business_turnover_high` together). In that case, pair the access fix with an on-target or catalytic change and say why.
+- A walkability fix for a flow-island asset can claim `verified` only if the simulation shows walking coverage rising **and** LBS foot traffic rising; otherwise it is `partially_verified`.
+
 ## What You Produce
 
 A JSON object with:

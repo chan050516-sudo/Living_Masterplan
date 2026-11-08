@@ -317,7 +317,11 @@ def _add_proxy_evidence(lines: list, ext: dict, proxy: dict,
         lines.append(f"LBS foot traffic (mock): {users} daily visitors{tail}")
     island = _fmt(ext.get("flow_island_ratio"), 2)
     if island is not None:
-        lines.append(f"LBS flow-island ratio (mock, below 0.3 = isolated): {island}")
+        limit = _fmt((proxy or {}).get("flow_island_threshold", 0.6), 2)
+        lines.append(
+            f"LBS flow-island ratio (mock, share of nearby footfall the street "
+            f"network connects to the asset; below {limit} = isolated): {island}"
+        )
 
     if survival and survival.get("estimated_revenue_rm") is not None:
         rev = _fmt(survival["estimated_revenue_rm"], 0)

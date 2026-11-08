@@ -321,6 +321,7 @@ def orchestrate_and_simulate_batch(
         intent=intent,
         candidates=valid_candidates,
         llm_client=llm_client,
+        context_pack=context_pack,
     )
 
     selected_name = final_decision.get("selected_candidate_name")
@@ -1236,7 +1237,32 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
 # ------------------------------------------------------------------
 
 
-def _select_and_justify(intent, candidates, llm_client):
+def _decision_targets(context_pack) -> list:
+    """
+    v6.0 Phase 5 — what the final writer needs to phrase each target
+    honestly: who controls it, how B6 diagnosed it, and (for sold shops)
+    the LBS / Google proxy readings with their sources.
+    """
+    out = []
+    for t in (context_pack or {}).get("targets", []) or []:
+        if not t:
+            continue
+        auth = t.get("authority") or {}
+        ds = t.get("deadspace") or {}
+        row = {
+            "asset_id": t.get("asset_id"),
+            "authority_level": auth.get("level"),
+            "ownership_status": auth.get("ownership_status"),
+            "deadspace_status": ds.get("status"),
+            "flags": ds.get("flags", []),
+        }
+        if t.get("external_signals"):
+            row["external_signals"] = t["external_signals"]
+        out.append(row)
+    return out
+
+
+def _select_and_justify(intent, candidates, llm_client, context_pack=None):
     import time
     prompt = _load_prompt("final_decision_writer.md")
 
@@ -1258,6 +1284,7 @@ def _select_and_justify(intent, candidates, llm_client):
         "user_query": intent["question_text"],
         "objective": intent["objective"],
         "constraints": intent.get("constraints"),
+        "targets": _decision_targets(context_pack),
         "candidates": candidate_summaries,
     }
 

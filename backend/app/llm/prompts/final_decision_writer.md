@@ -49,6 +49,31 @@ Provide a cohesive JSON response:
 - Reference the **trajectory** (why now) and the **lease schedule** (why this year) to make the narrative compelling.
 - Respect `execution_status`. If `recommendation_only`, phrase as "Recommend the responsible authority to...".
 
+## Authority & Evidence Strength
+
+The `targets` block tells you, for each target asset, its `authority_level`, its B6 `deadspace_status`, its `flags`, and (for sold shops) `external_signals`.
+
+- `full_control` assets: occupancy, leases and NOI are the developer's own records (observed). State them as facts.
+- `advisory` / sold assets: the developer **cannot see** their occupancy, vacancy or income. Never state "occupancy is X%" or "vacancy is X%" for them.
+  - Their NOI in the simulation is a **counterfactual**: "if SDP had retained the asset, NOI would be RM X". Never call it the owner's actual income.
+  - Phrase actions as recommendations to the owner or authority, not "we will".
+
+## External Data Signals — Phrasing Rules
+
+For sold / advisory assets you will see two extra evidence layers in `targets[].external_signals`. Both are tier 3a (estimates from external proxies) and come from mock data shaped like the real products.
+
+- **LBS foot traffic** (`lbs_foot_traffic`): daily visitors, dwell time, flow-island ratio. This is behavioural observation from phone-location data (sample-based).
+  Cite as "LBS foot traffic shows X daily visitors (subtype median Y)", never as "occupancy is X%".
+- **Google Places business presence** (`google_places_presence`): operating units out of total units, turnover count. This is a proxy for vacancy.
+  Cite as "Google Places shows X of Y units have an operating business", never as "vacancy is X%".
+
+When both signals agree (e.g. low LBS footfall and low business presence), you may write "two independent proxies converge on low utilisation".
+When they disagree (or the `data_conflict` flag is present), write "the two proxies diverge: X suggests A, Y suggests B". Do NOT average them, and lower the confidence of your recommendation.
+
+If a target has `is_flow_island: true` (the `flow_island` flag), its problem is that the street network cuts it off from nearby footfall, not that the business fails. Say so, and favour the candidate that fixes access (`pedestrian_upgrade` / `green_corridor`) unless the simulation numbers clearly favour another plan.
+
+If a simulation brief reports `lbs_unique_users_daily` before and after, you may cite the change, but say it is modelled from walking-access change (not a new observation).
+
 ## Secondary carbon fields (do NOT conflate with operational carbon)
 
 The `township_metrics` block carries carbon-related fields that are
