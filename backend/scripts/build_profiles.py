@@ -120,22 +120,48 @@ def build_profiles(year=2026):
                         "floor_area_m2": _safe_float(anchor.iloc[0]["floor_area_m2"])
                     }
         
-        # Parse unit mix and per-subtype occupancy
+        # Parse unit mix
         unit_mix = _parse_json(a.get("unit_mix_json"))
-        occ_by_subtype = _parse_json(m.get("occupancy_by_subtype_calc_json"))
+        
+        # Tier 3a proxies
+        # If the asset is full_control, external CSV will not have a row for it.
+        # We should distinguish "No external data" (None) from "0 operational" (0).
+        raw_biz_counts = m.get("business_subtype_counts_json")
+        # Allow None to distinguish full_control (no data) from 0 operational
+        biz_counts = _parse_json(raw_biz_counts) if raw_biz_counts else None
+        
+        raw_vitalities = m.get("business_subtype_vitality_json")
+        # Force dict to prevent NoneType .get() errors
+        biz_vitalities = (_parse_json(raw_vitalities) if raw_vitalities else {}) or {}
         
         subunits = []
-        if unit_mix and occ_by_subtype:
+        if unit_mix:
+            total_mix_area = sum(float(v.get("area_m2", 0)) for v in unit_mix.values()) or 1.0
+            
             for st, info in unit_mix.items():
                 area = _safe_float(info.get("area_m2"))
-                occ = _safe_float(occ_by_subtype.get(st))
-                total_mix_area = sum(float(v.get("area_m2", 0)) for v in unit_mix.values())
+                design_count = int(info.get("count", 1))
+                if biz_counts is not None:
+                    operational_count = int(biz_counts.get(st, 0))
+                else:
+                    operational_count = None # N/A for full_control assets
+                
+                # Calculate presence ratio based on actual operational units
+                # Handle None (full_control assets without Places data)
+                if operational_count is not None and design_count > 0:
+                    presence_ratio = min(1.0, operational_count / design_count)
+                else:
+                    presence_ratio = None
+                
                 ratio = area / total_mix_area if total_mix_area > 0 else 0
                 
                 subunits.append({
                     "subtype": st,
                     "area_m2": area,
-                    "occupancy": occ,
+                    "design_count": design_count,
+                    "operational_count": operational_count,
+                    "presence_ratio": presence_ratio,
+                    "vitality_score": biz_vitalities.get(st), # Can be None if no reviews
                     "allocated_carbon_tco2e": _safe_float(m.get("carbon_operational_tco2e", 0) * ratio),
                     "allocated_noi_rm": _safe_float(m.get("noi_rm", 0) * ratio)
                 })

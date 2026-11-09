@@ -348,6 +348,83 @@ export function AssetPanel(props: {
                         : ''}
                     </div>
                   </div>
+                                    
+                  {/* Subtype Mix Section */}
+                  {p.subunits && p.subunits.length > 0 && (
+                    <div style={{ marginTop: 16 }}>
+                      <SectionTitle title="Subtype Tenancy Mix" color={C.muted} />
+                      <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr style={{ borderBottom: `1px solid ${C.line}`, color: C.muted, textAlign: 'left' }}>
+                            <th style={{ paddingBottom: 4, fontWeight: 500 }}>Subtype</th>
+                            <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Area</th>
+                            
+                            {/* Conditional Headers: Full Control shows Occupancy, Others show Operating & Vitality */}
+                            {p.authority.level === 'full_control' ? (
+                              <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Occupancy</th>
+                            ) : (
+                              <>
+                                <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Operating</th>
+                                <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Vitality</th>
+                              </>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {p.subunits.map((sub: any) => {
+                            const isFullControl = p.authority.level === 'full_control';
+                            
+                            // For Sold/Advisory assets (Tier 3a proxies)
+                            const hasProxy = sub.operational_count !== undefined && sub.operational_count !== null
+                            const opText = hasProxy ? `${sub.operational_count} / ${sub.design_count}` : `— / ${sub.design_count}`
+                            const vitText = sub.vitality_score != null ? sub.vitality_score.toFixed(1) : '—'
+                            const isDead = hasProxy && sub.operational_count === 0
+
+                            // For Full Control assets (Tier 1 observed)
+                            const occText = sub.occupancy != null ? `${(sub.occupancy * 100).toFixed(0)}%` : '—'
+                            const isOccLow = sub.occupancy != null && sub.occupancy < 0.4
+
+                            return (
+                              <tr key={sub.subtype} style={{ borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
+                                <td style={{ padding: '6px 0', textTransform: 'capitalize', color: C.text }}>
+                                  {sub.subtype.replace(/_/g, ' ')}
+                                </td>
+                                <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: C.muted }}>
+                                  {sub.area_m2} m²
+                                </td>
+                                
+                                {/* Conditional Data Columns */}
+                                {isFullControl ? (
+                                  <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: isOccLow ? '#d71920' : C.text }}>
+                                    {occText}
+                                  </td>
+                                ) : (
+                                  <>
+                                    <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: isDead ? '#d71920' : (hasProxy ? '#3fb27f' : C.muted) }}>
+                                      {opText}
+                                    </td>
+                                    <td style={{ padding: '6px 0', textAlign: 'right', ...mono }}>
+                                      {vitText}
+                                    </td>
+                                  </>
+                                )}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      <div style={{ fontSize: 10, color: C.faint, marginTop: 6, fontStyle: 'italic', lineHeight: 1.4 }}>
+                        {p.authority.level === 'full_control' ? (
+                          <><strong>Occupancy</strong>: Observed per-subtype occupancy (Tier 1).</>
+                        ) : (
+                          <>
+                            <strong>Operating</strong>: Active businesses / Designed units (Google Places).<br/>
+                            <strong>Vitality</strong>: Rating × log(reviews) proxy. — means no Places data.
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -586,7 +663,6 @@ export function AssetPanel(props: {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       {fin && <MetricLine m={fin} />}
                       {soc && <MetricLine m={soc} />}
-                      {env.map((m) => <MetricLine key={m.label} m={m} lowerIsBetter />)}
     
                       {env.map((m) => (
                         <div key={m.label}>

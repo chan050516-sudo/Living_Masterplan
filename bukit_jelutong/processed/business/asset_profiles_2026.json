@@ -852,7 +852,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.14
+      "dsr": 1.13
     },
     "social": {
       "occupancy_rate": null,
@@ -862,7 +862,7 @@
       "coverage_ratio_10min_walk": 0.143,
       "coverage_ratio_15min_walk": 0.331,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 6436.53,
+      "effective_demand_m2": 6413.48,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.985,
       "proxied_occupancy": 0.589,
@@ -952,7 +952,98 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "supermarket",
+        "area_m2": 1583.9,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 15.9,
+        "allocated_carbon_tco2e": 444.31,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "restaurant",
+        "area_m2": 896.0,
+        "design_count": 3,
+        "operational_count": 5,
+        "presence_ratio": 1.0,
+        "vitality_score": 16.55,
+        "allocated_carbon_tco2e": 251.35,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 325.8,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 91.39,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 325.8,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 16.83,
+        "allocated_carbon_tco2e": 91.39,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 488.7,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 16.83,
+        "allocated_carbon_tco2e": 137.09,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 325.8,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 16.83,
+        "allocated_carbon_tco2e": 91.39,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 407.3,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 114.26,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "entertainment",
+        "area_m2": 610.9,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 15.9,
+        "allocated_carbon_tco2e": 171.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 692.4,
+        "design_count": 3,
+        "operational_count": 3,
+        "presence_ratio": 1.0,
+        "vitality_score": 16.36,
+        "allocated_carbon_tco2e": 194.23,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0335": {
     "identity": {
@@ -1952,7 +2043,7 @@
       "coverage_ratio_10min_walk": 0.115,
       "coverage_ratio_15min_walk": 0.36,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 958.62,
+      "effective_demand_m2": 937.98,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.919,
       "proxied_occupancy": 0.922,
@@ -2048,7 +2139,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 404.8,
+        "design_count": 2,
+        "operational_count": 7,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.99,
+        "allocated_carbon_tco2e": 81.68,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 1012.1,
+        "design_count": 5,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 204.22,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 607.2,
+        "design_count": 3,
+        "operational_count": 3,
+        "presence_ratio": 1.0,
+        "vitality_score": 27.3,
+        "allocated_carbon_tco2e": 122.52,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 809.6,
+        "design_count": 4,
+        "operational_count": 3,
+        "presence_ratio": 0.75,
+        "vitality_score": 27.3,
+        "allocated_carbon_tco2e": 163.36,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 607.2,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 122.52,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 404.8,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.23,
+        "allocated_carbon_tco2e": 81.68,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 1214.5,
+        "design_count": 6,
+        "operational_count": 3,
+        "presence_ratio": 0.5,
+        "vitality_score": 27.74,
+        "allocated_carbon_tco2e": 245.05,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0163": {
     "identity": {
@@ -3184,7 +3346,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.59
+      "dsr": 0.58
     },
     "social": {
       "occupancy_rate": null,
@@ -3194,7 +3356,7 @@
       "coverage_ratio_10min_walk": 0.115,
       "coverage_ratio_15min_walk": 0.195,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 2839.58,
+      "effective_demand_m2": 2798.38,
       "demographic_mismatch": 0.5,
       "neighborhood_diversity": 0.0,
       "proxied_occupancy": 0.751,
@@ -3302,7 +3464,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 402.7,
+        "design_count": 2,
+        "operational_count": 7,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.73,
+        "allocated_carbon_tco2e": 81.72,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 1006.7,
+        "design_count": 5,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 204.29,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 604.0,
+        "design_count": 3,
+        "operational_count": 1,
+        "presence_ratio": 0.3333333333333333,
+        "vitality_score": 27.69,
+        "allocated_carbon_tco2e": 122.57,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 805.3,
+        "design_count": 4,
+        "operational_count": 2,
+        "presence_ratio": 0.5,
+        "vitality_score": 29.31,
+        "allocated_carbon_tco2e": 163.42,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 604.0,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 122.57,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 402.7,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.5,
+        "allocated_carbon_tco2e": 81.72,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 1006.7,
+        "design_count": 5,
+        "operational_count": 2,
+        "presence_ratio": 0.4,
+        "vitality_score": 25.1,
+        "allocated_carbon_tco2e": 204.29,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0446": {
     "identity": {
@@ -15351,7 +15584,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.13
+      "dsr": 0.12
     },
     "social": {
       "occupancy_rate": null,
@@ -15361,7 +15594,7 @@
       "coverage_ratio_10min_walk": 0.08,
       "coverage_ratio_15min_walk": 0.213,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 386.59,
+      "effective_demand_m2": 370.17,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.919,
       "proxied_occupancy": 0.045,
@@ -15486,7 +15719,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 411.0,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.53,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 616.5,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 131.3,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 205.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.77,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 616.5,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 131.3,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 411.0,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.53,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 205.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.77,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 616.5,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 131.3,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0249": {
     "identity": {
@@ -21667,7 +21971,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.39
+      "dsr": 0.38
     },
     "social": {
       "occupancy_rate": null,
@@ -21677,7 +21981,7 @@
       "coverage_ratio_10min_walk": 0.089,
       "coverage_ratio_15min_walk": 0.388,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 990.16,
+      "effective_demand_m2": 977.54,
       "demographic_mismatch": 0.5,
       "neighborhood_diversity": 0.916,
       "proxied_occupancy": 1.0,
@@ -21779,7 +22083,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 195.7,
+        "design_count": 1,
+        "operational_count": 3,
+        "presence_ratio": 1.0,
+        "vitality_score": 27.73,
+        "allocated_carbon_tco2e": 40.27,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 391.4,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 80.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 391.4,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 27.97,
+        "allocated_carbon_tco2e": 80.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 391.4,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 27.97,
+        "allocated_carbon_tco2e": 80.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 391.4,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 80.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 195.7,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 27.24,
+        "allocated_carbon_tco2e": 40.27,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 587.0,
+        "design_count": 3,
+        "operational_count": 2,
+        "presence_ratio": 0.6666666666666666,
+        "vitality_score": 26.01,
+        "allocated_carbon_tco2e": 120.8,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0218": {
     "identity": {
@@ -30721,7 +31096,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.19
+      "dsr": 0.18
     },
     "social": {
       "occupancy_rate": null,
@@ -30731,7 +31106,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 198.87,
+      "effective_demand_m2": 197.43,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.991,
       "proxied_occupancy": 1.0,
@@ -30827,7 +31202,58 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "kopitiam",
+        "area_m2": 213.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.58,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 213.6,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.17,
+        "allocated_carbon_tco2e": 41.58,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 213.6,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.17,
+        "allocated_carbon_tco2e": 41.58,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 213.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.58,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 213.6,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.17,
+        "allocated_carbon_tco2e": 41.58,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0200": {
     "identity": {
@@ -33397,7 +33823,7 @@
       "coverage_ratio_10min_walk": 0.138,
       "coverage_ratio_15min_walk": 0.168,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 412.33,
+      "effective_demand_m2": 407.28,
       "demographic_mismatch": 0.5,
       "neighborhood_diversity": 0.991,
       "proxied_occupancy": 0.192,
@@ -33528,7 +33954,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 409.2,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 12.14,
+        "allocated_carbon_tco2e": 87.6,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 613.8,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 131.39,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 204.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 613.8,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 131.39,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 409.2,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.6,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 204.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 613.8,
+        "design_count": 3,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 131.39,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0362": {
     "identity": {
@@ -34515,7 +35012,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.19
+      "dsr": 0.18
     },
     "social": {
       "occupancy_rate": null,
@@ -34525,7 +35022,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 186.2,
+      "effective_demand_m2": 184.86,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.991,
       "proxied_occupancy": 0.91,
@@ -34615,7 +35112,58 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "kopitiam",
+        "area_m2": 200.0,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 39.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 200.0,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.09,
+        "allocated_carbon_tco2e": 39.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 200.0,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.09,
+        "allocated_carbon_tco2e": 39.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 200.0,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 39.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 200.0,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.09,
+        "allocated_carbon_tco2e": 39.8,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0309": {
     "identity": {
@@ -38836,7 +39384,7 @@
       "coverage_ratio_10min_walk": 0.116,
       "coverage_ratio_15min_walk": 0.314,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 82.23,
+      "effective_demand_m2": 81.59,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.99,
       "proxied_occupancy": 0.031,
@@ -38975,7 +39523,58 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "kopitiam",
+        "area_m2": 183.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 36.51,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 183.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 36.51,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 183.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 36.51,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 183.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 36.51,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 183.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 36.51,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0390": {
     "identity": {
@@ -39721,7 +40320,7 @@
       "coverage_ratio_10min_walk": 0.153,
       "coverage_ratio_15min_walk": 0.153,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 522.72,
+      "effective_demand_m2": 516.54,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.99,
       "proxied_occupancy": 0.816,
@@ -39817,7 +40416,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 3,
+        "presence_ratio": 1.0,
+        "vitality_score": 25.75,
+        "allocated_carbon_tco2e": 42.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 414.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 84.71,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 414.9,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 25.43,
+        "allocated_carbon_tco2e": 84.71,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 414.9,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 25.43,
+        "allocated_carbon_tco2e": 84.71,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 414.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 84.71,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 26.39,
+        "allocated_carbon_tco2e": 42.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 622.4,
+        "design_count": 3,
+        "operational_count": 2,
+        "presence_ratio": 0.6666666666666666,
+        "vitality_score": 25.79,
+        "allocated_carbon_tco2e": 127.08,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0572": {
     "identity": {
@@ -40181,7 +40851,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 206.7,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 7.69,
+        "allocated_carbon_tco2e": 42.41,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 413.3,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 84.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 413.3,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 84.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 413.3,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 84.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 413.3,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 84.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 206.7,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 42.41,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 620.0,
+        "design_count": 3,
+        "operational_count": 1,
+        "presence_ratio": 0.3333333333333333,
+        "vitality_score": 9.98,
+        "allocated_carbon_tco2e": 127.21,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0575": {
     "identity": {
@@ -40966,7 +41707,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.19
+      "dsr": 0.18
     },
     "social": {
       "occupancy_rate": null,
@@ -40976,7 +41717,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 163.77,
+      "effective_demand_m2": 162.58,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.991,
       "proxied_occupancy": 1.0,
@@ -41072,7 +41813,58 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "kopitiam",
+        "area_m2": 175.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 34.07,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 175.9,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 29.39,
+        "allocated_carbon_tco2e": 34.07,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 175.9,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 29.39,
+        "allocated_carbon_tco2e": 34.07,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 175.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 34.07,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 175.9,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 29.39,
+        "allocated_carbon_tco2e": 34.07,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0647": {
     "identity": {
@@ -41111,7 +41903,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 590.85,
+      "effective_demand_m2": 584.72,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.73,
@@ -41201,7 +41993,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 202.3,
+        "design_count": 1,
+        "operational_count": 3,
+        "presence_ratio": 1.0,
+        "vitality_score": 29.15,
+        "allocated_carbon_tco2e": 42.66,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 404.6,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 85.32,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 404.6,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 28.19,
+        "allocated_carbon_tco2e": 85.32,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 404.6,
+        "design_count": 2,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 28.19,
+        "allocated_carbon_tco2e": 85.32,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 404.6,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 85.32,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 202.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 31.08,
+        "allocated_carbon_tco2e": 42.66,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 606.9,
+        "design_count": 3,
+        "operational_count": 1,
+        "presence_ratio": 0.3333333333333333,
+        "vitality_score": 25.3,
+        "allocated_carbon_tco2e": 127.97,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0063": {
     "identity": {
@@ -41533,7 +42396,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.65
+      "dsr": 0.64
     },
     "social": {
       "occupancy_rate": null,
@@ -41543,7 +42406,7 @@
       "coverage_ratio_10min_walk": 0.256,
       "coverage_ratio_15min_walk": 0.426,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 560.37,
+      "effective_demand_m2": 558.94,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.903,
       "proxied_occupancy": 0.106,
@@ -41661,7 +42524,58 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "kopitiam",
+        "area_m2": 173.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 33.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 173.4,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 11.83,
+        "allocated_carbon_tco2e": 33.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 173.4,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 11.83,
+        "allocated_carbon_tco2e": 33.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 173.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 33.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 173.4,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 11.83,
+        "allocated_carbon_tco2e": 33.16,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0566": {
     "identity": {
@@ -43609,7 +44523,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.43
+      "dsr": 0.42
     },
     "social": {
       "occupancy_rate": null,
@@ -43619,7 +44533,7 @@
       "coverage_ratio_10min_walk": 0.089,
       "coverage_ratio_15min_walk": 0.388,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 685.25,
+      "effective_demand_m2": 674.72,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.916,
       "proxied_occupancy": 0.623,
@@ -43737,7 +44651,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 201.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.19,
+        "allocated_carbon_tco2e": 42.74,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 201.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 42.74,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 201.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 42.74,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 201.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 42.74,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 201.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 42.74,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 201.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.19,
+        "allocated_carbon_tco2e": 42.74,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 402.5,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 85.47,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0198": {
     "identity": {
@@ -46106,7 +47091,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 460.05,
+      "effective_demand_m2": 455.21,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.165,
@@ -46225,7 +47210,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 205.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 410.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.08,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 410.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.08,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 410.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.08,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 205.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 205.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.55,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 410.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.08,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0315": {
     "identity": {
@@ -47929,7 +48985,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.31
+      "dsr": 0.3
     },
     "social": {
       "occupancy_rate": null,
@@ -47939,7 +48995,7 @@
       "coverage_ratio_10min_walk": 0.219,
       "coverage_ratio_15min_walk": 0.273,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 225.09,
+      "effective_demand_m2": 218.7,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.581,
@@ -48267,7 +49323,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.88
+      "dsr": 0.75
     },
     "social": {
       "occupancy_rate": null,
@@ -48277,7 +49333,7 @@
       "coverage_ratio_10min_walk": 0.219,
       "coverage_ratio_15min_walk": 0.273,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 1266.73,
+      "effective_demand_m2": 1077.38,
       "demographic_mismatch": 0.5,
       "neighborhood_diversity": 0.912,
       "proxied_occupancy": 0.082,
@@ -48402,7 +49458,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 206.6,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 44.54,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0646": {
     "identity": {
@@ -52605,7 +53732,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 263.43,
+      "effective_demand_m2": 260.26,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.151,
@@ -52730,7 +53857,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 10.05,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 188.8,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.96,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0736": {
     "identity": {
@@ -53757,7 +54955,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 397.84,
+      "effective_demand_m2": 393.35,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.024,
@@ -53882,7 +55080,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 190.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 11.23,
+        "allocated_carbon_tco2e": 40.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 380.6,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 80.32,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 190.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 40.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 380.6,
+        "design_count": 2,
+        "operational_count": 1,
+        "presence_ratio": 0.5,
+        "vitality_score": 11.23,
+        "allocated_carbon_tco2e": 80.32,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 190.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 40.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 190.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 40.16,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 380.6,
+        "design_count": 2,
+        "operational_count": 1,
+        "presence_ratio": 0.5,
+        "vitality_score": 11.23,
+        "allocated_carbon_tco2e": 80.32,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0650": {
     "identity": {
@@ -53911,7 +55180,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.17
+      "dsr": 0.16
     },
     "social": {
       "occupancy_rate": null,
@@ -53921,7 +55190,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 313.47,
+      "effective_demand_m2": 309.94,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.166,
@@ -54046,7 +55315,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 209.5,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 9.43,
+        "allocated_carbon_tco2e": 45.91,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 419.0,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 91.82,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 209.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 45.91,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 419.0,
+        "design_count": 2,
+        "operational_count": 1,
+        "presence_ratio": 0.5,
+        "vitality_score": 9.43,
+        "allocated_carbon_tco2e": 91.82,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 209.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 45.91,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 209.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 45.91,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 209.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 45.91,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0713": {
     "identity": {
@@ -54599,7 +55939,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 253.44,
+      "effective_demand_m2": 250.01,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.99,
       "proxied_occupancy": 0.115,
@@ -54724,7 +56064,68 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 46.92,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 46.92,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 46.92,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 46.92,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 46.92,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 207.5,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 46.92,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0655": {
     "identity": {
@@ -54753,7 +56154,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.29
+      "dsr": 0.28
     },
     "social": {
       "occupancy_rate": null,
@@ -54763,7 +56164,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 180.38,
+      "effective_demand_m2": 174.3,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.989,
       "proxied_occupancy": 1.0,
@@ -55398,7 +56799,7 @@
       "coverage_ratio_10min_walk": 0.105,
       "coverage_ratio_15min_walk": 0.339,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 202.74,
+      "effective_demand_m2": 199.57,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.989,
       "proxied_occupancy": 0.131,
@@ -55516,7 +56917,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 200.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 15.09,
+        "allocated_carbon_tco2e": 43.9,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 400.6,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 87.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 200.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.9,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 400.6,
+        "design_count": 2,
+        "operational_count": 1,
+        "presence_ratio": 0.5,
+        "vitality_score": 15.09,
+        "allocated_carbon_tco2e": 87.8,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 200.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.9,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 200.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.9,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 200.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.9,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0569": {
     "identity": {
@@ -56815,7 +58287,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.17
+      "dsr": 0.16
     },
     "social": {
       "occupancy_rate": null,
@@ -56825,7 +58297,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 289.39,
+      "effective_demand_m2": 286.13,
       "demographic_mismatch": 0.5,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.239,
@@ -56956,7 +58428,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 193.4,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 9.57,
+        "allocated_carbon_tco2e": 41.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 386.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 82.76,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 193.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 386.9,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 82.76,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 193.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 193.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.37,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 193.4,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.37,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0711": {
     "identity": {
@@ -58197,7 +59740,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.19
+      "dsr": 0.17
     },
     "social": {
       "occupancy_rate": null,
@@ -58207,7 +59750,7 @@
       "coverage_ratio_10min_walk": 0.105,
       "coverage_ratio_15min_walk": 0.339,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 103.72,
+      "effective_demand_m2": 96.81,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.99,
       "proxied_occupancy": 0.246,
@@ -60183,7 +61726,7 @@
       "coverage_ratio_10min_walk": 0.144,
       "coverage_ratio_15min_walk": 0.2,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 383.4,
+      "effective_demand_m2": 378.86,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.988,
       "proxied_occupancy": 0.661,
@@ -60279,7 +61822,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 192.7,
+        "design_count": 1,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 21.96,
+        "allocated_carbon_tco2e": 40.99,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 192.7,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 40.99,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 192.7,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 21.96,
+        "allocated_carbon_tco2e": 40.99,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 192.7,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 21.96,
+        "allocated_carbon_tco2e": 40.99,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 192.7,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 40.99,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 192.7,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 21.96,
+        "allocated_carbon_tco2e": 40.99,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 385.4,
+        "design_count": 2,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 81.98,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0558": {
     "identity": {
@@ -62751,7 +64365,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.39,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 116.49,
+      "effective_demand_m2": 111.57,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.99,
@@ -63583,7 +65197,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.58
+      "dsr": 1.41
     },
     "social": {
       "occupancy_rate": null,
@@ -63593,7 +65207,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.423,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 1658.16,
+      "effective_demand_m2": 1484.64,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.913,
       "proxied_occupancy": 0.069,
@@ -63719,7 +65333,58 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "kopitiam",
+        "area_m2": 209.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.79,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 209.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.79,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 209.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.79,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 209.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.79,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 209.9,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 41.79,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "BLD-0862": {
     "identity": {
@@ -79985,7 +81650,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.13
+      "dsr": 0.12
     },
     "social": {
       "occupancy_rate": null,
@@ -79995,7 +81660,7 @@
       "coverage_ratio_10min_walk": 0.112,
       "coverage_ratio_15min_walk": 0.168,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 32.91,
+      "effective_demand_m2": 30.97,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.99,
       "proxied_occupancy": 0.232,
@@ -84672,7 +86337,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.26
+      "dsr": 1.16
     },
     "social": {
       "occupancy_rate": null,
@@ -84682,7 +86347,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.423,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 244.86,
+      "effective_demand_m2": 224.11,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.934,
       "proxied_occupancy": 0.082,
@@ -85935,7 +87600,7 @@
       "rental_income_rm": 982070.5,
       "noi_rm": -1194993.71,
       "noi_yield": -0.071,
-      "dsr": 0.93
+      "dsr": 1.04
     },
     "social": {
       "occupancy_rate": 0.64,
@@ -85945,7 +87610,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.446,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 3811.18,
+      "effective_demand_m2": 4264.32,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.912,
       "proxied_occupancy": null,
@@ -86065,49 +87730,70 @@
       {
         "subtype": "restaurant",
         "area_m2": 408.8,
-        "occupancy": 0.55,
+        "design_count": 2,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 86.54,
         "allocated_noi_rm": -119499.37
       },
       {
         "subtype": "kopitiam",
         "area_m2": 817.6,
-        "occupancy": 0.55,
+        "design_count": 4,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 173.08,
         "allocated_noi_rm": -238998.74
       },
       {
         "subtype": "cafe",
         "area_m2": 408.8,
-        "occupancy": 0.53,
+        "design_count": 2,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 86.54,
         "allocated_noi_rm": -119499.37
       },
       {
         "subtype": "convenience_retail",
         "area_m2": 613.2,
-        "occupancy": 0.86,
+        "design_count": 3,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 129.81,
         "allocated_noi_rm": -179249.06
       },
       {
         "subtype": "services",
         "area_m2": 613.2,
-        "occupancy": 0.55,
+        "design_count": 3,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 129.81,
         "allocated_noi_rm": -179249.06
       },
       {
         "subtype": "medical_retail",
         "area_m2": 408.8,
-        "occupancy": 0.55,
+        "design_count": 2,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 86.54,
         "allocated_noi_rm": -119499.37
       },
       {
         "subtype": "office",
         "area_m2": 817.6,
-        "occupancy": 0.77,
+        "design_count": 4,
+        "operational_count": null,
+        "presence_ratio": null,
+        "vitality_score": null,
         "allocated_carbon_tco2e": 173.08,
         "allocated_noi_rm": -238998.74
       }
@@ -88883,7 +90569,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.19
+      "dsr": 0.18
     },
     "social": {
       "occupancy_rate": null,
@@ -88893,7 +90579,7 @@
       "coverage_ratio_10min_walk": 0.089,
       "coverage_ratio_15min_walk": 0.379,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 257.96,
+      "effective_demand_m2": 251.42,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.91,
       "proxied_occupancy": 0.71,
@@ -88999,7 +90685,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 19.04,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 19.04,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "A-0004": {
     "identity": {
@@ -89163,7 +90920,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.28
+      "dsr": 0.25
     },
     "social": {
       "occupancy_rate": null,
@@ -89173,7 +90930,7 @@
       "coverage_ratio_10min_walk": 0.203,
       "coverage_ratio_15min_walk": 0.417,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 187.26,
+      "effective_demand_m2": 171.97,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.914,
       "proxied_occupancy": 0.426,
@@ -89324,7 +91081,7 @@
       "coverage_ratio_10min_walk": 0.203,
       "coverage_ratio_15min_walk": 0.417,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 373.9,
+      "effective_demand_m2": 367.78,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.913,
       "proxied_occupancy": 0.771,
@@ -89414,7 +91171,78 @@
     "leases": {
       "anchor_lease": null
     },
-    "subunits": null
+    "subunits": [
+      {
+        "subtype": "restaurant",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 2,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.22,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "kopitiam",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "cafe",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.22,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "convenience_retail",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.22,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "services",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 0,
+        "presence_ratio": 0.0,
+        "vitality_score": null,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "medical_retail",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.22,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      },
+      {
+        "subtype": "office",
+        "area_m2": 194.3,
+        "design_count": 1,
+        "operational_count": 1,
+        "presence_ratio": 1.0,
+        "vitality_score": 18.22,
+        "allocated_carbon_tco2e": 43.19,
+        "allocated_noi_rm": null
+      }
+    ]
   },
   "A-0008": {
     "identity": {
@@ -89443,7 +91271,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.3
+      "dsr": 0.27
     },
     "social": {
       "occupancy_rate": null,
@@ -89453,7 +91281,7 @@
       "coverage_ratio_10min_walk": 0.203,
       "coverage_ratio_15min_walk": 0.417,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 201.39,
+      "effective_demand_m2": 185.79,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.914,
       "proxied_occupancy": 0.841,
@@ -89581,7 +91409,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.34
+      "dsr": 0.31
     },
     "social": {
       "occupancy_rate": null,
@@ -89591,7 +91419,7 @@
       "coverage_ratio_10min_walk": 0.203,
       "coverage_ratio_15min_walk": 0.417,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 230.48,
+      "effective_demand_m2": 213.98,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.914,
       "proxied_occupancy": 0.867,
@@ -89710,7 +91538,7 @@
       "rental_income_rm": 0.0,
       "noi_rm": -298263.0,
       "noi_yield": -0.1065,
-      "dsr": 0.03
+      "dsr": 0.22
     },
     "social": {
       "occupancy_rate": 0.0,
@@ -89720,7 +91548,7 @@
       "coverage_ratio_10min_walk": 0.203,
       "coverage_ratio_15min_walk": 0.417,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 19.4,
+      "effective_demand_m2": 151.49,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.914,
       "proxied_occupancy": null,
@@ -90015,7 +91843,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.23
+      "dsr": 0.22
     },
     "social": {
       "occupancy_rate": null,
@@ -90025,7 +91853,7 @@
       "coverage_ratio_10min_walk": 0.089,
       "coverage_ratio_15min_walk": 0.379,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 159.58,
+      "effective_demand_m2": 146.32,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.911,
       "proxied_occupancy": 0.815,
@@ -90289,7 +92117,7 @@
       "coverage_ratio_10min_walk": 0.089,
       "coverage_ratio_15min_walk": 0.417,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 98.54,
+      "effective_demand_m2": 98.46,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.912,
       "proxied_occupancy": 0.716,
@@ -90570,7 +92398,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.31
+      "dsr": 1.23
     },
     "social": {
       "occupancy_rate": null,
@@ -90580,7 +92408,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.423,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 223.05,
+      "effective_demand_m2": 209.54,
       "demographic_mismatch": 0.5,
       "neighborhood_diversity": 0.94,
       "proxied_occupancy": 0.745,
@@ -90705,7 +92533,7 @@
       "rental_income_rm": 0.0,
       "noi_rm": -105027.89,
       "noi_yield": -0.1081,
-      "dsr": 0.13
+      "dsr": 0.76
     },
     "social": {
       "occupancy_rate": 0.0,
@@ -90715,7 +92543,7 @@
       "coverage_ratio_10min_walk": 0.198,
       "coverage_ratio_15min_walk": 0.276,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 29.83,
+      "effective_demand_m2": 179.55,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": null,
@@ -90995,7 +92823,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.423,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 88.03,
+      "effective_demand_m2": 84.32,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 1.0,
@@ -91120,7 +92948,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.19
+      "dsr": 0.86
     },
     "social": {
       "occupancy_rate": null,
@@ -91130,7 +92958,7 @@
       "coverage_ratio_10min_walk": 0.189,
       "coverage_ratio_15min_walk": 0.39,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 528.88,
+      "effective_demand_m2": 380.55,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.932,
@@ -91259,7 +93087,7 @@
       "rental_income_rm": 0.0,
       "noi_rm": -41229.97,
       "noi_yield": -0.1073,
-      "dsr": 0.24
+      "dsr": 1.42
     },
     "social": {
       "occupancy_rate": 0.0,
@@ -91269,7 +93097,7 @@
       "coverage_ratio_10min_walk": 0.24,
       "coverage_ratio_15min_walk": 0.423,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 22.02,
+      "effective_demand_m2": 132.9,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": null,
@@ -91406,7 +93234,7 @@
       "rental_income_rm": 0.0,
       "noi_rm": -97278.74,
       "noi_yield": -0.1081,
-      "dsr": 0.14
+      "dsr": 0.83
     },
     "social": {
       "occupancy_rate": 0.0,
@@ -91416,7 +93244,7 @@
       "coverage_ratio_10min_walk": 0.198,
       "coverage_ratio_15min_walk": 0.303,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 30.04,
+      "effective_demand_m2": 181.71,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": null,
@@ -91553,7 +93381,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.23
+      "dsr": 0.22
     },
     "social": {
       "occupancy_rate": null,
@@ -91563,7 +93391,7 @@
       "coverage_ratio_10min_walk": 0.198,
       "coverage_ratio_15min_walk": 0.39,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 95.99,
+      "effective_demand_m2": 93.77,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.943,
@@ -91689,7 +93517,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.07
+      "dsr": 0.76
     },
     "social": {
       "occupancy_rate": null,
@@ -91699,7 +93527,7 @@
       "coverage_ratio_10min_walk": 0.198,
       "coverage_ratio_15min_walk": 0.276,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 248.11,
+      "effective_demand_m2": 175.63,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.672,
@@ -91835,7 +93663,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 1.18
+      "dsr": 0.84
     },
     "social": {
       "occupancy_rate": null,
@@ -91845,7 +93673,7 @@
       "coverage_ratio_10min_walk": 0.198,
       "coverage_ratio_15min_walk": 0.303,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 318.76,
+      "effective_demand_m2": 227.01,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.473,
@@ -91973,7 +93801,7 @@
       "rental_income_rm": null,
       "noi_rm": null,
       "noi_yield": null,
-      "dsr": 0.31
+      "dsr": 0.3
     },
     "social": {
       "occupancy_rate": null,
@@ -91983,7 +93811,7 @@
       "coverage_ratio_10min_walk": 0.25,
       "coverage_ratio_15min_walk": 0.423,
       "reachable_population_walk": 52679.0,
-      "effective_demand_m2": 129.19,
+      "effective_demand_m2": 125.16,
       "demographic_mismatch": 0.0,
       "neighborhood_diversity": 0.953,
       "proxied_occupancy": 0.814,

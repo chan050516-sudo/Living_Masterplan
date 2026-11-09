@@ -289,6 +289,34 @@ def _seeded_uniform(key: str, lo: float, hi: float) -> float:
     return lo + (hi - lo) * u
 
 
+def _estimate_opex(eff: dict, year: int) -> float:
+    """OPEX fallback for sold assets: capex × opex_fraction(subtype)."""
+    capex = float(eff.get("capex_initial_rm") or 0)
+    if capex <= 0:
+        return 0.0
+    fraction = {
+        "commercial": 0.08,
+        "community_facility": 0.10,
+        "residential": 0.04,
+        "green_space": 0.02,
+    }.get(eff.get("asset_type"), 0.05)
+    return capex * fraction
+
+
+def _estimate_maintenance(eff: dict, year: int) -> float:
+    """Maintenance fallback for sold assets: capex × maintenance_fraction."""
+    capex = float(eff.get("capex_initial_rm") or 0)
+    if capex <= 0:
+        return 0.0
+    fraction = {
+        "commercial": 0.025,
+        "community_facility": 0.030,
+        "residential": 0.015,
+        "green_space": 0.010,
+    }.get(eff.get("asset_type"), 0.02)
+    return capex * fraction
+
+
 def _is_lease_active_at(lease, year):
     """
     True if the lease is still running at year Y, accounting for the
@@ -986,14 +1014,16 @@ def simulate_scenario(
                 prev_value = _safe_num(r.get("occupancy_rate"), 0.6)
         # v6.0 §5.3 — a sold asset's occupancy is not visible to the
         # developer, so start its trajectory from a proxy instead.
+        # We do this for BOTH commercial and residential.
         if (
-            seed_from_proxy
-            and asset["asset_type"] == "commercial"
-            and not is_full_control(asset.get("authority"))
+            not is_full_control(asset.get("authority"))
+            and asset["asset_type"] in ("commercial", "residential")
         ):
-            prev_value, occupancy_seed_source[aid] = _proxy_occupancy_seed(
-                aid, asset.get("subtype"),
-            )
+            # Only seed if the base occupancy was None/NaN
+            if row.empty or not _is_valid_number(row.iloc[0].get("occupancy_rate")):
+                prev_value, occupancy_seed_source[aid] = _proxy_occupancy_seed(
+                    aid, asset.get("subtype"),
+                )
         occupancy_prev[aid] = prev_value
 
     state_by_year = {}
@@ -1889,6 +1919,7 @@ def simulate_scenario(
             metric_row["operational_capacity_ratio"] = capacity_ratio
             metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
             metric_row["land_area_m2"] = eff.get("land_area_m2")     # sequestration
+            metric_row["unit_mix_json"] = eff.get("unit_mix_json")
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -3516,7 +3547,10 @@ def _compute_trajectories_from_state(state_by_year, upto_year):
             except (TypeError, ValueError):
                 pass
 
-        if len(occ_history) < 2:
+        # Need at least 3 years of history to reliably classify a trajectory.
+        # In 2027 (the first simulated year), we only have 2026 and 2027.
+        # Comparing just two points causes false 'rapid_decline' flags due to normal convergence.
+        if len(occ_history) < 3:
             result[aid] = {"trajectory_class": "unknown"}
             continue
 
@@ -3657,7 +3691,17 @@ def _build_deadspace_by_year(
             metrics_dict = dict(st)
             metrics_dict["year"] = year
             metrics_dict["asset_id"] = aid
-            metrics_dict.update(trajectories.get(aid, {}))
+            
+            traj = trajectories.get(aid, {})
+            metrics_dict.update(traj)
+            
+            # If the trajectory is unknown (e.g., < 3 years of history), 
+            # explicitly clear the inherited trajectory fields from the base year.
+            # Otherwise, B6 will re-use the 2026 trajectory and trigger layer1 flags.
+            if traj.get("trajectory_class") == "unknown":
+                for k in ["trajectory_class", "peak_occupancy", "years_since_peak", 
+                          "occupancy_trend_3yr", "years_below_benchmark"]:
+                    metrics_dict[k] = None
 
             # v6.1h — for sold commercial, overwrite the external proxy
             # fields with the values B4 already simulated for this year.

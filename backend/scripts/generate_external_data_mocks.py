@@ -58,7 +58,6 @@ KIDO_COLUMNS = [
     "od_inbound_trips", "od_outbound_trips", "vehicle_flow_vpd",
 ]
 
-
 KIDO_POI_COLUMNS = [
     "poi_id", "asset_id", "grid_id", "date", "unique_visitors", "total_visits",
     "avg_dwell_time_minutes",
@@ -78,6 +77,21 @@ DEFAULT_POI_OPEN_HOURS = 12
 # Average share of an occupied shop's seats / floor capacity in use over
 # its opening hours (peaks at lunch/dinner, near-empty mid-afternoon).
 POI_AVG_UTILISATION = 0.35
+
+# Different subtypes have different resilience against overall vacancy.
+# Higher stress = more likely to close when the asset struggles.
+_SUBTYPE_VACANCY_STRESS = {
+    "office": 1.5,          # Offices empty out fastest
+    "showroom": 1.4,
+    "services": 1.2,
+    "retail": 1.1,
+    "entertainment": 1.1,
+    "f_and_b": 0.9,
+    "restaurant": 0.9,
+    "medical_retail": 0.6,  # Medical/dental survives longer
+    "kopitiam": 0.4,        # Local coffee shops almost never die
+    "supermarket": 0.2,     # Anchors stay open
+}
 
 
 def poi_capacity(asset) -> float:
@@ -350,10 +364,20 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
 
         for quarter, snapshot_day in enumerate(SNAPSHOT_DATES):
             for subtype, unit_no in unit_specs:
+                # 🚨 NEW: Subtype-conditioned occupancy
+                # Apply subtype stress to the overall asset occupancy.
+                # A 50% asset occupancy might mean 10% office occupancy but 90% kopitiam occupancy.
+                stress = _SUBTYPE_VACANCY_STRESS.get(subtype, 1.0)
+                adjusted_occ = max(0.0, min(1.0, occupancy / stress))
+                
+                # Add some deterministic noise per unit to simulate micro-level variance
+                adjusted_occ += _uniform(f"{aid}-{unit_no}-{subtype}-occ-noise", -0.1, 0.1)
+                adjusted_occ = max(0.0, min(1.0, adjusted_occ))
+
                 chance = _unit_uniform(f"{aid}-{unit_no}-{snapshot_day}-status")
-                if occupancy > 0.70:
+                if adjusted_occ > 0.70:
                     status = "OPERATIONAL"
-                elif occupancy >= 0.30:
+                elif adjusted_occ >= 0.30:
                     status = "OPERATIONAL" if chance < 0.60 else "CLOSED_TEMPORARILY"
                 else:
                     status = "OPERATIONAL" if chance < 0.20 else "CLOSED_PERMANENTLY"

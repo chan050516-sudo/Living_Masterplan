@@ -169,6 +169,22 @@ def main():
         derived, existing, years=history_years,
     )
 
+    # --- 🚨 NEW: Merge External Proxy Data (Tier 3a) ---
+    # Read the ingested Google Places data and merge it so build_profiles can use it.
+    bp_path = base_dir / "asset_business_presence.csv"
+    if bp_path.exists():
+        bp_df = pd.read_csv(bp_path)
+        cols_to_merge = ["asset_id", "business_subtype_counts_json", "business_subtype_vitality_json"]
+        # Ensure only existing columns are merged to avoid KeyError
+        cols_to_merge = [c for c in cols_to_merge if c in bp_df.columns]
+        
+        merged = merged.merge(
+            bp_df[cols_to_merge], 
+            on="asset_id", 
+            how="left"
+        )
+        print(f"  merged Google Places data for {len(bp_df)} assets")
+
     out_path = base_dir / "asset_metrics_enriched.csv"
     merged.to_csv(out_path, index=False)
 

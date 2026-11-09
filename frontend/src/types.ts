@@ -248,7 +248,17 @@ export type SummaryCard = {
     main_metrics?: MainMetric[]
     counterfactual?: Record<string, number>
   }
-  subunits?: Array<Record<string, unknown>> | null
+  subunits?: Array<{
+    subtype: string
+    area_m2: number
+    design_count?: number
+    operational_count?: number
+    presence_ratio?: number
+    vitality_score?: number | null
+    occupancy?: number | null // Keep for backward compatibility if needed
+    allocated_carbon_tco2e?: number
+    allocated_noi_rm?: number
+  }> | null
   authority?: string
   evaluation_mode?: string
   community?: CommunityBlock

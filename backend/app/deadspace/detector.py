@@ -50,12 +50,21 @@ def detect_deadspace_for_asset(
     # v6.0 Phase 2 — a sold / advisory asset's operational record is not
     # visible to the developer, so its tier-1 operational flags are
     # dropped and replaced by tier-3a proxy flags (Google Places, LBS).
+    # v6.0 Phase 2 — a sold / advisory asset's operational record is not
+    # visible to the developer, so its tier-1 operational flags are
+    # dropped and replaced by tier-3a proxy flags (Google Places, LBS).
     proxy = None
     survival = None
     external = None
     suppressed = []
-    if atype == "commercial" and not is_full_control(authority):
+    
+    # 🚨 FIX: Apply _drop_operational to ALL non-full_control assets.
+    # Previously it was only applied to commercial, causing residential 
+    # sold assets to trigger false tier-1 flags in 2027.
+    if not is_full_control(authority):
         layer1, layer2, suppressed = _drop_operational(layer1, layer2)
+        
+    if atype == "commercial" and not is_full_control(authority):
         external = external_for(asset["asset_id"], asset.get("subtype"))
         # v6.1h — metrics may carry proxy fields written by B4's
         # `_attach_proxy_state` for simulated years. When present,
