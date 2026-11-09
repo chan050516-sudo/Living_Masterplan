@@ -111,6 +111,7 @@ def build_context_pack(intent: dict, ds) -> dict:
         "nearby_subtype_radii": nearby_subtype_radii,
         "catalytic_vocabulary": _catalytic_vocabulary(),
         "engineering_spec_vocabulary": _engineering_spec_vocabulary(),
+        "soft_intervention_vocabulary": _soft_intervention_vocabulary(),
         "model_assumptions": _relevant_assumptions(ds),
     }
 
@@ -165,6 +166,11 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "utilisation_rate": observed.get("utilisation_rate"),
             "service_coverage": derived.get("service_coverage"),
             "cost_per_user_rm": derived.get("cost_per_user_rm"),
+            "t_asset_c": derived.get("t_asset_c"),
+            "t_township_c": derived.get("t_township_c"),
+            "surface_temp_delta_c": derived.get("surface_temp_delta_c"),
+            "surface_temp_provenance": derived.get("surface_temp_provenance"),
+            "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
     elif asset_type == "commercial":
         key_metrics = {
@@ -177,7 +183,7 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "surface_temp_provenance": derived.get("surface_temp_provenance"),
             "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
-    elif asset_type in ("residential", "community_facility"):
+    elif asset_type == "residential":
         key_metrics = {
             "t_asset_c": derived.get("t_asset_c"),
             "t_township_c": derived.get("t_township_c"),
@@ -185,6 +191,13 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "surface_temp_provenance": derived.get("surface_temp_provenance"),
             "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
+
+    # Occupancy the developer cannot see is labelled, not silently empty.
+    if asset_type == "commercial" and key_metrics.get("occupancy_rate") is None:
+        occ_v, occ_src = _visible_occupancy(ds, asset_id)
+        key_metrics["occupancy_estimate"] = occ_v
+        key_metrics["occupancy_source"] = occ_src
+    key_metrics = _drop_none(key_metrics)
 
     external_signals = _build_external_signals(
         asset_id, asset_type, authority_level,
@@ -204,6 +217,9 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "flags": deadspace.get("flags", []),
             "urgency_index": deadspace.get("urgency_index"),
             "contributing_factors": deadspace.get("contributing_factors", []),
+            "flag_tiers": deadspace.get("flag_tiers") or {},
+            "suppressed_flags": deadspace.get("suppressed_flags") or [],
+            "intervention_mode": deadspace.get("intervention_mode"),
         },
         "evidence": evidence,
         "catchment": {
@@ -273,6 +289,30 @@ def _build_external_signals(asset_id, asset_type, authority_level, subtype):
     return out if len(out) > 1 else None
 
 
+def _visible_occupancy(ds, asset_id: str):
+    """
+    The occupancy / utilisation the developer can actually see, with its
+    source, as (value, source). Developer-held assets use their own
+    records (tier 1). For a sold shop the record is hidden, so the LBS
+    estimate is used (tier 3a), then Google Places. Returns (None,
+    "not_visible_to_developer") when nothing is available. Never NaN.
+    """
+    row = ds._asset_row(asset_id) or {}
+    m = ds._metric_row(asset_id, ds.year) or {}
+    for key in ("occupancy_rate", "utilisation_rate"):
+        v = _nan_to_none(m.get(key))
+        if v is not None:
+            return round(float(v), 3), "developer_record"
+    if row.get("asset_type") == "commercial" and not is_full_control(row.get("authority")):
+        ext = external_for(asset_id, row.get("subtype")) or {}
+        for key, source in (("proxied_occupancy_lbs", "lbs_estimate_tier_3a"),
+                            ("proxied_occupancy_google", "google_places_estimate_tier_3a")):
+            v = _nan_to_none(ext.get(key))
+            if v is not None:
+                return round(min(1.0, float(v)), 3), source
+    return None, "not_visible_to_developer"
+
+
 def _subtypes_for_class(asset_class: str, ds) -> list:
     from .tool_service import get_available_subtypes
     raw = get_available_subtypes(ds, asset_class)
@@ -299,19 +339,15 @@ def _build_detailed_neighbors(ds, asset_id, radius_m=1200.0, max_items=25) -> li
         if len(detailed) >= max_items:
             break
 
-        _m = ds._metric_row(n["asset_id"], ds.year) or {}
         _ds = ds.deadspace.get(n["asset_id"]) or {}
         _a = ds._asset_row(n["asset_id"]) or {}
 
-        occ = _m.get("occupancy_rate") or _m.get("utilisation_rate")
-        try:
-            occ_f = float(occ) if occ is not None else 0.0
-        except (TypeError, ValueError):
-            occ_f = 0.0
+        occ_v, occ_src = _visible_occupancy(ds, n["asset_id"])
 
-        # Look for lease expiry to help LLM reason about joint timing
+        # Lease expiry helps the LLM reason about joint timing. A sold
+        # asset's leases are not visible to the developer (D-04).
         lease_info = None
-        if not ds.leases.empty:
+        if not ds.leases.empty and is_full_control(_a.get("authority")):
             _l = ds.leases[ds.leases["asset_id"] == n["asset_id"]]
             if not _l.empty and "lease_end_year" in _l.columns:
                 lease_info = _l["lease_end_year"].dropna().min()
@@ -324,7 +360,8 @@ def _build_detailed_neighbors(ds, asset_id, radius_m=1200.0, max_items=25) -> li
             "asset_id": n["asset_id"],
             "subtype": n.get("subtype"),
             "distance_m": round(n["distance_m"]),
-            "occupancy": round(occ_f, 2),
+            "occupancy": occ_v,
+            "occupancy_source": occ_src,
             "status": _ds.get("status", "healthy"),
             "floor_area_m2": _a.get("floor_area_m2"),
             "lease_expiry_year": lease_info,
@@ -446,12 +483,17 @@ def _authority_split(asset_type: str, authority_level: str) -> dict:
             "transferred to a public authority. The developer has no "
             "execution power. Every proposal is a recommendation, "
             "not a commitment. Use role phrasing such as 'recommend "
-            "the responsible authority to...' in the rationale."
+            "the responsible authority to...' in the rationale. "
+            "The `collaborative` actions (tenant matching, placemaking, "
+            "walkway / corridor works) are SDP services run together "
+            "with the owner or authority: phrase them as 'SDP offers / "
+            "partners with the owner to...', not 'we will'."
         )
 
     return {
         "executable": split["executable"],
         "requires_approval": split["requires_approval"],
+        "collaborative": split.get("collaborative", []),
         "recommendation_only": split["recommendation_only"],
         "note": note,
     }
@@ -494,14 +536,30 @@ def _build_township_baseline(ds) -> dict:
     green_mask = current["asset_type"] == "green_space"
     fac_mask = current["asset_type"] == "community_facility"
 
-    subtype_stats = []
-    if comm_mask.any() and "subtype" in current.columns:
-        for st in current.loc[comm_mask, "subtype"].dropna().unique():
-            _df = current[(current["asset_type"] == "commercial") & (current["subtype"] == st)]
-            _occ = _df["occupancy_rate"].mean()
-            if _occ is not None and not pd.isna(_occ):
-                subtype_stats.append({"subtype": st, "avg_occ": round(float(_occ), 3)})
-    
+    # Occupancy the developer can see: own records for developer-held
+    # shops, the LBS / Google estimate (tier 3a) for sold shops. Without
+    # this, the average came only from the few developer-held shops.
+    comm_ids = list(current.loc[comm_mask, "asset_id"])
+    vis = {aid: _visible_occupancy(ds, aid) for aid in comm_ids}
+    comm_sub = dict(zip(current.loc[comm_mask, "asset_id"],
+                        current.loc[comm_mask, "subtype"])) if "subtype" in current.columns else {}
+
+    def _mean(vals):
+        return round(sum(vals) / len(vals), 3) if vals else None
+
+    owned = [v for v, src in vis.values() if src == "developer_record"]
+    estimated = [v for v, src in vis.values()
+                 if v is not None and src != "developer_record"]
+
+    by_sub = {}
+    for aid, (v, _src) in vis.items():
+        if v is not None:
+            by_sub.setdefault(comm_sub.get(aid), []).append(v)
+    subtype_stats = [
+        {"subtype": st, "avg_occ": _mean(vals), "shops": len(vals)}
+        for st, vals in by_sub.items()
+        if st and len(vals) >= 3  # too few shops is not "oversupply"
+    ]
     subtype_stats.sort(key=lambda x: x["avg_occ"])
     oversupplied = [s for s in subtype_stats[:3] if s["avg_occ"] < 0.50]
 
@@ -516,8 +574,20 @@ def _build_township_baseline(ds) -> dict:
         "asset_count": int(len(current)),
         "year": year,
         "township_total_population_est": total_pop,
-        "commercial_supply_m2": _sum("lettable_area_m2") if "lettable_area_m2" in current.columns else None,
-        "commercial_avg_occupancy": round(float(current.loc[comm_mask, "occupancy_rate"].mean()), 3) if comm_mask.any() else None,
+        "commercial_supply_m2": (
+            round(float(current.loc[comm_mask, "lettable_area_m2"].fillna(0).sum()), 2)
+            if "lettable_area_m2" in current.columns and comm_mask.any() else None
+        ),
+        "commercial_shop_count": int(comm_mask.sum()),
+        "commercial_avg_occupancy": {
+            "developer_held": _mean(owned),
+            "developer_held_shops": len(owned),
+            "sold_estimate_tier_3a": _mean(estimated),
+            "sold_estimate_shops": len(estimated),
+            "note": ("Developer-held shops use SDP's own records. Sold shops "
+                     "use LBS / Google Places estimates (tier 3a); quote them "
+                     "as estimates, never as observed occupancy."),
+        },
         "oversupplied_subtypes_globally": oversupplied,
         "green_space_avg_canopy": green_avg_canopy,
         "community_facility_avg_util": fac_avg_util,
@@ -555,30 +625,26 @@ def _build_spatial_rings(ds, asset_id, radius_m=1200.0) -> dict:
         d = n["distance_m"]
         ring_key = "0_400m" if d <= 400 else ("400_800m" if d <= 800 else "800_1200m")
         
-        _m = ds._metric_row(n["asset_id"], ds.year) or {}
         _ds = ds.deadspace.get(n["asset_id"]) or {}
-        
-        occ = _m.get("occupancy_rate") or _m.get("utilisation_rate") or 0.0
         status = _ds.get("status", "healthy")
-        
-        try:
-            occ_f = float(occ)
-        except (TypeError, ValueError):
-            occ_f = 0.0
+        occ_v, occ_src = _visible_occupancy(ds, n["asset_id"])
 
         rings[ring_key]["count"] += 1
-        rings[ring_key]["occupancies"].append(occ_f)
-        
+        if occ_v is not None:
+            rings[ring_key]["occupancies"].append(occ_v)
+
         item = {
-            "subtype": n.get("subtype"), 
-            "dist_m": round(d), 
-            "occ": round(occ_f, 2)
+            "subtype": n.get("subtype"),
+            "dist_m": round(d),
+            "occ": occ_v,
+            "occ_source": occ_src,
         }
-        
-        # Categorize as dead competitor or healthy anchor
-        if status == "deadspace_candidate" or occ_f < 0.10:
+
+        # Categorize as dead competitor or healthy anchor. Unknown
+        # occupancy is never read as 0 (D-23).
+        if status == "deadspace_candidate" or (occ_v is not None and occ_v < 0.10):
             rings[ring_key]["dead"].append(item)
-        elif occ_f > 0.80:
+        elif occ_v is not None and occ_v > 0.80:
             rings[ring_key]["healthy"].append(item)
 
     # Compile output, keeping only top closest competitors per ring
@@ -587,8 +653,12 @@ def _build_spatial_rings(ds, asset_id, radius_m=1200.0) -> dict:
         if v["count"] == 0:
             continue
             
-        avg_occ = round(sum(v["occupancies"]) / v["count"], 3) if v["count"] > 0 else 0
-        r_out = {"count": v["count"], "avg_occ": avg_occ}
+        occs = v["occupancies"]
+        r_out = {
+            "count": v["count"],
+            "avg_occ": round(sum(occs) / len(occs), 3) if occs else None,
+            "occ_known_count": len(occs),
+        }
         
         if v["dead"]:
             r_out["dead_competitors"] = sorted(v["dead"], key=lambda x: x["dist_m"])[:2]
@@ -627,6 +697,32 @@ def _catalytic_vocabulary() -> dict:
             "description": "an anchor use draws visitors to the area",
             "max_verification": "claimed",
         },
+    }
+
+
+def _soft_intervention_vocabulary() -> dict:
+    """What the two soft interventions take and what B4 measures."""
+    from ..simulation import soft
+    return {
+        "tenant_matching": {
+            "use_for": "an empty or failing (usually sold) shoplot; SDP's leasing team finds the investor a footfall-generating tenant",
+            "parameters": {
+                "tenant_subtype": "optional; omit to let the engine pick the best type by Suitability Index",
+            },
+            "simulation": "yearly vacant->leased Markov step; reports suitability, success probability, occupancy and street survival (share of shops within 300 m at >= 50% occupancy) before/after",
+            "anchor_types": sorted(soft.ANCHOR_SUBTYPES),
+        },
+        "tactical_placemaking": {
+            "use_for": "a dead corner with people nearby but no reason to come; temporary events on public or developer land next to the target",
+            "parameters": {
+                "kind": sorted(soft.PLACEMAKING_KINDS),
+                "duration_years": f"default {soft.PLACEMAKING_DEFAULT_YEARS}",
+                "radius_m": f"default {int(soft.PLACEMAKING_RADIUS_M)}",
+                "permanent": "true only for a lasting public space",
+            },
+            "simulation": "raises Huff attractiveness and LBS footfall of shops within the radius while the event runs; the effect ends with the event",
+        },
+        "pedestrian_upgrade.new_link": "set parameters.new_link=true for a flow-island asset: adds one footway (crossing / footbridge, <= 150 m) to the nearest node that is close but a long way round by street",
     }
 
 
@@ -798,6 +894,9 @@ def _build_lease_schedule(ds, asset_id: str) -> dict:
     leases = getattr(ds, "leases", None)
     if leases is None or leases.empty:
         return None
+    # A sold asset's leases belong to its new owner (D-04).
+    if not is_full_control((ds._asset_row(asset_id) or {}).get("authority")):
+        return None
     m = leases[leases["asset_id"] == asset_id]
     if m.empty:
         return None
@@ -927,12 +1026,16 @@ def _build_subtype_mix(ds, asset_id: str) -> dict:
         elif v < 0.40:
             low.append(st)
 
-    return {
+    out = {
         "subtypes": subtypes,
         "occupancy_by_subtype": occ_by,
         "dead_subtypes": sorted(dead),
         "low_subtypes": sorted(low),
     }
+    if targets:
+        out["target_occupancy_by_subtype"] = targets
+        out["failure_diagnosis"] = _classify_subtype_failures(occ_by, targets)
+    return out
 
 
 def _classify_subtype_failures(actual, targets):

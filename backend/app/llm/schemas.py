@@ -178,6 +178,34 @@ PROPOSAL_PARAMETERS_SCHEMA = {
 
         # --- spatial interventions ---
         "canopy_boost": {"type": "NUMBER"},
+        "new_link": {
+            "type": "BOOLEAN",
+            "description": (
+                "pedestrian_upgrade / green_corridor only. true adds one "
+                "new footway (crossing or footbridge, <= 150 m) for a "
+                "flow-island asset that a barrier cuts off."
+            ),
+        },
+
+        # --- soft interventions ---
+        "tenant_subtype": {
+            "type": "STRING",
+            "description": (
+                "tenant_matching only. Commercial subtype of the tenant to "
+                "place. Omit to let the engine pick the best type by its "
+                "Suitability Index."
+            ),
+        },
+        "kind": {
+            "type": "STRING",
+            "enum": [
+                "night_market", "weekend_market", "food_truck_park",
+                "popup_sports_court", "community_event_space",
+            ],
+            "description": "tactical_placemaking only.",
+        },
+        "duration_years": {"type": "INTEGER", "description": "tactical_placemaking only (default 3)."},
+        "permanent": {"type": "BOOLEAN", "description": "tactical_placemaking only."},
 
         # --- delay_development ---
         "until": {"type": "INTEGER"},
@@ -458,6 +486,8 @@ _PLAN_ITEM_SCHEMA = {
                 "new_development",
                 "delay_development",
                 "interim_solar_farm",
+                "tenant_matching",
+                "tactical_placemaking",
             ],
         },
         "role": {

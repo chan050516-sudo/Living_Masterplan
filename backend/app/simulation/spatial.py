@@ -113,7 +113,8 @@ def network_version_tag(active_spatial):
     return f"post_{digest}"
 
 
-def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):
+def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None,
+                                assets_df=None):
     """
     Return a copy of `network_gdf` with `canopy_coverage_ratio` adjusted
     on the edges targeted by the given spatial interventions.
@@ -130,6 +131,10 @@ def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):
         Parcels layer, used to resolve asset-id targets to their
         nearest edge. When omitted, asset-id targets fall through to
         the legacy "use the id as an edge id" behaviour.
+    assets_df : pd.DataFrame, optional
+        Asset table. Lets an asset that shares a parcel (terrace rows,
+        shop rows) be found through its own `parcel_id`; the parcel
+        layer's `asset_id` column names only one asset per parcel.
 
     The adjustment is additive on canopy: an edge with existing canopy
     of 0.10 receiving a +0.20 boost becomes 0.30. Values are clipped at
@@ -170,6 +175,7 @@ def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):
 
         target_edges = _resolve_target_edges(
             intv, params, network_gdf=df, parcels_gdf=parcels_gdf,
+            assets_df=assets_df,
         )
         if not target_edges:
             log.info(
@@ -177,6 +183,16 @@ def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):
                 intv.get("intervention_id"),
             )
             continue
+
+        # A flow-island asset is cut off by a highway, wall or drain.
+        # Shade alone cannot fix that, so `new_link` adds one short
+        # footway (a crossing or footbridge) to the nearest node that
+        # is close in a straight line but far along the streets.
+        if params.get("new_link"):
+            df = add_access_link(
+                df, intv, params, parcels_gdf=parcels_gdf,
+                assets_df=assets_df,
+            )
 
         mask = df["edge_id"].isin(target_edges)
         if not mask.any():
@@ -194,7 +210,8 @@ def apply_spatial_interventions(network_gdf, active_spatial, parcels_gdf=None):
     return df
 
 
-def _resolve_target_edges(intv, params, network_gdf=None, parcels_gdf=None):
+def _resolve_target_edges(intv, params, network_gdf=None, parcels_gdf=None,
+                          assets_df=None):
     """
     Determine which network edge ids an intervention affects.
 
@@ -229,7 +246,7 @@ def _resolve_target_edges(intv, params, network_gdf=None, parcels_gdf=None):
     # it to the nearest edge via the asset's parcel.
     if network_gdf is not None and parcels_gdf is not None:
         nearest = _find_edges_near_asset(
-            target_str, network_gdf, parcels_gdf,
+            target_str, network_gdf, parcels_gdf, assets_df=assets_df,
         )
         if nearest:
             log.info(
@@ -243,7 +260,139 @@ def _resolve_target_edges(intv, params, network_gdf=None, parcels_gdf=None):
     return [target_str]
 
 
-def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf, max_edges=5):
+# Shortest straight-line gap a new link may close, and how much longer
+# the existing street route must be for the gap to count as a barrier.
+DEFAULT_LINK_MAX_M = 150.0
+DETOUR_RATIO_MIN = 3.0
+
+
+def add_access_link(df, intv, params, parcels_gdf=None, assets_df=None):
+    """
+    Return `df` with one new footway edge that reconnects an asset to
+    nearby footfall it is cut off from.
+
+    The edge starts at the walking node nearest the asset and ends at
+    the node, within `link_max_m` (default 150 m) in a straight line,
+    whose current walking route is the longest relative to that
+    straight line (at least DETOUR_RATIO_MIN times longer). If no node
+    qualifies, the network is returned unchanged: there is no barrier
+    a short link could fix.
+    """
+    import geopandas as gpd
+    import networkx as nx
+    import pandas as pd
+    from shapely.geometry import LineString, Point
+
+    if df.crs is None or not df.crs.is_projected:
+        log.warning("add_access_link needs a projected network; skipped.")
+        return df
+    geom = asset_geometry(intv.get("target_asset_id"), parcels_gdf, assets_df)
+    if geom is None:
+        return df
+    try:
+        max_m = float(params.get("link_max_m") or DEFAULT_LINK_MAX_M)
+    except (TypeError, ValueError):
+        max_m = DEFAULT_LINK_MAX_M
+
+    walk = df[df["edge_type"].isin(WALKING_EDGE_TYPES)]
+    coords = {}
+    G = nx.Graph()
+    for _, row in walk.iterrows():
+        g = row.geometry
+        if g is None or g.is_empty:
+            continue
+        cs = list(g.coords)
+        coords.setdefault(row["from_node"], cs[0])
+        coords.setdefault(row["to_node"], cs[-1])
+        if row["from_node"] != row["to_node"]:
+            G.add_edge(row["from_node"], row["to_node"],
+                       w=float(row["length_m"]))
+    if not coords:
+        return df
+
+    centre = geom.centroid
+    start = min(coords, key=lambda n: Point(coords[n]).distance(centre))
+    sp = Point(coords[start])
+    reach = nx.single_source_dijkstra_path_length(
+        G, start, cutoff=max_m * 20, weight="w",
+    ) if start in G else {}
+
+    # Pick the gap whose closure saves the most walking: the largest
+    # (street route - straight line), among nodes the streets reach
+    # only by a detour of at least DETOUR_RATIO_MIN. A node the
+    # streets never reach (another network component) counts as a
+    # saving of the full search radius.
+    unreachable_saving = max_m * 20
+    best, best_ratio, best_saving = None, None, 0.0
+    for node, xy in coords.items():
+        if node == start:
+            continue
+        d = sp.distance(Point(xy))
+        if d < 10.0 or d > max_m:
+            continue
+        net = reach.get(node)
+        ratio = float("inf") if net is None else net / d
+        if ratio < DETOUR_RATIO_MIN:
+            continue
+        saving = unreachable_saving if net is None else net - d
+        if saving > best_saving:
+            best, best_ratio, best_saving = node, ratio, saving
+    if best is None:
+        log.info("Spatial intervention %s: no cut-off node within %.0f m; "
+                 "no link added.", intv.get("intervention_id"), max_m)
+        return df
+
+    line = LineString([coords[start], coords[best]])
+    eid = f"E-LINK-{intv.get('intervention_id') or intv.get('target_asset_id')}"
+    new = {c: None for c in df.columns}
+    new.update({
+        "id": eid, "edge_id": eid, "edge_type": "footway",
+        "highway_raw": "footway", "walk_ok": True, "drive_ok": False,
+        "from_node": start, "to_node": best, "length_m": line.length,
+        "walk_speed_kmh": 4.5, "access_type": "public",
+        "canopy_coverage_ratio": 0.0, "geometry": line,
+    })
+    log.info("Spatial intervention %s: added %.0f m link %s -> %s "
+             "(street route was %s).", intv.get("intervention_id"),
+             line.length, start, best,
+             "none" if best_ratio == float("inf") else f"{best_ratio:.1f}x longer")
+    out = pd.concat([df, gpd.GeoDataFrame([new], geometry="geometry", crs=df.crs)],
+                    ignore_index=True)
+    return gpd.GeoDataFrame(out, geometry="geometry", crs=df.crs)
+
+
+def asset_geometry(asset_id, parcels_gdf, assets_df=None):
+    """
+    The parcel geometry an asset sits on, resolved the same way B3 does:
+    first the parcel layer's own `asset_id` back-reference, then the
+    asset's `parcel_id` (shared parcels hold several assets but name
+    only one of them). Returns None when neither resolves.
+    """
+    if parcels_gdf is None or getattr(parcels_gdf, "empty", True):
+        return None
+    if "asset_id" in parcels_gdf.columns:
+        match = parcels_gdf[parcels_gdf["asset_id"] == asset_id]
+        if not match.empty:
+            geom = match.iloc[0].geometry
+            if geom is not None and not geom.is_empty:
+                return geom
+    if assets_df is None or "parcel_id" not in parcels_gdf.columns:
+        return None
+    row = assets_df[assets_df["asset_id"] == asset_id]
+    if row.empty:
+        return None
+    pid = row.iloc[0].get("parcel_id")
+    if pid is None or (isinstance(pid, float) and pid != pid):
+        return None
+    pmatch = parcels_gdf[parcels_gdf["parcel_id"] == pid]
+    if pmatch.empty:
+        return None
+    geom = pmatch.iloc[0].geometry
+    return None if geom is None or geom.is_empty else geom
+
+
+def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf, max_edges=5,
+                           assets_df=None):
     """
     Return the edge id(s) nearest to the given asset's parcel centroid.
 
@@ -263,10 +412,9 @@ def _find_edges_near_asset(asset_id, network_gdf, parcels_gdf, max_edges=5):
         return []
     if "asset_id" not in parcels_gdf.columns:
         return []
-    match = parcels_gdf[parcels_gdf["asset_id"] == asset_id]
-    if match.empty:
+    geom = asset_geometry(asset_id, parcels_gdf, assets_df)
+    if geom is None:
         return []
-    geom = match.iloc[0].geometry
     if geom is None or geom.is_empty:
         return []
     rep = geom.centroid if geom.geom_type != "Point" else geom

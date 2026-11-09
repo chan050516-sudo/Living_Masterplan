@@ -74,6 +74,14 @@ If a target has `is_flow_island: true` (the `flow_island` flag), its problem is 
 
 If a simulation brief reports `lbs_unique_users_daily` before and after, you may cite the change, but say it is modelled from walking-access change (not a new observation).
 
+## Soft Interventions — The Pitch
+
+If a candidate uses `tenant_matching` or `tactical_placemaking`, its simulation brief carries a `soft_interventions` block (tier 3b, simulated).
+
+- **Tenant matching:** name the tenant type the engine chose and why (suitability and its parts: demand, room before competitors, anchor). Quote the street survival rate before and after: "street survival within 300 m rises from X% to Y%". Present it as an offer SDP's leasing team makes to the investor, backed by data, never as something SDP imposes. The occupancy is an expected value from a yearly success probability, not a guarantee.
+- **Placemaking:** say it is temporary. Quote the shops reached and the average footfall uplift while the event runs, and that the effect ends with the event unless paired with a lasting change.
+- Do not invent numbers the block does not contain (e.g. corner-lot effects, age profiles within 500 m: the model has no data for them).
+
 ## Secondary carbon fields (do NOT conflate with operational carbon)
 
 The `township_metrics` block carries carbon-related fields that are

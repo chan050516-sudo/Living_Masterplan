@@ -20,6 +20,7 @@ Soft checks (advisory):
 
 import logging
 import math
+import re
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -108,6 +109,10 @@ _CAPEX_FLOOR = {
     "delay_development":        0.0,
     # Phase 11 — interim solar farm on an undeveloped parcel
     "interim_solar_farm":  80_000.0,
+    # Soft interventions: SDP leasing-team time, tenant incentives
+    # (fit-out contribution, rent-free months) and event set-up.
+    "tenant_matching":     60_000.0,
+    "tactical_placemaking": 120_000.0,
 }
 
 # Retrofit upgrades systems and finishes rather than reconstructing
@@ -268,6 +273,10 @@ DEFAULT_TIMING = {
     "new_development":    {"start_offset": 0, "duration_months": 36, "during": "unavailable", "capacity_ratio": 0.00},
     "delay_development":  {"start_offset": 0, "duration_months": 0,  "during": "operational", "capacity_ratio": 1.00},
     "interim_solar_farm": {"start_offset": 0, "duration_months": 6,  "during": "operational", "capacity_ratio": 1.00},
+    # Soft interventions: a tenant fit-out or an event set-up, the
+    # asset stays open.
+    "tenant_matching":      {"start_offset": 0, "duration_months": 6, "during": "operational", "capacity_ratio": 1.00},
+    "tactical_placemaking": {"start_offset": 0, "duration_months": 3, "during": "operational", "capacity_ratio": 1.00},
 }
 
 
@@ -443,6 +452,44 @@ class ProposalValidator:
                     f"{asset_id}: renovation target equals current "
                     f"subtype '{to_subtype}' — no-op."
                 )
+
+        # Soft interventions — shape checks.
+        if itype == "tenant_matching":
+            if asset_row.get("asset_type") != "commercial":
+                errors.append(f"{asset_id}: tenant_matching applies to commercial units only")
+                return errors, warnings, None
+            mix = _parse_unit_mix_from_asset(asset_row)
+            if mix and len(mix) > 1:
+                errors.append(
+                    f"{asset_id}: tenant_matching is for single shoplots; "
+                    f"this asset has a unit mix. Use subtype_changes "
+                    f"(partial repurpose) instead."
+                )
+                return errors, warnings, None
+            ts = params.get("tenant_subtype")
+            if ts and (get_subtype(ts) or {}).get("asset_class") != "commercial":
+                errors.append(f"{asset_id}: tenant_subtype '{ts}' is not a commercial subtype")
+                return errors, warnings, None
+        if itype == "tactical_placemaking":
+            from ..simulation.soft import PLACEMAKING_KINDS
+            kind = params.get("kind")
+            if kind and kind not in PLACEMAKING_KINDS:
+                errors.append(
+                    f"{asset_id}: placemaking kind '{kind}' unknown. "
+                    f"Use one of {sorted(PLACEMAKING_KINDS)}"
+                )
+                return errors, warnings, None
+
+        # Phrasing: on an asset SDP does not control, "we will" claims
+        # an execution power the developer does not have.
+        rationale = str(item.get("rationale") or "")
+        authority_now = self._authority_for(asset_row)
+        if authority_now != "full_control" and re.search(r"we will", rationale, re.I):
+            warnings.append(
+                f"{asset_id}: rationale says 'we will' but SDP does not "
+                f"control this asset ({authority_now}). Phrase it as a "
+                f"recommendation or an SDP service offered to the owner."
+            )
 
         # Phase 14 — authority check.
         # Hard actions on a shared or advisory asset are not directly

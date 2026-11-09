@@ -1354,9 +1354,23 @@ def _summarise_candidate_outcome(cand):
 # ------------------------------------------------------------------
 
 
+_INTERVENTION_COLUMNS = [
+    "scenario_id", "intervention_id", "target_asset_id",
+    "intervention_type", "parameters_json", "expected_derived_json",
+    "expected_source", "construction_start_year",
+    "construction_duration_months", "activation_year",
+    "during_construction_status", "capex_delta_rm", "opex_delta_rm",
+    "validation_status", "status",
+]
+
+
 def _write_interventions(ds, scenario_id, plan):
     base = ds.repo_root / ds.paths["base"]
-    path = base / "business" / "interventions.csv"
+    # Separate, git-ignored file: LLM candidates never touch the curated
+    # scenarios in interventions.csv, and each run only appends its own
+    # rows (no read-modify-write), so two runs cannot erase each other.
+    from ..simulation.engine import LLM_INTERVENTIONS_FILE
+    path = base / "business" / LLM_INTERVENTIONS_FILE
 
     rows = []
     for i, item in enumerate(plan, start=1):
@@ -1394,13 +1408,9 @@ def _write_interventions(ds, scenario_id, plan):
             "status": "simulated",
         })
 
-    new_df = pd.DataFrame(rows)
-    if path.exists() and path.stat().st_size > 0:
-        existing = pd.read_csv(path)
-        combined = pd.concat([existing, new_df], ignore_index=True)
-    else:
-        combined = new_df
-    combined.to_csv(path, index=False)
+    new_df = pd.DataFrame(rows, columns=_INTERVENTION_COLUMNS)
+    write_header = not path.exists() or path.stat().st_size == 0
+    new_df.to_csv(path, mode="a", header=write_header, index=False)
     log.info(
         "Wrote %d interventions to %s as scenario %s",
         len(rows), path, scenario_id,
@@ -1476,6 +1486,7 @@ def _summarise_simulation(simulation):
     return {
         "per_asset_metrics": per_asset,
         "aggregate": comparison.get("aggregate") or {},
+        "soft_interventions": comparison.get("soft_interventions") or {},
         "township_metrics": township,
         "map_diff": {
             "changed_assets": map_diff.get("changed_assets", []),

@@ -137,6 +137,23 @@ class TownshipDataSource:
                     continue
                 c = row.geometry.centroid
                 centroids[aid] = (c.x, c.y)
+        # The parcel layer names only one asset per parcel. Assets that
+        # share a parcel (terrace rows, shop rows) resolve through their
+        # own parcel_id, the same fallback B3 and B4 use.
+        if not parcels.empty and "parcel_id" in parcels.columns:
+            by_parcel = {}
+            for _, row in parcels.iterrows():
+                if row.geometry is None or row.geometry.is_empty:
+                    continue
+                c = row.geometry.centroid
+                by_parcel.setdefault(row["parcel_id"], (c.x, c.y))
+            for _, a in self.assets.iterrows():
+                aid = a["asset_id"]
+                if aid in centroids:
+                    continue
+                xy = by_parcel.get(a.get("parcel_id"))
+                if xy is not None:
+                    centroids[aid] = xy
         self._centroids = centroids
         return centroids
 
@@ -203,6 +220,10 @@ def get_asset_state(ds: TownshipDataSource, asset_id: str, year: int = None) -> 
                 "service_coverage", "cost_per_user_rm",
                 "green_coverage", "canopy_coverage", "green_per_capita_m2",
                 "demand_supply_gap", "potential_gfa_m2",
+                # Thermal (Landsat LST) — read by key_metrics and the
+                # UHI narrative; previously dropped here so always None.
+                "t_asset_c", "t_township_c", "surface_temp_delta_c",
+                "surface_temp_provenance", "surface_temp_source_catalog",
             ) if k in metrics_clean
         },
     }
@@ -234,6 +255,9 @@ def get_deadspace_status(ds: TownshipDataSource, asset_id: str) -> dict:
         "flags": record.get("flags", []),
         "urgency_index": record.get("urgency_index"),
         "contributing_factors": record.get("contributing_factors", []),
+        "flag_tiers": record.get("flag_tiers") or {},
+        "suppressed_flags": record.get("suppressed_flags") or [],
+        "intervention_mode": record.get("intervention_mode"),
     }
 
 
@@ -264,7 +288,11 @@ def get_catchment_profile(ds: TownshipDataSource, asset_id: str,
     }
 
 
-def get_population_profile(ds: TownshipDataSource, asset_id: str) -> dict:
+CATCHMENT_RADIUS_M = 800.0  # ~10-minute walk
+
+
+def get_population_profile(ds: TownshipDataSource, asset_id: str,
+                           radius_m: float = CATCHMENT_RADIUS_M) -> dict:
     """
     Return the age structure of the asset's walking catchment, if the
     underlying population layers expose it. Falls back to the raw
@@ -278,13 +306,31 @@ def get_population_profile(ds: TownshipDataSource, asset_id: str) -> dict:
     if not pop_path.exists():
         return {"asset_id": asset_id, "note": "population layer unavailable"}
 
-    try:
-        gdf = gpd.read_file(pop_path)
-    except Exception as e:
-        return {"asset_id": asset_id, "error": str(e)}
+    gdf = getattr(ds, "_population_gdf", None)
+    if gdf is None:
+        try:
+            gdf = gpd.read_file(pop_path)
+            if gdf.crs is None:
+                gdf = gdf.set_crs("EPSG:4326")
+            gdf = gdf.to_crs("EPSG:32647")
+        except Exception as e:
+            return {"asset_id": asset_id, "error": str(e)}
+        ds._population_gdf = gdf
 
     if gdf.empty:
         return {"asset_id": asset_id, "note": "population layer empty"}
+
+    # Clip to the asset's walking catchment (straight-line radius around
+    # its parcel). Falls back to the whole township when the asset
+    # cannot be located.
+    scope = "township"
+    origin = ds._load_centroids().get(asset_id)
+    if origin is not None:
+        from shapely.geometry import Point
+        near = gdf[gdf.geometry.centroid.distance(Point(origin)) <= radius_m]
+        if not near.empty:
+            gdf = near
+            scope = f"within_{int(radius_m)}m"
 
     totals = {
         "total": float(gdf.get("total_population", pd.Series(dtype=float)).fillna(0).sum()),
@@ -297,7 +343,7 @@ def get_population_profile(ds: TownshipDataSource, asset_id: str) -> dict:
         totals["ratio_15_64"] = round(totals["age_15_64"] / totals["total"], 4)
         totals["ratio_65_plus"] = round(totals["age_65_plus"] / totals["total"], 4)
 
-    return {"asset_id": asset_id, **totals}
+    return {"asset_id": asset_id, "scope": scope, **totals}
 
 
 def get_nearby_assets(ds: TownshipDataSource, asset_id: str,

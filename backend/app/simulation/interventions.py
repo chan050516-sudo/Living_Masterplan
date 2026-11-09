@@ -181,6 +181,19 @@ def apply_intervention(asset: dict, intervention: dict) -> dict:
         # Spatial-layer interventions modify the walking network.
         pass
 
+    elif itype == "tenant_matching":
+        # The unit keeps its shell; a new business type moves in. The
+        # engine resolves `tenant_subtype` (Suitability Index) before
+        # the year loop, so it is always present here.
+        if params.get("tenant_subtype"):
+            new_asset["subtype"] = params["tenant_subtype"]
+            new_asset["unit_mix_json"] = None
+
+    elif itype == "tactical_placemaking":
+        # Temporary event next to the asset: changes footfall in the
+        # Huff / LBS layers (simulation/soft.py), not the asset itself.
+        pass
+
     elif itype in ("new_development", "delay_development"):
         # Handled by the supply model.
         pass

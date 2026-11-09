@@ -36,16 +36,21 @@ ACTION_SPACE = {
     "commercial": [
         "repurpose", "retrofit", "pedestrian_upgrade", "green_corridor",
         "renovation",   # NEW — e.g. convenience_retail → f_and_b
+        # Soft interventions (team doc "Soft Intervention"): SDP's
+        # leasing and placemaking services, no ownership needed.
+        "tenant_matching", "tactical_placemaking",
     ],
     "community_facility": [
         "retrofit", "pedestrian_upgrade", "repurpose",
         "renovation",   # NEW — e.g. community_hall → library
+        "tactical_placemaking",
     ],
     "green_space": [
-        "green_corridor", "pedestrian_upgrade",
+        "green_corridor", "pedestrian_upgrade", "tactical_placemaking",
     ],
     "undeveloped_parcel": [
         "new_development", "delay_development", "interim_solar_farm",
+        "tactical_placemaking",   # e.g. a food-truck park on vacant land
     ],
     # Phase 15 — residential's legal action space now includes
     # repurpose. Whether it can actually be EXECUTED depends on
@@ -80,6 +85,18 @@ HARD_ACTIONS = {
     "new_development",
     "delay_development",
     "interim_solar_farm",
+}
+
+# Actions SDP can run on an asset it does not own, together with the
+# owner or authority: leasing support (tenant matching), events on the
+# public realm next to the asset (placemaking), and walkway / corridor
+# works on public land. For a sold or handed-over asset these are
+# "collaborative", not merely recommendations.
+COLLABORATIVE_ACTIONS = {
+    "tenant_matching",
+    "tactical_placemaking",
+    "pedestrian_upgrade",
+    "green_corridor",
 }
 
 # Default authority inferred from asset type when the assets table
@@ -137,11 +154,14 @@ def classify_by_authority(asset_type: str, authority: str) -> dict:
             "requires_approval": sorted(hard),
             "recommendation_only": [],
         }
-    # advisory (default)
+    # advisory (default): no execution power over the asset itself,
+    # but SDP can still run its soft services with the owner.
+    collab = legal & COLLABORATIVE_ACTIONS
     return {
         "executable": [],
         "requires_approval": [],
-        "recommendation_only": sorted(legal),
+        "collaborative": sorted(collab),
+        "recommendation_only": sorted(legal - collab),
     }
 
 

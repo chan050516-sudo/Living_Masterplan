@@ -76,6 +76,8 @@ from ..derived.thermal import THERMAL_METRIC_FIELDS
 from ..deadspace.external import external_for, huff_vitality
 from ..deadspace.layer3_lbs import _OCCUPANCY_PROXIES
 from ..deadspace.tiers import is_full_control
+from ..deadspace.external import lbs_users_percentile
+from . import soft as soft_iv
 from ..taxonomy import (
     get_taxonomy,
     get_occupancy_benchmark,
@@ -98,6 +100,9 @@ log = logging.getLogger(__name__)
 
 
 DEFAULT_YEARS = [2026, 2027, 2028, 2030, 2033]
+
+# Where the LLM orchestrator writes candidate interventions (git-ignored).
+LLM_INTERVENTIONS_FILE = "interventions_llm.csv"
 
 # Prefix for project pseudo-entries in state_by_year.
 PROJECT_ID_PREFIX = "PRJ::"
@@ -553,7 +558,7 @@ def _recompute_commercial_financials(
     # can reason about "if SDP had retained this asset". The main
     # `noi_rm` field stays None to preserve the authority gate.
     if not _is_valid_number(base_occ) or float(base_occ) <= 0:
-        if activated is None:
+        if activated is None or activated.get("intervention_type") == "tenant_matching":
             from ..taxonomy import get_market_rent_per_m2
             market_rate = get_market_rent_per_m2(eff.get("subtype"), default=200.0)
             lettable = eff.get("lettable_area_m2") or 0
@@ -829,6 +834,13 @@ def simulate_scenario(
     # between candidate calls, and each scenario_id must see the
     # latest file state.
     interventions_df = pd.read_csv(base / "business" / "interventions.csv")
+    # LLM runs write their candidates to a separate, git-ignored file
+    # so the curated scenarios in interventions.csv never change.
+    _llm_path = base / "business" / LLM_INTERVENTIONS_FILE
+    if _llm_path.exists() and _llm_path.stat().st_size > 0:
+        interventions_df = pd.concat(
+            [interventions_df, pd.read_csv(_llm_path)], ignore_index=True,
+        )
 
     scenario_interventions = interventions_df[
         interventions_df["scenario_id"] == scenario_id
@@ -840,10 +852,19 @@ def simulate_scenario(
         for aid, group in scenario_interventions.groupby("target_asset_id"):
             intvs_by_asset[str(aid)] = group.to_dict("records")
 
+    # A sold asset's leases are between the new owner and their
+    # tenants; the developer cannot see them (v6.0 D-04). Using them
+    # as an occupancy ceiling drove most sold shops to 0% in later
+    # years, so only developer-held assets keep a lease schedule.
+    _full_control_ids = {
+        str(r["asset_id"]) for _, r in assets_df.iterrows()
+        if is_full_control(r.get("authority"))
+    }
     leases_by_asset = {}
     if not leases_df.empty:
         for aid, group in leases_df.groupby("asset_id"):
-            leases_by_asset[str(aid)] = group
+            if str(aid) in _full_control_ids:
+                leases_by_asset[str(aid)] = group
 
     # ---- Cached: geometry bundle ----
     if "geometry" in _shared_cache:
@@ -940,6 +961,7 @@ def simulate_scenario(
                 geometry["network"]["analysis"],
                 active_spatial,
                 parcels_gdf=geometry["parcels"]["analysis"],
+                assets_df=assets_df,
             )
             try:
                 derived = compute_derived_metrics(
@@ -996,6 +1018,30 @@ def simulate_scenario(
 
     base_derived_records = {r["asset_id"]: r for _, r in base_derived.iterrows()}
 
+    # ---- Soft interventions (tenant matching, placemaking) ----
+    # Asset points are shared by both; tenant matching picks its tenant
+    # type from base-year data and writes the choice back into the
+    # intervention's parameters before the year loop reads them.
+    if "asset_points" in _shared_cache:
+        asset_points = _shared_cache["asset_points"]
+    else:
+        asset_points = soft_iv.asset_points(
+            assets_df, geometry["parcels"]["analysis"],
+        )
+        _shared_cache["asset_points"] = asset_points
+    soft_resolved = {}
+    if not scenario_interventions.empty and scenario_interventions[
+        "intervention_type"
+    ].isin(list(soft_iv.SOFT_TYPES)).any():
+        scenario_interventions = scenario_interventions.copy()
+        soft_resolved = soft_iv.resolve_tenant_matching(
+            scenario_interventions, base_derived, assets_df, asset_points,
+            get_taxonomy().get("subtypes", {}), lbs_users_percentile,
+        )
+        intvs_by_asset = {}
+        for _aid, _grp in scenario_interventions.groupby("target_asset_id"):
+            intvs_by_asset[str(_aid)] = _grp.to_dict("records")
+
     flags = assumptions.get("feature_flags", {}) or {}
     use_lbs_huff = bool(flags.get("huff_lbs_attractiveness"))
     seed_from_proxy = bool(flags.get("simulation_seed_from_lbs"))
@@ -1032,12 +1078,18 @@ def simulate_scenario(
     # commercial assets without direct interventions can re-converge
     # when a competitor delivers or the network changes.
     year_demand_prev: dict = {}
+    # occupancy when a tenant-matching intervention activated
+    tm_start_occ: dict = {}
 
     for year_idx, year in enumerate(years):
         # ---- Base year: use B3 output as-is ----
         if year == base_year:
             state_by_year[year] = _state_from_df(base_derived, assets_df)
             continue
+
+        year_boosts = soft_iv.footfall_boosts(
+            scenario_interventions, year, assets_df, asset_points,
+        )
 
         # ---- Check whether the network version changes this year ----
         active_spatial = spatial_interventions_for_year(
@@ -1075,7 +1127,7 @@ def simulate_scenario(
                 if p == Phase.POST:
                     eff = apply_intervention(eff, intv)
                     itype = intv.get("intervention_type")
-                    if itype == "repurpose":
+                    if itype in ("repurpose", "tenant_matching"):
                         activated = intv
                     elif itype == "renovation":
                         # A renovation to a residential rental
@@ -1201,6 +1253,7 @@ def simulate_scenario(
             # (blended with LBS footfall when the feature flag is on)
             _cur_occ = occupancy_prev.get(aid, 0.85)
             _vitality = huff_vitality(aid, eff_subtype, _cur_occ, use_lbs_huff)
+            _vitality *= year_boosts.get(aid, 1.0)
 
             if eff_mix is not None:
                 # Phase B.2c — rebuild supply nodes from the
@@ -1337,7 +1390,26 @@ def simulate_scenario(
                              _DEFAULT_ACCESS_TO_USE_CONVERSION)
                     )
 
-                    if activated is not None:
+                    _tm = (
+                        activated is not None
+                        and activated.get("intervention_type") == "tenant_matching"
+                    )
+                    if _tm:
+                        # Yearly vacant -> leased Markov step towards the
+                        # new tenant type's benchmark (expected value).
+                        _tp = {}
+                        try:
+                            _tp = json.loads(activated.get("parameters_json") or "{}")
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+                        _bench = get_occupancy_benchmark(_tp.get("tenant_subtype")) or 0.85
+                        _p = float(_tp.get("_p_success") or 0.5)
+                        _act = int(activated.get("activation_year") or year)
+                        _start = tm_start_occ.setdefault(aid, prev_occ)
+                        target_occ = soft_iv.matched_occupancy(
+                            _start, _bench, _p, year - _act + 1,
+                        )
+                    elif activated is not None:
                         demand_m2 = curr_demand
                         if (demand_m2 is not None
                                 and effective_supply
@@ -1416,6 +1488,10 @@ def simulate_scenario(
 
                 year_gap = max(1, year - years[year_idx - 1])
                 new_occ = prev_occ
+                if (effective_type == "commercial" and activated is not None
+                        and activated.get("intervention_type") == "tenant_matching"):
+                    year_gap = 0  # the Markov step already sets the year's value
+                    new_occ = target_occ
                 for _ in range(year_gap):
                     new_occ = damped_occupancy(
                         new_occ, target_occ, lambda_, year, critical, kappa,
@@ -1917,9 +1993,18 @@ def simulate_scenario(
             metric_row["stranded_carbon_ratio"] = split["stranded_carbon_ratio"]
             metric_row["canopy_coverage"] = canopy_from_b3
             metric_row["operational_capacity_ratio"] = capacity_ratio
+            if (activated is not None
+                    and activated.get("intervention_type") == "tenant_matching"):
+                metric_row["_tenant_matched"] = True
             metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
             metric_row["land_area_m2"] = eff.get("land_area_m2")     # sequestration
             metric_row["unit_mix_json"] = eff.get("unit_mix_json")
+            # Set every year: the row starts from last year's state, so
+            # an event that has ended must clear its boost.
+            if year_boosts.get(aid, 1.0) > 1.0:
+                metric_row["_footfall_boost"] = round(year_boosts[aid], 4)
+            else:
+                metric_row.pop("_footfall_boost", None)
             metric_row["metric_source"] = "simulated"
             metric_row["model_version"] = __version__
 
@@ -1975,6 +2060,12 @@ def simulate_scenario(
     comparison["township_metrics"] = _compute_township_metrics(
         state_by_year, years, base_year, years[-1],
     )
+    _soft = soft_iv.soft_comparison(
+        scenario_interventions, state_by_year, base_year, years[-1],
+        assets_df, asset_points, soft_resolved,
+    )
+    if _soft:
+        comparison["soft_interventions"] = _soft
 
     map_diff = _build_map_diff(
         assets_df, interventions_df, projects_df, scenario_id,
@@ -2685,7 +2776,7 @@ def _attach_proxy_state(state_by_year, base_year, assets_df,
             # `simulation_seed_from_lbs` controls whether the
             # trajectory ITSELF starts from the proxy — but the
             # baseline row must always carry a proxy value.
-            if year == base_year and st.get("occupancy_rate") is None:
+            if year == base_year and not _is_valid_number(st.get("occupancy_rate")):
                 for key, _ in _OCCUPANCY_PROXIES:
                     v = (ext or {}).get(key)
                     if v is not None:
@@ -2699,9 +2790,19 @@ def _attach_proxy_state(state_by_year, base_year, assets_df,
             cov = st.get("coverage_ratio_10min_walk")
             if _is_valid_number(base_cov) and _is_valid_number(cov) and float(base_cov) > 0:
                 factor = max(0.0, 1.0 + conversion * (float(cov) / float(base_cov) - 1.0))
+            # Placemaking events and leased anchors pull extra visitors.
+            factor *= float(st.get("_footfall_boost") or 1.0)
+            # A shop that was tenant-matched has a new business: its
+            # footfall follows its simulated occupancy.
+            occ_ratio = 1.0
+            b_occ = (base_state.get(aid) or {}).get("occupancy_rate")
+            if (year != base_year and st.get("_tenant_matched")
+                    and _is_valid_number(b_occ) and float(b_occ) > 0
+                    and _is_valid_number(st.get("occupancy_rate"))):
+                occ_ratio = float(st["occupancy_rate"]) / float(b_occ)
             for key in ("lbs_unique_users_daily", "proxied_occupancy_lbs"):
                 if ext.get(key) is not None:
-                    v = ext[key] * factor
+                    v = ext[key] * factor * occ_ratio
                     st[key] = min(v, 1.0) if key == "proxied_occupancy_lbs" else v
             for key in ("lbs_dwell_time_minutes", "flow_island_ratio",
                         "business_presence_ratio", "business_turnover_count"):
@@ -3384,6 +3485,10 @@ def _build_map_diff(assets_df, interventions_df, projects_df, scenario_id):
             changed.append({"asset_id": aid, "change_type": "delayed", "color": "blue"})
         elif itype == "interim_solar_farm":
             changed.append({"asset_id": aid, "change_type": "solar_farm", "color": "yellow"})
+        elif itype == "tenant_matching":
+            changed.append({"asset_id": aid, "change_type": "tenant_matching", "color": "green"})
+        elif itype == "tactical_placemaking":
+            spillover.append({"asset_id": aid, "change_type": "tactical_placemaking", "color": "orange"})
 
     project_schedule = _build_project_schedule(
         projects_df, interventions_df, scenario_id, assets_df=assets_df,

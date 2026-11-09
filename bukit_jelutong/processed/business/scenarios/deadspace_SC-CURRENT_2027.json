@@ -402,7 +402,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -421,8 +421,7 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon",
+      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -929,7 +928,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -949,7 +948,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -1540,12 +1538,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -1566,10 +1563,7 @@
       "demographic_mismatch": "tier_2_derived",
       "low_neighborhood_diversity": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -7006,7 +7000,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -9889,7 +9883,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -13941,12 +13935,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -13965,9 +13958,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -15181,7 +15172,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -15724,12 +15715,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
-        "retrofit",
-        "pedestrian_upgrade"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -15747,9 +15736,7 @@
     "flag_tiers": {
       "dsr_below_threshold": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -17704,7 +17691,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -18133,7 +18120,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -18153,7 +18140,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -18311,7 +18297,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -18764,12 +18750,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -18788,9 +18773,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -18846,13 +18829,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
-        "retrofit",
-        "pedestrian_upgrade",
-        "green_corridor"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -18870,10 +18850,7 @@
     "flag_tiers": {
       "dsr_below_threshold": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -19067,7 +19044,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -20010,7 +19987,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -20036,8 +20013,7 @@
       "data_conflict": "tier_3a_proxied"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon",
+      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -21009,12 +20985,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -21033,10 +21008,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -21189,7 +21161,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -21495,7 +21467,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -21515,7 +21487,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -22061,7 +22032,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -22081,8 +22052,7 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
+      "below_benchmark_occupancy"
     ],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
@@ -22241,7 +22211,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -22359,7 +22329,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -22387,7 +22357,7 @@
     },
     "suppressed_flags": [
       "low_occupancy",
-      "high_stranded_carbon"
+      "high_stranded_carbon_ratio_small_asset"
     ],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
@@ -23156,12 +23126,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -23180,9 +23149,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -24235,7 +24202,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -24352,7 +24319,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -24830,7 +24797,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -24945,7 +24912,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -25291,7 +25258,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -25397,7 +25364,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 1 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -25697,7 +25664,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -26119,12 +26086,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -26143,9 +26109,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -26391,7 +26355,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -27029,7 +26993,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -27923,7 +27887,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -27943,8 +27907,7 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon",
+      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -29062,12 +29025,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -29086,9 +29048,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -29460,7 +29420,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -33591,12 +33551,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -33623,10 +33582,7 @@
       "flow_island": "tier_3a_proxied",
       "data_conflict": "tier_3a_proxied"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -34315,7 +34271,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -35993,12 +35949,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -36018,10 +35973,7 @@
       "walking_accessibility_deficit": "tier_2_derived",
       "demographic_mismatch": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -36739,7 +36691,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -36938,7 +36890,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -37200,7 +37152,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -37221,7 +37173,6 @@
       "low_neighborhood_diversity": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -37339,7 +37290,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -37789,7 +37740,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -37938,7 +37889,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -37958,8 +37909,7 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
+      "below_benchmark_occupancy"
     ],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
@@ -38072,7 +38022,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -38234,7 +38184,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -38341,11 +38291,10 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 2 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -38364,9 +38313,7 @@
       "driving_accessibility_deficit": "tier_2_derived",
       "low_neighborhood_diversity": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -38753,12 +38700,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -38777,9 +38723,7 @@
       "walking_accessibility_deficit": "tier_2_derived",
       "low_neighborhood_diversity": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -39241,7 +39185,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -39357,7 +39301,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -39881,7 +39825,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -39968,7 +39912,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40032,7 +39976,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40096,7 +40040,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40160,7 +40104,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40224,7 +40168,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40288,7 +40232,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40352,7 +40296,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40416,7 +40360,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40480,7 +40424,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40543,7 +40487,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40606,7 +40550,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40669,7 +40613,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40732,7 +40676,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40795,7 +40739,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40859,7 +40803,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40923,7 +40867,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -40987,7 +40931,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41051,7 +40995,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41115,7 +41059,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41179,7 +41123,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41243,7 +41187,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41307,7 +41251,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41371,7 +41315,7 @@
         "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 5 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -41430,13 +41374,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
-        "retrofit",
-        "pedestrian_upgrade",
-        "green_corridor"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -41459,10 +41400,7 @@
       "business_presence_low": "tier_3a_proxied",
       "data_conflict": "tier_3a_proxied"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -41531,7 +41469,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -41551,7 +41489,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -41618,7 +41555,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -41712,11 +41649,10 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
-        "pedestrian_upgrade"
+        "retrofit"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -41735,7 +41671,6 @@
       "dsr_below_threshold": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -41791,11 +41726,10 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
-        "pedestrian_upgrade"
+        "retrofit"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -41817,7 +41751,6 @@
       "business_vitality_low": "tier_3a_proxied"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -41877,11 +41810,10 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
-        "pedestrian_upgrade"
+        "retrofit"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -41900,7 +41832,6 @@
       "dsr_below_threshold": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -41969,7 +41900,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -42054,12 +41985,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -42084,10 +42014,7 @@
       "business_presence_low": "tier_3a_proxied",
       "data_conflict": "tier_3a_proxied"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -42158,11 +42085,10 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
-        "pedestrian_upgrade"
+        "retrofit"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -42181,7 +42107,6 @@
       "dsr_below_threshold": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42243,7 +42168,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -42263,7 +42188,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42329,7 +42253,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -42349,8 +42273,7 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset",
+      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42420,7 +42343,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -42446,8 +42369,6 @@
       "flow_island": "tier_3a_proxied"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42525,7 +42446,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -42545,8 +42466,6 @@
       "demographic_mismatch": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42618,7 +42537,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -42703,7 +42622,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -42723,8 +42642,6 @@
       "low_neighborhood_diversity": "tier_2_derived"
     },
     "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42787,7 +42704,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -42807,7 +42724,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42863,12 +42779,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
-        "retrofit",
-        "pedestrian_upgrade"
+        "retrofit"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 3 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -42891,7 +42805,6 @@
       "data_conflict": "tier_3a_proxied"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -42962,7 +42875,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43047,7 +42960,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43127,7 +43040,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -43147,7 +43060,6 @@
       "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
-      "below_benchmark_occupancy",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
@@ -43208,13 +43120,10 @@
       "has_legal_actions": true,
       "actionable": true,
       "candidate_interventions": [
-        "repurpose",
-        "retrofit",
-        "pedestrian_upgrade",
-        "green_corridor"
+        "repurpose"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -43239,10 +43148,7 @@
       "low_footfall_lbs": "tier_3a_proxied",
       "data_conflict": "tier_3a_proxied"
     },
-    "suppressed_flags": [
-      "low_occupancy",
-      "high_stranded_carbon_ratio_small_asset"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -43311,7 +43217,7 @@
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": true,
@@ -43395,12 +43301,11 @@
       "actionable": true,
       "candidate_interventions": [
         "repurpose",
-        "retrofit",
         "pedestrian_upgrade",
         "green_corridor"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1; filtered to 4 of 5 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
       "triggered": false,
@@ -43419,9 +43324,7 @@
       "dsr_below_threshold": "tier_2_derived",
       "walking_accessibility_deficit": "tier_2_derived"
     },
-    "suppressed_flags": [
-      "below_benchmark_occupancy"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -43480,7 +43383,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43531,7 +43434,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43582,7 +43485,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43636,7 +43539,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43692,7 +43595,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43746,7 +43649,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43805,7 +43708,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43864,7 +43767,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43923,7 +43826,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -43979,7 +43882,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44032,7 +43935,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44091,7 +43994,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44150,7 +44053,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44209,7 +44112,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44268,7 +44171,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44324,7 +44227,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44377,7 +44280,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44435,7 +44338,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44494,7 +44397,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44553,7 +44456,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44611,7 +44514,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44670,7 +44573,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44728,7 +44631,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44787,7 +44690,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44843,7 +44746,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44896,7 +44799,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -44955,7 +44858,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45014,7 +44917,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45073,7 +44976,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45129,7 +45032,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45182,7 +45085,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45241,7 +45144,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45302,7 +45205,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45363,7 +45266,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45413,7 +45316,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45466,7 +45369,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45525,7 +45428,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45581,7 +45484,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45634,7 +45537,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45693,7 +45596,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45754,7 +45657,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45820,7 +45723,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45885,7 +45788,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -45948,7 +45851,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46003,7 +45906,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46058,7 +45961,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46122,7 +46025,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46183,7 +46086,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46246,7 +46149,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46302,7 +46205,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46357,7 +46260,7 @@
         "pedestrian_upgrade"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 2 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46421,7 +46324,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46483,7 +46386,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46545,7 +46448,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46607,7 +46510,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46669,7 +46572,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46731,7 +46634,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46793,7 +46696,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46855,7 +46758,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,
@@ -46917,7 +46820,7 @@
         "interim_solar_farm"
       ],
       "diagnosis_active": true,
-      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 3 legal interventions based on fired flags"
+      "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 4 legal interventions based on fired flags"
     },
     "layer3a": null,
     "survival": null,

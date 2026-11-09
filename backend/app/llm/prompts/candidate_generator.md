@@ -28,7 +28,7 @@ Before generating plans, think like a master planner. Your `reasoning_trace` mus
 
 ## The Intervention Playbook (Equal Choices)
 
-You have three intervention dimensions available. **None is default.** Let the diagnosis choose.
+You have four intervention dimensions available. **None is default.** Let the diagnosis choose.
 
 ### 1. On-Target Intervention (act on the asset itself)
 
@@ -44,7 +44,7 @@ Intervention types: `retrofit`, `renovation`, `repurpose`, `new_development`, `d
 
 ### 2. Spatial / Network Intervention (act on the walking network)
 
-Intervention types: `pedestrian_upgrade`, `green_corridor`.
+Intervention types: `pedestrian_upgrade`, `green_corridor`. Set `parameters.new_link: true` when the asset is cut off by a barrier (flow island): the engine then also adds one short footway (crossing / footbridge, ≤ 150 m). Without it, these types only add shade to existing streets.
 
 **Use when:**
 - The asset's `catchment.walk.reachable_population` is thin because of a network gap, not because of demand.
@@ -53,7 +53,22 @@ Intervention types: `pedestrian_upgrade`, `green_corridor`.
 
 These can be `role: "primary"` (acting on a network edge adjacent to the target) or `role: "catalytic"` (acting on a network edge that benefits a different target).
 
-### 3. Catalytic / Neighbor Intervention (act on a nearby asset)
+### 3. Soft Intervention (SDP services, no ownership needed)
+
+Intervention types: `tenant_matching`, `tactical_placemaking`. See `soft_intervention_vocabulary`.
+
+Most shoplots in the township are sold to individual investors. Each landlord leases to the highest bidder, so nobody curates the street and it can die even though every unit is "sold". Developers such as SDP counter this with services: tenant matching for investors, and placemaking that gives people a reason to come.
+
+- **`tenant_matching`** — one empty or failing shoplot. SDP's leasing team brings the investor a footfall-generating tenant. Leave `tenant_subtype` empty to let the engine choose by its Suitability Index, or name one only if the data clearly supports it. The simulation reports the chosen tenant, its suitability, the yearly success probability, the shop's occupancy and the **street survival rate** (share of shops within 300 m at ≥ 50% occupancy) before and after.
+- **`tactical_placemaking`** — a weekend market, night market, food-truck park, pop-up sports court or event space on public or developer land next to the target (a park, a vacant parcel, or the target itself). It lifts the footfall of every shop within 400 m **while it runs** (default 3 years). It is a catalyst, not a permanent fix: pair it with tenant matching or an access fix.
+
+**Use soft interventions when:**
+- The target is sold (`advisory`) and its problem is the business, not the building or the network: low LBS visitors **and** low Google business presence (`business_presence_low`, `operating_hemorrhage`), with `flow_island` absent.
+- Several sold shops in the same street are failing at once: one placemaking event or one anchor tenant helps them all.
+
+For an advisory asset, soft interventions are listed under `authority.collaborative`: SDP runs them **with** the owner. Phrase them as "SDP offers the owner…" / "SDP partners with…", never "we will".
+
+### 4. Catalytic / Neighbor Intervention (act on a nearby asset)
 
 Mark as `role: "catalytic"` and fill `catalytic_link`.
 
@@ -79,6 +94,9 @@ Mark as `role: "catalytic"` and fill `catalytic_link`.
 - **`detailed_neighbors`** — real asset-level data (subtype, distance, occupancy, lease expiry, authority). Use this to spot anchor-gap pairings and timing synergies.
 - **`spatial_rings`** — fast scan of local oversupply / healthy anchors at 400m / 800m / 1200m.
 - **All asset classes** — `green_space` (urban forest, UHI drop), `community_facility` (clinic for senior demographics, childcare for family demographics), `residential` (renovation to affordable housing).
+- **`deadspace.status`** — what B6 concluded. `deadspace_candidate`: capital is idle; act. `community_value_gap`: a sold shop that is struggling **and** hard to reach; fix access (and consider soft interventions). `strategic_learning`: a sold shop struggling although it is easy to reach; little SDP can do directly — prefer soft interventions, and note the lesson for future phases. `underperforming_facility`: a public facility under-used. `improvement_opportunity`: a green space that could do more. `development_risk`: an undeveloped parcel at risk. `monitor`: signals are weak or conflicting; prefer light, reversible actions. `healthy`: do not disrupt.
+- **`deadspace.intervention_mode`** — `direct` (SDP owns it), `collaborative` (SDP can act with the owner, e.g. access or soft interventions), `advisory` (recommend only).
+- **`deadspace.flag_tiers`** — how reliable each flag is: `tier_1_observed`, `tier_2_derived`, `tier_3a_proxied` (external proxy: LBS / Google), `tier_3b_counterfactual`. Do not present a tier-3a flag as an observed fact.
 - **`available_subtypes`** — the legal taxonomy. `display_name` and `is_core_amenity` tell you the business meaning. You know what a kopitiam is; do not wait for it to be defined.
 
 ## Authority & Ownership
@@ -96,9 +114,9 @@ Cite them by source ("LBS shows…", "Google Places shows…"), never as "occupa
 ## Flow-Island Assets
 
 If an asset has the `flow_island` flag (`external_signals.lbs_foot_traffic.is_flow_island` is true, i.e. `flow_island_ratio` is below `flow_island_threshold`), this is a **network-isolation case, not an operating failure**: people are nearby, but streets, walls or drains stop them reaching the asset.
-- The correct intervention is `pedestrian_upgrade` or `green_corridor` on the network path leading to the asset, not `repurpose` on the asset itself.
+- The correct intervention is `pedestrian_upgrade` or `green_corridor` with `parameters.new_link: true` on the network path leading to the asset, not `repurpose` on the asset itself.
 - Prefer `pedestrian_upgrade` unless the asset is also failing on several supply-side signals (e.g. `business_presence_low` and `business_turnover_high` together). In that case, pair the access fix with an on-target or catalytic change and say why.
-- A walkability fix for a flow-island asset can claim `verified` only if the simulation shows walking coverage rising **and** LBS foot traffic rising; otherwise it is `partially_verified`.
+- A walkability fix for a flow-island asset can claim `verified` only if the simulation shows walking coverage rising **and** LBS foot traffic rising; otherwise it is `partially_verified`. How much a new link helps depends on where people live: if the numbers barely move, say so honestly rather than dropping the access fix.
 
 ## What You Produce
 
