@@ -67,6 +67,7 @@ const FILTERS = [
   { key: 'strategic_learning', label: 'Learning' },
   { key: 'underperforming_facility', label: 'Facilities' },
   { key: 'improvement_opportunity', label: 'Opportunities' },
+  { key: 'flow_island', label: 'Flow island' },
   { key: 'monitor', label: 'Monitor' },
 ] as const
 
@@ -95,7 +96,11 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
   )
 
   const list = flagged
-    .filter((a) => filter === 'all' || a.diagnosis!.status === filter)
+    .filter((a) => {
+      if (filter === 'all') return true
+      if (filter === 'flow_island') return a.diagnosis!.flags.includes('flow_island')
+      return a.diagnosis!.status === filter
+    })
     .sort((a, b) => {
       const byMode = modeRank(a.diagnosis!.intervention_mode)
         - modeRank(b.diagnosis!.intervention_mode)

@@ -887,29 +887,26 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
     years_list = list(intervention_years.keys())
     final_year = years_list[-1] if years_list else "2033"
 
-    # Collect all target assets and catalytic beneficiaries
     targets = set(comparison.get("per_asset", {}).keys())
-    
-    # NEW: Extract clean intervention list for map visualization
+
     clean_interventions = []
     for intv in simulation.get("interventions", []):
         try:
             params = json.loads(intv.get("parameters_json", "{}"))
         except (json.JSONDecodeError, TypeError):
             params = {}
-            
+
         role = params.get("_role", "primary")
         catalytic = params.get("_catalytic", {})
-        
-        # Add beneficiary to targets so it gets rendered in frontend cards
+
         if role == "catalytic" and catalytic.get("beneficiary_asset_id"):
             targets.add(catalytic["beneficiary_asset_id"])
-            
+
         clean_interventions.append({
             "target_asset_id": intv.get("target_asset_id"),
             "type": intv.get("intervention_type"),
             "role": role,
-            "beneficiary_asset_id": catalytic.get("beneficiary_asset_id") if role == "catalytic" else None
+            "beneficiary_asset_id": catalytic.get("beneficiary_asset_id") if role == "catalytic" else None,
         })
 
     assets_payload = []
@@ -945,9 +942,11 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             residential row. Explicit None check.
             """
             occ = _get(state, "occupancy_rate", default=None)
-            if occ is not None: return occ
+            if occ is not None:
+                return occ
             util = _get(state, "utilisation_rate", default=None)
-            if util is not None: return util
+            if util is not None:
+                return util
             return 0.0
 
         # --- 1. Counterfactual Calculation ---
@@ -973,22 +972,14 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             if asset_intv else 0.0
         )
 
-        carbon_repurpose = (
-            floor_area * MATERIAL_INTENSITY_REPURPOSE
-            if floor_area > 0 else 0.0
-        )
-        carbon_new_build = (
-            carbon_repurpose + avoided_embodied
-            if avoided_embodied > 0 else 0.0
-        )
+        carbon_repurpose = floor_area * MATERIAL_INTENSITY_REPURPOSE if floor_area > 0 else 0.0
+        carbon_new_build = carbon_repurpose + avoided_embodied if avoided_embodied > 0 else 0.0
 
         _new_build_rate = _NEW_BUILD_CAPEX_RM_PER_M2.get(
             final_state.get("_effective_asset_type", "commercial"),
             _NEW_BUILD_CAPEX_RM_PER_M2["commercial"],
         )
-        capex_new_build = (
-            floor_area * _new_build_rate if floor_area > 0 else 0.0
-        )   
+        capex_new_build = floor_area * _new_build_rate if floor_area > 0 else 0.0
 
         # --- 2. Subunit Breakdown ---
         subunits = []
@@ -997,162 +988,191 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             try:
                 mix = json.loads(raw_mix)
                 total_mix_area = sum(float(v.get("area_m2", 0)) for v in mix.values())
-                if total_mix_area <= 0: total_mix_area = 1.0
-                
+                if total_mix_area <= 0:
+                    total_mix_area = 1.0
+
                 occ_by_subtype = json.loads(final_state.get("occupancy_by_subtype_calc_json", "{}"))
                 base_occ_by_subtype = json.loads(base_final_state.get("occupancy_by_subtype_calc_json", "{}"))
 
                 for st, v in mix.items():
                     area = float(v.get("area_m2", 0))
                     ratio = area / total_mix_area if total_mix_area > 0 else 0
-                    
+
                     subunits.append({
                         "subtype": st,
                         "area_m2": area,
                         "occupancy_baseline": base_occ_by_subtype.get(st, _get_util(base_final_state)),
                         "occupancy_intervention": occ_by_subtype.get(st, _get_util(final_state)),
                         "allocated_carbon_tco2e": round(_get(final_state, "carbon_operational_tco2e") * ratio, 1),
-                        "allocated_noi_rm": round(_get(final_state, "noi_rm") * ratio, 0)
+                        "allocated_noi_rm": round(_get(final_state, "noi_rm") * ratio, 0),
                     })
             except Exception:
                 pass
 
-        # --- 2.5 Engineering spec extraction (P1) ---
-        # Pull the plan item's engineering_spec (if present) and the
-        # PV yield the engine derived from it, so the frontend can
-        # render the "Engineered Param Spec Extracted" card.
+        # --- 3. Engineering spec (top-level, not inside card) ---
         _eng_spec = None
         if asset_intv is not None:
             try:
-                _intv_params = json.loads(
-                    asset_intv.get("parameters_json") or "{}"
-                )
+                _intv_params = json.loads(asset_intv.get("parameters_json") or "{}")
                 _raw_spec = _intv_params.get("engineering_spec")
                 if isinstance(_raw_spec, dict):
                     _eng_spec = {
-                        "structure_retention_ratio": _raw_spec.get(
-                            "structure_retention_ratio",
-                        ),
+                        "structure_retention_ratio": _raw_spec.get("structure_retention_ratio"),
                         "facade_action": _raw_spec.get("facade_action"),
-                        "primary_material": _raw_spec.get(
-                            "primary_material",
-                        ),
-                        "roof_intervention": _raw_spec.get(
-                            "roof_intervention",
-                        ),
+                        "primary_material": _raw_spec.get("primary_material"),
+                        "roof_intervention": _raw_spec.get("roof_intervention"),
                         "hvac_cop": _raw_spec.get("hvac_cop"),
-                        "operating_hours_per_week": _raw_spec.get(
-                            "operating_hours_per_week",
-                        ),
-                        "rooftop_pv_coverage": _raw_spec.get(
-                            "rooftop_pv_coverage",
-                        ),
-                        "pv_yield_kwh_year": _get(
-                            final_state, "energy_kwh_pv_offset", 0.0,
-                        ),
+                        "operating_hours_per_week": _raw_spec.get("operating_hours_per_week"),
+                        "rooftop_pv_coverage": _raw_spec.get("rooftop_pv_coverage"),
+                        "pv_yield_kwh_year": _get(final_state, "energy_kwh_pv_offset", 0.0),
                     }
             except (json.JSONDecodeError, TypeError):
                 _eng_spec = None
 
-        # --- 3. Assemble Summary Card ---
+        # --- 4. Surface temp with cooling attribution ---
         baseline_lst = _get_baseline_lst()
         base_lst_delta = _get(base_final_state, "surface_temp_delta_c", default=None)
         intv_lst_delta = _get(final_state, "surface_temp_delta_c", default=None)
-        
-        # Get the effective asset type for LCZ damping logic
+
+        surface_temp_metric = {
+            "label": "Surface Temp ΔT",
+            "baseline": base_lst_delta,
+            "intervention": intv_lst_delta,
+            "unit": "°C",
+        }
+        if base_lst_delta is not None and intv_lst_delta is not None:
+            delta_change = intv_lst_delta - base_lst_delta
+            if abs(delta_change) > 0.01:
+                surface_temp_metric["cooling_source"] = "canopy"
+                surface_temp_metric["cooling_from_canopy_c"] = round(delta_change, 3)
+            else:
+                surface_temp_metric["cooling_source"] = "none"
+
+        # 2026 observed baseline (blue chip)
+        observed_2026 = None
+        if base_lst_delta is not None:
+            observed_2026 = {
+                "surface_temp_delta_c": base_lst_delta,
+                "t_asset_c": _get(base_final_state, "t_asset_c", default=None),
+                "t_township_c": _get(base_final_state, "t_township_c", default=None),
+                "label": "2026 observed (Landsat 8 L2)",
+            }
+
+        # --- 5. Apparent temperature ---
         effective_atype = final_state.get("_effective_asset_type", "commercial")
-        
         base_at = _lst_to_apparent_temp(
-            baseline_lst + base_lst_delta if base_lst_delta is not None else None, 
-            effective_atype
+            baseline_lst + base_lst_delta if base_lst_delta is not None else None,
+            effective_atype,
         )
         intv_at = _lst_to_apparent_temp(
-            baseline_lst + intv_lst_delta if intv_lst_delta is not None else None, 
-            effective_atype
+            baseline_lst + intv_lst_delta if intv_lst_delta is not None else None,
+            effective_atype,
         )
 
+        # --- 6. Authority: which financial frame applies ---
+        authority = final_state.get("_authority") or base_final_state.get("_authority")
+        is_full = is_full_control(authority)
+
+        # Financial main metric — full_control = Operating Performance, sold = Developer Realization
+        if is_full:
+            financial_main = {
+                "label": "Annual NOI",
+                "baseline": _get(base_final_state, "noi_rm"),
+                "intervention": _get(final_state, "noi_rm"),
+                "unit": "RM",
+                "tier": "1",
+            }
+            counterfactual_block = None
+        else:
+            # Sold: main metric becomes counterfactual NOI (labeled clearly)
+            # because sale_price/sale_profit are a different dimension
+            # reported via the same financial block's "supporting" list.
+            financial_main = {
+                "label": "Counterfactual NOI (if SDP had retained)",
+                "baseline": _get(base_final_state, "_noi_rm", default=None),
+                "intervention": _get(final_state, "_noi_rm", default=None),
+                "unit": "RM",
+                "tier": "3b",
+            }
+            counterfactual_block = {
+                "label": "If SDP retained this asset",
+                "metrics": [
+                    {"label": "Counterfactual NOI", "value": _get(final_state, "_noi_rm", default=None), "unit": "RM", "tier": "3b"},
+                    {"label": "Counterfactual NOI Yield", "value": _get(final_state, "_noi_yield", default=None), "unit": "ratio", "tier": "3b"},
+                    {"label": "Estimated Revenue", "value": _get(final_state, "_estimated_revenue_rm", default=None), "unit": "RM", "tier": "3a"},
+                    {"label": "Survival OPEX Floor", "value": _get(final_state, "_survival_opex_floor_rm", default=None), "unit": "RM", "tier": "3a"},
+                ],
+            }
+
+        # --- 7. Assemble card ---
         card = {
-            "engineering_spec": _eng_spec,
             "financial": {
-                "main_metric": {
-                    "label": "Annual NOI",
-                    "baseline": _get(base_final_state, "noi_rm"),
-                    "intervention": _get(final_state, "noi_rm"),
-                    "unit": "RM"
-                },
+                "main_metric": financial_main,
                 "counterfactual": {
                     "capex_if_new_build_rm": round(capex_new_build),
                     "capex_if_repurpose_rm": round(capex_invested),
-                    "capex_saved_rm": round(max(0, capex_new_build - capex_invested))
-                }
+                    "capex_saved_rm": round(max(0, capex_new_build - capex_invested)),
+                },
             },
             "social": {
                 "main_metric": {
                     "label": "Space Utilization",
                     "baseline": _get_util(base_final_state),
                     "intervention": _get_util(final_state),
-                    "unit": "ratio"
+                    "unit": "ratio",
+                    **({"tier": "3a"} if not is_full else {}),
                 },
                 "metrics": {
                     "coverage_ratio_15min_walk": {
                         "baseline": _get(base_final_state, "coverage_ratio_15min_walk"),
-                        "intervention": _get(final_state, "coverage_ratio_15min_walk")
+                        "intervention": _get(final_state, "coverage_ratio_15min_walk"),
                     },
                     "effective_demand_m2": {
                         "baseline": _get(base_final_state, "effective_demand_m2"),
-                        "intervention": _get(final_state, "effective_demand_m2")
-                    }
-                }
+                        "intervention": _get(final_state, "effective_demand_m2"),
+                    },
+                },
             },
             "environmental": {
+                "observed_2026": observed_2026,
                 "main_metrics": [
                     {
                         "label": "Operational Carbon",
                         "baseline": _get(base_final_state, "carbon_operational_tco2e"),
                         "intervention": _get(final_state, "carbon_operational_tco2e"),
-                        "unit": "tCO2e/yr"
+                        "unit": "tCO2e/yr",
                     },
                     {
                         "label": "Stranded Carbon",
                         "baseline": _get(base_final_state, "carbon_stranded_tco2e"),
                         "intervention": _get(final_state, "carbon_stranded_tco2e"),
-                        "unit": "tCO2e/yr"
+                        "unit": "tCO2e/yr",
                     },
-                    {
-                        "label": "Surface Temp ΔT",
-                        "baseline": _get(base_final_state, "surface_temp_delta_c"),
-                        "intervention": _get(final_state, "surface_temp_delta_c"),
-                        "unit": "°C"
-                    },
+                    surface_temp_metric,
                     {
                         "label": "Perceived Temp (AT)",
                         "baseline": base_at,
                         "intervention": intv_at,
-                        "unit": "°C"
+                        "unit": "°C",
                     },
                 ],
                 "counterfactual": {
                     "embodied_if_new_build_tco2e": round(carbon_new_build, 1),
                     "embodied_if_repurpose_tco2e": round(carbon_repurpose, 1),
-                    "net_carbon_averted_tco2e": round(avoided_embodied, 1)
-                }
+                    "net_carbon_averted_tco2e": round(avoided_embodied, 1),
+                },
             },
-            "subunits": subunits if subunits else None
+            "subunits": subunits if subunits else None,
+            "authority": authority or "full_control",
+            "evaluation_mode": (
+                "operating_performance" if is_full
+                else "developer_realization"
+            ),
+            "counterfactual": counterfactual_block,
         }
 
-        # v6.0 §5.6 — two-track card. A sold asset's NOI is a
-        # counterfactual, and its community picture comes from the
-        # Google Places and LBS proxies (tier 3a).
-        authority = final_state.get("_authority") or base_final_state.get("_authority")
-        card["authority"] = authority or "full_control"
-        card["evaluation_mode"] = (
-            "operating_performance" if is_full_control(authority)
-            else "developer_realization"
-        )
-        if not is_full_control(authority):
-            card["financial"]["main_metric"]["label"] = "Counterfactual NOI (if SDP had retained)"
-            card["financial"]["main_metric"]["tier"] = "3b"
-
+        # --- 8. Community block (sold / advisory only) ---
+        if not is_full:
             def _lbs(key):
                 return _get(final_state, key, default=None)
 
@@ -1175,7 +1195,7 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                 "occupancy_seed_source": final_state.get("_occupancy_seed_source"),
             }
 
-        # --- 4. Timeline Data ---
+        # --- 9. Timeline ---
         timeline_metrics = {
             "noi_rm": {"baseline": [], "intervention": []},
             "carbon_operational_tco2e": {"baseline": [], "intervention": []},
@@ -1190,26 +1210,23 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
 
             timeline_metrics["noi_rm"]["baseline"].append(_get(b_asset, "noi_rm"))
             timeline_metrics["noi_rm"]["intervention"].append(_get(i_asset, "noi_rm"))
-            
             timeline_metrics["carbon_operational_tco2e"]["baseline"].append(_get(b_asset, "carbon_operational_tco2e"))
             timeline_metrics["carbon_operational_tco2e"]["intervention"].append(_get(i_asset, "carbon_operational_tco2e"))
-            
             timeline_metrics["carbon_stranded_tco2e"]["baseline"].append(_get(b_asset, "carbon_stranded_tco2e"))
             timeline_metrics["carbon_stranded_tco2e"]["intervention"].append(_get(i_asset, "carbon_stranded_tco2e"))
-            
             timeline_metrics["space_utilization"]["baseline"].append(_get_util(b_asset))
             timeline_metrics["space_utilization"]["intervention"].append(_get_util(i_asset))
-
             timeline_metrics["surface_temp_delta_c"]["baseline"].append(_get(b_asset, "surface_temp_delta_c"))
             timeline_metrics["surface_temp_delta_c"]["intervention"].append(_get(i_asset, "surface_temp_delta_c"))
 
         assets_payload.append({
             "asset_id": aid,
+            "engineering_spec": _eng_spec,   # ← TOP-LEVEL, not inside summary_card
             "summary_card": card,
             "timeline": {
                 "years": years_list,
-                "metrics": timeline_metrics
-            }
+                "metrics": timeline_metrics,
+            },
         })
 
     return {
@@ -1225,11 +1242,11 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
                 "why_this_plan": final_decision.get("why_this_plan", ""),
                 "what_simulation_shows": final_decision.get("what_simulation_shows", ""),
                 "beyond_the_model": final_decision.get("beyond_the_model"),
-                "recommendation": final_decision.get("recommendation", "")
-            }
+                "recommendation": final_decision.get("recommendation", ""),
+            },
         },
         "assets_analysis": assets_payload,
-        "township_metrics": comparison.get("township_metrics", {})
+        "township_metrics": comparison.get("township_metrics", {}),
     }
 
 # ------------------------------------------------------------------

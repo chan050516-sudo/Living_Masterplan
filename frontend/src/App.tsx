@@ -354,14 +354,32 @@ export default function App() {
           if (finalProfile && p.metrics_json) {
             try {
               const metrics = JSON.parse(p.metrics_json as string)
-              if (metrics.occupancy !== undefined) {
-                finalProfile.social.occupancy_rate = metrics.occupancy
-                finalProfile.social.utilisation_rate = metrics.occupancy
+              if (metrics.occupancy_rate != null) {
+                finalProfile.social.occupancy_rate = metrics.occupancy_rate
               }
-              if (metrics.noi_rm !== undefined) finalProfile.financial.noi_rm = metrics.noi_rm
+              if (metrics.utilisation_rate != null) {
+                finalProfile.social.utilisation_rate = metrics.utilisation_rate
+              }
+              if (metrics.noi_rm != null) {
+                finalProfile.financial.noi_rm = metrics.noi_rm
+              }
               if (metrics.carbon_operational_tco2e !== undefined) {
                 finalProfile.environmental.carbon_operational_tco2e = metrics.carbon_operational_tco2e
+              }
+              if (metrics.carbon_stranded_tco2e !== undefined) {
+                finalProfile.environmental.carbon_stranded_tco2e = metrics.carbon_stranded_tco2e
+              }
+              if (metrics.stranded_carbon_ratio !== undefined) {
                 finalProfile.environmental.stranded_carbon_ratio = metrics.stranded_carbon_ratio
+              }
+              if (metrics.canopy_coverage != null) {
+                finalProfile.environmental.canopy_coverage = metrics.canopy_coverage
+              }
+              if (metrics.coverage_ratio_10min_walk != null) {
+                finalProfile.social.coverage_ratio_10min_walk = metrics.coverage_ratio_10min_walk
+              }
+              if (metrics.effective_demand_m2 != null) {
+                finalProfile.social.effective_demand_m2 = metrics.effective_demand_m2
               }
             } catch (e) {}
           }
@@ -437,6 +455,12 @@ export default function App() {
              displayName = `${displaySubtype} ${displayId}`;
           }
 
+          const diagYearRaw = (p as any).diagnosis_year
+          const diagnosisYear =
+            typeof diagYearRaw === 'number' && Number.isFinite(diagYearRaw)
+              ? diagYearRaw
+              : year
+
           list.push({
             id, 
             name: displayName, 
@@ -447,6 +471,7 @@ export default function App() {
             diagnosis: dynamicDiagnosis, 
             center, 
             height: finalHeight,
+            diagnosisYear,
           })
 
           const env = finalProfile?.environmental ?? {}

@@ -152,6 +152,34 @@ def seeded_int(key: str, lo: int, hi: int) -> int:
     return lo + int(math.floor(u * (hi - lo + 1)))
 
 
+def _estimate_opex(eff: dict, year: int) -> float:
+    """OPEX fallback for sold assets: capex × opex_fraction(subtype)."""
+    capex = float(eff.get("capex_initial_rm") or 0)
+    if capex <= 0:
+        return 0.0
+    fraction = {
+        "commercial": 0.08,
+        "community_facility": 0.10,
+        "residential": 0.04,
+        "green_space": 0.02,
+    }.get(eff.get("asset_type"), 0.05)
+    return capex * fraction
+
+
+def _estimate_maintenance(eff: dict, year: int) -> float:
+    """Maintenance fallback for sold assets: capex × maintenance_fraction."""
+    capex = float(eff.get("capex_initial_rm") or 0)
+    if capex <= 0:
+        return 0.0
+    fraction = {
+        "commercial": 0.025,
+        "community_facility": 0.030,
+        "residential": 0.015,
+        "green_space": 0.010,
+    }.get(eff.get("asset_type"), 0.02)
+    return capex * fraction
+
+
 def _clamp_vacancy_to_age(months, completion_year, base_year=BASE_YEAR):
     """
     Cap vacancy_duration_months at the asset's total age in months.

@@ -520,7 +520,40 @@ def _recompute_commercial_financials(
     base_rental = baseline.get("rental_income_rm")
     base_footfall = baseline.get("footfall_daily")
 
+    # Sold asset with no observed baseline. Write a counterfactual
+    # NOI to the underscore-prefixed fields so the LLM selection stage
+    # can reason about "if SDP had retained this asset". The main
+    # `noi_rm` field stays None to preserve the authority gate.
     if not _is_valid_number(base_occ) or float(base_occ) <= 0:
+        if activated is None:
+            from ..taxonomy import get_market_rent_per_m2
+            market_rate = get_market_rent_per_m2(eff.get("subtype"), default=200.0)
+            lettable = eff.get("lettable_area_m2") or 0
+            try:
+                lettable = float(lettable)
+            except (TypeError, ValueError):
+                lettable = 0.0
+            if lettable > 0 and new_occ > 0:
+                cov15 = baseline.get("coverage_ratio_15min_walk")
+                loc_factor = 0.6 + 0.8 * (float(cov15) if _is_valid_number(cov15) else 0.0)
+                cf_rental = market_rate * lettable * float(new_occ) * loc_factor
+                cf_opex = _estimate_opex(eff, year)
+                cf_maint = _estimate_maintenance(eff, year)
+                cf_noi = cf_rental - cf_opex - cf_maint
+
+                metric_row["_noi_rm"] = cf_noi
+                _capex = float(eff.get("capex_initial_rm") or 1)
+                metric_row["_noi_yield"] = cf_noi / _capex if _capex > 0 else None
+                metric_row["_estimated_revenue_rm"] = (
+                    float(eff.get("lbs_unique_users_daily") or 0)
+                    * 0.05 * 25.0 * 365
+                )
+                metric_row["_survival_opex_floor_rm"] = (
+                    lettable * 200.0 * assumptions.get("survival_analysis", {}).get(
+                        "inflation_index", {}
+                    ).get(str(year), 1.0)
+                )
+                metric_row["_noi_source"] = "counterfactual_market_estimate"
         return
 
     if activated is not None:
@@ -2613,17 +2646,22 @@ def _attach_proxy_state(state_by_year, base_year, assets_df,
             st["_authority"] = asset.get("authority")
             if seed_source:
                 st["_occupancy_seed_source"] = seed_source
-                # v6.1h — backfill the base_year's occupancy_rate
-                # from the same proxy seed B4 used to start the
-                # trajectory. Without this, the comparison block
-                # shows "None → X" for every sold commercial and
-                # the reader reads it as "0 → X growth".
-                if year == base_year and st.get("occupancy_rate") is None:
-                    for key, _ in _OCCUPANCY_PROXIES:
-                        v = (ext or {}).get(key)
-                        if v is not None:
-                            st["occupancy_rate"] = float(v)
-                            break
+
+            # Unconditional base_year backfill: without this, a sold
+            # asset's base_year occupancy is None, so the comparison
+            # block emits "null → 0.61" and the LLM has no anchor for
+            # counterfactual reasoning. The feature flag
+            # `simulation_seed_from_lbs` controls whether the
+            # trajectory ITSELF starts from the proxy — but the
+            # baseline row must always carry a proxy value.
+            if year == base_year and st.get("occupancy_rate") is None:
+                for key, _ in _OCCUPANCY_PROXIES:
+                    v = (ext or {}).get(key)
+                    if v is not None:
+                        st["occupancy_rate"] = float(v)
+                        if not st.get("_occupancy_seed_source"):
+                            st["_occupancy_seed_source"] = "proxy_backfill"
+                        break
             if not ext:
                 continue
             factor = 1.0

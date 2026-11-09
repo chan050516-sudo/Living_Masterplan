@@ -183,6 +183,17 @@ def build_profiles(year=2026):
                 "effective_demand_m2": _safe_float(m.get("effective_demand_m2")),
                 "demographic_mismatch": _safe_float(m.get("demographic_mismatch"), 3),
                 "neighborhood_diversity": _safe_float(m.get("neighborhood_diversity"), 3),
+                # Tier-3a proxy fields (present for sold/advisory only)
+                "proxied_occupancy": (
+                    _safe_float((ds.get("layer3a") or {}).get("proxied_occupancy"), 3)
+                ),
+                "proxied_occupancy_source": (
+                    (ds.get("layer3a") or {}).get("proxied_occupancy_source")
+                ),
+                "external_demand_ratio": _safe_float(m.get("observed_demand_ratio"), 3),
+                "lbs_unique_users_daily": _safe_float(m.get("lbs_unique_users_daily"), 0),
+                "lbs_dwell_minutes": _safe_float(m.get("lbs_dwell_time_minutes"), 0),
+                "business_presence_ratio": _safe_float(m.get("business_presence_ratio"), 3),
             },
             "environmental": {
                 "carbon_operational_tco2e": _safe_float(m.get("carbon_operational_tco2e")),
@@ -223,7 +234,21 @@ def build_profiles(year=2026):
                 "flags": ds.get("flags", []),
                 "urgency_index": _safe_float(ds.get("urgency_index"), 1),
                 "contributing_factors": ds.get("contributing_factors", []),
-                "evidence": evidence
+                "evidence": evidence,
+                "authority": ds.get("authority"),
+                "evaluation_mode": ds.get("evaluation_mode"),
+                "flag_tiers": ds.get("flag_tiers", {}),
+                # Tier-3a proxy evidence (sold/advisory only)
+                "layer3a": (
+                    {
+                        "proxied_occupancy": _safe_float(ds["layer3a"].get("proxied_occupancy"), 3),
+                        "proxied_occupancy_source": ds["layer3a"].get("proxied_occupancy_source"),
+                        "triggered": ds["layer3a"].get("triggered"),
+                        "reasons": ds["layer3a"].get("reasons", []),
+                        "flow_island_threshold": ds["layer3a"].get("flow_island_threshold"),
+                    }
+                    if ds.get("layer3a") else None
+                ),
             },
             "leases": {
                 "anchor_lease": anchor_lease

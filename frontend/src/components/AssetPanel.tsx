@@ -1,17 +1,19 @@
 import { useState, useRef } from 'react'
 import { C, cap, mono, btn } from '../theme'
 import { Bar } from './ui'
-import type { Asset, AnalyzeResult, MainMetric } from '../types'
+import { TierBadge } from './TierBadge'
+import type { Asset, AnalyzeResult, MainMetric, AssetStatus } from '../types'
 import type { AnalyzeHistoryItem } from '../App'
 
-const STATUS_COLOR: Record<string, string> = {
+const STATUS_COLOR: Record<AssetStatus, string> = {
   healthy: '#3fb27f',
   monitor: '#f7931d',
   deadspace_candidate: '#d71920',
   underperforming_facility: '#d71920',
   development_risk: '#f15c22',
   improvement_opportunity: '#f7931d',
-  vacant: '#9e9e9e',
+  community_value_gap: '#d71920',
+  strategic_learning: '#f15c22',
   intervened: '#2196f3',
 }
 
@@ -39,15 +41,33 @@ function SectionTitle({ title, color = C.accent }: { title: string; color?: stri
 }
 
 function MetricLine({ m, lowerIsBetter }: { m: MainMetric; lowerIsBetter?: boolean }) {
-  const moved = m.baseline !== null && m.intervention !== null && Math.abs(m.intervention - m.baseline) > 1e-9
-  const better = moved && m.baseline !== null && m.intervention !== null
+  // "Counterfactual only" metrics carry `value` instead of baseline/intervention.
+  const isSingleValue = m.value !== undefined && m.value !== null && m.baseline == null
+  if (isSingleValue) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '6px 0', fontSize: 12.5 }}>
+        <span style={{ color: '#cfc6cd' }}>{m.label}</span>
+        {m.tier && <TierBadge tier={m.tier} />}
+        <span style={{ ...mono, marginLeft: 'auto', fontWeight: 600, color: C.text }}>
+          {fmt(m.value, m.unit)}
+        </span>
+      </div>
+    )
+  }
+
+  const baselineMissing = m.baseline == null && m.intervention != null
+  const moved = m.baseline != null && m.intervention != null && Math.abs(m.intervention - m.baseline) > 1e-9
+  const better = moved && m.baseline != null && m.intervention != null
       ? (lowerIsBetter ? m.intervention < m.baseline : m.intervention > m.baseline)
       : null
 
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, padding: '6px 0', fontSize: 12.5 }}>
       <span style={{ color: '#cfc6cd' }}>{m.label}</span>
-      <span style={{ ...mono, marginLeft: 'auto', color: C.faint }}>{fmt(m.baseline, m.unit)}</span>
+      {m.tier && <TierBadge tier={m.tier} />}
+      <span style={{ ...mono, marginLeft: 'auto', color: C.faint }}>
+        {baselineMissing || m.baseline == null ? 'n/a' : fmt(m.baseline, m.unit)}
+      </span>
       <span style={{ color: C.faint }}>→</span>
       <span style={{ ...mono, fontWeight: 600, color: better === null ? C.text : better ? '#3fb27f' : '#d71920' }}>
         {fmt(m.intervention, m.unit)}
@@ -187,7 +207,9 @@ export function AssetPanel(props: {
         {assets.map((asset, idx) => {
           const d = asset.diagnosis
           const p = asset.profile
-          const col = d ? STATUS_COLOR[d.status] ?? C.muted : STATUS_COLOR[asset.mapStatus] ?? C.muted
+          const col = d 
+            ? STATUS_COLOR[d.status as AssetStatus] ?? C.muted 
+            : STATUS_COLOR[asset.mapStatus as AssetStatus] ?? C.muted
 
           // Check if this asset has a globally accepted intervention
           const acceptedItem = history.find(h => h.status === 'accepted')
@@ -202,6 +224,18 @@ export function AssetPanel(props: {
               
               <h2 className="fade" style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{asset.name}</h2>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
+              {asset.diagnosisYear != null && asset.diagnosisYear !== 2026 && (
+                <div style={{
+                  display: 'inline-block', marginTop: 8,
+                  padding: '4px 10px', borderRadius: 4,
+                  fontSize: 10.5, letterSpacing: '.08em',
+                  background: 'rgba(247,147,29,.12)',
+                  border: '1px solid rgba(247,147,29,.35)',
+                  color: '#f7931d', fontWeight: 600,
+                }}>
+                  ⚠ Showing {asset.diagnosisYear} diagnosis (this year not generated)
+                </div>
+              )}
                 <span style={{ ...mono, fontSize: 12, color: C.faint }}>
                   {asset.id.startsWith('A-') ? asset.id.replace('A-', 'FAC-') : 
                    asset.id.startsWith('G-') ? asset.id.replace('G-', 'GRN-') : 
@@ -257,13 +291,35 @@ export function AssetPanel(props: {
                   <SectionTitle title="Core Metrics" />
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: 13 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Occupancy</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.occupancy_rate ?? p.social.utilisation_rate, 'ratio')}</span>
+                      <span style={{ color: C.muted }}>
+                        {p.social.occupancy_rate != null || p.social.utilisation_rate != null
+                          ? 'Occupancy'
+                          : p.social.proxied_occupancy != null
+                            ? 'Proxied occupancy'
+                            : 'Occupancy'}
+                      </span>
+                      <span style={{ ...mono, fontWeight: 500 }}>
+                        {fmt(
+                          p.social.occupancy_rate
+                            ?? p.social.utilisation_rate
+                            ?? p.social.proxied_occupancy,
+                          'ratio',
+                        )}
+                        {p.social.occupancy_rate == null
+                          && p.social.utilisation_rate == null
+                          && p.social.proxied_occupancy != null && (
+                          <span style={{ fontSize: 9, color: '#f7931d', marginLeft: 6 }}>3a</span>
+                        )}
+                      </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
                       <span style={{ color: C.muted }}>Stranded Carbon</span>
                       <span style={{ ...mono, fontWeight: 500, color: (p.environmental.stranded_carbon_ratio ?? 0) > 0.5 ? '#d71920' : C.text }}>
-                        {fmt(p.environmental.stranded_carbon_ratio, 'ratio')}
+                        {p.environmental.stranded_carbon_ratio != null
+                          ? fmt(p.environmental.stranded_carbon_ratio, 'ratio')
+                          : p.social.proxied_occupancy != null
+                            ? <span style={{ color: C.faint }}>≈ {((1 - p.social.proxied_occupancy) * 100).toFixed(0)}% <span style={{ fontSize: 9, color: '#f7931d' }}>3a</span></span>
+                            : '—'}
                       </span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
@@ -589,6 +645,89 @@ export function AssetPanel(props: {
                       </div>
                     )}
                     </div>
+
+                    {card.community && (
+                      <div style={{
+                        marginTop: 14, padding: 12,
+                        background: 'rgba(247,147,29,.06)',
+                        border: '1px solid rgba(247,147,29,.28)',
+                        borderRadius: 6,
+                      }}>
+                        <div style={{ ...cap, fontSize: 9.5, color: '#f7931d', marginBottom: 8, letterSpacing: '.08em' }}>
+                          📡 TIER 3A · OPERATIONAL PROXIES
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px 16px', fontSize: 11.5 }}>
+                          {card.community.lbs?.unique_users?.baseline != null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>LBS daily visitors</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {Math.round(card.community.lbs.unique_users.baseline).toLocaleString()}
+                                {card.community.lbs.unique_users.intervention != null && (
+                                  <> → {Math.round(card.community.lbs.unique_users.intervention).toLocaleString()}</>
+                                )}
+                              </span>
+                            </div>
+                          )}
+                          {card.community.lbs?.dwell_minutes != null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Avg dwell</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {Math.round(card.community.lbs.dwell_minutes)} min
+                              </span>
+                            </div>
+                          )}
+                          {card.community.lbs?.flow_island_ratio != null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Flow-island ratio</span>
+                              <span style={{ ...mono, color: card.community.lbs.flow_island_ratio < 0.30 ? '#d71920' : '#fff', fontWeight: 600 }}>
+                                {card.community.lbs.flow_island_ratio.toFixed(2)}
+                              </span>
+                            </div>
+                          )}
+                          {card.community.business_presence_ratio != null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Business presence</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {(card.community.business_presence_ratio * 100).toFixed(0)}%
+                              </span>
+                            </div>
+                          )}
+                          {card.community.business_turnover_count != null && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
+                              <span style={{ color: C.muted }}>Business turnover</span>
+                              <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
+                                {card.community.business_turnover_count} change(s)
+                              </span>
+                            </div>
+                          )}
+                          {card.community.lbs?.source && (
+                            <div style={{ gridColumn: '1 / -1', fontSize: 10, color: C.faint, fontStyle: 'italic', marginTop: 4 }}>
+                              Source: {card.community.lbs.source}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {card.counterfactual && card.counterfactual.metrics?.length > 0 && (
+                      <div style={{
+                        marginTop: 14, padding: 12,
+                        background: 'rgba(123,112,128,.08)',
+                        border: '1px solid rgba(123,112,128,.28)',
+                        borderRadius: 6,
+                      }}>
+                        <div style={{ ...cap, fontSize: 9.5, color: '#a895a0', marginBottom: 8, letterSpacing: '.08em' }}>
+                          🔮 {card.counterfactual.label.toUpperCase()}
+                        </div>
+                        <p style={{ margin: '0 0 6px', fontSize: 10, color: C.faint, fontStyle: 'italic' }}>
+                          Not part of deadspace assessment. Shown for investment narrative only.
+                        </p>
+                        {card.counterfactual.metrics.map((m) => (
+                          <MetricLine key={m.label} m={m as any} />
+                        ))}
+                      </div>
+                    )}
+
                     {(saved !== undefined || averted !== undefined) && (
                       <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.line}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {saved !== undefined && (

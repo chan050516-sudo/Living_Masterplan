@@ -38,8 +38,8 @@ function pretty(s: string) {
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
-function moveColor(before: number | null, after: number | null, lowerIsBetter: boolean) {
-  if (before === null || after === null) return null
+function moveColor(before: number | null | undefined, after: number | null | undefined, lowerIsBetter: boolean) {
+  if (before == null || after == null) return null // 改为 != null
   const diff = after - before
   if (Math.abs(diff) < 1e-9) return null
   const good = lowerIsBetter ? diff < 0 : diff > 0
@@ -48,8 +48,8 @@ function moveColor(before: number | null, after: number | null, lowerIsBetter: b
 
 function Row({ label, before, after, unit, lowerIsBetter = false }: {
   label: string
-  before: number | null
-  after: number | null
+  before: number | null | undefined
+  after: number | null | undefined
   unit: string
   lowerIsBetter?: boolean
 }) {
@@ -58,7 +58,7 @@ function Row({ label, before, after, unit, lowerIsBetter = false }: {
     <tr>
       <td style={{ padding: '9px 10px', fontSize: 12.5, color: '#cfc6cd' }}>{label}</td>
       <td style={{ ...mono, padding: '9px 10px', fontSize: 13, textAlign: 'right', color: C.faint }}>
-        {fmt(before, unit)}
+        {before == null ? 'n/a' : fmt(before, unit)}
       </td>
       <td style={{ ...mono, padding: '9px 10px', fontSize: 13, textAlign: 'right', color: col ?? C.text }}>
         {fmt(after, unit)}
@@ -314,14 +314,62 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <tbody>
               <Row
-                label="Total carbon (tCO₂e)"
+                label="Total carbon (tCO₂e/yr)"
                 before={t.total_carbon_before_tco2e}
                 after={t.total_carbon_after_tco2e}
                 unit="tCO2e"
                 lowerIsBetter
               />
+              {t.walk_15min_avg_coverage_before != null && (
+                <Row
+                  label="Average 15-min walk coverage"
+                  before={t.walk_15min_avg_coverage_before}
+                  after={t.walk_15min_avg_coverage_after}
+                  unit="ratio"
+                />
+              )}
+              {t.project_carbon_cumulative_tco2e != null && (
+                <Row
+                  label="Project carbon (cumulative)"
+                  before={null}
+                  after={t.project_carbon_cumulative_tco2e}
+                  unit="tCO2e"
+                  lowerIsBetter
+                />
+              )}
+              {t.sequestration_before_tco2e_year != null && (
+                <Row
+                  label="Canopy sequestration"
+                  before={t.sequestration_before_tco2e_year}
+                  after={t.sequestration_after_tco2e_year}
+                  unit="tCO2e/yr"
+                />
+              )}
             </tbody>
           </table>
+
+          {t.net_carbon_by_year_tco2e_year && (() => {
+            const entries = Object.entries(t.net_carbon_by_year_tco2e_year)
+              .filter(([, v]) => v != null)
+            if (entries.length < 2) return null
+            const first = entries[0][1]
+            const last = entries[entries.length - 1][1]
+            if (first == null || last == null) return null
+            return (
+              <div style={{
+                marginTop: 12, padding: '8px 12px',
+                background: 'rgba(63,178,127,.06)',
+                border: '1px solid rgba(63,178,127,.25)',
+                borderRadius: 6, fontSize: 12.5, color: '#cfc6cd',
+              }}>
+                <strong style={{ color: '#3fb27f' }}>Net carbon position:</strong>{' '}
+                {first.toLocaleString(undefined, { maximumFractionDigits: 0 })} →{' '}
+                <strong>{last.toLocaleString(undefined, { maximumFractionDigits: 0 })} tCO₂e/yr</strong>
+                {last < 0 && <span style={{ color: '#3fb27f' }}> · net sink</span>}
+              </div>
+            )
+          })()}
+
           <p style={{ fontSize: 11.5, color: C.faint, lineHeight: 1.6, marginTop: 14 }}>
             Township totals include development projects delivered on schedule, so they can rise even when the
             intervention itself avoids emissions. The averted embodied carbon above is the effect of reuse.

@@ -221,6 +221,7 @@ async def get_map_geometry(
             ds_dict[asset["asset_id"]] = "intervened"
 
     # ---- 1. Load the year's deadspace records ----
+    diagnosis_year = year
     if year == 2026:
         ds_path = BASE_DIR / "business" / "deadspace_2026.json"
     else:
@@ -229,11 +230,11 @@ async def get_map_geometry(
             / f"deadspace_{scenario_id}_{year}.json"
         )
         if not ds_path.exists():
-            # Fallback to baseline if the candidate file isn't generated
             log.warning("No deadspace records for %s year %d; using SC-CURRENT.", scenario_id, year)
             ds_path = BASE_DIR / "business" / "scenarios" / f"deadspace_SC-CURRENT_{year}.json"
         if not ds_path.exists():
             ds_path = BASE_DIR / "business" / "deadspace_2026.json"
+            diagnosis_year = 2026
 
     ds_dict = {}
     flags_dict = {}
@@ -297,20 +298,16 @@ async def get_map_geometry(
             for aid, state in year_assets.items():
                 if aid.startswith("PRJ::"):
                     continue
-                occ = state.get("occupancy_rate")
-                util = state.get("utilisation_rate")
                 metrics_dict.setdefault(aid, {}).update({
-                    "occupancy": occ if occ is not None else util,
+                    "occupancy_rate": state.get("occupancy_rate"),
+                    "utilisation_rate": state.get("utilisation_rate"),
                     "noi_rm": state.get("noi_rm"),
-                    "carbon_operational_tco2e": state.get(
-                        "carbon_operational_tco2e"
-                    ),
-                    "carbon_stranded_tco2e": state.get(
-                        "carbon_stranded_tco2e"
-                    ),
-                    "stranded_carbon_ratio": state.get(
-                        "stranded_carbon_ratio"
-                    ),
+                    "carbon_operational_tco2e": state.get("carbon_operational_tco2e"),
+                    "carbon_stranded_tco2e": state.get("carbon_stranded_tco2e"),
+                    "stranded_carbon_ratio": state.get("stranded_carbon_ratio"),
+                    "canopy_coverage": state.get("canopy_coverage"),
+                    "coverage_ratio_10min_walk": state.get("coverage_ratio_10min_walk"),
+                    "effective_demand_m2": state.get("effective_demand_m2"),
                 })
 
     # Overlay LLM intervention status if run_id is provided
@@ -389,6 +386,7 @@ async def get_map_geometry(
         df["factors_json"] = df["asset_id"].map(
             lambda x: json.dumps(factors_dict.get(x, []))
         )
+        df["diagnosis_year"] = diagnosis_year
         return df
 
     gdf_buildings = _attach_metadata(gdf_buildings)
@@ -399,6 +397,7 @@ async def get_map_geometry(
     cols = [
         "asset_id", "map_status", "flags", "urgency_index",
         "metrics_json", "evidence_json", "factors_json",
+        "diagnosis_year",
         "height", "geometry",
     ]
     for df in [gdf_buildings, gdf_parcels, gdf_green]:
