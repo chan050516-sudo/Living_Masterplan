@@ -269,6 +269,7 @@ async def get_map_geometry(
             d["asset_id"]: d.get("contributing_factors", [])
             for d in ds_list
         }
+        mode_dict = {d["asset_id"]: d.get("intervention_mode") for d in ds_list}
 
     # ---- 1b. Metrics for non-2026 display (from B4's SC-CURRENT) ----
     # Used by the frontend to override the 2026 profile values on the
@@ -377,6 +378,7 @@ async def get_map_geometry(
         df["urgency_index"] = df["asset_id"].map(
             lambda x: urgency_dict.get(x, 0.0)
         )
+        df["intervention_mode"] = df["asset_id"].map(lambda x: mode_dict.get(x))
         df["metrics_json"] = df["asset_id"].map(
             lambda x: json.dumps(metrics_dict.get(x, {}))
         )

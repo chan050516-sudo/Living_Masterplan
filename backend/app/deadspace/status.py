@@ -66,31 +66,92 @@ def _is_in_ramp_up_window(asset_type, completion_year, base_year):
 
 def decide_sold_commercial_status(flags) -> str:
     """
-    v6.0 §1.3 / §4.4 — a sold / advisory commercial asset can never be
-    a deadspace_candidate. The developer does not operate it, so the
-    question becomes "what does the community lose, and what can we learn?"
+    v6.1g — deadspace is a fact, not an authority judgement.
 
-      no flags                        -> healthy
-      data_conflict                   -> monitor (the proxies disagree)
-      operating proxy + access cause  -> community_value_gap
-                                         (fixable around the asset:
-                                         walkways, corridors, catalysts)
-      operating proxy, no access      -> strategic_learning
-                                         (cause is demand or design; a
-                                         lesson for future phases)
-      context flags only              -> monitor (businesses are fine)
+    A sold shoplot whose proxy evidence shows it is empty or
+    unprofitable is deadspace, exactly like an owned one. The
+    authority only decides *what SDP can do about it*, which is a
+    separate field (`intervention_mode`).
+
+    Status rules:
+      healthy              — no proxy evidence of struggle
+      monitor              — data_conflict, or weak operating signals
+      community_value_gap  — operating evidence + access barrier
+                             (concrete collaboration path exists)
+      strategic_learning   — operating evidence, no access barrier
+                             (cause is demand/design, not reachability)
+      deadspace_candidate  — strong dual-signal operating evidence
+
+    The deadspace_candidate gate mirrors the full_control rule
+    (L1 AND L2). For a sold asset the L1/L2 test is:
+      L1 (not used)  ≈ business_presence_low
+      L2 (not earning) ≈ operating_hemorrhage
+    Both must fire; a single weak proxy is not enough. This
+    preserves the same rigour as full_control assets while
+    acknowledging that proxy data is tier-3a, not tier-1.
     """
     flags = set(flags)
     if not flags:
         return "healthy"
     if "data_conflict" in flags:
         return "monitor"
+
+    # Strong dual signal: Google says most units are empty AND
+    # LBS + survival floor says the shop cannot pay its costs.
+    if "business_presence_low" in flags and "operating_hemorrhage" in flags:
+        return "deadspace_candidate"
+
+    # Secondary strong signal: no operating businesses at all,
+    # with a corroborating vacancy or occupancy proxy.
+    strong_empty = (
+        "business_presence_low" in flags
+        and (
+            "low_occupancy_proxied" in flags
+            or "long_vacancy_proxied" in flags
+        )
+    )
+    if strong_empty and "operating_hemorrhage" in flags:
+        return "deadspace_candidate"
+
     operating = flags & OPERATING_PROXY_FLAGS
     if operating and flags & ACCESS_FLAGS:
         return "community_value_gap"
     if operating:
         return "strategic_learning"
     return "monitor"
+
+
+def decide_intervention_mode(authority, flags) -> str:
+    """
+    How can SDP act on this diagnosed asset?
+
+    Orthogonal to `status`. A deadspace_candidate whose
+    intervention_mode is 'advisory' is still a real deadspace —
+    SDP just cannot execute the fix itself.
+
+      direct        — full_control. SDP can execute every legal
+                      intervention (repurpose, retrofit, new_dev,
+                      delay, etc.) without external approval.
+      collaborative — the asset is not SDP's, but a concrete
+                      collaboration path exists:
+                        * shared (JMB): retrofit is executable by
+                          the lot owner; structural change needs
+                          JMB/MC approval
+                        * sold + access gap: improving the walkway
+                          or corridor around the asset is a real
+                          action SDP can take, even though the
+                          asset itself belongs to someone else
+      advisory      — sold, no collaboration path. SDP can only
+                      recommend to the owner.
+    """
+    if authority == "full_control":
+        return "direct"
+    flags = set(flags or [])
+    if flags & ACCESS_FLAGS:
+        return "collaborative"
+    if authority == "shared":
+        return "collaborative"
+    return "advisory"
 
 
 def decide_status(asset_type, layer1, layer2, layer3, authority=None,

@@ -9,6 +9,10 @@ export type AssetStatus =
   | 'underperforming_facility'
   | 'development_risk'
   | 'improvement_opportunity'
+  | 'community_value_gap'
+  | 'strategic_learning'
+
+export type InterventionMode = 'direct' | 'collaborative' | 'advisory'
 
 export type DeadspaceLayer = {
   triggered: boolean
@@ -33,6 +37,7 @@ export type Diagnosis = {
   flags: string[]
   /** Sorting only. Never displayed. */
   urgency_index: number
+  intervention_mode?: InterventionMode
   layer1?: DeadspaceLayer
   layer2?: DeadspaceLayer
   layer3?: ActionabilityLayer

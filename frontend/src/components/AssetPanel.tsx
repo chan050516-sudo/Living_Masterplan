@@ -225,6 +225,30 @@ export function AssetPanel(props: {
                       🔒 {p.authority.level.replace('_', ' ')}
                     </div>
                   )}
+
+                  {d?.intervention_mode && (
+                    <div
+                      title={
+                        d.intervention_mode === 'direct'
+                          ? 'Sime Darby owns this asset and can execute any intervention.'
+                          : d.intervention_mode === 'collaborative'
+                            ? 'Sold / strata asset. SDP can collaborate via JMB or walkway improvement.'
+                            : 'Sold asset with no collaboration path. SDP can only recommend.'
+                      }
+                      style={{
+                        fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase',
+                        color:
+                          d.intervention_mode === 'direct' ? '#d71920'
+                            : d.intervention_mode === 'collaborative' ? '#a855f7'
+                              : '#7b7080',
+                        fontWeight: 700, border: `1px solid currentColor`, borderRadius: 4,
+                        padding: '3px 8px', background: 'rgba(255,255,255,0.05)',
+                      }}
+                    >
+                      {d.intervention_mode === 'direct' ? '●' : d.intervention_mode === 'collaborative' ? '◐' : '○'}{' '}
+                      {d.intervention_mode.replace(/_/g, ' ')}
+                    </div>
+                  )}
               </div>
 
               {/* 1. Key Figures */}

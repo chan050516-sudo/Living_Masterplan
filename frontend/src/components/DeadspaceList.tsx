@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { C, cap, mono } from '../theme'
-import type { Asset, AssetStatus } from '../types'
+import type { Asset, AssetStatus, InterventionMode } from '../types'
 
-/** Map each status enum to its colour. v1.2 §8.2. */
+/** Map each status enum to its colour. */
 const STATUS_COLOR: Record<AssetStatus, string> = {
   healthy: '#3fb27f',
   monitor: '#f7931d',
@@ -10,29 +10,77 @@ const STATUS_COLOR: Record<AssetStatus, string> = {
   underperforming_facility: '#d71920',
   development_risk: '#f15c22',
   improvement_opportunity: '#f7931d',
+  // v6.1g — statuses that acknowledge a diagnosed problem the
+  // developer cannot directly own. Red hue shared with
+  // deadspace_candidate so the reader sees "this is a problem";
+  // the intervention_mode badge underneath tells them what can
+  // actually be done.
+  community_value_gap: '#d71920',
+  strategic_learning: '#f15c22',
 }
 
-/** "deadspace_candidate" → "Deadspace candidate" */
+/** Map intervention mode to a border colour and a badge label. */
+const MODE_STYLE: Record<InterventionMode, {
+  label: string
+  border: string
+  dot: string
+  description: string
+}> = {
+  direct: {
+    label: 'SDP DIRECT',
+    border: '#d71920',
+    dot: '#d71920',
+    description: 'Sime Darby owns this asset and can execute any intervention.',
+  },
+  collaborative: {
+    label: 'COLLABORATIVE',
+    border: '#a855f7',
+    dot: '#a855f7',
+    description: 'Sold / strata asset. SDP can collaborate via JMB or walkway improvement.',
+  },
+  advisory: {
+    label: 'ADVISORY',
+    border: '#7b7080',
+    dot: '#7b7080',
+    description: 'Sold asset with no collaboration path. SDP can only recommend.',
+  },
+}
+
 function prettyStatus(s: string) {
   const t = s.replace(/_/g, ' ')
   return t.charAt(0).toUpperCase() + t.slice(1)
 }
 
-/** Pulls one line out of B6's evidence strings, e.g. findEvidence(ev, 'Occupancy'). */
 function findEvidence(evidence: string[], prefix: string) {
   const hit = evidence.find((e) => e.startsWith(prefix + ':'))
   return hit ? hit.slice(prefix.length + 1).trim() : null
 }
 
+/** Filters combine the two orthogonal dimensions:
+ *  - what is the diagnosis (status)
+ *  - what can SDP do about it (mode)
+ */
 const FILTERS = [
   { key: 'all', label: 'All issues' },
   { key: 'deadspace_candidate', label: 'Deadspace' },
+  { key: 'community_value_gap', label: 'Community gap' },
+  { key: 'strategic_learning', label: 'Learning' },
   { key: 'underperforming_facility', label: 'Facilities' },
   { key: 'improvement_opportunity', label: 'Opportunities' },
   { key: 'monitor', label: 'Monitor' },
 ] as const
 
 const PAGE = 40
+
+/** Sort priority inside the same status: direct > collaborative
+ *  > advisory. A reader scanning the deadspace list wants to see
+ *  the ones they can act on today at the top. */
+function modeRank(mode?: InterventionMode): number {
+  if (mode === 'direct') return 0
+  if (mode === 'collaborative') return 1
+  if (mode === 'advisory') return 2
+  return 3
+}
 
 export function DeadspaceList({ assets, onPick, filter, onFilter }: {
   assets: Asset[]
@@ -48,9 +96,18 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
 
   const list = flagged
     .filter((a) => filter === 'all' || a.diagnosis!.status === filter)
-    .sort((a, b) => b.diagnosis!.urgency_index - a.diagnosis!.urgency_index)
+    .sort((a, b) => {
+      const byMode = modeRank(a.diagnosis!.intervention_mode)
+        - modeRank(b.diagnosis!.intervention_mode)
+      if (byMode !== 0) return byMode
+      return b.diagnosis!.urgency_index - a.diagnosis!.urgency_index
+    })
 
   const visible = list.slice(0, shown)
+
+  const directCount = flagged.filter((a) => a.diagnosis!.intervention_mode === 'direct').length
+  const collabCount = flagged.filter((a) => a.diagnosis!.intervention_mode === 'collaborative').length
+  const advisoryCount = flagged.filter((a) => a.diagnosis!.intervention_mode === 'advisory').length
 
   return (
     <>
@@ -58,6 +115,30 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
         <span style={cap}>Flagged assets</span>
         <span style={{ ...mono, fontSize: 11, color: C.accent }}>{list.length}</span>
         <span style={{ ...mono, fontSize: 11, color: C.faint }}>of {assets.length}</span>
+      </div>
+
+      {/* Mode legend — helps the reader understand the three
+          execution buckets before they read the list. */}
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', gap: 12, marginBottom: 14,
+        padding: '8px 10px', background: C.card, border: `1px solid ${C.line}`,
+        borderRadius: 8, fontSize: 11,
+      }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ ...mono, color: MODE_STYLE.direct.dot }}>●</span>
+          <span style={{ color: C.muted }}>Direct</span>
+          <span style={{ ...mono, color: C.faint }}>{directCount}</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ ...mono, color: MODE_STYLE.collaborative.dot }}>◐</span>
+          <span style={{ color: C.muted }}>Collaborative</span>
+          <span style={{ ...mono, color: C.faint }}>{collabCount}</span>
+        </span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ ...mono, color: MODE_STYLE.advisory.dot }}>○</span>
+          <span style={{ color: C.muted }}>Advisory</span>
+          <span style={{ ...mono, color: C.faint }}>{advisoryCount}</span>
+        </span>
       </div>
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
@@ -80,9 +161,18 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
       {visible.map((a) => {
         const d = a.diagnosis!
         const col = STATUS_COLOR[d.status] ?? C.muted
+        const mode = d.intervention_mode
+        const modeStyle = mode ? MODE_STYLE[mode] : null
+
         const occ = findEvidence(d.evidence, 'Occupancy')
         const vac = findEvidence(d.evidence, 'Vacancy')
         const subtype = findEvidence(d.evidence, 'Subtype')
+
+        // Use a border left as an accent that encodes the mode
+        // without overpowering the status colour.
+        const borderLeft = modeStyle
+          ? `3px solid ${modeStyle.border}`
+          : `1px solid ${C.line}`
 
         return (
           <button
@@ -91,7 +181,9 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
             onClick={() => onPick(a)}
             style={{
               display: 'block', width: '100%', textAlign: 'left', marginBottom: 10, padding: 14,
-              background: C.card, border: `1px solid ${C.line}`,
+              background: C.card,
+              border: `1px solid ${C.line}`,
+              borderLeft,
               borderRadius: 8, cursor: 'pointer', color: C.text, font: 'inherit',
             }}
           >
@@ -106,10 +198,30 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
             </div>
 
             <div style={{
-              fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase',
-              color: col, marginTop: 5, fontWeight: 600,
+              display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 5,
             }}>
-              {prettyStatus(d.status)}
+              <span style={{
+                fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase',
+                color: col, fontWeight: 600,
+              }}>
+                {prettyStatus(d.status)}
+              </span>
+              {modeStyle && (
+                <span
+                  title={modeStyle.description}
+                  style={{
+                    fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase',
+                    color: modeStyle.dot,
+                    padding: '1px 6px',
+                    borderRadius: 3,
+                    background: `${modeStyle.dot}14`,
+                    border: `1px solid ${modeStyle.dot}40`,
+                    fontWeight: 600,
+                  }}
+                >
+                  {modeStyle.label}
+                </span>
+              )}
             </div>
 
             <div style={{ fontSize: 12, color: C.muted, marginTop: 8, lineHeight: 1.5 }}>

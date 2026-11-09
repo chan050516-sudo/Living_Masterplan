@@ -75,6 +75,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -165,6 +166,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -255,6 +257,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -345,6 +348,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -435,6 +439,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -525,6 +530,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -622,6 +628,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -719,6 +726,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -809,6 +817,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit"
       ],
@@ -919,6 +928,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -1009,6 +1019,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -1106,6 +1117,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -1203,6 +1215,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -1293,6 +1306,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -1404,6 +1418,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -1494,6 +1509,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -1584,6 +1600,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -1674,6 +1691,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -1771,6 +1789,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -1886,6 +1905,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -2001,6 +2021,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -2091,6 +2112,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -2188,6 +2210,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -2285,6 +2308,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -2375,6 +2399,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -2486,6 +2511,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -2576,6 +2602,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -2666,6 +2693,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -2776,6 +2804,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -2866,6 +2895,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -2991,6 +3021,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3081,6 +3112,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3171,6 +3203,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3261,6 +3294,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3351,6 +3385,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3441,6 +3476,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3531,6 +3567,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3621,6 +3658,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -3718,6 +3756,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3808,6 +3847,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3898,6 +3938,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -3988,6 +4029,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4078,6 +4120,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4168,6 +4211,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -4265,6 +4309,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4355,6 +4400,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4445,6 +4491,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4535,6 +4582,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4625,6 +4673,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4715,6 +4764,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4805,6 +4855,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -4895,6 +4946,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -4992,6 +5044,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5082,6 +5135,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5172,6 +5226,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5262,6 +5317,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5352,6 +5408,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5442,6 +5499,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5532,6 +5590,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5622,6 +5681,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5712,6 +5772,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5802,6 +5863,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5892,6 +5954,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -5982,6 +6045,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -6092,6 +6156,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -6207,6 +6272,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6297,6 +6363,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6387,6 +6454,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6477,6 +6545,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6567,6 +6636,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6657,6 +6727,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6747,6 +6818,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6837,6 +6909,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -6927,6 +7000,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7017,6 +7091,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7107,6 +7182,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -7204,6 +7280,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7294,6 +7371,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7384,6 +7462,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7474,6 +7553,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7564,6 +7644,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7654,6 +7735,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7744,6 +7826,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7834,6 +7917,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -7924,6 +8008,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8014,6 +8099,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8104,6 +8190,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -8201,6 +8288,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8291,6 +8379,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8381,6 +8470,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8471,6 +8561,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8561,6 +8652,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8651,6 +8743,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -8741,6 +8834,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -8852,6 +8946,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -8949,6 +9044,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9039,6 +9135,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9129,6 +9226,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -9226,6 +9324,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9316,6 +9415,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9406,6 +9506,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9496,6 +9597,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -9612,6 +9714,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9702,6 +9805,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9792,6 +9896,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -9882,6 +9987,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -9993,6 +10099,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10083,6 +10190,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10173,6 +10281,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -10288,6 +10397,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10378,6 +10488,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10468,6 +10579,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10558,6 +10670,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10648,6 +10761,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10738,6 +10852,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10828,6 +10943,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -10918,6 +11034,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -11015,6 +11132,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11105,6 +11223,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11195,6 +11314,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11285,6 +11405,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11375,6 +11496,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -11486,6 +11608,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11576,6 +11699,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11666,6 +11790,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11756,6 +11881,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11846,6 +11972,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -11936,6 +12063,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12026,6 +12154,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12116,6 +12245,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12206,6 +12336,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12296,6 +12427,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12386,6 +12518,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -12483,6 +12616,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12573,6 +12707,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12663,6 +12798,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12753,6 +12889,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12843,6 +12980,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -12933,6 +13071,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -13023,6 +13162,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -13113,6 +13253,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -13223,6 +13364,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -13320,6 +13462,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -13410,6 +13553,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -13500,6 +13644,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -13590,6 +13735,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -13679,7 +13825,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -13815,6 +13962,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -13926,6 +14074,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14016,6 +14165,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -14126,6 +14276,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14216,6 +14367,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14306,6 +14458,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14396,6 +14549,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14486,6 +14640,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -14583,6 +14738,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14673,6 +14829,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14763,6 +14920,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -14853,6 +15011,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -14964,6 +15123,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -15061,6 +15221,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -15172,6 +15333,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -15269,6 +15431,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15359,6 +15522,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15449,6 +15613,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15539,6 +15704,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15629,6 +15795,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15719,6 +15886,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15809,6 +15977,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15899,6 +16068,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -15989,6 +16159,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16079,6 +16250,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16169,6 +16341,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16259,6 +16432,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16349,6 +16523,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -16459,6 +16634,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16549,6 +16725,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16639,6 +16816,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16729,6 +16907,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16819,6 +16998,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16909,6 +17089,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -16999,6 +17180,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17089,6 +17271,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17179,6 +17362,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17269,6 +17453,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -17366,6 +17551,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17456,6 +17642,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17546,6 +17733,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17636,6 +17824,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -17733,6 +17922,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -17823,6 +18013,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -17934,6 +18125,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18024,6 +18216,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18114,6 +18307,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18204,6 +18398,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18294,6 +18489,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18384,6 +18580,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18474,6 +18671,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18564,6 +18762,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18654,6 +18853,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18744,6 +18944,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18834,6 +19035,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -18924,6 +19126,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19014,6 +19217,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19104,6 +19308,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19194,6 +19399,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19284,6 +19490,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -19404,6 +19611,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19494,6 +19702,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19584,6 +19793,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19674,6 +19884,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19764,6 +19975,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -19854,6 +20066,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -19951,6 +20164,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20041,6 +20255,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20131,6 +20346,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20221,6 +20437,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20311,6 +20528,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20401,6 +20619,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -20512,6 +20731,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20602,6 +20822,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20692,6 +20913,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20782,6 +21004,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20872,6 +21095,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -20962,6 +21186,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21052,6 +21277,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21142,6 +21368,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -21239,6 +21466,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21329,6 +21557,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21419,6 +21648,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21509,6 +21739,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21599,6 +21830,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21689,6 +21921,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -21805,6 +22038,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21895,6 +22129,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -21985,6 +22220,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -22100,6 +22336,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22190,6 +22427,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22280,6 +22518,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22370,6 +22609,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22460,6 +22700,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22550,6 +22791,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22640,6 +22882,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22730,6 +22973,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -22846,6 +23090,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -22936,6 +23181,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23026,6 +23272,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23116,6 +23363,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23206,6 +23454,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23296,6 +23545,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23386,6 +23636,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23476,6 +23727,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23566,6 +23818,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23656,6 +23909,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23746,6 +24000,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23836,6 +24091,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -23926,6 +24182,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24016,6 +24273,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24106,6 +24364,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24196,6 +24455,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24286,6 +24546,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24376,6 +24637,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -24473,6 +24735,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24563,6 +24826,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24653,6 +24917,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24743,6 +25008,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24833,6 +25099,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -24923,6 +25190,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25013,6 +25281,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -25110,6 +25379,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25200,6 +25470,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25290,6 +25561,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25380,6 +25652,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25470,6 +25743,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25560,6 +25834,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25650,6 +25925,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25740,6 +26016,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -25830,6 +26107,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -25941,6 +26219,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26031,6 +26310,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26121,6 +26401,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26211,6 +26492,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26301,6 +26583,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26391,6 +26674,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -26502,6 +26786,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26592,6 +26877,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26682,6 +26968,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26772,6 +27059,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26862,6 +27150,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -26952,6 +27241,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27042,6 +27332,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27132,6 +27423,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27222,6 +27514,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -27332,6 +27625,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -27447,6 +27741,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27537,6 +27832,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -27648,6 +27944,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27738,6 +28035,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27828,6 +28126,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -27918,6 +28217,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28008,6 +28308,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -28118,6 +28419,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28208,6 +28510,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28298,6 +28601,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28388,6 +28692,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28478,6 +28783,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28568,6 +28874,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28658,6 +28965,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -28769,6 +29077,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28859,6 +29168,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -28949,6 +29259,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29039,6 +29350,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -29136,6 +29448,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29226,6 +29539,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29316,6 +29630,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -29426,6 +29741,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29516,6 +29832,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29606,6 +29923,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29695,7 +30013,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -29836,6 +30155,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -29926,6 +30246,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30016,6 +30337,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -30127,6 +30449,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30217,6 +30540,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30307,6 +30631,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30397,6 +30722,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30487,6 +30813,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -30597,6 +30924,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30687,6 +31015,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold"
       ],
@@ -30797,6 +31126,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30887,6 +31217,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -30977,6 +31308,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31067,6 +31399,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31157,6 +31490,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31247,6 +31581,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31337,6 +31672,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31427,6 +31763,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31517,6 +31854,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -31628,6 +31966,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31718,6 +32057,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31808,6 +32148,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -31905,6 +32246,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -31995,6 +32337,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32085,6 +32428,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32175,6 +32519,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32265,6 +32610,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32355,6 +32701,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32445,6 +32792,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32535,6 +32883,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32625,6 +32974,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32715,6 +33065,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32805,6 +33156,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32895,6 +33247,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -32985,6 +33338,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -33096,6 +33450,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -33186,6 +33541,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -33276,6 +33632,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -33366,6 +33723,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -33477,6 +33835,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -33567,6 +33926,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -33678,6 +34038,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -33775,6 +34136,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -33865,6 +34227,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -33955,6 +34318,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34045,6 +34409,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34135,6 +34500,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -34245,6 +34611,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34335,6 +34702,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34425,6 +34793,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34514,7 +34883,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -34660,6 +35030,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34750,6 +35121,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34840,6 +35212,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -34930,6 +35303,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35020,6 +35394,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35110,6 +35485,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35200,6 +35576,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35290,6 +35667,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -35405,6 +35783,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35495,6 +35874,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35585,6 +35965,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_neighborhood_diversity",
@@ -35718,6 +36099,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35808,6 +36190,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35898,6 +36281,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -35988,6 +36372,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -36098,6 +36483,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -36188,6 +36574,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -36278,6 +36665,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -36389,6 +36777,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -36504,6 +36893,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold"
       ],
@@ -36614,6 +37004,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -36704,6 +37095,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -36794,6 +37186,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -36884,6 +37277,7 @@
     },
     "deadspace_diagnosis": {
       "status": "community_value_gap",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -37014,6 +37408,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37104,6 +37499,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37194,6 +37590,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37284,6 +37681,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37374,6 +37772,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37464,6 +37863,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37554,6 +37954,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37644,6 +38045,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37734,6 +38136,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37824,6 +38227,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -37914,6 +38318,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38004,6 +38409,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38094,6 +38500,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38184,6 +38591,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38274,6 +38682,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38364,6 +38773,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38454,6 +38864,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38544,6 +38955,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38634,6 +39046,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -38724,6 +39137,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -38855,6 +39269,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -38966,6 +39381,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39056,6 +39472,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39146,6 +39563,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39236,6 +39654,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39326,6 +39745,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39416,6 +39836,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39506,6 +39927,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -39616,6 +40038,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39706,6 +40129,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39796,6 +40220,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39886,6 +40311,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -39976,6 +40402,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -40087,6 +40514,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40177,6 +40605,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40267,6 +40696,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40357,6 +40787,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40447,6 +40878,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40537,6 +40969,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40627,6 +41060,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -40742,6 +41176,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40832,6 +41267,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -40921,7 +41357,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "strategic_learning",
+      "status": "deadspace_candidate",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold",
         "low_occupancy_proxied",
@@ -41052,6 +41489,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41142,6 +41580,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon",
@@ -41253,6 +41692,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41343,6 +41783,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41433,6 +41874,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -41548,6 +41990,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41638,6 +42081,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41728,6 +42172,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41818,6 +42263,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41908,6 +42354,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -41998,6 +42445,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42088,6 +42536,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42178,6 +42627,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42268,6 +42718,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42358,6 +42809,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42448,6 +42900,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42538,6 +42991,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -42654,6 +43108,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42744,6 +43199,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -42833,7 +43289,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "demographic_mismatch",
@@ -42969,6 +43426,7 @@
     },
     "deadspace_diagnosis": {
       "status": "community_value_gap",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -43100,6 +43558,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43190,6 +43649,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43280,6 +43740,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43370,6 +43831,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43460,6 +43922,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43550,6 +44013,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43640,6 +44104,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43730,6 +44195,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43820,6 +44286,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -43910,6 +44377,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44000,6 +44468,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44090,6 +44559,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44180,6 +44650,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44270,6 +44741,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44360,6 +44832,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44450,6 +44923,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44540,6 +45014,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -44655,6 +45130,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44745,6 +45221,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44835,6 +45312,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -44925,6 +45403,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45015,6 +45494,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45105,6 +45585,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45195,6 +45676,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45285,6 +45767,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45375,6 +45858,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45465,6 +45949,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45555,6 +46040,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45645,6 +46131,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45735,6 +46222,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -45825,6 +46313,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -45935,6 +46424,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -46032,6 +46522,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46122,6 +46613,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46212,6 +46704,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46302,6 +46795,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46392,6 +46886,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46482,6 +46977,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46572,6 +47068,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -46661,7 +47158,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -46797,6 +47295,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -46944,6 +47443,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47034,6 +47534,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47124,6 +47625,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47214,6 +47716,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47304,6 +47807,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47394,6 +47898,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47484,6 +47989,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47574,6 +48080,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -47664,6 +48171,7 @@
     },
     "deadspace_diagnosis": {
       "status": "community_value_gap",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -47798,7 +48306,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -47934,6 +48443,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48024,6 +48534,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48114,6 +48625,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48204,6 +48716,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -48301,6 +48814,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48391,6 +48905,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -48526,6 +49041,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold"
       ],
@@ -48637,6 +49153,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48727,6 +49244,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48817,6 +49335,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48907,6 +49426,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -48997,6 +49517,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49086,7 +49607,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -49217,6 +49739,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49307,6 +49830,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49397,6 +49921,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49487,6 +50012,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49577,6 +50103,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49667,6 +50194,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -49757,6 +50285,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -49867,6 +50396,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -49982,6 +50512,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50072,6 +50603,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50162,6 +50694,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50252,6 +50785,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50341,7 +50875,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -50482,6 +51017,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50572,6 +51108,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50662,6 +51199,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50752,6 +51290,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50842,6 +51381,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -50932,6 +51472,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51022,6 +51563,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51112,6 +51654,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51202,6 +51745,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51292,6 +51836,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51382,6 +51927,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51472,6 +52018,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51562,6 +52109,7 @@
     },
     "deadspace_diagnosis": {
       "status": "strategic_learning",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold",
         "low_occupancy_proxied",
@@ -51692,6 +52240,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51782,6 +52331,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51872,6 +52422,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -51962,6 +52513,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52052,6 +52604,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52142,6 +52695,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52232,6 +52786,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52322,6 +52877,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52412,6 +52968,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52502,6 +53059,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52592,6 +53150,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52682,6 +53241,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52772,6 +53332,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52862,6 +53423,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -52952,6 +53514,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53042,6 +53605,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53132,6 +53696,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53222,6 +53787,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53312,6 +53878,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -53427,6 +53994,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53517,6 +54085,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53607,6 +54176,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53697,6 +54267,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53787,6 +54358,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53877,6 +54449,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -53967,6 +54540,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54057,6 +54631,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54147,6 +54722,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54237,6 +54813,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54327,6 +54904,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54417,6 +54995,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54507,6 +55086,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54597,6 +55177,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54687,6 +55268,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54777,6 +55359,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54867,6 +55450,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -54957,6 +55541,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55047,6 +55632,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55137,6 +55723,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -55234,6 +55821,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55324,6 +55912,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55414,6 +56003,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55504,6 +56094,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55594,6 +56185,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -55709,6 +56301,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55799,6 +56392,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55889,6 +56483,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -55979,6 +56574,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56069,6 +56665,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56159,6 +56756,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56249,6 +56847,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56339,6 +56938,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_occupancy_proxied",
@@ -56474,6 +57074,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56564,6 +57165,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56654,6 +57256,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56744,6 +57347,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56834,6 +57438,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -56924,6 +57529,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57014,6 +57620,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57104,6 +57711,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57194,6 +57802,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57284,6 +57893,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57374,6 +57984,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57464,6 +58075,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57554,6 +58166,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57644,6 +58257,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57734,6 +58348,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57824,6 +58439,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -57914,6 +58530,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58004,6 +58621,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58094,6 +58712,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58184,6 +58803,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58274,6 +58894,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58364,6 +58985,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58454,6 +59076,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58544,6 +59167,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58634,6 +59258,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58724,6 +59349,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58814,6 +59440,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58904,6 +59531,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -58994,6 +59622,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59084,6 +59713,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59174,6 +59804,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59264,6 +59895,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59354,6 +59986,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59444,6 +60077,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59534,6 +60168,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59624,6 +60259,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59714,6 +60350,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59804,6 +60441,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59894,6 +60532,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -59984,6 +60623,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60074,6 +60714,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60164,6 +60805,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60254,6 +60896,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60344,6 +60987,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60434,6 +61078,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60524,6 +61169,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60614,6 +61260,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60704,6 +61351,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60794,6 +61442,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60884,6 +61533,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -60974,6 +61624,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61064,6 +61715,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61154,6 +61806,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61244,6 +61897,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61334,6 +61988,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61424,6 +62079,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61514,6 +62170,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61604,6 +62261,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61694,6 +62352,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61784,6 +62443,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61874,6 +62534,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -61964,6 +62625,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62054,6 +62716,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62144,6 +62807,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62234,6 +62898,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62324,6 +62989,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62414,6 +63080,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62504,6 +63171,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62594,6 +63262,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62684,6 +63353,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62744,7 +63414,7 @@
       "carbon_productive_tco2e": null,
       "carbon_stranded_tco2e": null,
       "stranded_carbon_ratio": null,
-      "embodied_carbon_tco2e": 181.21,
+      "embodied_carbon_tco2e": 181.22,
       "energy_kwh_total": 45304.0,
       "energy_kwh_hvac": 18122.0,
       "energy_kwh_lighting": 15856.0,
@@ -62774,6 +63444,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62864,6 +63535,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -62954,6 +63626,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63044,6 +63717,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63134,6 +63808,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63224,6 +63899,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63314,6 +63990,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63404,6 +64081,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63494,6 +64172,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63584,6 +64263,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63674,6 +64354,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63764,6 +64445,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63854,6 +64536,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -63944,6 +64627,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64004,7 +64688,7 @@
       "carbon_productive_tco2e": null,
       "carbon_stranded_tco2e": null,
       "stranded_carbon_ratio": null,
-      "embodied_carbon_tco2e": 256.54,
+      "embodied_carbon_tco2e": 256.55,
       "energy_kwh_total": 63110.0,
       "energy_kwh_hvac": 24628.0,
       "energy_kwh_lighting": 22448.0,
@@ -64034,6 +64718,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64124,6 +64809,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64214,6 +64900,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64304,6 +64991,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64394,6 +65082,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64484,6 +65173,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64574,6 +65264,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64664,6 +65355,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64754,6 +65446,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -64890,6 +65583,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -64980,6 +65674,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65070,6 +65765,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65160,6 +65856,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65250,6 +65947,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65340,6 +66038,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65430,6 +66129,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65520,6 +66220,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -65636,6 +66337,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65726,6 +66428,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -65836,6 +66539,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -65926,6 +66630,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66016,6 +66721,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66105,7 +66811,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -66247,6 +66954,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66337,6 +67045,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66427,6 +67136,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66517,6 +67227,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66607,6 +67318,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66697,6 +67409,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -66808,6 +67521,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66898,6 +67612,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -66988,6 +67703,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67078,6 +67794,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67168,6 +67885,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67258,6 +67976,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67348,6 +68067,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67438,6 +68158,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67528,6 +68249,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67618,6 +68340,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -67729,6 +68452,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67819,6 +68543,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67909,6 +68634,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -67999,6 +68725,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68089,6 +68816,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68179,6 +68907,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68269,6 +68998,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68359,6 +69089,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68449,6 +69180,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68539,6 +69271,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68629,6 +69362,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68719,6 +69453,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68809,6 +69544,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68899,6 +69635,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -68989,6 +69726,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69079,6 +69817,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69169,6 +69908,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69259,6 +69999,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69349,6 +70090,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69439,6 +70181,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -69559,6 +70302,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69649,6 +70393,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69739,6 +70484,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69829,6 +70575,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -69919,6 +70666,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70009,6 +70757,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70099,6 +70848,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70189,6 +70939,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70279,6 +71030,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70369,6 +71121,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70459,6 +71212,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70549,6 +71303,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70639,6 +71394,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70729,6 +71485,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70819,6 +71576,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -70909,6 +71667,7 @@
     },
     "deadspace_diagnosis": {
       "status": "strategic_learning",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold",
         "low_occupancy_proxied",
@@ -71039,6 +71798,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -71129,6 +71889,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -71218,7 +71979,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_neighborhood_diversity",
@@ -71358,6 +72120,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -71455,6 +72218,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -71545,6 +72309,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -71635,6 +72400,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -71755,6 +72521,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -71844,7 +72611,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -71985,6 +72753,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72075,6 +72844,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72165,6 +72935,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72255,6 +73026,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72345,6 +73117,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72435,6 +73208,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72525,6 +73299,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "high_stranded_carbon_ratio_small_asset",
@@ -72636,6 +73411,7 @@
     },
     "deadspace_diagnosis": {
       "status": "community_value_gap",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -72767,6 +73543,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -72857,6 +73634,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -72972,6 +73750,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -73061,7 +73840,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "driving_accessibility_deficit",
         "low_neighborhood_diversity",
@@ -73200,6 +73980,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -73289,7 +74070,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_occupancy_proxied",
@@ -73425,6 +74207,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "driving_accessibility_deficit",
         "low_neighborhood_diversity"
@@ -73538,6 +74321,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -73635,6 +74419,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -73732,6 +74517,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -73829,6 +74615,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -73926,6 +74713,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -74023,6 +74811,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -74120,6 +74909,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_neighborhood_diversity"
@@ -74234,6 +75024,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -74331,6 +75122,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -74421,6 +75213,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -74511,6 +75304,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -74608,6 +75402,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -74705,6 +75500,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "high_uhi_exposure"
       ],
@@ -74802,6 +75598,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -74892,6 +75689,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -74981,7 +75779,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_occupancy_proxied",
@@ -75116,7 +75915,8 @@
       "vacancy_streak_months": null
     },
     "deadspace_diagnosis": {
-      "status": "community_value_gap",
+      "status": "deadspace_candidate",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -75257,6 +76057,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75347,6 +76148,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75437,6 +76239,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "rapid_decline"
@@ -75542,6 +76345,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75632,6 +76436,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75722,6 +76527,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75812,6 +76618,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75902,6 +76709,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -75992,6 +76800,7 @@
     },
     "deadspace_diagnosis": {
       "status": "healthy",
+      "intervention_mode": "advisory",
       "flags": [],
       "urgency_index": 0.0,
       "contributing_factors": [],
@@ -76082,6 +76891,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "below_benchmark_occupancy",
         "long_vacancy",
@@ -76270,6 +77080,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -76375,6 +77186,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -76480,6 +77292,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -76585,6 +77398,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -76690,6 +77504,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -76795,6 +77610,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "direct",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -76903,6 +77719,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77008,6 +77825,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77113,6 +77931,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77218,6 +78037,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77323,6 +78143,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77428,6 +78249,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77533,6 +78355,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77638,6 +78461,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77743,6 +78567,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77848,6 +78673,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -77953,6 +78779,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78058,6 +78885,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78163,6 +78991,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78268,6 +79097,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78373,6 +79203,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78478,6 +79309,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78583,6 +79415,7 @@
     },
     "deadspace_diagnosis": {
       "status": "underperforming_facility",
+      "intervention_mode": "direct",
       "flags": [
         "walking_accessibility_deficit",
         "insufficient_coverage"
@@ -78691,6 +79524,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold",
         "business_presence_low",
@@ -78812,6 +79646,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -78927,6 +79762,7 @@
     },
     "deadspace_diagnosis": {
       "status": "strategic_learning",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold",
         "low_occupancy_proxied",
@@ -79052,6 +79888,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold"
       ],
@@ -79162,6 +79999,7 @@
     },
     "deadspace_diagnosis": {
       "status": "strategic_learning",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold",
         "business_vitality_low"
@@ -79278,6 +80116,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold"
       ],
@@ -79388,6 +80227,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "long_vacancy",
@@ -79518,6 +80358,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit",
@@ -79650,6 +80491,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "dsr_below_threshold"
       ],
@@ -79760,6 +80602,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -79875,6 +80718,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -79990,6 +80834,7 @@
     },
     "deadspace_diagnosis": {
       "status": "community_value_gap",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "demographic_mismatch",
@@ -80120,6 +80965,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "demographic_mismatch"
@@ -80235,6 +81081,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "long_vacancy",
@@ -80365,6 +81212,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "walking_accessibility_deficit",
         "low_neighborhood_diversity"
@@ -80478,6 +81326,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -80593,6 +81442,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "business_presence_low",
         "data_conflict"
@@ -80709,6 +81559,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "long_vacancy",
@@ -80839,6 +81690,7 @@
     },
     "deadspace_diagnosis": {
       "status": "deadspace_candidate",
+      "intervention_mode": "direct",
       "flags": [
         "low_occupancy",
         "long_vacancy",
@@ -80969,6 +81821,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -81085,6 +81938,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "advisory",
       "flags": [
         "business_presence_low",
         "low_footfall_lbs",
@@ -81206,6 +82060,7 @@
     },
     "deadspace_diagnosis": {
       "status": "strategic_learning",
+      "intervention_mode": "advisory",
       "flags": [
         "low_occupancy_proxied",
         "low_footfall_lbs"
@@ -81321,6 +82176,7 @@
     },
     "deadspace_diagnosis": {
       "status": "monitor",
+      "intervention_mode": "collaborative",
       "flags": [
         "dsr_below_threshold",
         "walking_accessibility_deficit"
@@ -81436,6 +82292,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -81534,6 +82391,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -81632,6 +82490,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -81730,6 +82589,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -81833,6 +82693,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -81931,6 +82792,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82034,6 +82896,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82137,6 +83000,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82240,6 +83104,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82343,6 +83208,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -82440,6 +83306,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82543,6 +83410,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82646,6 +83514,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82749,6 +83618,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82852,6 +83722,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -82955,6 +83826,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -83052,6 +83924,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83155,6 +84028,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83258,6 +84132,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83361,6 +84236,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83464,6 +84340,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83567,6 +84444,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83670,6 +84548,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83773,6 +84652,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -83876,6 +84756,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -83973,6 +84854,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -84076,6 +84958,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -84179,6 +85062,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -84282,6 +85166,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -84385,6 +85270,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -84482,6 +85368,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -84585,6 +85472,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -84688,6 +85576,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -84796,6 +85685,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -84893,6 +85783,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -84990,6 +85881,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -85093,6 +85985,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -85196,6 +86089,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -85293,6 +86187,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -85396,6 +86291,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -85499,6 +86395,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -85607,6 +86504,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -85715,6 +86613,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -85823,6 +86722,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -85926,6 +86826,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -86023,6 +86924,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -86131,6 +87033,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -86234,6 +87137,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -86342,6 +87246,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_green_per_capita",
         "low_accessibility_high_ecological_value"
@@ -86445,6 +87350,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_accessibility_high_ecological_value"
       ],
@@ -86542,6 +87448,7 @@
     },
     "deadspace_diagnosis": {
       "status": "improvement_opportunity",
+      "intervention_mode": "advisory",
       "flags": [
         "low_canopy_coverage",
         "low_green_per_capita",
@@ -86650,6 +87557,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -86754,6 +87662,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -86858,6 +87767,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -86962,6 +87872,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -87066,6 +87977,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -87170,6 +88082,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -87274,6 +88187,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -87378,6 +88292,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"
@@ -87482,6 +88397,7 @@
     },
     "deadspace_diagnosis": {
       "status": "development_risk",
+      "intervention_mode": "direct",
       "flags": [
         "negative_demand_supply_gap",
         "weak_future_demand"

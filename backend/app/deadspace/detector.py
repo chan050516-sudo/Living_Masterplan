@@ -14,7 +14,7 @@ from .external import external_for
 from .tiers import OPERATIONAL_FLAGS, evaluation_mode, is_full_control, tier_of
 from .factors import compute_factors
 from .evidence import build_evidence
-from .status import decide_status
+from .status import decide_status, decide_intervention_mode
 from .urgency import compute_urgency_index
 
 
@@ -57,6 +57,21 @@ def detect_deadspace_for_asset(
     if atype == "commercial" and not is_full_control(authority):
         layer1, layer2, suppressed = _drop_operational(layer1, layer2)
         external = external_for(asset["asset_id"], asset.get("subtype"))
+        # v6.1h — metrics may carry proxy fields written by B4's
+        # `_attach_proxy_state` for simulated years. When present,
+        # they reflect the year's simulated state and must override
+        # the frozen 2026 snapshot returned by `external_for`.
+        _m = metrics.to_dict() if hasattr(metrics, "to_dict") else dict(metrics)
+        external = {**external}
+        for _k in (
+            "lbs_unique_users_daily", "proxied_occupancy_lbs",
+            "lbs_dwell_time_minutes", "flow_island_ratio",
+            "business_presence_ratio", "business_turnover_count",
+            "business_vitality_score",
+        ):
+            _v = _m.get(_k)
+            if _v is not None:
+                external[_k] = _v
         proxy = layer3_lbs_eval(external, thresholds=ds_cfg.get("proxy", {}))
         survival = evaluate_survival_floor(
             asset.to_dict(), external, assumptions, year=metrics.get("year"),
@@ -77,6 +92,14 @@ def detect_deadspace_for_asset(
     except (KeyError, TypeError, ValueError):
         base_year = 2026
 
+    # Collect all flags first — needed both for status and for
+    # the intervention-mode classifier.
+    all_flags = (
+        list(layer1.get("reasons", []))
+        + list(layer2.get("reasons", []))
+        + list((proxy or {}).get("reasons", []))
+    )
+
     status = decide_status(
         atype, layer1, layer2, layer3,
         authority=authority,
@@ -85,12 +108,10 @@ def detect_deadspace_for_asset(
         proxy=proxy,
     )
 
-    # Collect all flags into one list for urgency computation
-    all_flags = (
-        list(layer1.get("reasons", []))
-        + list(layer2.get("reasons", []))
-        + list((proxy or {}).get("reasons", []))
-    )
+    # v6.1g — intervention_mode is orthogonal to status. It tells
+    # the frontend / LLM HOW SDP can act, not WHETHER the asset is
+    # deadspace.
+    intervention_mode = decide_intervention_mode(authority, all_flags)
 
     # Contributing factors (relative importance of what is going wrong)
     factors = compute_factors(layer1, layer2, extra_flags=(proxy or {}).get("reasons"))
@@ -103,6 +124,7 @@ def detect_deadspace_for_asset(
         "asset_id": asset["asset_id"],
         "year": int(metrics["year"]),
         "status": status,
+        "intervention_mode": intervention_mode,
         "flags": all_flags,
         "urgency_index": compute_urgency_index(all_flags),
         "layer1": layer1,

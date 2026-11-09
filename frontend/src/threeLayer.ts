@@ -7,6 +7,12 @@ import type { FeatureCollection, Position } from 'geojson'
 const STATUS_HEX: Record<string, string> = {
   healthy: '#3fb27f', monitor: '#f7931d', improvement_opportunity: '#f7931d',
   development_risk: '#f15c22', deadspace_candidate: '#d71920', underperforming_facility: '#d71920',
+  // v6.1g — diagnostic-only statuses (sold assets whose proxy
+  // evidence shows a real problem but SDP has no direct authority).
+  // Map to the same red/amber family as deadspace_candidate so
+  // they read as problems; intervention_mode is exposed through
+  // the list and AssetPanel, not through the 3D colour.
+  community_value_gap: '#d71920', strategic_learning: '#f15c22',
   intervened: '#00d2ff', vacant: '#9e9e9e',
 }
 const STATUS_FALLBACK = '#5a4f59'

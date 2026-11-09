@@ -219,7 +219,7 @@ def build_profiles(year=2026):
             },
             "deadspace_diagnosis": {
                 "status": ds.get("status", "healthy"),
-                # Keep all flags (removed the previous UHI filter)
+                "intervention_mode": ds.get("intervention_mode"),
                 "flags": ds.get("flags", []),
                 "urgency_index": _safe_float(ds.get("urgency_index"), 1),
                 "contributing_factors": ds.get("contributing_factors", []),

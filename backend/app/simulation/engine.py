@@ -2613,6 +2613,17 @@ def _attach_proxy_state(state_by_year, base_year, assets_df,
             st["_authority"] = asset.get("authority")
             if seed_source:
                 st["_occupancy_seed_source"] = seed_source
+                # v6.1h — backfill the base_year's occupancy_rate
+                # from the same proxy seed B4 used to start the
+                # trajectory. Without this, the comparison block
+                # shows "None → X" for every sold commercial and
+                # the reader reads it as "0 → X growth".
+                if year == base_year and st.get("occupancy_rate") is None:
+                    for key, _ in _OCCUPANCY_PROXIES:
+                        v = (ext or {}).get(key)
+                        if v is not None:
+                            st["occupancy_rate"] = float(v)
+                            break
             if not ext:
                 continue
             factor = 1.0
@@ -3609,6 +3620,24 @@ def _build_deadspace_by_year(
             metrics_dict["year"] = year
             metrics_dict["asset_id"] = aid
             metrics_dict.update(trajectories.get(aid, {}))
+
+            # v6.1h — for sold commercial, overwrite the external proxy
+            # fields with the values B4 already simulated for this year.
+            # `_attach_proxy_state` placed them on the state; without this,
+            # `detect_deadspace_for_asset` would re-read the frozen 2026
+            # snapshot from `external_for` and the diagnosis would not
+            # respond to any intervention.
+            if asset_dict.get("asset_type") == "commercial" and not is_full_control(
+                asset_dict.get("authority")
+            ):
+                for _k in (
+                    "lbs_unique_users_daily", "proxied_occupancy_lbs",
+                    "lbs_dwell_time_minutes", "flow_island_ratio",
+                    "business_presence_ratio", "business_turnover_count",
+                    "business_vitality_score",
+                ):
+                    if _k in st and _is_valid_number(st.get(_k)):
+                        metrics_dict[_k] = st[_k]
 
             # DSR — recompute if the base-year value is stale
             if metrics_dict.get("dsr") is None:

@@ -91,6 +91,12 @@ const STATUS_PAINT: maplibregl.ExpressionSpecification = [
   'development_risk', '#f15c22',
   'deadspace_candidate', '#d71920',
   'underperforming_facility', '#d71920',
+  // v6.1g — diagnosed problems the developer cannot directly own.
+  // Same red hue as deadspace_candidate so the eye reads them as
+  // "a problem"; the intervention_mode data-carrying feature is
+  // exposed through the AssetPanel / list instead.
+  'community_value_gap', '#d71920',
+  'strategic_learning', '#f15c22',
   'intervened', '#00d2ff',
   'vacant', '#9e9e9e',
   '#5a4f59',
@@ -105,6 +111,7 @@ function mix(hex: string, toward: string, t: number): string {
 const STATUS_HEX: Record<string, string> = {
   healthy: '#3fb27f', monitor: '#f7931d', improvement_opportunity: '#f7931d',
   development_risk: '#f15c22', deadspace_candidate: '#d71920', underperforming_facility: '#d71920',
+  community_value_gap: '#d71920', strategic_learning: '#f15c22',
   intervened: '#00d2ff', vacant: '#9e9e9e',
 }
 const STATUS_FALLBACK = '#5a4f59'
