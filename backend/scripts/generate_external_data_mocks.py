@@ -45,6 +45,82 @@ DISPLAY_CRS = "EPSG:4326"
 SNAPSHOT_DATES = [date(2026, month, day) for month, day in ((1, 15), (4, 15), (7, 15), (10, 15))]
 WEEK_DATES = [date(2026, 1, 7) + timedelta(days=7 * i) for i in range(52)]
 
+
+CONSUMER_FACING_SUBTYPES = frozenset({
+    "restaurant", "cafe", "kopitiam", "f_and_b", "convenience_retail",
+    "supermarket", "medical_retail", "services", "showroom", "entertainment",
+})
+
+GOOGLE_PLACES_SUBTYPE_TEMPLATES: dict[str, dict] = {
+    "restaurant": {
+        "types": ["restaurant", "food", "point_of_interest"], "hours_open": 11, "hours_close": 22,
+        "rating_range": (3.5, 4.6), "rating_count_range": (100, 800), "name_suffix": "Restoran",
+    },
+    "cafe": {
+        "types": ["cafe", "food", "point_of_interest"], "hours_open": 7, "hours_close": 19,
+        "rating_range": (3.8, 4.7), "rating_count_range": (20, 300), "name_suffix": "Coffee",
+    },
+    "kopitiam": {
+        "types": ["cafe", "coffee_shop", "point_of_interest"], "hours_open": 6, "hours_close": 15,
+        "rating_range": (3.5, 4.3), "rating_count_range": (10, 150), "name_suffix": "Kedai Kopi",
+    },
+    "f_and_b": {
+        "types": ["meal_takeaway", "food", "point_of_interest"], "hours_open": 10, "hours_close": 22,
+        "rating_range": (3.4, 4.4), "rating_count_range": (30, 400), "name_suffix": "Kitchen",
+    },
+    "convenience_retail": {
+        "types": ["convenience_store", "food", "store"], "hours_open": 7, "hours_close": 23,
+        "rating_range": (3.6, 4.4), "rating_count_range": (20, 200), "name_suffix": "Speedmart",
+    },
+    "supermarket": {
+        "types": ["supermarket", "grocery_store", "food"], "hours_open": 8, "hours_close": 22,
+        "rating_range": (3.7, 4.5), "rating_count_range": (500, 3000), "name_suffix": "Supermarket",
+    },
+    "medical_retail": {
+        "types": ["pharmacy", "health", "point_of_interest"], "hours_open": 9, "hours_close": 21,
+        "rating_range": (3.8, 4.6), "rating_count_range": (30, 200), "name_suffix": "Farmasi",
+    },
+    "services": {
+        "types": ["store", "business", "point_of_interest"], "hours_open": 9, "hours_close": 18,
+        "rating_range": (3.5, 4.3), "rating_count_range": (20, 200), "name_suffix": "Services",
+    },
+    "showroom": {
+        "types": ["car_dealer", "store", "point_of_interest"], "hours_open": 10, "hours_close": 19,
+        "rating_range": (3.8, 4.5), "rating_count_range": (30, 250), "name_suffix": "Auto",
+    },
+    "entertainment": {
+        "types": ["movie_theater", "point_of_interest"], "hours_open": 12, "hours_close": 23,
+        "rating_range": (3.5, 4.4), "rating_count_range": (100, 800), "name_suffix": "Entertainment",
+    },
+}
+
+SUBTYPE_HOUR_TEMPLATES: dict[str, list[float]] = {
+    "office":             [0, 0, 0, 0, 0, 0, 1, 4, 8, 7, 6, 6, 7, 6, 6, 6, 6, 8, 4, 2, 1, 0, 0, 0],
+    "f_and_b":            [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 2, 5, 8, 6, 3, 2, 3, 6, 9, 7, 5, 2, 1, 0],
+    "restaurant":         [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 4, 7, 5, 3, 2, 3, 5, 9, 8, 5, 2, 1, 0],
+    "cafe":               [0, 0, 0, 0, 0, 0, 1, 3, 6, 7, 6, 4, 3, 2, 3, 3, 3, 2, 1, 1, 0, 0, 0, 0],
+    "kopitiam":           [0, 0, 0, 0, 0, 1, 4, 8, 9, 6, 4, 3, 3, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0],
+    "supermarket":        [0, 0, 0, 0, 0, 0, 0, 1, 2, 4, 5, 4, 3, 2, 2, 2, 3, 5, 7, 6, 4, 2, 1, 0],
+    "convenience_retail": [0, 0, 0, 0, 0, 0, 1, 3, 4, 4, 3, 3, 2, 2, 2, 2, 2, 3, 4, 3, 2, 1, 0, 0],
+    "medical_retail":     [0, 0, 0, 0, 0, 0, 0, 1, 2, 4, 5, 4, 3, 2, 2, 3, 4, 3, 2, 1, 0, 0, 0, 0],
+    "residential":        [8, 7, 5, 4, 3, 4, 5, 7, 6, 4, 3, 3, 3, 3, 4, 5, 7, 9, 9, 8, 7, 7, 7, 8],
+}
+
+SUBTYPE_DWELL_MINUTES: dict[str, tuple[float, float]] = {
+    "office":             (360, 540),
+    "supermarket":        (15, 30),
+    "cafe":               (25, 60),
+    "restaurant":         (45, 90),
+    "kopitiam":           (15, 35),
+    "convenience_retail": (5, 15),
+    "f_and_b":            (20, 50),
+    "medical_retail":     (15, 45),
+    "services":           (10, 30),
+    "showroom":           (20, 60),
+    "entertainment":      (90, 180),
+    "residential":        (480, 720),
+}
+
 GOOGLE_COLUMNS = [
     "snapshot_date", "place_id", "asset_id", "display_name", "business_status",
     "rating", "user_rating_count", "types_json", "regular_opening_hours_json",
@@ -343,7 +419,8 @@ def _opening_hours(subtype: str) -> str:
     return json.dumps({"periods": periods}, separators=(",", ":"))
 
 
-def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict, match_quality: dict) -> list[dict]:
+def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float],
+                       points: dict, match_quality: dict) -> list[dict]:
     rows = []
     target = assets[
         assets["asset_type"].eq("commercial")
@@ -353,9 +430,14 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
         aid = str(asset["asset_id"])
         occupancy = max(0.0, min(1.0, occ.get(aid, 0.5)))
         unit_mix = _unit_mix_for_asset(asset)
-        unit_specs = [(subtype, unit) for subtype, count in unit_mix for unit in range(1, count + 1)]
+        unit_specs = [
+            (subtype, unit)
+            for subtype, count in unit_mix
+            if subtype in CONSUMER_FACING_SUBTYPES
+            for unit in range(1, count + 1)
+        ]
         if not unit_specs:
-            unit_specs = [(str(asset.get("subtype") or "other_commercial"), 1)]
+            continue
 
         point = points.get(aid)
         projected_point = None
@@ -364,17 +446,16 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
 
         for quarter, snapshot_day in enumerate(SNAPSHOT_DATES):
             for subtype, unit_no in unit_specs:
-                # 🚨 NEW: Subtype-conditioned occupancy
-                # Apply subtype stress to the overall asset occupancy.
-                # A 50% asset occupancy might mean 10% office occupancy but 90% kopitiam occupancy.
+                template = GOOGLE_PLACES_SUBTYPE_TEMPLATES.get(subtype, {})
+                if not template:
+                    continue
+
+                chance = _unit_uniform(f"{aid}-{unit_no}-{snapshot_day}-status")
                 stress = _SUBTYPE_VACANCY_STRESS.get(subtype, 1.0)
                 adjusted_occ = max(0.0, min(1.0, occupancy / stress))
-                
-                # Add some deterministic noise per unit to simulate micro-level variance
                 adjusted_occ += _uniform(f"{aid}-{unit_no}-{subtype}-occ-noise", -0.1, 0.1)
                 adjusted_occ = max(0.0, min(1.0, adjusted_occ))
 
-                chance = _unit_uniform(f"{aid}-{unit_no}-{snapshot_day}-status")
                 if adjusted_occ > 0.70:
                     status = "OPERATIONAL"
                 elif adjusted_occ >= 0.30:
@@ -388,22 +469,31 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
                     place_key += f"-replacement-{quarter}"
                 pid = _place_id(place_key)
 
-                if occupancy > 0.70:
-                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 3.8, 4.8)
-                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 80, 800)
-                elif occupancy >= 0.30:
-                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 3.0, 4.2)
-                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 20, 200)
+                r_lo, r_hi = template["rating_range"]
+                c_lo, c_hi = template["rating_count_range"]
+
+                if adjusted_occ > 0.70:
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", r_lo, r_hi)
+                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", c_lo, c_hi)
+                elif adjusted_occ >= 0.30:
+                    mid = r_lo + (r_hi - r_lo) * 0.3
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", r_lo, mid + 0.4)
+                    count_lo = max(1, int(c_lo * 0.4))
+                    count_hi = max(count_lo + 1, int(c_hi * 0.5))
+                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", count_lo, count_hi)
                 else:
-                    rating = _uniform(f"{pid}-{snapshot_day}-rating", 2.5, 3.8)
-                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", 5, 80)
+                    low_hi = r_lo + (r_hi - r_lo) * 0.3
+                    rating = _uniform(f"{pid}-{snapshot_day}-rating", max(1.0, r_lo - 0.5), low_hi)
+                    count_lo = 1
+                    count_hi = max(5, int(c_lo * 0.5))
+                    rating_count = _integer(f"{pid}-{snapshot_day}-reviews", count_lo, count_hi)
+
+                suffix = template.get("name_suffix", "Business")
+                display_name = f"{suffix} {aid} #{unit_no}"
 
                 loc = projected_point
                 if loc is not None:
-                    loc = Point(
-                        loc.x + _uniform(f"{pid}-dx", -3.0, 3.0),
-                        loc.y + _uniform(f"{pid}-dy", -3.0, 3.0),
-                    )
+                    loc = Point(loc.x + _uniform(f"{pid}-dx", -3.0, 3.0), loc.y + _uniform(f"{pid}-dy", -3.0, 3.0))
                     latlng = gpd.GeoSeries([loc], crs=GRID_CRS).to_crs(DISPLAY_CRS).iloc[0]
                     lat, lng = float(latlng.y), float(latlng.x)
                 else:
@@ -413,7 +503,7 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float], points: dict
                     "snapshot_date": snapshot_day.isoformat(),
                     "place_id": pid,
                     "asset_id": aid,
-                    "display_name": f"{asset.get('asset_name') or aid} unit {unit_no}",
+                    "display_name": display_name,
                     "business_status": status,
                     "rating": round(rating, 1),
                     "user_rating_count": rating_count,
@@ -436,17 +526,36 @@ def _normalized_ratios(vals: list[float], fallback: list[float]) -> list[float]:
     return rounded
 
 
-def _hourly_counts(total: int, key: str, office_weight: float, retail_weight: float) -> list[int]:
-    weights = []
-    for hour in range(24):
-        if office_weight > 0.5:
-            base = 0.12 if 8 <= hour <= 17 else 0.018
-        elif retail_weight > 0.5:
-            base = 0.09 if 11 <= hour <= 20 else (0.05 if 8 <= hour <= 10 else 0.015)
-        else:
-            base = 0.06 if hour in (7, 8, 17, 18, 19) else 0.025
-        weights.append(base * _uniform(f"{key}-hour-{hour}", 0.9, 1.1))
-    scale = total / sum(weights) if sum(weights) else 0.0
+def _hourly_counts(total: int, key: str, composition: dict[str, float]) -> list[int]:
+    normalized: dict[str, list[float]] = {}
+    for subtype, template in SUBTYPE_HOUR_TEMPLATES.items():
+        s = sum(template)
+        if s <= 0:
+            continue
+        normalized[subtype] = [v / s * 24 for v in template]
+
+    weights = [0.0] * 24
+    total_share = sum(composition.values()) if composition else 0.0
+    if total_share <= 0:
+        fallback = normalized.get("residential") or normalized.get("convenience_retail")
+        if fallback is not None:
+            weights = list(fallback)
+    else:
+        for subtype, share in composition.items():
+            template = normalized.get(subtype)
+            if template is None:
+                continue
+            w = share / total_share
+            for h in range(24):
+                weights[h] += w * template[h]
+
+    for h in range(24):
+        weights[h] *= _uniform(f"{key}-hour-{h}", 0.9, 1.1)
+
+    total_weight = sum(weights)
+    if total_weight <= 0:
+        return [0] * 24
+    scale = total / total_weight
     values = [int(math.floor(w * scale)) for w in weights]
     for i in range(total - sum(values)):
         values[i % 24] += 1
@@ -492,9 +601,19 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
 
         cell_assets = [asset_by_id[aid] for aid in cell["assets"] if aid in asset_by_id]
         commercial = [a for a in cell_assets if getattr(a, "asset_type", None) == "commercial"]
+        
+        composition: dict[str, float] = {}
+        for asset in commercial:
+            subtype = str(getattr(asset, "subtype", "other_commercial"))
+            area = max(0.0, float(getattr(asset, "lettable_area_m2", 0) or 0))
+            if area > 0:
+                composition[subtype] = composition.get(subtype, 0.0) + area
+        
+        occupied_capacity = sum(
+            max(1.0, float(getattr(a, "capacity", 1) or 1)) * occ.get(str(getattr(a, "asset_id")), 0.5)
+            for a in commercial
+        )
         density = len(commercial) / max(1, len(cell_assets))
-        office_share = sum(1 for a in commercial if getattr(a, "subtype", None) == "office") / max(1, len(commercial))
-        retail_share = 1.0 - office_share if commercial else 0.0
 
         cell["geometry"] = geom
         cell["grid_lat"] = float(center_ll.y)
@@ -504,9 +623,9 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
         cell["age_ratios"] = age_ratios
         cell["assets"] = cell["assets"]
         cell["commercial_assets"] = commercial
+        cell["occupied_capacity"] = occupied_capacity
         cell["commercial_density"] = density
-        cell["office_share"] = office_share
-        cell["retail_share"] = retail_share
+        cell["composition"] = composition
         cell["population_users"] = max(0.0, cell["adult_population"] * _uniform(f"{gid}-penetration", 0.35, 0.45))
 
     # D-19: a cell's users = residents seen in the cell + the visitors of
@@ -531,12 +650,16 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
             )
             total_visits = max(unique_users, int(round(unique_users * visit_multiplier)))
 
-            if cell["office_share"] > 0.50:
-                dwell = _uniform(f"{gid}-{sample_day}-dwell", 360, 540)
-            elif cell["retail_share"] > 0.50:
-                dwell = _uniform(f"{gid}-{sample_day}-dwell", 25, 65)
+            if cell["composition"]:
+                total_share = sum(cell["composition"].values())
+                weighted_dwell = 0.0
+                for subtype, share in cell["composition"].items():
+                    lo, hi = SUBTYPE_DWELL_MINUTES.get(subtype, (10, 30))
+                    weighted_dwell += (share / total_share) * ((lo + hi) / 2)
+                dwell = weighted_dwell * _uniform(f"{gid}-{sample_day}-dwell", 0.9, 1.1)
             else:
-                dwell = _uniform(f"{gid}-{sample_day}-dwell", 10, 30)
+                lo, hi = SUBTYPE_DWELL_MINUTES["residential"]
+                dwell = _uniform(f"{gid}-{sample_day}-dwell", lo, hi)
 
             age = cell["age_ratios"]
             # The current generated population layer has age bands but no
@@ -551,7 +674,7 @@ def _build_grid_and_kido(assets: pd.DataFrame, occ: dict[str, float], population
             outbound_factor = 0.15 + 0.22 * cell["commercial_density"]
             inbound = int(round(unique_users * inbound_factor * _uniform(f"{gid}-{sample_day}-in", 0.9, 1.1)))
             outbound = int(round(unique_users * outbound_factor * _uniform(f"{gid}-{sample_day}-out", 0.9, 1.1)))
-            hourly = _hourly_counts(total_visits, f"{gid}-{sample_day}", cell["office_share"], cell["retail_share"])
+            hourly = _hourly_counts(total_visits, f"{gid}-{sample_day}", cell["composition"])
 
             kido_rows.append({
                 "grid_id": gid,

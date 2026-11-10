@@ -235,6 +235,7 @@ async def get_map_geometry(
     urgency_dict = {}
     evidence_dict = {}
     factors_dict = {}
+    mode_dict = {}
     thermal_path = BASE_DIR / paths.get("thermal", {}).get(
         "observations", "business/thermal_observations.csv"
     )

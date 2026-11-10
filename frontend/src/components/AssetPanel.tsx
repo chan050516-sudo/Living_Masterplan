@@ -304,11 +304,13 @@ function SubtypeMix({ asset }: { asset: Asset }) {
       const v = s.occupancy
       return <span style={{ color: v != null && v < 0.4 ? C.bad : C.text }}>{formatValue(v, 'ratio').text}</span>
     }
-    if (field === 'operational_count') {
+if (field === 'operational_count') {
       const dead = s.operational_count === 0
+      const safeOperational = Math.min(s.operational_count ?? 0, s.design_count ?? 999)
+      
       return (
         <span style={{ color: s.operational_count == null ? C.faint : dead ? C.bad : '#3fb27f' }}>
-          {s.operational_count ?? '—'} / {s.design_count ?? '—'}
+          {s.operational_count != null ? safeOperational : '—'} / {s.design_count ?? '—'}
         </span>
       )
     }

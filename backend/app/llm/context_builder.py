@@ -183,6 +183,19 @@ def _build_target_block(asset_id: str, ds) -> dict:
             "surface_temp_provenance": derived.get("surface_temp_provenance"),
             "surface_temp_source_catalog": derived.get("surface_temp_source_catalog"),
         }
+
+        if key_metrics.get("occupancy_rate") is None:
+            occ_v, occ_src = _visible_occupancy(ds, asset_id)
+            key_metrics["occupancy_estimate"] = occ_v
+            key_metrics["occupancy_source"] = occ_src
+            
+            ext = external_for(asset_id, state.get("identity", {}).get("subtype")) or {}
+            if ext:
+                key_metrics["consumer_facing_unit_count"] = ext.get("consumer_facing_unit_count")
+                key_metrics["capacity_users"] = ext.get("capacity_users")
+                key_metrics["lbs_unique_users_daily"] = ext.get("lbs_unique_users_daily")
+                key_metrics["business_presence_ratio"] = ext.get("business_presence_ratio")
+
     elif asset_type == "residential":
         key_metrics = {
             "t_asset_c": derived.get("t_asset_c"),

@@ -668,6 +668,49 @@ _OWNERSHIP_STATUS_BY_TYPE = {
     "green_space":         "public_transferred",
 }
 
+_OWNERSHIP_BY_SUBTYPE = {
+    # Residential — individual title
+    "terrace": "sold",
+    "semidetached": "sold",
+    "detached": "sold",
+    # Residential — strata title
+    "apartment_lowrise": "strata_jmb",
+    "apartment_highrise": "strata_jmb",
+    "affordable_housing": "strata_jmb",
+    # Commercial — individual title (shoplot)
+    "convenience_retail": "sold",
+    "kopitiam": "sold",
+    "cafe": "sold",
+    "restaurant": "sold",
+    "medical_retail": "sold",
+    "showroom": "sold",
+    "services": "sold",
+    "f_and_b": "sold",
+    # Commercial — strata (office block)
+    "office": "strata_jmb",
+    # Commercial — developer anchor
+    "supermarket": "developer_held",
+    "entertainment": "developer_held",
+}
+
+def _resolve_ownership(subtype, asset_type, completion_year):
+    if asset_type == "community_facility":
+        try:
+            age = BASE_YEAR - int(completion_year) if completion_year is not None else 10
+        except (TypeError, ValueError):
+            age = 10
+        if age <= 5:
+            return "developer_held"
+        return "public_transferred"
+
+    if asset_type in ("green_space", "undeveloped_parcel"):
+        return _OWNERSHIP_STATUS_BY_TYPE.get(asset_type, "public_transferred")
+
+    if subtype in _OWNERSHIP_BY_SUBTYPE:
+        return _OWNERSHIP_BY_SUBTYPE[subtype]
+
+    return _OWNERSHIP_STATUS_BY_TYPE.get(asset_type, "sold")
+
 _AUTHORITY_BY_OWNERSHIP = {
     "developer_held":      "full_control",
     "sold":                "advisory",
@@ -681,17 +724,23 @@ _AUTHORITY_CONFIDENCE = {
     "advisory": "low",
 }
 
-_AUTHORITY_REDACTED_METRICS = (
-    "occupancy_rate",
-    "vacancy_rate",
-    "vacancy_duration_months",
-    "footfall_daily",
-    "utilisation_rate",
-    "rental_income_rm",
-    "energy_kwh",
-    "occupied_units",
-    "occupancy_by_subtype_json",
-)
+_AUTHORITY_REDACTED_BY_TYPE = {
+    "commercial": (
+        "rental_income_rm", "opex_annual_rm", "maintenance_annual_rm",
+        "noi_rm", "noi_yield", "energy_kwh",
+        "occupancy_rate", "vacancy_rate", "vacancy_duration_months",
+        "footfall_daily", "occupied_units", "occupancy_by_subtype_json",
+    ),
+    "residential": (
+        "rental_income_rm", "noi_rm", "noi_yield", "energy_kwh",
+    ),
+    "community_facility": (
+        "rental_income_rm", "opex_annual_rm", "maintenance_annual_rm",
+        "cost_per_user_rm", "energy_kwh",
+    ),
+    "green_space": (),
+    "undeveloped_parcel": (),
+}
 
 
 def _attach_sale_and_confidence_fields(assets_df, base_year=BASE_YEAR):
@@ -731,20 +780,28 @@ def _attach_sale_and_confidence_fields(assets_df, base_year=BASE_YEAR):
 
 
 def _apply_authority_data_gate(assets_df, metrics_df):
-    """Withhold operational records where the developer lacks authority.
-
-    full_control records retain their generated operating trajectory. Sold,
-    shared, and public-transfer records receive external proxies in Phase 1.
+    """Withhold operational records the developer cannot observe.
+    v6.1f — the gate is per (asset_type, field), not a flat list.
+    Residential occupancy and facility utilisation survive because
+    they are township-level observables (WorldPop, MBSJ statistics).
     """
     out = metrics_df.copy()
     authority_by_asset = assets_df.set_index("asset_id")["authority"].to_dict()
-    restricted = out["asset_id"].map(authority_by_asset).ne("full_control")
-    for field in _AUTHORITY_REDACTED_METRICS:
-        if field in out.columns:
-            out.loc[restricted, field] = None
+    type_by_asset = assets_df.set_index("asset_id")["asset_type"].to_dict()
+
+    for idx, row in out.iterrows():
+        aid = row["asset_id"]
+        if authority_by_asset.get(aid) == "full_control":
+            continue
+        asset_type = type_by_asset.get(aid, "commercial")
+        for field in _AUTHORITY_REDACTED_BY_TYPE.get(asset_type, ()):
+            if field in out.columns:
+                out.loc[idx, field] = None
+
     if "metric_source" in out.columns:
-        out.loc[restricted, "metric_source"] = "authority_redacted"
-        out.loc[~restricted, "metric_source"] = "synthetic_mock"
+        auth = out["asset_id"].map(authority_by_asset)
+        out.loc[auth.eq("full_control"), "metric_source"] = "synthetic_mock"
+        out.loc[auth.ne("full_control"), "metric_source"] = "authority_gated"
     return out
 
 
@@ -1622,14 +1679,7 @@ def _parse_unit_mix(raw):
 def _designate_community_centre(assets_df):
     """
     Return the asset_id of the SINGLE community_centre asset.
-
-    A 3 km² township the size of Bukit Jelutong has at most one
-    Space U8-scale community retail centre. Larger townships can
-    have two, but our mock scope is one.
-
-    Selection: the largest commercial asset by lettable area,
-    provided it meets a minimum scale. Everything else is
-    shop-office row / cluster shop / single-storey shop.
+    Selection: the largest commercial asset by lettable area, provided it meets a minimum scale.
     """
     comm = assets_df[assets_df["asset_type"] == "commercial"].copy()
     if comm.empty:
@@ -1665,34 +1715,18 @@ def _classify_commercial_form(asset_row, designated_mall_id=None):
 def _shop_office_row_mix(lettable_area_m2):
     """
     Subtype mix for a Bukit Jelutong shop-office row.
-
-    Based on observed tenant composition in D'Vida Business Park,
-    Trivo Suria Jelutong, and Plaza Jelutong: F&B dominates the
-    ground floor; office dominates the upper floor; convenience
-    retail, services, and medical retail fill the remainder.
-
-    F&B is split across restaurant / kopitiam / cafe using the
-    typical Malaysian shoplot row ratio
-    (1 sit-down : 2 coffee-shop : 1 specialty).
-
-    The physical unit count is derived from lettable area at
-    ~200 m² per unit (a D'Vida shop-office unit averages
-    2,500-4,000 sqft across 2 floors).
+    F&B dominates the ground floor; office dominates the upper floor.
     """
     if lettable_area_m2 is None or lettable_area_m2 < 400:
         return None
 
     total_units = max(2, int(round(lettable_area_m2 / 200.0)))
 
-    # Base unit allocation
-    # F&B 42% of units, convenience 17%, services 13%, medical 8%,
-    # office 20% (upper floor). Leftover rolls into office.
     n_fnb = max(1, int(round(total_units * 0.42)))
     n_retail = max(1, int(round(total_units * 0.17)))
     n_services = max(0, int(round(total_units * 0.13)))
     n_medical = max(0, int(round(total_units * 0.08)))
 
-    # Split F&B into restaurant / kopitiam / cafe
     if n_fnb >= 4:
         n_restaurant = max(1, int(round(n_fnb * 0.25)))
         n_kopitiam = max(1, int(round(n_fnb * 0.50)))
@@ -1705,15 +1739,12 @@ def _shop_office_row_mix(lettable_area_m2):
         n_restaurant = 0
         n_kopitiam = 1
         n_cafe = 1
-    else:  # n_fnb == 1
+    else:
         n_restaurant = 0
         n_kopitiam = 1
         n_cafe = 0
 
-    allocated = (
-        n_restaurant + n_kopitiam + n_cafe
-        + n_retail + n_services + n_medical
-    )
+    allocated = (n_restaurant + n_kopitiam + n_cafe + n_retail + n_services + n_medical)
     n_office = max(1, total_units - allocated)
 
     unit_counts = []
@@ -1782,11 +1813,8 @@ def _community_centre_mix(lettable_area_m2):
 def _compute_commercial_unit_mix(asset_row, lettable_area_m2, subtype,
                                   designated_mall_id=None):
     """
-    Top-level dispatcher. Determines the physical form and returns
-    the matching subtype mix.
-
-    Returns None for single-tenant assets (cluster shop,
-    single-storey shop) — those are one tenant, one subtype.
+    Top-level dispatcher. Determines the physical form and returns the matching subtype mix.
+    Returns None for single-tenant assets.
     """
     if lettable_area_m2 is None or lettable_area_m2 < 400:
         return None
@@ -1799,7 +1827,6 @@ def _compute_commercial_unit_mix(asset_row, lettable_area_m2, subtype,
     if form == "shop_office_row":
         return _shop_office_row_mix(lettable_area_m2)
 
-    # cluster_shop / single_storey_shop → no mix, single tenant
     return None
 
 
@@ -2392,15 +2419,7 @@ def _dedupe_green_polygons(green_blue_gdf):
 def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf,
                                      n=12, occupied_building_ids=None):
     """
-    Convert a subset of residential buildings facing a main road into
-    commercial shoplot.
-
-    Phase A additions:
-      - `occupied_building_ids`: buildings that already host an
-        amenity-derived asset. A building that is a clinic must not
-        be converted to a shoplot on top.
-      - converted assets have their unit_count reset to 1, since they
-        are no longer residential rows.
+    Convert a subset of residential buildings facing a main road into commercial shoplot.
     """
     if network_gdf is None or buildings_gdf is None:
         return assets_df, set()
@@ -2429,8 +2448,12 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf,
         & (assets_df["subtype"].isin(["terrace", "semidetached", "detached"]))
         & (~assets_df["building_id"].isin(occupied))
     ].copy()
+    
     if res_assets.empty:
         return assets_df, set()
+
+    # NOTE: No area/unit_count restrictions here. 
+    # Any available residential row facing the main road can be converted.
 
     main_union_proj = None
     if main_union is not None:
@@ -2495,20 +2518,15 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf,
         assets_df.loc[idx, "asset_type"] = "commercial"
         assets_df.loc[idx, "subtype"] = subtype
         assets_df.loc[idx, "land_use"] = "commercial"
-        assets_df.loc[idx, "asset_name"] = (
-            f"{subtype.replace('_', ' ').title()} {aid}"
-        )
+        assets_df.loc[idx, "asset_name"] = f"{subtype.replace('_', ' ').title()} {aid}"
         assets_df.loc[idx, "lettable_area_m2"] = round(lettable, 2)
         assets_df.loc[idx, "capex_initial_rm"] = round(capex, 2)
         assets_df.loc[idx, "opex_annual_rm"] = round(opex, 2)
         assets_df.loc[idx, "maintenance_annual_rm"] = round(maintenance, 2)
         assets_df.loc[idx, "capacity"] = capacity
-        assets_df.loc[idx, "target_demographic"] = (
-            TARGET_DEMOGRAPHIC_BY_SUBTYPE.get(subtype, "all")
-        )
+        assets_df.loc[idx, "target_demographic"] = TARGET_DEMOGRAPHIC_BY_SUBTYPE.get(subtype, "all")
         assets_df.loc[idx, "ownership_status"] = "developer_held"
         assets_df.loc[idx, "authority"] = "full_control"
-        # Phase A — no longer a residential unit; reset unit_count
         assets_df.loc[idx, "unit_count"] = 1
         converted_ids.add(aid)
 
@@ -2518,33 +2536,15 @@ def _convert_residential_to_shoplot(assets_df, buildings_gdf, network_gdf,
 
 def _mark_unsold_inventory(
     assets_df,
-    n_residential=120,
+    n_residential=15,
     n_commercial=10,
     exclude_ids=None,
+    designated_mall_id=None,
 ):
-    """
-    Mark a realistic fraction of the portfolio as unsold or unleased
-    developer-held inventory.
-
-    Calibration: Elmina is a mid-development Sime Darby township.
-    At any year roughly 15% of residential units are built but
-    unsold, and roughly 40% of the shops delivered in the last
-    3 years are not yet leased. This function reproduces that mix
-    deterministically so the down-stream pipeline sees a realistic
-    deadspace population instead of a mature fully-sold township.
-
-    Selection strategy for residential (in priority order):
-      - 40% from the newest 3 years (2023-2025)
-      - 40% from the 5-8 year band (2018-2022)
-      - 20% from the 10+ year band (2015 or older)
-    This mirrors the way a developer accumulates slow-moving
-    inventory across multiple delivery cycles — it is not just the
-    latest phase that is sitting unsold.
-    """
     unsold_ids = set()
-
     exclude = set(exclude_ids or [])
 
+    # ---- Residential unsold inventory ----
     res_pool = assets_df[
         (assets_df["asset_type"] == "residential")
         & (assets_df["ownership_status"] == "sold")
@@ -2561,81 +2561,59 @@ def _mark_unsold_inventory(
         n_old = n_residential - n_new - n_mid
 
         def _band(df, lo, hi):
-            return df[
-                (df["completion_year"] >= lo) & (df["completion_year"] <= hi)
-            ]
+            return df[(df["completion_year"] >= lo) & (df["completion_year"] <= hi)]
 
         picked = []
-        picked.extend(_band(res_pool, 2023, 2030).head(n_new)["asset_id"])
-        picked.extend(_band(res_pool, 2018, 2022).head(n_mid)["asset_id"])
-        older = res_pool[res_pool["completion_year"] < 2018]
+        picked.extend(_band(res_pool, 2019, 2030).head(n_new)["asset_id"])
+        picked.extend(_band(res_pool, 2010, 2018).head(n_mid)["asset_id"])
+        older = res_pool[res_pool["completion_year"] < 2010]
         picked.extend(older.head(n_old)["asset_id"])
 
-        # If any band was short, top up from the newest available.
         if len(picked) < n_residential:
-            remaining = res_pool[
-                ~res_pool["asset_id"].isin(picked)
-            ].head(n_residential - len(picked))
+            remaining = res_pool[~res_pool["asset_id"].isin(picked)].head(n_residential - len(picked))
             picked.extend(remaining["asset_id"])
 
         unsold_ids |= set(picked)
-        assets_df.loc[
-            assets_df["asset_id"].isin(unsold_ids),
-            "ownership_status",
-        ] = "developer_held"
-        assets_df.loc[
-            assets_df["asset_id"].isin(unsold_ids),
-            "authority",
-        ] = "full_control"
+        assets_df.loc[assets_df["asset_id"].isin(unsold_ids), "ownership_status"] = "developer_held"
+        assets_df.loc[assets_df["asset_id"].isin(unsold_ids), "authority"] = "full_control"
 
+    # ---- Commercial ownership by subtype ----
     com_pool = assets_df[
         (assets_df["asset_type"] == "commercial")
-        & (assets_df["ownership_status"] == "developer_held")
-        & (~assets_df["asset_id"].isin(exclude))
-        & (~assets_df["subtype"].isin(["supermarket", "mall"]))
-    ].sort_values(
-        ["completion_year", "asset_id"],
-        ascending=[False, True],
-        na_position="last",
-    )
-    com_picked = list(com_pool.head(n_commercial)["asset_id"])
+        & (~assets_df["asset_id"].astype(str).isin(exclude))
+    ].copy()
 
-    # Most delivered shoplots have been sold. Keep only the selected
-    # developer-held inventory under full control. Converted residential
-    # shoplots are outside com_pool, so mark those sold as well.
-    assets_df.loc[
-        assets_df["asset_id"].isin(exclude), "ownership_status",
-    ] = "sold"
-    assets_df.loc[
-        assets_df["asset_id"].isin(exclude), "authority",
-    ] = "advisory"
-    assets_df.loc[com_pool.index, "ownership_status"] = "sold"
-    assets_df.loc[com_pool.index, "authority"] = "advisory"
-    if com_picked:
-        assets_df.loc[
-            assets_df["asset_id"].isin(com_picked), "ownership_status",
-        ] = "developer_held"
-        assets_df.loc[
-            assets_df["asset_id"].isin(com_picked), "authority",
-        ] = "full_control"
+    for idx, row in com_pool.iterrows():
+        subtype = str(row.get("subtype", ""))
+        base_ownership = _OWNERSHIP_BY_SUBTYPE.get(subtype, _OWNERSHIP_STATUS_BY_TYPE.get("commercial", "sold"))
+        assets_df.loc[idx, "ownership_status"] = base_ownership
+        assets_df.loc[idx, "authority"] = _AUTHORITY_BY_OWNERSHIP.get(base_ownership, "advisory")
 
-    # D-17: anchor retail (supermarket / mall) is kept by the developer
-    # as a leased investment asset, so it stays under full control. It is
-    # leased, not unsold, so it is not added to com_picked / unsold_ids.
-    anchor = (
-        assets_df["asset_type"].eq("commercial")
-        & assets_df["subtype"].isin(["supermarket", "mall"])
-    )
-    assets_df.loc[anchor, "ownership_status"] = "developer_held"
-    assets_df.loc[anchor, "authority"] = "full_control"
+    if designated_mall_id is not None:
+        idx_arr = assets_df.index[assets_df["asset_id"].astype(str) == str(designated_mall_id)]
+        if len(idx_arr) > 0:
+            assets_df.loc[idx_arr[0], "ownership_status"] = "developer_held"
+            assets_df.loc[idx_arr[0], "authority"] = "full_control"
+            unsold_ids.add(str(designated_mall_id))
 
-    unsold_ids |= set(com_picked)
+    supermarkets = com_pool[com_pool["subtype"] == "supermarket"].sort_values("lettable_area_m2", ascending=False)
+    for aid in supermarkets.head(2)["asset_id"]:
+        idx_arr = assets_df.index[assets_df["asset_id"].astype(str) == str(aid)]
+        if len(idx_arr) > 0:
+            assets_df.loc[idx_arr[0], "ownership_status"] = "developer_held"
+            assets_df.loc[idx_arr[0], "authority"] = "full_control"
+            unsold_ids.add(str(aid))
 
-    print(
-        f"  marked unsold inventory: "
-        f"{len([x for x in unsold_ids if x.startswith('BLD-')])} residential + "
-        f"{len(com_picked)} commercial"
-    )
+    for aid in exclude:
+        idx_arr = assets_df.index[assets_df["asset_id"].astype(str) == str(aid)]
+        if len(idx_arr) == 0:
+            continue
+        idx = idx_arr[0]
+        subtype = str(assets_df.loc[idx, "subtype"])
+        new_ownership = _OWNERSHIP_BY_SUBTYPE.get(subtype, "sold")
+        assets_df.loc[idx, "ownership_status"] = new_ownership
+        assets_df.loc[idx, "authority"] = _AUTHORITY_BY_OWNERSHIP.get(new_ownership, "advisory")
+
     return assets_df, unsold_ids
 
 
@@ -3056,6 +3034,12 @@ def main():
         occupied_building_ids=occupied_building_ids,
     )
 
+    designated_mall_id = _designate_community_centre(assets_df)
+    if designated_mall_id:
+        print(f"  designated community_centre: {designated_mall_id}")
+    else:
+        print("  no community_centre in this township")
+
     # Phase 15b — mark a small subset of remaining residential as
     # unsold inventory. Down from 120 to 30 to avoid dominating the
     # deadspace list. The shoplot conversion now provides the primary
@@ -3070,6 +3054,7 @@ def main():
         # unsold / unleased ones stay with the developer (was 10).
         n_commercial=4,
         exclude_ids=shoplot_ids,
+        designated_mall_id=designated_mall_id,
     )
     _assign_unsold_units(assets_df, unsold_ids)
 
@@ -3223,15 +3208,6 @@ def main():
             lambda p: pid_to_aid.get(str(p))
         )
 
-    # Phase B.4 — designate the single community_centre asset.
-    # The rest of the commercial stock is shop-office rows,
-    # cluster shops, and single-storey shops — never malls.
-    designated_mall_id = _designate_community_centre(assets_df)
-    if designated_mall_id:
-        print(f"  designated community_centre: {designated_mall_id}")
-    else:
-        print("  no community_centre in this township")
-
     # Phase B.4 — compute unit_mix per commercial asset,
     # dispatched by physical form.
     unit_mix_json_col = []
@@ -3328,6 +3304,10 @@ def main():
         multi_year_df["asset_id"].isin(commercial_ids),
         ["asset_id", "year", "occupancy_rate"],
     ].to_csv(truth_dir / "mock_truth_occupancy.csv", index=False)
+
+    pre_gate_path = PROCESSED_BIZ_DIR / "asset_metrics_pre_gate.csv"
+    multi_year_df.to_csv(pre_gate_path, index=False)
+
     multi_year_df = _apply_authority_data_gate(assets_df, multi_year_df)
     multi_year_df.to_csv(
         PROCESSED_BIZ_DIR / "asset_metrics.csv", index=False,

@@ -38,6 +38,58 @@ from scripts.generate_external_data_mocks import (  # noqa: E402
     _unit_total,
 )
 
+
+CONSUMER_FACING_SUBTYPES = frozenset({
+    "restaurant", "cafe", "kopitiam", "f_and_b", "convenience_retail",
+    "supermarket", "medical_retail", "services", "showroom", "entertainment",
+})
+
+CAPACITY_M2_PER_PERSON = {
+    "office": 10.0, "supermarket": 5.0, "convenience_retail": 12.0,
+    "cafe": 3.0, "restaurant": 2.5, "kopitiam": 2.0, "f_and_b": 5.0,
+    "medical_retail": 20.0, "services": 15.0, "showroom": 30.0,
+    "entertainment": 2.0, "residential": 30.0, "_default": 15.0,
+}
+
+def _consumer_facing_unit_count(asset_row) -> int:
+    def _get(key):
+        return asset_row.get(key) if isinstance(asset_row, dict) else getattr(asset_row, key, None)
+    raw_mix = _get("unit_mix_json")
+    if raw_mix is None or (isinstance(raw_mix, float) and pd.isna(raw_mix)):
+        subtype = _get("subtype")
+        return 1 if subtype in CONSUMER_FACING_SUBTYPES else 0
+    try:
+        mix = json.loads(raw_mix) if isinstance(raw_mix, str) else raw_mix
+    except (json.JSONDecodeError, TypeError):
+        return 0
+    if not isinstance(mix, dict):
+        return 0
+    total = 0
+    for subtype, info in mix.items():
+        if subtype not in CONSUMER_FACING_SUBTYPES:
+            continue
+        count = info.get("count", 1) if isinstance(info, dict) else 1
+        try:
+            total += max(0, int(count))
+        except (TypeError, ValueError):
+            total += 1
+    return total
+
+def _capacity_users(asset_row) -> float:
+    def _get(key, default=None):
+        return asset_row.get(key, default) if isinstance(asset_row, dict) else getattr(asset_row, key, default)
+    subtype = _get("subtype")
+    lettable = _get("lettable_area_m2", 0) or 0
+    try:
+        lettable = float(lettable)
+    except (TypeError, ValueError):
+        return 1.0
+    if lettable <= 0:
+        return 1.0
+    density = CAPACITY_M2_PER_PERSON.get(subtype, CAPACITY_M2_PER_PERSON["_default"])
+    return max(1.0, lettable / density)
+
+
 PATHS = load_paths()
 BASE = REPO_ROOT / PATHS["base"]
 with (BACKEND_DIR / "configs" / "taxonomy.yml").open(encoding="utf-8") as f:
@@ -91,10 +143,10 @@ def _latest_rows_by_asset(google: pd.DataFrame) -> pd.DataFrame:
 
 def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.DataFrame:
     columns = [
-        "asset_id", "snapshot_date", "unit_mix_unit_count", "operational_place_count",
-        "business_presence_ratio", "proxied_occupancy_google", "business_vitality_score",
-        "proxied_vacancy_duration", "business_turnover_count", "google_place_ids_json",
-        "business_subtype_counts_json", "business_subtype_vitality_json", # 🚨 NEW
+        "asset_id", "snapshot_date", "unit_mix_unit_count", "consumer_facing_unit_count",
+        "operational_place_count", "business_presence_ratio", "proxied_occupancy_google",
+        "business_vitality_score", "proxied_vacancy_duration", "business_turnover_count",
+        "google_place_ids_json", "business_subtype_counts_json",
         "tier", "source", "is_mock",
     ]
     if google.empty:
@@ -105,6 +157,7 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
         & assets["authority"].isin(["advisory", "shared"])
     ].copy()
     assets_by_id = {str(row.asset_id): row for row in eligible.itertuples(index=False)}
+
     all_snapshot_dates = google["snapshot_date"].astype(str)
     current_snapshot = all_snapshot_dates.max()
     latest = google[all_snapshot_dates == current_snapshot]
@@ -125,10 +178,19 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
         asset = assets_by_id.get(aid)
         if asset is None:
             continue
+
+        asset_dict = asset._asdict()
+        consumer_unit_count = _consumer_facing_unit_count(asset_dict)
+        full_unit_count = max(1, _unit_total(pd.Series(asset_dict)))
+
+        if consumer_unit_count == 0:
+            continue
+
         current = latest[latest["asset_id"].astype(str).eq(aid)]
-        unit_count = max(1, _unit_total(pd.Series(asset._asdict())))
-        operational = int((current["business_status"] == "OPERATIONAL").sum())
-        presence_ratio = min(1.0, operational / unit_count)
+        operational_consumer = current[(current["business_status"] == "OPERATIONAL")]
+        operational = min(consumer_unit_count, int(operational_consumer["place_id"].nunique()))
+
+        presence_ratio = min(1.0, operational / consumer_unit_count)
         score = raw_vitality.get(aid, 0.0)
         vitality = (score - lo) / (hi - lo) if hi > lo else 0.5
 
@@ -141,34 +203,21 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
             vacancy_months = max(0.0, (current_day - last_open).days / 30.4375)
             vacancy_months = round(vacancy_months, 1)
 
-        operational_ids = history.loc[
-            history["business_status"].eq("OPERATIONAL"), "place_id"
-        ].dropna().astype(str).nunique()
-        turnover = max(0, operational_ids - unit_count)
+        operational_ids = history.loc[history["business_status"].eq("OPERATIONAL"), "place_id"].dropna().astype(str).nunique()
+        turnover = max(0, operational_ids - consumer_unit_count)
+
         place_ids = sorted(current["place_id"].dropna().astype(str).unique())
-        
-        # 🚨 NEW: Calculate subtype counts and vitality for OPERATIONAL places only
-        operational_current = current[current["business_status"] == "OPERATIONAL"]
         subtype_counts: dict[str, int] = {}
-        subtype_vitality_raw: dict[str, list[float]] = {}
-        
-        for place in operational_current.itertuples(index=False):
+        operational_current = current[current["business_status"] == "OPERATIONAL"]
+        for place in current.itertuples(index=False):
             subtype = resolve_subtype(_parse_types(place.types_json))
             subtype_counts[subtype] = subtype_counts.get(subtype, 0) + 1
-            
-            if pd.notna(place.rating) and pd.notna(place.user_rating_count):
-                s_score = float(place.rating) * math.log1p(max(0, int(place.user_rating_count)))
-                subtype_vitality_raw.setdefault(subtype, []).append(s_score)
-
-        subtype_vitalities = {
-            st: round(sum(scores) / len(scores), 2) 
-            for st, scores in subtype_vitality_raw.items()
-        }
 
         rows_out.append({
             "asset_id": aid,
             "snapshot_date": current_snapshot,
-            "unit_mix_unit_count": unit_count,
+            "unit_mix_unit_count": full_unit_count,
+            "consumer_facing_unit_count": consumer_unit_count,
             "operational_place_count": operational,
             "business_presence_ratio": round(presence_ratio, 4),
             "proxied_occupancy_google": round(min(1.0, presence_ratio * 1.15), 4),
@@ -177,7 +226,6 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
             "business_turnover_count": turnover,
             "google_place_ids_json": json.dumps(place_ids, separators=(",", ":")),
             "business_subtype_counts_json": json.dumps(subtype_counts, separators=(",", ":")),
-            "business_subtype_vitality_json": json.dumps(subtype_vitalities, separators=(",", ":")),
             "tier": "3a",
             "source": "derived_from_google_places_mock",
             "is_mock": True,
@@ -285,10 +333,10 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
                       poi: pd.DataFrame | None = None) -> pd.DataFrame:
     columns = [
         "asset_id", "grid_id", "lbs_unique_users_daily", "grid_unique_users_daily",
-        "lbs_dwell_time_minutes",
-        "lbs_visit_frequency_monthly", "lbs_hourly_splits", "lbs_visitor_demographics",
-        "proxied_occupancy_lbs", "traffic_exposure_vpd", "traffic_exposure_source",
-        "flow_island_ratio", "observed_demand_ratio", "tier", "source", "is_mock",
+        "lbs_dwell_time_minutes", "capacity_users", "lbs_visit_frequency_monthly",
+        "lbs_hourly_splits", "lbs_visitor_demographics", "proxied_occupancy_lbs",
+        "traffic_exposure_vpd", "traffic_exposure_source", "flow_island_ratio",
+        "observed_demand_ratio", "tier", "source", "is_mock",
     ]
     eligible = assets[
         assets["asset_type"].eq("commercial")
@@ -297,9 +345,13 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
     if eligible.empty:
         return pd.DataFrame(columns=columns)
 
-    # D-19: LBS no longer borrows Google's occupancy signal (it used to scale
-    # visitors by it), so the two proxies stay independent and can be
-    # cross-checked. `business_presence` is kept in the signature for callers.
+    google_proxy_by_asset = {}
+    if business_presence is not None and not business_presence.empty:
+        google_proxy_by_asset = dict(zip(
+            business_presence["asset_id"].astype(str),
+            pd.to_numeric(business_presence["proxied_occupancy_google"], errors="coerce").fillna(0.0),
+        ))
+
     poi_mean = {}
     if poi is not None and not poi.empty:
         for aid, group in poi.groupby("asset_id"):
@@ -375,17 +427,13 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
 
         capacity_users = poi_capacity(asset)
         typical_dwell, open_hours = poi_profile(getattr(asset, "subtype", None))
-        poi = poi_mean.get(aid)
-        if poi is not None:
-            # D-19: Kido POI analytics count visitors to this shop's own
-            # polygon, so no cell-to-shop allocation is needed.
-            asset_users = poi["unique"]
-            dwell = poi["dwell"]
-            monthly_frequency = poi["visits"] / max(1.0, asset_users) * 30.4
+        poi_data = poi_mean.get(aid)
+        if poi_data is not None:
+            asset_users = poi_data["unique"]
+            dwell = poi_data["dwell"]
+            monthly_frequency = poi_data["visits"] / max(1.0, asset_users) * 30.4
             source = "derived_from_kido_dynamics_poi_mock"
         else:
-            # No POI record: share the cell's users by lettable area (no
-            # Google input, so LBS stays an independent signal).
             try:
                 asset_area = max(0.0, float(getattr(asset, "lettable_area_m2", 0) or 0))
             except (TypeError, ValueError):
@@ -394,15 +442,9 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
             asset_users = local_users * min(1.0, max(0.0, area_share))
             source = "derived_from_kido_dynamics_mock" if local is not None else "osm_proxy"
 
-        # D-19: occupancy proxy = average people inside / what an occupied
-        # shop of this size normally holds.
-        #   people inside on average = visitors x dwell / opening minutes
         people_inside = asset_users * (dwell or typical_dwell) / (open_hours * 60.0)
         proxied_occ = min(1.0, max(0.0, people_inside / (capacity_users * POI_AVG_UTILISATION)))
 
-        # D-20: flow island = share of the footfall around the asset that the
-        # street/path network actually connects to it. Low = people are
-        # nearby but cannot easily walk in (cut off by roads, walls, drains).
         reachable = _network_reachable_users(gid, grid_adjacency, grid_mean)
         nearby = _nearby_users(gid, grid_mean)
         flow_island = reachable / nearby if nearby > 0 else 1.0
@@ -418,6 +460,7 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
             "lbs_unique_users_daily": round(asset_users, 2),
             "grid_unique_users_daily": round(local_users, 2),
             "lbs_dwell_time_minutes": round(dwell, 2),
+            "capacity_users": round(capacity_users, 2),
             "lbs_visit_frequency_monthly": round(monthly_frequency, 2),
             "lbs_hourly_splits": json.dumps(hourly_split, separators=(",", ":")),
             "lbs_visitor_demographics": json.dumps({
@@ -428,9 +471,6 @@ def build_lbs_metrics(assets: pd.DataFrame, kido: pd.DataFrame,
             "traffic_exposure_vpd": int(traffic),
             "traffic_exposure_source": traffic_source,
             "flow_island_ratio": round(flow_island, 4),
-            # D-19: footfall vs what a normally-run shop of this size draws
-            # (1.0 = normal). Daily visitors / capacity was not comparable
-            # across subtypes once visitors became realistic.
             "observed_demand_ratio": round(proxied_occ, 4),
             "tier": "3a",
             "source": source,
@@ -459,7 +499,8 @@ def ingest() -> dict[str, int]:
     worldpop_path = BASE / external_paths["worldpop_grid"]
     worldpop = pd.read_csv(worldpop_path) if worldpop_path.exists() else pd.DataFrame(
         columns=["grid_id", "worldpop_raw_pop", "worldpop_effective_pop",
-                 "residential_unit_capacity", "source", "dataset_year", "tier", "is_mock"]
+        "worldpop_occupancy_estimate", "residential_unit_capacity",
+        "source", "dataset_year", "tier", "is_mock",]
     )
 
     allowed_statuses = {"OPERATIONAL", "CLOSED_TEMPORARILY", "CLOSED_PERMANENTLY", "FUTURE_OPENING"}

@@ -413,6 +413,8 @@ def build_profiles(year=2026):
                 "proxied_occupancy_source": (
                     (ds.get("layer3a") or {}).get("proxied_occupancy_source")
                 ),
+                "consumer_facing_unit_count": _safe_float(ext.get("consumer_facing_unit_count"), 0),
+                "capacity_users": _safe_float(ext.get("capacity_users"), 1),
                 # LBS / Kido (asset_lbs_metrics.csv)
                 "lbs_unique_users_daily": _safe_float(ext.get("lbs_unique_users_daily"), 0),
                 "lbs_dwell_minutes": _safe_float(ext.get("lbs_dwell_time_minutes"), 1),

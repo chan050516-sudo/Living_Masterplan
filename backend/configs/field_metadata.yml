@@ -299,6 +299,15 @@ unknown_fields:
 # Kept out of `asset_metrics` on purpose: generate_mock_data.py uses that
 # section's keys as its CSV column list.
 profile_fields:
+  consumer_facing_unit_count:
+    tier: 1
+    source: asset_register_unit_mix
+    unit: count
+  capacity_users:
+    tier: 2
+    source: derived_from_area_and_density
+    unit: count
+    
   proxied_occupancy:            { tier: 3a, source: lbs_then_google_places, unit: ratio,
                                   note: "LBS proxied_occupancy_lbs first, Google Places fallback (B6 layer3a)",
                                   is_mock: true }
