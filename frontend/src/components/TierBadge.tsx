@@ -1,34 +1,49 @@
-import type { DataTier } from '../types'
+import type { DataTier, ServedTier } from '../types'
 
+// Tier labels and colours. Kept in the original compact T1/T2/3A/3B style.
 const TIER_CONFIG: Record<string, { label: string; color: string; title: string }> = {
-  '1':  { label: 'T1', color: '#2196f3', title: 'Observed — direct record' },
-  '2':  { label: 'T2', color: '#ecaa00', title: 'Derived — physics or economic formula' },
-  '3a': { label: '3A', color: '#a855f7', title: 'Operational estimate — proxy valid for deadspace judgement' },
-  '3b': { label: '3B', color: '#7b7080', title: 'Counterfactual — simulation narrative only' },
+  '1':  { label: 'T1', color: '#2196f3', title: 'Observed: direct record or measurement' },
+  '2':  { label: 'T2', color: '#ecaa00', title: 'Derived: physics or economic formula on observed data' },
+  '3a': { label: '3A', color: '#a855f7', title: 'Operational estimate: external proxy, valid for deadspace judgement' },
+  '3b': { label: '3B', color: '#7b7080', title: 'Counterfactual: simulation narrative only' },
+  U:    { label: 'U',  color: '#8a7f8c', title: 'Unknown: no defensible source for this asset' },
 }
 
-export function TierBadge({ tier, source }: { tier: DataTier; source?: string }) {
-  const key = String(tier)
-  const cfg = TIER_CONFIG[key]
+export function TierBadge({ tier, source, mock }: { tier: DataTier | ServedTier['tier']; source?: string | null; mock?: boolean }) {
+  const cfg = TIER_CONFIG[String(tier)]
   if (!cfg) return null
+  const title = [
+    cfg.title,
+    source ? `source: ${source.replace(/_/g, ' ')}` : null,
+    mock ? 'synthetic demo data on the real product schema' : null,
+  ].filter(Boolean).join(' · ')
   return (
     <span
-      title={source ? `${cfg.title} · source: ${source}` : cfg.title}
+      className="tier-badge"
+      title={title}
       style={{
         fontSize: 9,
-        padding: '1px 5px',
+        lineHeight: '13px',
+        padding: '0 5px',
         borderRadius: 3,
         background: `${cfg.color}22`,
         color: cfg.color,
         border: `1px solid ${cfg.color}55`,
-        marginLeft: 6,
         fontWeight: 700,
         letterSpacing: '0.05em',
         cursor: 'help',
         flexShrink: 0,
+        minWidth: 22,
+        textAlign: 'center',
       }}
     >
       {cfg.label}
     </span>
   )
+}
+
+/** Badge for a served tier entry (profile.tiers[path]). */
+export function ServedTierBadge({ tier }: { tier?: ServedTier }) {
+  if (!tier) return null
+  return <TierBadge tier={tier.tier} source={tier.source} mock={tier.mock} />
 }

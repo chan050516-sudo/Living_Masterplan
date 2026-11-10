@@ -1,5 +1,29 @@
 export type Tier = 'observed' | 'estimated' | 'scenario'
-export type DataTier = 1 | 2 | '3a' | '3b'
+/** Data tier as served by the backend (field_metadata.yml). Numbers are
+ *  accepted for the analyze payload, which still sends 1 / 2 as numbers. */
+export type DataTier = 1 | 2 | '1' | '2' | '3a' | '3b' | 'U'
+
+/** One entry of AssetProfile.tiers, keyed by "<section>.<field>". */
+export type ServedTier = {
+  tier: '1' | '2' | '3a' | '3b' | 'U'
+  source: string | null
+  mock?: boolean
+}
+
+/** Per-subtype row of a mixed-use asset (profile.subunits). */
+export type Subunit = {
+  subtype: string
+  area_m2: number | null
+  design_count: number | null
+  /** Observed occupancy, owned assets only. */
+  occupancy: number | null
+  /** Google Places proxies, sold assets only. */
+  operational_count: number | null
+  presence_ratio: number | null
+  vitality_score: number | null
+  allocated_carbon_tco2e: number | null
+  allocated_noi_rm: number | null
+}
 
 /* ---------- Diagnosis (B6) ---------- */
 
@@ -78,10 +102,15 @@ export type AssetProfile = {
     lettable_area_m2: number | null
     land_area_m2: number | null
     capacity: number | null
+    unit_count?: number | null
+    developer_held_units?: number | null
+    developable_area_m2?: number | null
+    potential_gfa_m2?: number | null
   }
   authority: {
     level: string
     ownership_status: string
+    data_confidence?: string | null
   }
   financial: {
     capex_initial_rm: number | null
@@ -91,11 +120,26 @@ export type AssetProfile = {
     noi_rm: number | null
     noi_yield: number | null
     dsr: number | null
+    sale_price_rm?: number | null
+    sale_date?: string | null
+    sale_data_source?: string | null
+    sale_profit_rm?: number | null
+    sale_return_ratio?: number | null
+    estimated_revenue_rm?: number | null
+    survival_opex_floor_rm?: number | null
+    hemorrhage_ratio?: number | null
+    cost_per_user_rm?: number | null
+    demand_supply_gap?: number | null
+    infrastructure_cost_rm?: number | null
   }
   social: {
     occupancy_rate: number | null
     utilisation_rate: number | null
     footfall_daily: number | null
+    vacancy_duration_months?: number | null
+    occupied_units?: number | null
+    service_coverage?: number | null
+    coverage_ratio_10min_drive?: number | null
     coverage_ratio_5min_walk: number | null
     coverage_ratio_10min_walk: number | null
     coverage_ratio_15min_walk: number | null
@@ -110,6 +154,16 @@ export type AssetProfile = {
     lbs_unique_users_daily?: number | null
     lbs_dwell_minutes?: number | null
     business_presence_ratio?: number | null
+    lbs_visit_frequency_monthly?: number | null
+    proxied_occupancy_lbs?: number | null
+    flow_island_ratio?: number | null
+    traffic_exposure_vpd?: number | null
+    proxied_occupancy_google?: number | null
+    operational_place_count?: number | null
+    unit_mix_unit_count?: number | null
+    business_vitality_score?: number | null
+    proxied_vacancy_duration?: number | null
+    business_turnover_count?: number | null
   }
   environmental: {
     carbon_operational_tco2e: number | null
@@ -146,7 +200,20 @@ export type AssetProfile = {
   } | null
   deadspace_diagnosis: Diagnosis | null
   leases: Record<string, unknown> | null
-  subunits: unknown[] | null
+  subunits: Subunit[] | null
+  /** Tier + source of every non-null metric, resolved for this asset's authority. */
+  tiers?: Record<string, ServedTier>
+}
+
+/** How a value from a simulated year (/api/map/geometry metrics_json)
+ *  replaces the 2026 profile value. Built by applyYearMetrics(). */
+export type MetricOverride = {
+  year: number
+  tier: ServedTier['tier']
+  /** Short qualifier appended to the label, e.g. "estimated". */
+  qualifier: string
+  /** Where the value came from, shown in the tier tooltip. */
+  source: string
 }
 
 /* ---------- The merged object the UI works with ---------- */
@@ -164,6 +231,10 @@ export type Asset = {
   /** Year the currently loaded diagnosis actually comes from. Differs
    *  from the selected year when the backend fell back to 2026. */
   diagnosisYear?: number | null
+  /** Year selected in the UI when this asset list was built. */
+  selectedYear?: number
+  /** Profile paths whose value was replaced by a simulated-year value. */
+  metricOverrides?: Record<string, MetricOverride>
 }
 
 /* ---------- API: /api/analyze ---------- */

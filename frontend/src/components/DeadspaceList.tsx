@@ -17,6 +17,7 @@ const STATUS_COLOR: Record<AssetStatus, string> = {
   // actually be done.
   community_value_gap: '#d71920',
   strategic_learning: '#f15c22',
+  intervened: '#2196f3',
 }
 
 /** Map intervention mode to a border colour and a badge label. */
@@ -173,12 +174,6 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
         const vac = findEvidence(d.evidence, 'Vacancy')
         const subtype = findEvidence(d.evidence, 'Subtype')
 
-        // Use a border left as an accent that encodes the mode
-        // without overpowering the status colour.
-        const borderLeft = modeStyle
-          ? `3px solid ${modeStyle.border}`
-          : `1px solid ${C.line}`
-
         return (
           <button
             key={a.id}
@@ -188,7 +183,6 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
               display: 'block', width: '100%', textAlign: 'left', marginBottom: 10, padding: 14,
               background: C.card,
               border: `1px solid ${C.line}`,
-              borderLeft,
               borderRadius: 8, cursor: 'pointer', color: C.text, font: 'inherit',
             }}
           >

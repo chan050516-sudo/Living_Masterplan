@@ -10,6 +10,7 @@ import { ComparisonModal } from './components/ComparisonModal'
 import { HistoryPanel } from './components/HistoryPanel'
 import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
 import { createThreeLayer } from './threeLayer'
+import { applyYearMetrics } from './config/metricConfig'
 import type { Asset, AssetProfile, AnalyzeResult } from './types'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
@@ -351,37 +352,14 @@ export default function App() {
           let finalProfile = baseProfile ? JSON.parse(JSON.stringify(baseProfile)) : null
           const mapStatus = String(p.map_status ?? 'healthy')
 
+          // Simulated years: overlay B4 values onto the 2026 profile and record
+          // how each one is re-tiered (rules in config/metricConfig.ts).
+          let metricOverrides: Asset['metricOverrides'] = undefined
           if (finalProfile && p.metrics_json) {
             try {
               const metrics = JSON.parse(p.metrics_json as string)
-              if (metrics.occupancy_rate != null) {
-                finalProfile.social.occupancy_rate = metrics.occupancy_rate
-              }
-              if (metrics.utilisation_rate != null) {
-                finalProfile.social.utilisation_rate = metrics.utilisation_rate
-              }
-              if (metrics.noi_rm != null) {
-                finalProfile.financial.noi_rm = metrics.noi_rm
-              }
-              if (metrics.carbon_operational_tco2e !== undefined) {
-                finalProfile.environmental.carbon_operational_tco2e = metrics.carbon_operational_tco2e
-              }
-              if (metrics.carbon_stranded_tco2e !== undefined) {
-                finalProfile.environmental.carbon_stranded_tco2e = metrics.carbon_stranded_tco2e
-              }
-              if (metrics.stranded_carbon_ratio !== undefined) {
-                finalProfile.environmental.stranded_carbon_ratio = metrics.stranded_carbon_ratio
-              }
-              if (metrics.canopy_coverage != null) {
-                finalProfile.environmental.canopy_coverage = metrics.canopy_coverage
-              }
-              if (metrics.coverage_ratio_10min_walk != null) {
-                finalProfile.social.coverage_ratio_10min_walk = metrics.coverage_ratio_10min_walk
-              }
-              if (metrics.effective_demand_m2 != null) {
-                finalProfile.social.effective_demand_m2 = metrics.effective_demand_m2
-              }
-            } catch (e) {}
+              metricOverrides = applyYearMetrics(finalProfile, metrics, year)
+            } catch { /* keep the 2026 profile */ }
           }
 
           const backendFlags = (p.flags as string[]) || []
@@ -472,6 +450,8 @@ export default function App() {
             center, 
             height: finalHeight,
             diagnosisYear,
+            selectedYear: year,
+            metricOverrides,
           })
 
           const env = finalProfile?.environmental ?? {}
