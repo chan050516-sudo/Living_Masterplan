@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
@@ -8,6 +8,7 @@ import { DeadspaceList } from './components/DeadspaceList'
 import { AssetPanel } from './components/AssetPanel'
 import { ComparisonModal } from './components/ComparisonModal'
 import { HistoryPanel } from './components/HistoryPanel'
+import { PanelResizer, usePanelWidth } from './components/PanelResizer'
 import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
 import { createThreeLayer } from './threeLayer'
 import { applyYearMetrics, subtypeLabel, assetTypeLabel, type PanelTab } from './config/metricConfig'
@@ -177,6 +178,10 @@ export default function App() {
   const [showComparison, setShowComparison] = useState(false)
   // AssetPanel tab, kept here so it survives selecting another asset.
   const [panelTab, setPanelTab] = useState<PanelTab>('diagnosis')
+  // Side panel width: draggable on desktop, persisted per viewer. The map
+  // canvas (and the Three.js layer that draws into it) re-fits as it changes.
+  const resizeMap = useCallback(() => { mapRef.current?.resize() }, [])
+  const panel = usePanelWidth(resizeMap)
   const [mapReady, setMapReady] = useState(false)
 
   const [hint, setHint] = useState(false)
@@ -989,10 +994,14 @@ export default function App() {
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
 
+        {panel.resizable && (
+          <PanelResizer onDrag={panel.dragTo} onEnd={panel.endDrag} onReset={panel.reset} />
+        )}
+
         {/* Flex column: the search box stays put and the content below fills the rest.
             The AssetPanel scrolls internally so its ask bar stays pinned; the list and
             history scroll in their wrapper. */}
-        <aside style={{ width: 440, flex: 'none', padding: '22px 22px 16px', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
+        <aside style={{ width: panel.width, flex: 'none', padding: '22px 22px 16px', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
           <input
             list="asset-ids"
             value={search}

@@ -200,3 +200,23 @@ body { font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing
 .flag-bar { height: 4px; border-radius: 2px; background: var(--card); overflow: hidden; }
 .flag-bar > i { display: block; height: 100%; border-radius: 2px; }
 .flag-pct { font-size: 11px; color: var(--muted); text-align: right; }
+
+/* ---------- Resizable side panel (desktop) ---------- */
+/* Zero-width flex item between the map and the panel; the hit area straddles the edge. */
+.panel-resizer { position: relative; width: 0; flex: none; z-index: 5; }
+.panel-resizer-hit {
+  position: absolute; top: 0; bottom: 0; left: -4px; width: 8px;
+  cursor: col-resize; touch-action: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.panel-resizer-hit::before {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 3px; width: 2px;
+  background: transparent; transition: background .15s ease;
+}
+.panel-resizer-grip {
+  position: relative; width: 4px; height: 36px; border-radius: 2px;
+  background: var(--faint); opacity: 0; transition: opacity .15s ease;
+}
+.panel-resizer-hit:hover::before, .panel-resizer-hit.dragging::before { background: var(--accent); }
+.panel-resizer-hit:hover .panel-resizer-grip, .panel-resizer-hit.dragging .panel-resizer-grip { opacity: 1; background: var(--accent); }
+body.is-resizing, body.is-resizing * { cursor: col-resize !important; user-select: none !important; }
