@@ -212,6 +212,25 @@ Branch `mathaba-panel`, 2026-11-10. Scope: backend limited to the profile build 
 - **Tokens.** `styles.css` had no CSS variables, only hex values copied from `theme.ts`. I added a `:root` block that mirrors `theme.ts` (`--panel`, `--card`, `--line`, `--text`, `--muted`, `--faint`, `--accent`), plus two surface steps: `--surface-raised` (#3d3140, the existing `.btn:hover` surface) and `--surface-hover`. The new rules use these.
 - No left accent borders.
 
+### D22. Basic mobile layout (< 768px; desktop unchanged)
+- **One check.** `src/mobile.ts` holds the breakpoint (shared with the panel resizer), `isMobileViewport()` for start-up decisions, and `useIsMobile()` for layout. The CSS uses the same breakpoint.
+- **Header.** Brand, a year `<select>` and History on one row; the search box full width below it.
+- **Map.** Legend and heat map sit behind compact top-left buttons. A "Flagged assets (N)" button opens the list in a right-hand drawer, which also shows History. Map controls stay top-right. The Ctrl hint is hidden.
+- **AssetPanel bottom sheet.**
+  - Collapsed: header, core cards and the diagnosis line (the new `compact` prop hides the tabs, answer and ask bar).
+  - Tapping or dragging the grab bar expands it to 85% of the viewport. Expanded, the ask bar is pinned at the sheet's bottom.
+  - Swiping down collapses it, or closes it when already collapsed.
+  - An AI answer, error or loading state auto-expands the sheet. On selection, the camera lifts the target above the collapsed sheet.
+- **Touch targets** are at least 40 px (tabs, close, ask buttons, map controls, header controls, chips, attribution toggle). Inputs are 16 px so iOS doesn't zoom on focus.
+  - The filter chips are themed on mobile only, because the desktop has no `.chip` rule (frontend_review #2), and changing desktop was out of scope.
+  - Core card values wrap instead of being cut off.
+- **Performance (mobile only).** Three.js shadows off; tree and canopy instance caps at 30% of desktop; MapLibre `pixelRatio` capped at 1.5. Desktop constants are unchanged.
+- **Verified with headless Chrome** over the DevTools protocol, against the running app and API:
+  - Desktop at 1440×900, before vs after: the header, side panel and map overlays are pixel-identical in all five states (list, BLD-0037 on three tabs, BLD-0193). The only map-area differences are the anti-aliased selection label and a one-level colour change on the compass needle; two runs of identical code differ by the same amount.
+  - Mobile at 375×812: no horizontal scroll. The collapsed sheet is 48% of the height and the expanded one 85%. The ask bar sits inside the viewport. The only control under 40 px is MapLibre's attribution text link.
+  - Landing at 375 px: no horizontal scroll, so no change was needed.
+- **Files:** `src/mobile.ts`, `components/MobileSheet.tsx` (new); `App.tsx`, `AssetPanel.tsx`, `ui.tsx`, `threeLayer.ts`, `styles.css`.
+
 ## How profiles were regenerated
 `py -3.14 backend/scripts/build_profiles.py`. The repo's `.venv` and the default Python 3.12 have no pandas on this machine; Python 3.14 has pandas 3.0.5 and PyYAML. The output was checked against the previous JSON (D6) and on five sample assets: `BLD-0037` owned shop, `BLD-0193` sold shop, `BLD-0086` sold home, `A-0002` public facility, `P-VAC-GOLD-01` parcel.
 

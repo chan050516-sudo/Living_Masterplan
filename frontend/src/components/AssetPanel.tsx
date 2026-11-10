@@ -376,6 +376,8 @@ export function AssetPanel(props: {
   /** Selected tab; owned by App so it survives selecting another asset. */
   tab: PanelTab
   onTab: (t: PanelTab) => void
+  /** Mobile collapsed sheet: header + core metrics only (no tabs, answer or ask bar). */
+  compact?: boolean
 }) {
   const { assets, analysis, asked, error, previewing, history } = props
   const multi = assets.length > 1
@@ -443,7 +445,7 @@ export function AssetPanel(props: {
     ))
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className={`asset-panel${props.compact ? ' compact' : ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {previewUrl && (
         <div
           onClick={handleClosePreview}
@@ -486,7 +488,7 @@ export function AssetPanel(props: {
           {multi ? `${assets.length} assets selected` : 'Selected asset'}
         </span>
         <span style={{ flex: 1 }} />
-        <button className="ctrl" onClick={props.onClose} style={{ background: 'none', border: 0, color: C.muted, fontSize: 20, cursor: 'pointer', width: 30, height: 30, borderRadius: 6, lineHeight: 1, flex: 'none' }}>×</button>
+        <button className="ctrl panel-close" aria-label="Close" onClick={props.onClose} style={{ background: 'none', border: 0, color: C.muted, fontSize: 20, cursor: 'pointer', width: 30, height: 30, borderRadius: 6, lineHeight: 1, flex: 'none' }}>×</button>
       </div>
 
       <div className="panel-scroll">
@@ -496,6 +498,7 @@ export function AssetPanel(props: {
           </div>
         ))}
 
+        {!props.compact && <>
         <div className="tabs" role="tablist" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
           {tabs.map((t) => (
             <button
@@ -872,9 +875,11 @@ export function AssetPanel(props: {
         )}
           </div>
         )}
+        </>}
       </div>
 
       {/* Ask bar: a flex sibling of the scroll area, so it is always visible and never covers content. */}
+      {!props.compact && (
       <div className="ask-bar">
         <label htmlFor="q" className="ask-label">
           <span>{analysis ? 'Ask a follow-up question' : multi ? `Ask AI about these ${assets.length} assets` : `Ask AI about ${assets[0].name}`}</span>
@@ -953,6 +958,7 @@ export function AssetPanel(props: {
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

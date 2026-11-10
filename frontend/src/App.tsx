@@ -9,6 +9,8 @@ import { AssetPanel } from './components/AssetPanel'
 import { ComparisonModal } from './components/ComparisonModal'
 import { HistoryPanel } from './components/HistoryPanel'
 import { PanelResizer, usePanelWidth } from './components/PanelResizer'
+import { MobileSheet, MobileDrawer } from './components/MobileSheet'
+import { useIsMobile, isMobileViewport, MOBILE_PERF } from './mobile'
 import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
 import { createThreeLayer } from './threeLayer'
 import { applyYearMetrics, subtypeLabel, assetTypeLabel, type PanelTab } from './config/metricConfig'
@@ -182,6 +184,21 @@ export default function App() {
   // canvas (and the Three.js layer that draws into it) re-fits as it changes.
   const resizeMap = useCallback(() => { mapRef.current?.resize() }, [])
   const panel = usePanelWidth(resizeMap)
+
+  // Mobile (< 768px) layout state. Every mobile branch below keys off isMobile.
+  const isMobile = useIsMobile()
+  const [sheetExpanded, setSheetExpanded] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [legendOpen, setLegendOpen] = useState(false)
+  // An AI answer only shows in the expanded sheet, so open it when one arrives.
+  useEffect(() => {
+    if (isMobile && (analysis || error || loading)) setSheetExpanded(true)
+  }, [isMobile, analysis, error, loading])
+  // Switching between the mobile and desktop layouts changes the map's size.
+  useEffect(() => {
+    const raf = requestAnimationFrame(resizeMap)
+    return () => cancelAnimationFrame(raf)
+  }, [isMobile, resizeMap])
   const [mapReady, setMapReady] = useState(false)
 
   const [hint, setHint] = useState(false)
@@ -226,6 +243,7 @@ export default function App() {
 
   function selectOnly(id: string) {
     setSelectedIds([id]); setQuestion(''); reset()
+    setSheetExpanded(false); setDrawerOpen(false)
     playClick()
     const a = assetsRef.current.find((x) => x.id === id)
     if (!a) return
@@ -252,7 +270,8 @@ export default function App() {
         zoom: baseZoom,
         pitch: tall ? 60 : 55,
         bearing: m.getBearing() + swing,
-        offset: [0, tall ? -80 : -40],
+        // Mobile: lift the target above the collapsed bottom sheet.
+        offset: [0, isMobileViewport() ? -Math.round(window.innerHeight * 0.22) : tall ? -80 : -40],
         curve: 1.5,
         speed: 0.5,
         essential: true,
@@ -502,6 +521,7 @@ export default function App() {
         }],
       },
       center: [101.528, 3.112], zoom: 14, pitch: 55, bearing: -20, maxPitch: 80,
+      ...(isMobileViewport() ? { pixelRatio: Math.min(window.devicePixelRatio || 1, MOBILE_PERF.maxPixelRatio) } : {}),
       ...(REALISTIC ? { canvasContextAttributes: { antialias: true } } : {}),
     })
 
@@ -905,6 +925,38 @@ export default function App() {
     }
   }, [selectedIds, assets, mapReady])
 
+  // Side-panel contents, shared by the desktop aside and the mobile sheet / drawer.
+  const historyEl = (
+    <HistoryPanel
+      history={history}
+      onClose={() => { setShowHistory(false); setDrawerOpen(false) }}
+      onUpdateStatus={updateHistoryStatus}
+      onPreview={(id) => {
+        setActiveRunId(id);
+        setShowHistory(false);
+        setDrawerOpen(false);
+        const item = history.find(h => h.id === id);
+        if (item) setSelectedIds(item.result.assets_analysis.map(a => a.asset_id));
+      }}
+      activeRunId={activeRunId}
+      onSelectHistory={(item) => { setDrawerOpen(false); handleSelectHistory(item) }}
+      onClear={clearHistory}
+    />
+  )
+  const renderAssetPanel = (compact: boolean) => (
+    <AssetPanel
+      assets={selectedAssets} question={question} setQuestion={setQuestion} asked={asked} analysis={analysis} loading={loading} error={error}
+      onAsk={ask} previewing={previewing}
+      onPreview={() => { if (analysis) { setActiveRunId(analysis.run_id); setPreviewing(true); } }}
+      onClearPreview={() => { setActiveRunId(undefined); setPreviewing(false); }}
+      onSimulate={() => analysis && setShowComparison(true)} onClose={closePanel}
+      history={history}
+      tab={panelTab} onTab={setPanelTab}
+      compact={compact}
+    />
+  )
+  const listEl = <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} filter={listFilter} onFilter={setListFilter} />
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', background: C.bg, color: C.text, fontFamily: 'system-ui', overflow: 'hidden' }}>
       <style>{`
@@ -916,6 +968,41 @@ export default function App() {
         ::-webkit-scrollbar-thumb:hover { background: #5a4f59 !important; }
         ::-webkit-scrollbar-track { background: transparent !important; }
       `}</style>
+      {isMobile ? (
+        <header className="m-header">
+          <div className="m-header-row">
+            <a href="#/" className="m-brand">LIVING MASTERPLAN</a>
+            <span style={{ flex: 1 }} />
+            <select className="m-year" aria-label="Horizon year" value={year} onChange={(e) => setYear(Number(e.target.value))}>
+              {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <button
+              className={`btn m-hdr-btn${showHistory ? ' primary' : ''}`}
+              onClick={() => { setShowHistory(true); setDrawerOpen(true) }}
+              style={btn(showHistory)}
+            >
+              History ({history.length})
+            </button>
+          </div>
+          <input
+            data-search
+            className="m-search"
+            list="asset-ids"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setSearchMiss(false)
+              if (assets.some((a) => a.id === e.target.value)) runSearch(e.target.value)
+            }}
+            onKeyDown={(e) => { if (e.key === 'Enter') runSearch(search) }}
+            placeholder="Search assets, e.g. BLD-0141"
+            style={{ borderColor: searchMiss ? C.bad : undefined }}
+          />
+          <datalist id="asset-ids">
+            {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </datalist>
+        </header>
+      ) : (
       <header style={{ height: 58, flex: 'none', padding: '0 22px', borderBottom: `1px solid ${C.line}`, display: 'flex', alignItems: 'center', gap: 14, background: '#241c23' }}>
         <a href="#/" style={{ fontSize: 14, fontWeight: 700, letterSpacing: '.14em', color: 'inherit', textDecoration: 'none' }}>LIVING MASTERPLAN</a>
         <span style={{ fontSize: 13, color: C.muted }}>Bukit Jelutong</span>
@@ -949,6 +1036,7 @@ export default function App() {
           <button key={y} className={`btn${year === y ? ' primary' : ''}`} onClick={() => setYear(y)} style={btn(year === y)}>{y}</button>
         ))}
       </header>
+      )}
 
       {showComparison && analysis && <ComparisonModal data={analysis} onClose={() => setShowComparison(false)} />}
 
@@ -956,7 +1044,7 @@ export default function App() {
         <main style={{ position: 'relative', flex: 1 }} onMouseMove={pokeHint}>
           <div ref={mapContainer} style={{ position: 'absolute', inset: 0 }} />
           {REALISTIC && <div style={{ position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none', background: 'radial-gradient(ellipse at center, transparent 55%, rgba(20,14,19,.55) 100%)' }} />}
-          <div style={{
+          {!isMobile && <div style={{
             position: 'absolute', left: 20, top: 20, zIndex: 2,
             display: 'flex', alignItems: 'center', gap: 9,
             padding: '9px 14px', borderRadius: 999,
@@ -969,7 +1057,31 @@ export default function App() {
           }}>
             <kbd style={{ ...mono, fontSize: 10.5, padding: '3px 7px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#fff' }}>Ctrl</kbd>
             <span style={{ color: C.faint }}>+ click to select multiple assets</span>
-          </div>
+          </div>}
+          {isMobile ? (
+            /* Mobile: legend and heat map behind compact buttons, top-left, clear of the bottom sheet. */
+            <div className="m-map-tools">
+              <div className="m-map-tools-row">
+                <button className={`m-map-btn${legendOpen ? ' on' : ''}`} onClick={() => setLegendOpen((v) => !v)}>Legend</button>
+                <button
+                  className={`m-map-btn${showHeat ? ' on' : ''}`}
+                  onClick={() => setShowHeat((v) => !v)}
+                  disabled={heatCount === 0}
+                >
+                  Heat map
+                </button>
+              </div>
+              {legendOpen && <MapLegend preview={previewing} style={{ position: 'static', minWidth: 0 }} />}
+              {showHeat && (
+                <div style={{ padding: '10px 12px', borderRadius: 8, background: 'rgba(31,24,30,.92)', border: `1px solid ${C.line}`, fontSize: 11, color: C.muted, width: 220 }}>
+                  <div style={{ color: C.text, fontWeight: 600, marginBottom: 6 }}>Surface temperature vs town average</div>
+                  <div style={{ height: 8, borderRadius: 4, background: 'linear-gradient(90deg, rgb(40,100,230), rgb(120,205,255), rgba(255,255,255,.15), rgb(255,205,90), rgb(225,35,35))' }} />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}><span>Cooler</span><span>Hotter</span></div>
+                  <div style={{ marginTop: 6, color: C.faint }}>Observed, Landsat 8 · {heatCount} assets</div>
+                </div>
+              )}
+            </div>
+          ) : <>
           <MapLegend preview={previewing} />
 
           <div style={{ position: 'absolute', left: 20, bottom: 175, zIndex: 2, display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
@@ -990,6 +1102,13 @@ export default function App() {
               Heat map
             </button>
           </div>
+          </>}
+
+          {isMobile && !primary && !drawerOpen && (
+            <button className="m-fab" data-open-list onClick={() => { setShowHistory(false); setDrawerOpen(true) }}>
+              Flagged assets ({assets.filter((a) => a.diagnosis && a.diagnosis.status !== 'healthy').length})
+            </button>
+          )}
 
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
@@ -998,9 +1117,10 @@ export default function App() {
           <PanelResizer onDrag={panel.dragTo} onEnd={panel.endDrag} onReset={panel.reset} />
         )}
 
-        {/* Flex column: the search box stays put and the content below fills the rest.
+        {!isMobile && (
+        /* Flex column: the search box stays put and the content below fills the rest.
             The AssetPanel scrolls internally so its ask bar stays pinned; the list and
-            history scroll in their wrapper. */}
+            history scroll in their wrapper. */
         <aside style={{ width: panel.width, flex: 'none', padding: '22px 22px 16px', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
           <input
             list="asset-ids"
@@ -1023,37 +1143,26 @@ export default function App() {
           </datalist>
           
           <div style={{ flex: 1, minHeight: 0, overflowY: !showHistory && primary ? 'hidden' : 'auto', overflowX: 'hidden' }}>
-          {showHistory ? (
-            <HistoryPanel 
-              history={history} 
-              onClose={() => setShowHistory(false)}
-              onUpdateStatus={updateHistoryStatus}
-              onPreview={(id) => { 
-                setActiveRunId(id); 
-                setShowHistory(false);
-                const item = history.find(h => h.id === id);
-                if (item) setSelectedIds(item.result.assets_analysis.map(a => a.asset_id));
-              }}
-              activeRunId={activeRunId}
-              onSelectHistory={handleSelectHistory}
-              onClear={clearHistory}
-            />
-          ) : primary ? (
-            <AssetPanel
-              assets={selectedAssets} question={question} setQuestion={setQuestion} asked={asked} analysis={analysis} loading={loading} error={error}
-              onAsk={ask} previewing={previewing} 
-              onPreview={() => { if (analysis) { setActiveRunId(analysis.run_id); setPreviewing(true); } }}
-              onClearPreview={() => { setActiveRunId(undefined); setPreviewing(false); }} 
-              onSimulate={() => analysis && setShowComparison(true)} onClose={closePanel}
-              history={history}
-              tab={panelTab} onTab={setPanelTab}
-            />
-          ) : (
-            <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} filter={listFilter} onFilter={setListFilter} />
-          )}
+          {showHistory ? historyEl : primary ? renderAssetPanel(false) : listEl}
           </div>
         </aside>
+        )}
       </div>
+
+      {/* Mobile: the asset panel is a bottom sheet; the list and history open in a drawer. */}
+      {isMobile && primary && !drawerOpen && (
+        <MobileSheet expanded={sheetExpanded} onExpandedChange={setSheetExpanded} onDismiss={closePanel}>
+          {renderAssetPanel(!sheetExpanded)}
+        </MobileSheet>
+      )}
+      {isMobile && drawerOpen && (
+        <MobileDrawer
+          title={showHistory ? 'History' : 'Flagged assets'}
+          onClose={() => { setDrawerOpen(false); setShowHistory(false) }}
+        >
+          {showHistory ? historyEl : listEl}
+        </MobileDrawer>
+      )}
     </div>
   )
 }

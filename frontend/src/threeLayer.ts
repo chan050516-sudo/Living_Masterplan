@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { isMobileViewport, MOBILE_PERF } from './mobile'
 import * as maplibregl from 'maplibre-gl'
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
@@ -79,10 +80,13 @@ const FAKE_DELTA_T_DEFAULT = -0.5
 const GRASS = '#355e3b'
 const M2_PER_TREE = 150              // park fallback density when there's no canopy reading
 const CROWN_M2 = 25                  // ground area one tree crown covers, seen from above
-const MAX_TREES_PER_PARK = 400
-const MAX_TREES = 6000               // parks + empty land combined
-const MAX_TREES_PER_BUILDING = 25
-const MAX_BUILDING_TREES = 3000
+// Mobile: fewer tree instances and no shadows (see mobile.ts). Desktop values unchanged.
+const LITE = isMobileViewport()
+const treeCap = (n: number) => (LITE ? Math.round(n * MOBILE_PERF.treeScale) : n)
+const MAX_TREES_PER_PARK = treeCap(400)
+const MAX_TREES = treeCap(6000)               // parks + empty land combined
+const MAX_TREES_PER_BUILDING = treeCap(25)
+const MAX_BUILDING_TREES = treeCap(3000)
 const TREE_RING_MIN = 3              // metres from the wall, closest a building's tree can stand
 const TREE_RING_MAX = 7              // and furthest
 
@@ -437,7 +441,7 @@ export function createThreeLayer(origin: [number, number]) {
 
   scene.add(new THREE.HemisphereLight('#b9c6e6', '#2b212a', 0.9))
   const sun = new THREE.DirectionalLight('#fff1e0', 1.6)
-  sun.castShadow = true
+  sun.castShadow = !LITE
   sun.shadow.mapSize.set(4096, 4096)
   sun.shadow.bias = -0.0005
   sun.shadow.normalBias = 0.5
@@ -1151,7 +1155,7 @@ export function createThreeLayer(origin: [number, number]) {
       loadPanelTemplate()
       renderer = new THREE.WebGLRenderer({ canvas: m.getCanvas(), context: gl, antialias: true })
       renderer.autoClear = false
-      renderer.shadowMap.enabled = true
+      renderer.shadowMap.enabled = !LITE
       renderer.shadowMap.type = THREE.PCFShadowMap
       renderer.shadowMap.autoUpdate = false
 
