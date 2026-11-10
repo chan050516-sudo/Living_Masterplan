@@ -507,7 +507,9 @@ def build_profiles(year=2026):
 
     out_path = BASE_DIR / f"asset_profiles_{year}.json"
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(profiles, f, indent=2)
+        # Minified: this file is committed, and pretty-printing made every
+        # rebuild a ~160k-line diff. Read it with any JSON viewer.
+        json.dump(profiles, f, separators=(",", ":"))
     print(f"Wrote {len(profiles)} full asset profiles to {out_path}")
 
 if __name__ == "__main__":
