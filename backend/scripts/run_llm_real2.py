@@ -58,27 +58,39 @@ def _print_results(result, mock_file_path):
         
         print(f"  Asset: {aid}")
         
+        def _fmt(v, is_pct=False, decimals=1, default="n/a"):
+            if v is None: return default
+            try:
+                f = float(v)
+                return f"{f*100:.{decimals}f}%" if is_pct else f"{f:,.{decimals}f}"
+            except (ValueError, TypeError):
+                return default
+
         # Financial
-        fin = card["financial"]
-        print(f"    NOI (Annual): RM {fin['main_metric']['baseline']} -> RM {fin['main_metric']['intervention']}")
-        print(f"    Counterfactual CAPEX Saved: RM {fin['counterfactual']['capex_saved_rm']}")
+        fin = card.get("financial", {})
+        main_fin = fin.get("main_metric", {})
+        print(f"    NOI (Annual): RM {_fmt(main_fin.get('baseline'))} -> RM {_fmt(main_fin.get('intervention'))}")
+        print(f"    Counterfactual CAPEX Saved: RM {_fmt(fin.get('counterfactual', {}).get('capex_saved_rm'))}")
         
         # Social
-        soc = card["social"]
-        util = soc["main_metric"]
-        print(f"    Space Utilization: {util['baseline']*100:.1f}% -> {util['intervention']*100:.1f}%")
+        soc = card.get("social", {})
+        util = soc.get("main_metric", {})
+        print(f"    Space Utilization: {_fmt(util.get('baseline'), is_pct=True)} -> {_fmt(util.get('intervention'), is_pct=True)}")
         
         # Environmental
-        env = card["environmental"]
-        op_carbon = env["main_metrics"][0]
-        print(f"    Operational Carbon: {op_carbon['baseline']} -> {op_carbon['intervention']} tCO2e/yr")
-        print(f"    Carbon Averted: {env['counterfactual']['net_carbon_averted_tco2e']} tCO2e")
+        env = card.get("environmental", {})
+        env_metrics = env.get("main_metrics", [])
+        op_carbon = env_metrics[0] if env_metrics else {}
+        print(f"    Operational Carbon: {_fmt(op_carbon.get('baseline'))} -> {_fmt(op_carbon.get('intervention'))} tCO2e/yr")
+        print(f"    Carbon Averted: {_fmt(env.get('counterfactual', {}).get('net_carbon_averted_tco2e'))} tCO2e")
         
         # Subunits
         if card.get("subunits"):
             print(f"    [!! SUBUNITS !!] {len(card['subunits'])} specific retail zones detailed.")
             for sub in card['subunits']:
-                print(f"      - {sub['subtype']} ({sub['area_m2']}m2): Occ {sub['occupancy_baseline']*100:.0f}% -> {sub['occupancy_intervention']*100:.0f}%")
+                occ_b = _fmt(sub.get('occupancy_baseline'), is_pct=True, decimals=0)
+                occ_i = _fmt(sub.get('occupancy_intervention'), is_pct=True, decimals=0)
+                print(f"      - {sub['subtype']} ({sub['area_m2']}m2): Occ {occ_b} -> {occ_i}")
 
     print("\n--- 4. Executive Justification ---")
     j = decision.get("justification") or {}
