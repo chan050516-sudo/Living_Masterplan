@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react'
 import { C, cap, mono, btn } from '../theme'
-import { Bar } from './ui'
 import { TierBadge, ServedTierBadge } from './TierBadge'
-import { ExternalSignalsPanel } from './ExternalSignalsPanel'
+import { ExternalSignalsPanel, hasExternalSignals } from './ExternalSignalsPanel'
 import {
-  PILLARS, AUTHORITY_GROUP_LABEL, FLAG_TIER, SUBUNIT_COLUMNS,
-  authorityGroup, coreMetricKeys, resolveMetric, pillarMetrics,
-  formatMetric, formatValue, isWarn, prettyText,
-  type ResolvedMetric,
+  PILLARS, PANEL_TABS, AUTHORITY_GROUP_LABEL, EVALUATION_TRACK, SUBUNIT_COLUMNS,
+  authorityGroup, coreMetricKeys, resolveMetric, placeMetrics, openPillars,
+  formatMetric, formatValue, isWarn, humanize,
+  assetTypeLabel, subtypeLabel, statusLabel, modeLabel, diagnosisSummary,
+  type ResolvedMetric, type Placement, type PanelTab,
 } from '../config/metricConfig'
 import type { Asset, AnalyzeResult, MainMetric, AssetStatus, InterventionMode, Subunit } from '../types'
 import type { AnalyzeHistoryItem } from '../App'
@@ -32,10 +32,6 @@ const MODE: Record<InterventionMode, { icon: string; color: string; title: strin
   advisory: { icon: '○', color: '#7b7080', title: 'Not SDP-owned and no collaboration path. SDP can only recommend.' },
 }
 
-function pretty(s: string) {
-  return prettyText(s)
-}
-
 // Used by the analysis card below (its payload has its own units).
 function fmt(v: number | null | undefined, unit: string) {
   if (v === null || v === undefined || Number.isNaN(v)) return '—'
@@ -45,11 +41,10 @@ function fmt(v: number | null | undefined, unit: string) {
   return v.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 
-function SectionTitle({ title, color = C.accent, right }: { title: string; color?: string; right?: React.ReactNode }) {
+function SectionTitle({ title, color = C.accent }: { title: string; color?: string }) {
   return (
-    <div style={{ ...cap, fontSize: 11, color, borderBottom: `1px solid ${C.line}`, paddingBottom: 6, marginBottom: 10, marginTop: 24, letterSpacing: '0.05em', display: 'flex', alignItems: 'baseline', gap: 8 }}>
-      <span>{title}</span>
-      {right && <span style={{ marginLeft: 'auto', textTransform: 'none', letterSpacing: 0, fontWeight: 400, fontSize: 10.5, color: C.faint }}>{right}</span>}
+    <div style={{ ...cap, fontSize: 11, color, borderBottom: `1px solid ${C.line}`, paddingBottom: 6, marginBottom: 10, marginTop: 24, letterSpacing: '0.05em' }}>
+      {title}
     </div>
   )
 }
@@ -124,33 +119,154 @@ function CoreMetrics({ asset }: { asset: Asset }) {
   const keys = coreMetricKeys(asset.assetType, authorityGroup(asset.profile))
   const metrics = keys.map((k) => resolveMetric(asset, k)).filter((m): m is ResolvedMetric => m !== null)
   if (metrics.length === 0) return null
+  return <div className="core-grid">{metrics.map((m) => <CoreTile key={m.key} m={m} />)}</div>
+}
+
+/* ---------- Always visible: header + core + one-line diagnosis ---------- */
+
+function AssetHeader({ asset, placement }: { asset: Asset; placement: Placement }) {
+  const p = asset.profile
+  const d = asset.diagnosis
+  const group = authorityGroup(p)
+  const status = d?.status ?? (asset.mapStatus as AssetStatus)
+  const col = STATUS_COLOR[status] ?? C.muted
+  const mode = d?.intervention_mode ? MODE[d.intervention_mode] : null
+  const mix = p?.subunits?.length ?? 0
+  const track = EVALUATION_TRACK[group]
+  const top = diagnosisSummary(placement)
+  const overrides = Object.values(asset.metricOverrides ?? {})
+  const simYear = overrides[0]?.year
+  const displayId = asset.id.startsWith('A-') ? asset.id.replace('A-', 'FAC-')
+    : asset.id.startsWith('G-') ? asset.id.replace('G-', 'GRN-') : asset.id
+
   return (
-    <>
-      <SectionTitle title="Core metrics" />
-      <div className="core-grid">
-        {metrics.map((m) => <CoreTile key={m.key} m={m} />)}
+    <div className="fade">
+      <h2 style={{ margin: 0, fontSize: 21, fontWeight: 600, letterSpacing: '-0.01em' }}>{asset.name}</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0 8px', marginTop: 4, fontSize: 12.5, color: C.faint }}>
+        <span style={mono}>{displayId}</span>
+        <span>· {assetTypeLabel(asset.assetType)}</span>
+        {p?.identity.subtype && <span>· {subtypeLabel(p.identity.subtype)}</span>}
       </div>
-    </>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+        {p?.authority && (
+          <span className="pill" style={{ color: AUTHORITY_COLOR[group] }} title={track.why}>
+            {AUTHORITY_GROUP_LABEL[group]}
+          </span>
+        )}
+        {mode && d?.intervention_mode && (
+          <span className="pill" style={{ color: mode.color }} title={mode.title}>
+            {mode.icon} {modeLabel(d.intervention_mode)}
+          </span>
+        )}
+        {mix > 1 && (
+          <span className="pill" style={{ color: C.muted }} title="Unit mix from the asset register; details in the Tenancy tab">
+            Mixed use · {mix} subtypes
+          </span>
+        )}
+      </div>
+      <div className="metric-note" style={{ marginTop: 6 }}>Evaluated on {track.label.toLowerCase()}</div>
+
+      <div style={{ marginTop: 14 }}>
+        <CoreMetrics asset={asset} />
+      </div>
+
+      <div className="diag-summary" title="Status, then the two highest-weighted flags">
+        <span className="diag-dot" style={{ background: col }} />
+        <span style={{ color: col, fontWeight: 600 }}>{statusLabel(status)}</span>
+        {top.length > 0
+          ? <span style={{ color: '#cfc6cd' }}>· {top.join(', ')}</span>
+          : <span style={{ color: C.faint }}>· no flags raised</span>}
+      </div>
+
+      {asset.selectedYear != null && asset.diagnosisYear != null && asset.diagnosisYear !== asset.selectedYear && (
+        <div className="metric-note" style={{ color: '#f7931d' }}>
+          Showing the {asset.diagnosisYear} diagnosis: {asset.selectedYear} was not generated for this scenario.
+        </div>
+      )}
+      {simYear != null && (
+        <div className="metric-note">
+          Values labelled simulated, estimated or assumed come from the {simYear} scenario; everything else is the 2026 baseline.
+        </div>
+      )}
+    </div>
   )
 }
 
-function Pillars({ asset }: { asset: Asset }) {
-  const p = asset.profile
-  if (!p) return null
-  const core = new Set(coreMetricKeys(asset.assetType, authorityGroup(p)))
-  const env = p.environmental
+/* ---------- Diagnosis tab: one list, flag + tier + weight, expandable ---------- */
+
+function DiagnosisTab({ asset, placement, open, onToggle, onTenancy, color }: {
+  asset: Asset
+  placement: Placement
+  open: Set<string>
+  onToggle: (key: string) => void
+  onTenancy: () => void
+  color: string
+}) {
+  if (placement.flags.length === 0) {
+    return <p className="metric-note">No flags raised for this asset in {asset.diagnosisYear ?? 2026}.</p>
+  }
+  return (
+    <div>
+      <div className="flag-head">
+        <span>Flag</span><span>Weight</span>
+      </div>
+      {placement.flags.map((f) => {
+        const key = `${asset.id}:${f.flag}`
+        const isOpen = open.has(key)
+        const hasDetail = f.evidence.length > 0 || f.seeTenancy || f.sharedWith.length > 0
+        return (
+          <div key={f.flag}>
+            <button
+              className={`flag-row${isOpen ? ' open' : ''}`}
+              onClick={() => hasDetail && onToggle(key)}
+              aria-expanded={hasDetail ? isOpen : undefined}
+              style={{ cursor: hasDetail ? 'pointer' : 'default' }}
+            >
+              <span className="flag-chev" style={{ visibility: hasDetail ? 'visible' : 'hidden' }}>▸</span>
+              <span className="flag-label">{f.label}</span>
+              {f.tier ? <TierBadge tier={f.tier} /> : <span />}
+              <span className="flag-bar"><i style={{ width: `${Math.round(f.weight * 100)}%`, background: color }} /></span>
+              <span className="flag-pct" style={mono}>{Math.round(f.weight * 100)}%</span>
+            </button>
+            {isOpen && (
+              <div className="flag-evidence">
+                {f.evidence.map((m) => <MetricRow key={m.key} m={m} />)}
+                {f.sharedWith.length > 0 && (
+                  <div className="metric-note">
+                    {f.evidence.length > 0 ? 'Other values are' : 'Values are'} shown under {f.sharedWith.join(', ')}.
+                  </div>
+                )}
+                {f.seeTenancy && (
+                  <button className="link-btn" onClick={onTenancy}>Per-subtype occupancy is in the Tenancy tab →</button>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ---------- Metrics tab: four collapsible pillars ---------- */
+
+function MetricsTab({ asset, placement }: { asset: Asset; placement: Placement }) {
+  const env = asset.profile?.environmental
+  const defaults = openPillars(asset.assetType)
+  const any = PILLARS.some((p) => placement.pillars[p].length > 0)
+  if (!any) return <p className="metric-note">No further metrics for this asset.</p>
   return (
     <>
-      <SectionTitle title="All metrics" right="T1 observed · T2 derived · 3A estimate · 3B counterfactual · U unknown" />
       {PILLARS.map((pillar) => {
-        const rows = pillarMetrics(asset, pillar, core)
+        const rows = placement.pillars[pillar]
         if (rows.length === 0) return null
         return (
-          <details key={pillar} className="pillar" open>
+          <details key={`${asset.id}-${pillar}`} className="pillar" open={defaults.has(pillar)}>
             <summary>{pillar}<span className="pillar-count">{rows.length}</span></summary>
             <div>
               {rows.map((m) => <MetricRow key={m.key} m={m} />)}
-              {pillar === 'Environmental' && (env.surface_temp_provenance || env.surface_temp_source_catalog) && (
+              {pillar === 'Environmental' && env && (env.surface_temp_provenance || env.surface_temp_source_catalog) && (
                 <div className="metric-note">
                   {[
                     env.surface_temp_provenance,
@@ -169,7 +285,7 @@ function Pillars({ asset }: { asset: Asset }) {
   )
 }
 
-/* ---------- Subtype tenancy mix ---------- */
+/* ---------- Tenancy tab: subtype mix + external signals ---------- */
 
 function SubtypeMix({ asset }: { asset: Asset }) {
   const subs = asset.profile?.subunits
@@ -198,7 +314,7 @@ function SubtypeMix({ asset }: { asset: Asset }) {
 
   return (
     <>
-      <SectionTitle title="Subtype tenancy mix" color={C.muted} />
+      <div className="tab-subtitle">Subtype tenancy mix</div>
       <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
         <thead>
           <tr style={{ borderBottom: `1px solid ${C.line}`, color: C.muted, textAlign: 'left' }}>
@@ -217,7 +333,7 @@ function SubtypeMix({ asset }: { asset: Asset }) {
         <tbody>
           {subs.map((s) => (
             <tr key={s.subtype} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <td style={{ padding: '5px 0', color: C.text }}>{pretty(s.subtype)}</td>
+              <td style={{ padding: '5px 0', color: C.text }}>{subtypeLabel(s.subtype)}</td>
               <td style={{ ...td, color: C.muted }}>
                 {formatValue(s.area_m2, 'area').text}<span className="metric-unit">m²</span>
               </td>
@@ -233,7 +349,12 @@ function SubtypeMix({ asset }: { asset: Asset }) {
   )
 }
 
-// 2. Update the props definition of the component
+function hasTenancy(asset: Asset): boolean {
+  return (asset.profile?.subunits?.length ?? 0) > 0 || hasExternalSignals(asset)
+}
+
+/* ---------- Panel ---------- */
+
 export function AssetPanel(props: {
   assets: Asset[]
   question: string
@@ -242,23 +363,24 @@ export function AssetPanel(props: {
   analysis: AnalyzeResult | null
   loading: boolean
   error: string | null
-  onAsk: (files: File[]) => void // UPDATE: now accepts files
+  onAsk: (files: File[]) => void
   previewing: boolean
   onPreview: () => void
   onClearPreview: () => void
   onSimulate: () => void
   onClose: () => void
   history: AnalyzeHistoryItem[]
+  /** Selected tab; owned by App so it survives selecting another asset. */
+  tab: PanelTab
+  onTab: (t: PanelTab) => void
 }) {
   const { assets, analysis, asked, error, previewing, history } = props
   const multi = assets.length > 1
 
-  // 3. Add file upload state
   const [files, setFiles] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // 🆕 ADDED: State to hold the current PDF preview URL
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [openFlags, setOpenFlags] = useState<Set<string>>(new Set())
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -273,18 +395,14 @@ export function AssetPanel(props: {
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
-  // 🆕 ADDED: Open the PDF preview
   const handlePreviewFile = (file: File) => {
     if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+      setPreviewUrl(URL.createObjectURL(file))
     } else {
-      // Optional: Handle non-PDF previews or just alert
-      alert("Preview is currently optimized for PDF files.")
+      alert('Preview is currently optimized for PDF files.')
     }
   }
 
-  // 🆕 ADDED: Close and cleanup memory
   const handleClosePreview = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
@@ -292,9 +410,30 @@ export function AssetPanel(props: {
     }
   }
 
+  const toggleFlag = (key: string) =>
+    setOpenFlags((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+
+  const placements = new Map(assets.map((a) => [a.id, placeMetrics(a)]))
+  const showTenancy = assets.some(hasTenancy)
+  const tabs = PANEL_TABS.filter((t) => t.key !== 'tenancy' || showTenancy)
+  // A remembered Tenancy tab falls back to Diagnosis (without forgetting it).
+  const tab: PanelTab = props.tab === 'tenancy' && !showTenancy ? 'diagnosis' : props.tab
+
+  const perAsset = (render: (a: Asset, pl: Placement) => React.ReactNode, filter?: (a: Asset) => boolean) =>
+    assets.filter(filter ?? (() => true)).map((a) => (
+      <div key={a.id} className="tab-asset">
+        {multi && <div className="tab-asset-name">{a.name}</div>}
+        {render(a, placements.get(a.id)!)}
+      </div>
+    ))
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 🆕 ADDED: A4 PDF Preview Modal Overlay */}
       {previewUrl && (
         <div
           onClick={handleClosePreview}
@@ -302,40 +441,27 @@ export function AssetPanel(props: {
             position: 'fixed', inset: 0, zIndex: 9999,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(20, 14, 19, 0.25)', backdropFilter: 'blur(1px)',
-            padding: 40
+            padding: 40,
           }}
         >
           <div
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the A4 page
+            onClick={(e) => e.stopPropagation()}
             className="pop"
             style={{
-              position: 'relative',
-              background: '#fff', // Standard A4 paper color
-              width: '100%', maxWidth: '650px', // A4 ratio approx
-              aspectRatio: '1 / 1.414', // Perfect A4 proportion
-              maxHeight: '90vh',
-              borderRadius: 4,
-              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-              overflow: 'hidden',
-              display: 'flex', flexDirection: 'column'
+              position: 'relative', background: '#fff',
+              width: '100%', maxWidth: '650px', aspectRatio: '1 / 1.414', maxHeight: '90vh',
+              borderRadius: 4, boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+              overflow: 'hidden', display: 'flex', flexDirection: 'column',
             }}
           >
-            {/* Top Control Bar for the Preview */}
             <div style={{
               background: '#241c23', color: '#fff', padding: '10px 16px',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              borderBottom: '1px solid #3d3140'
+              borderBottom: '1px solid #3d3140',
             }}>
               <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.05em' }}>📄 Document Preview</span>
-              <button
-                onClick={handleClosePreview}
-                style={{ background: 'none', border: 0, color: '#cfc6cd', fontSize: 20, cursor: 'pointer' }}
-              >
-                ×
-              </button>
+              <button onClick={handleClosePreview} style={{ background: 'none', border: 0, color: '#cfc6cd', fontSize: 20, cursor: 'pointer' }}>×</button>
             </div>
-
-            {/* Native Browser PDF Renderer */}
             <iframe
               src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
               style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
@@ -345,7 +471,7 @@ export function AssetPanel(props: {
         </div>
       )}
 
-      <div className="fade" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+      <div className="fade" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <span style={{ ...cap, fontSize: 10 }}>
           {multi ? `${assets.length} assets selected` : 'Selected asset'}
         </span>
@@ -353,184 +479,78 @@ export function AssetPanel(props: {
         <button className="ctrl" onClick={props.onClose} style={{ background: 'none', border: 0, color: C.muted, fontSize: 20, cursor: 'pointer', width: 30, height: 30, borderRadius: 6, lineHeight: 1, flex: 'none' }}>×</button>
       </div>
 
-      {!multi && !analysis && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '8px 11px', borderRadius: 7, background: C.card, border: `1px solid ${C.line}`, fontSize: 11.5, color: C.faint, lineHeight: 1.5 }}>
-          <kbd style={{ ...mono, fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd' }}>Ctrl</kbd>
-          click another asset to analyse them together
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 }}>
+        {assets.map((asset, idx) => (
+          <div key={asset.id} style={{ marginTop: idx === 0 ? 2 : 26 }}>
+            <AssetHeader asset={asset} placement={placements.get(asset.id)!} />
+          </div>
+        ))}
+
+        <div className="tabs" role="tablist" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={tab === t.key}
+              className={`tab${tab === t.key ? ' on' : ''}`}
+              onClick={() => props.onTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-      )}
 
-      <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
-        {assets.map((asset, idx) => {
-          const d = asset.diagnosis
-          const p = asset.profile
-          const col = d
-            ? STATUS_COLOR[d.status as AssetStatus] ?? C.muted
-            : STATUS_COLOR[asset.mapStatus as AssetStatus] ?? C.muted
-          const group = authorityGroup(p)
-          const mode = d?.intervention_mode ? MODE[d.intervention_mode] : null
-          const overrides = Object.values(asset.metricOverrides ?? {})
-          const simYear = overrides[0]?.year
-          const evidenceYear = asset.diagnosisYear ?? 2026
-
-          // Check if this asset has a globally accepted intervention
-          const acceptedItem = history.find(h => h.status === 'accepted')
-          const isPrimaryIntervened = acceptedItem?.result.interventions?.some(i => i.target_asset_id === asset.id && i.role === 'primary')
-
-          // Check current analysis for catalytic links
-          const isCatalyticBeneficiary = analysis?.interventions?.some(i => i.beneficiary_asset_id === asset.id)
-          const catalyticTargetId = analysis?.interventions?.find(i => i.beneficiary_asset_id === asset.id)?.target_asset_id
-
-          return (
-            <div key={asset.id} style={{ marginTop: idx === 0 ? 6 : 36 }}>
-
-              <h2 className="fade" style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{asset.name}</h2>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                <span style={{ ...mono, fontSize: 12, color: C.faint }}>
-                  {asset.id.startsWith('A-') ? asset.id.replace('A-', 'FAC-') :
-                   asset.id.startsWith('G-') ? asset.id.replace('G-', 'GRN-') :
-                   asset.id}
-                </span>
-                <span style={{ fontSize: 13, color: C.faint }}>
-                  · {asset.subtype ? asset.subtype.replace(/_/g, ' ') : asset.assetType}
-                </span>
-              </div>
-
-              {/* Status · authority · intervention mode */}
-              <div className="fade" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-                <span className="pill" style={{ color: col, background: `${col}15` }}>
-                  {pretty(d?.status ?? asset.mapStatus)}
-                </span>
-                {p?.authority && (
-                  <span
-                    className="pill"
-                    style={{ color: AUTHORITY_COLOR[group] }}
-                    title={`authority: ${p.authority.level} · ownership: ${p.authority.ownership_status}`}
-                  >
-                    {AUTHORITY_GROUP_LABEL[group]}
-                  </span>
-                )}
-                {mode && d?.intervention_mode && (
-                  <span className="pill" style={{ color: mode.color }} title={mode.title}>
-                    {mode.icon} {d.intervention_mode}
-                  </span>
-                )}
-              </div>
-
-              {asset.selectedYear != null && asset.diagnosisYear != null && asset.diagnosisYear !== asset.selectedYear && (
-                <div className="metric-note" style={{ color: '#f7931d', marginTop: 8 }}>
-                  Showing the {asset.diagnosisYear} diagnosis: {asset.selectedYear} was not generated for this scenario.
-                </div>
-              )}
-              {simYear != null && (
-                <div className="metric-note" style={{ marginTop: 8 }}>
-                  Values labelled simulated, estimated or assumed come from the {simYear} scenario; everything else is the 2026 baseline.
-                </div>
-              )}
-
-              {p && <CoreMetrics asset={asset} />}
-              {p && <ExternalSignalsPanel asset={asset} />}
-              {p && <SubtypeMix asset={asset} />}
-
-              {/* Intervention Alerts */}
-              {isPrimaryIntervened && (
-                <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,210,255,0.1)', border: '1px solid rgba(0,210,255,0.3)', borderRadius: 6 }}>
-                  <span style={{ fontSize: 11, color: '#00d2ff', fontWeight: 600 }}>🚧 PRIMARY INTERVENTION ACTIVE</span>
-                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#cfc6cd' }}>
-                    This asset is currently undergoing primary structural intervention.
-                  </p>
-                </div>
-              )}
-
-              {isCatalyticBeneficiary && (
-                <div style={{ marginTop: 16, padding: 12, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 6 }}>
-                  <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>✨ CATALYTIC BENEFICIARY</span>
-                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#cfc6cd' }}>
-                    This asset benefits from nearby intervention at <b>{catalyticTargetId}</b>.
-                  </p>
-                </div>
-              )}
-
-              {/* Diagnosis */}
-              {d && (d.flags.length > 0 || d.contributing_factors.length > 0) && (
-                <>
-                  <SectionTitle title="Diagnosis" right={`${evidenceYear}`} />
-                  {d.flags.length > 0 && (
-                    <div className="fade d1" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-                      {d.flags.map((f) => {
-                        const tier = d.flag_tiers?.[f] ? FLAG_TIER[d.flag_tiers[f]] : undefined
-                        return (
-                          <span key={f} className="flag-chip">
-                            {pretty(f)}
-                            {tier ? <TierBadge tier={tier} /> : <span style={{ width: 2 }} />}
-                          </span>
-                        )
-                      })}
-                    </div>
-                  )}
-                  {d.contributing_factors.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 12 }}>
-                      {d.contributing_factors.map((f) => (
-                        <Bar key={f.factor} label={pretty(f.factor)} value={Math.round(f.contribution * 100)} color={col} suffix="%" />
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Evidence */}
-              {d && d.evidence.length > 0 && (
-                <>
-                  <SectionTitle title="Supporting evidence" color="#cfc6cd" right={`${evidenceYear} diagnosis`} />
-                  <div className="fade d2" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 8, padding: '2px 12px', border: `1px solid ${C.line}` }}>
-                    {d.evidence.map((line, i) => {
-                      const splitIdx = line.indexOf(':')
-                      const isMultiLine = line.includes('\n')
-                      const isThermalEvidence = line.startsWith('Observed land surface temperature')
-                      const last = i === d.evidence.length - 1
-                      if (splitIdx !== -1 && !isMultiLine && !isThermalEvidence) {
-                        const label = line.slice(0, splitIdx).trim()
-                        const value = line.slice(splitIdx + 1).trim().replace(/\bnan\b/gi, '—')
-                        return (
-                          <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontSize: 12.5, padding: '8px 0', borderBottom: last ? 'none' : `1px dashed ${C.line}` }}>
-                            <span style={{ color: C.muted, flex: 1, lineHeight: 1.4 }}>{label}</span>
-                            <span style={{ ...mono, color: C.text, textAlign: 'right', flexShrink: 0, fontWeight: 500 }}>{value}</span>
-                          </div>
-                        )
-                      }
-
-                      const safeLine = (splitIdx !== -1 ? line.slice(splitIdx + 1).trim() : line).replace(/\bnan\b/gi, '—')
-                      return (
-                        <div key={i} style={{ padding: '8px 0', borderBottom: last ? 'none' : `1px dashed ${C.line}` }}>
-                          {splitIdx !== -1 && (
-                            <div style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 4 }}>
-                              {line.slice(0, splitIdx).trim()}
-                            </div>
-                          )}
-                          <div style={{
-                            fontSize: 12.5,
-                            color: '#cfc6cd',
-                            whiteSpace: 'pre-wrap',
-                            overflowWrap: 'anywhere',
-                            wordBreak: 'break-word',
-                            lineHeight: 1.5,
-                            fontFamily: mono.fontFamily,
-                          }}>
-                            {safeLine}
-                          </div>
-                        </div>
-                      )
-                    })}
+        <div className="tab-body">
+          {tab === 'diagnosis' && perAsset((a, pl) => {
+            const d = a.diagnosis
+            const col = STATUS_COLOR[(d?.status ?? a.mapStatus) as AssetStatus] ?? C.muted
+            const acceptedItem = history.find((h) => h.status === 'accepted')
+            const isPrimaryIntervened = acceptedItem?.result.interventions?.some((i) => i.target_asset_id === a.id && i.role === 'primary')
+            const catalyticTargetId = analysis?.interventions?.find((i) => i.beneficiary_asset_id === a.id)?.target_asset_id
+            return (
+              <>
+                {isPrimaryIntervened && (
+                  <div className="callout" style={{ background: 'rgba(0,210,255,0.08)', borderColor: 'rgba(0,210,255,0.3)' }}>
+                    <span style={{ fontSize: 11, color: '#00d2ff', fontWeight: 600 }}>Primary intervention active</span>
+                    <p>This asset is undergoing the accepted plan's primary intervention.</p>
                   </div>
-                </>
+                )}
+                {catalyticTargetId && (
+                  <div className="callout" style={{ background: 'rgba(168,85,247,0.08)', borderColor: 'rgba(168,85,247,0.3)' }}>
+                    <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>Catalytic beneficiary</span>
+                    <p>This asset benefits from the intervention at <b>{catalyticTargetId}</b>.</p>
+                  </div>
+                )}
+                <DiagnosisTab
+                  asset={a} placement={pl} open={openFlags} onToggle={toggleFlag}
+                  onTenancy={() => props.onTab('tenancy')} color={col}
+                />
+              </>
+            )
+          })}
+
+          {tab === 'metrics' && perAsset((a, pl) => <MetricsTab asset={a} placement={pl} />)}
+
+          {tab === 'tenancy' && perAsset((a, pl) => (
+            <>
+              <SubtypeMix asset={a} />
+              <ExternalSignalsPanel asset={a} hidden={pl.claimed} />
+            </>
+          ), hasTenancy)}
+
+          {tab === 'ask' && (
+            <>
+              {!multi && !analysis && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, padding: '8px 11px', borderRadius: 7, background: C.card, border: `1px solid ${C.line}`, fontSize: 11.5, color: C.faint, lineHeight: 1.5 }}>
+                  <kbd style={{ ...mono, fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd' }}>Ctrl</kbd>
+                  click another asset to analyse them together
+                </div>
               )}
-
-              {p && <Pillars asset={asset} />}
-            </div>
-          )
-        })}
-
-        <hr style={{ border: 0, borderTop: `1px solid ${C.line}`, margin: '28px 0' }} />
+              {!analysis && !error && (
+                <p className="metric-note">
+                  Ask what to do with {multi ? 'these assets' : 'this asset'}. The AI proposes candidate plans, simulates them to 2033 and explains its choice.
+                </p>
+              )}
 
         {error && (
           <div className="fade" style={{ padding: 14, marginBottom: 20, borderRadius: 8, background: 'rgba(215,25,32,0.1)', border: '1px solid rgba(215,25,32,0.3)', fontSize: 13, color: '#f0b8b8' }}>
@@ -610,7 +630,7 @@ export function AssetPanel(props: {
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
                               <span style={{ color: C.muted }}>Primary material</span>
                               <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
-                                {spec.primary_material.replace(/_/g, ' ')}
+                                {humanize(spec.primary_material)}
                               </span>
                             </div>
                           )}
@@ -618,7 +638,7 @@ export function AssetPanel(props: {
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
                               <span style={{ color: C.muted }}>Facade</span>
                               <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
-                                {spec.facade_action.replace(/_/g, ' ')}
+                                {humanize(spec.facade_action)}
                               </span>
                             </div>
                           )}
@@ -626,7 +646,7 @@ export function AssetPanel(props: {
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
                               <span style={{ color: C.muted }}>Roof</span>
                               <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
-                                {spec.roof_intervention.replace(/_/g, ' ')}
+                                {humanize(spec.roof_intervention)}
                               </span>
                             </div>
                           )}
@@ -675,7 +695,7 @@ export function AssetPanel(props: {
                           <MetricLine m={m} lowerIsBetter />
                           {m.cooling_source && m.cooling_source !== 'none' && (
                             <div style={{ fontSize: 10.5, color: C.faint, paddingLeft: 8, marginTop: -2, marginBottom: 4, fontStyle: 'italic' }}>
-                              cooling source: {m.cooling_source.replace(/_/g, ' ')}
+                              Cooling source: {humanize(m.cooling_source).toLowerCase()}
                               {m.cooling_from_roof_c != null && m.cooling_from_roof_c > 0 && (
                                 <> · roof −{m.cooling_from_roof_c.toFixed(2)} °C</>
                               )}
@@ -703,8 +723,8 @@ export function AssetPanel(props: {
                               const isDead = sub.occupancy_intervention === 0;
                               return (
                                 <tr key={sub.subtype} style={{ borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                                  <td style={{ padding: '6px 0', textTransform: 'capitalize', color: isDead ? C.faint : C.text }}>
-                                    {sub.subtype.replace(/_/g, ' ')}
+                                  <td style={{ padding: '6px 0', color: isDead ? C.faint : C.text }}>
+                                    {subtypeLabel(sub.subtype)}
                                   </td>
                                   <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: C.muted }}>
                                     {sub.area_m2} m²
@@ -847,9 +867,12 @@ export function AssetPanel(props: {
             </div>
           </div>
         )}
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Bottom Input Area (With File Chips) */}
+      {tab === 'ask' && (
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.line}` }}>
         <label htmlFor="q" style={{ ...cap, fontSize: 10, display: 'block', marginBottom: 10, color: C.faint }}>
           {analysis ? 'Ask a follow-up question' : multi ? `Ask about these ${assets.length} assets` : `Ask about ${assets[0].name}`}
@@ -922,6 +945,7 @@ export function AssetPanel(props: {
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

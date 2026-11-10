@@ -370,6 +370,7 @@ def build_profiles(year=2026):
                 "capex_initial_rm": capex,
                 "opex_annual_rm": _safe_float(a.get("opex_annual_rm"), 0),
                 "maintenance_annual_rm": _safe_float(a.get("maintenance_annual_rm"), 0),
+                "maintenance_surge_rm": _safe_float(m.get("maintenance_surge_rm"), 0),
                 "rental_income_rm": _safe_float(m.get("rental_income_rm")),
                 "noi_rm": _safe_float(m.get("noi_rm")),
                 "noi_yield": _safe_float(m.get("noi_yield"), 4),
@@ -400,6 +401,7 @@ def build_profiles(year=2026):
                 "coverage_ratio_10min_walk": _safe_float(m.get("coverage_ratio_10min_walk"), 3),
                 "coverage_ratio_15min_walk": _safe_float(m.get("coverage_ratio_15min_walk"), 3),
                 "coverage_ratio_10min_drive": _safe_float(m.get("coverage_ratio_10min_drive"), 3),
+                "median_walk_distance_m": _safe_float(m.get("median_walk_distance_m"), 0),
                 "reachable_population_walk": _safe_float(m.get("reachable_population_walk"), 0),
                 "effective_demand_m2": _safe_float(m.get("effective_demand_m2")),
                 "demographic_mismatch": _safe_float(m.get("demographic_mismatch"), 3),
@@ -462,6 +464,12 @@ def build_profiles(year=2026):
                 ),
                 "occupancy_trend_3yr": _safe_float(m.get("occupancy_trend_3yr"), 4),
                 "vacancy_streak_months": _safe_float(m.get("vacancy_streak_months"), 0),
+                # B3 fills this for every asset; it only means something
+                # when there is an occupancy record behind it.
+                "years_below_benchmark": (
+                    _safe_float(m.get("years_below_benchmark"), 0)
+                    if _safe_float(m.get("occupancy_rate")) is not None else None
+                ),
             },
             "deadspace_diagnosis": {
                 "status": ds.get("status", "healthy"),

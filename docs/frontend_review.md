@@ -21,6 +21,8 @@ Files reviewed: `App.tsx` (map, search, filters, year switching, interventions),
 10. **The "intervened" colour differs by view.** It's `#00d2ff` on the map (`STATUS_PAINT` / `STATUS_HEX`) but `#2196f3` in the list and panel.
 11. **The production bundle ships mock LLM scenarios.** `api.ts` imports `../../legacy/mockData` (outside `frontend/`), even though `USE_MOCK_LLM = false`. That inflates the 1.2 MB `App` chunk and makes the build depend on a folder outside the frontend.
 
+14. **DeadspaceList occupancy and vacancy text come from stale evidence strings.** The list cards parse `Occupancy:` / `Vacancy:` from `deadspace_diagnosis.evidence`, which an older B6 run generated (see DECISIONS D18.1). They can disagree with the AssetPanel, which uses the served profile. They should read `social.occupancy_rate` and `social.vacancy_duration_months` instead. (Status and subtype on the cards were switched to human labels in this change.)
+
 ## Performance
 
 12. **The intervention pulse animation never stops.** `animatePulse()` runs a `requestAnimationFrame` loop from map load onwards and calls `setPaintProperty` on two layers every frame, even with no interventions. It also replaces the zoom-interpolated `circle-radius` with a fixed number, so pulse size no longer scales with zoom.
@@ -34,4 +36,5 @@ Files reviewed: `App.tsx` (map, search, filters, year switching, interventions),
 - The owned subtype table read a field the API never sent, so it always showed "—".
 - Sold-asset stranded carbon was computed in the browser as `1 − proxied occupancy` and labelled 3a.
 - Simulated-year occupancy for sold assets was shown as plain "Occupancy", with no tier.
+- Second pass: the panel is split into an always-visible block and four tabs; flags and their weights are one list; evidence strings are no longer rendered; every value appears once; the subtype shown is the register subtype, not "Mixed-Use Commercial".
 - `DeadspaceList` used a left accent border, and was missing the `intervened` colour, which broke `npm run build`.

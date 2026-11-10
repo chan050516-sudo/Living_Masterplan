@@ -10,7 +10,7 @@ import { ComparisonModal } from './components/ComparisonModal'
 import { HistoryPanel } from './components/HistoryPanel'
 import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
 import { createThreeLayer } from './threeLayer'
-import { applyYearMetrics } from './config/metricConfig'
+import { applyYearMetrics, subtypeLabel, assetTypeLabel, type PanelTab } from './config/metricConfig'
 import type { Asset, AssetProfile, AnalyzeResult } from './types'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
 
@@ -175,6 +175,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null)
   const [previewing, setPreviewing] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
+  // AssetPanel tab, kept here so it survives selecting another asset.
+  const [panelTab, setPanelTab] = useState<PanelTab>('diagnosis')
   const [mapReady, setMapReady] = useState(false)
 
   const [hint, setHint] = useState(false)
@@ -287,6 +289,7 @@ export default function App() {
       // 2. Pass files to runAnalysis
       const res = await runAnalysis(q, selectedIds, files)
       setAnalysis(res)
+      setPanelTab('ask')
       setQuestion('')
       
       const newItem: AnalyzeHistoryItem = { id: res.run_id || Date.now().toString(), result: res, status: 'pending' }
@@ -315,6 +318,7 @@ export default function App() {
   const handleSelectHistory = (item: AnalyzeHistoryItem) => {
     setSelectedIds(item.result.assets_analysis.map(a => a.asset_id))
     setAnalysis(item.result)
+    setPanelTab('ask')
     setAsked(item.result.decision.reasoning || '')
     setShowHistory(false)
     setActiveRunId(item.status === 'accepted' ? item.id : undefined)
@@ -404,15 +408,15 @@ export default function App() {
           if (id.startsWith('A-')) displayId = id.replace('A-', 'FAC-');
           if (id.startsWith('G-')) displayId = id.replace('G-', 'GRN-');
 
-          let displaySubtype = finalProfile?.identity.subtype ?? null;
+          // The subtype shown is always the register subtype: it is what B6
+          // benchmarks the asset against. A unit mix is shown separately
+          // (header badge + Tenancy tab), never as a replacement subtype.
+          const registerSubtype = finalProfile?.identity.subtype ?? null
           let displayName = finalProfile?.identity.asset_name ?? displayId;
 
-          const isMixedUse = 
-            (finalProfile?.subunits && finalProfile.subunits.length > 1) || 
-            (dynamicDiagnosis?.evidence && dynamicDiagnosis.evidence.some((e: any) => e.includes('Subtype occupancy:')));
+          const isMixedUse = (finalProfile?.subunits?.length ?? 0) > 1
 
           if (isMixedUse) {
-             displaySubtype = "Mixed-Use Commercial";
              const lettable = finalProfile?.physical.lettable_area_m2 ?? 0;
              if (lettable > 4000) {
                 displayName = `Mixed-Use Hub ${displayId}`;
@@ -421,16 +425,8 @@ export default function App() {
              } else {
                 displayName = `Commercial Block ${displayId}`;
              }
-          } else if (finalProfile?.identity.asset_type === 'residential') {
-             const sub = finalProfile.identity.subtype || 'residential';
-             const prettySub = sub.replace(/_/g, ' ').replace(/\b\w/g, (l: any) => l.toUpperCase());
-             displayName = `${prettySub} ${displayId}`;
-             displaySubtype = "Residential";
-          } else if (finalProfile?.identity.asset_type === 'community_facility') {
-             displaySubtype = finalProfile.identity.subtype ? 
-               finalProfile.identity.subtype.replace(/_/g, ' ').replace(/\b\w/g, (l: any) => l.toUpperCase()) : 
-               "Community Facility";
-             displayName = `${displaySubtype} ${displayId}`;
+          } else if (finalProfile?.identity.asset_type === 'residential' || finalProfile?.identity.asset_type === 'community_facility') {
+             displayName = `${subtypeLabel(registerSubtype) || assetTypeLabel(finalProfile.identity.asset_type)} ${displayId}`;
           }
 
           const diagYearRaw = (p as any).diagnosis_year
@@ -442,7 +438,7 @@ export default function App() {
           list.push({
             id, 
             name: displayName, 
-            subtype: displaySubtype, 
+            subtype: registerSubtype,
             assetType: finalProfile?.identity.asset_type ?? 'unknown', 
             mapStatus,
             profile: finalProfile, 
@@ -1039,6 +1035,7 @@ export default function App() {
               onClearPreview={() => { setActiveRunId(undefined); setPreviewing(false); }} 
               onSimulate={() => analysis && setShowComparison(true)} onClose={closePanel}
               history={history}
+              tab={panelTab} onTab={setPanelTab}
             />
           ) : (
             <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} filter={listFilter} onFilter={setListFilter} />

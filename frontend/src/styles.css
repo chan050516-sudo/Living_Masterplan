@@ -86,7 +86,59 @@ body { font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing
   text-transform: uppercase; font-weight: 700; border: 1px solid currentColor; border-radius: 4px;
   padding: 3px 8px; background: rgba(255,255,255,.04); white-space: nowrap;
 }
-.flag-chip {
-  display: inline-flex; align-items: center; gap: 6px; font-size: 11px; padding: 3px 4px 3px 9px;
-  border-radius: 6px; background: #271e26; border: 1px solid #473b46; color: #cfc6cd;
+
+/* One-line diagnosis summary under the core cards */
+.diag-summary {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 6px; margin-top: 12px;
+  font-size: 12.5px; line-height: 1.45;
 }
+.diag-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; align-self: center; }
+
+/* Tab bar: short labels, equal columns, never scrolls sideways */
+.tabs {
+  display: grid; margin-top: 16px; border-bottom: 1px solid #473b46;
+  position: sticky; top: 0; z-index: 1; background: #332832;
+}
+.tab {
+  min-width: 0; padding: 9px 2px 8px; background: none; border: 0; border-bottom: 2px solid transparent;
+  margin-bottom: -1px; color: #99a5c0; font: inherit; font-size: 12px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.tab:hover { color: #f2eef1; }
+.tab.on { color: #f2eef1; border-bottom-color: #f7931d; }
+.tab-body { padding-top: 6px; padding-bottom: 12px; }
+.tab-asset + .tab-asset { margin-top: 20px; }
+.tab-asset-name { font-size: 12px; font-weight: 600; color: #cfc6cd; padding: 8px 0 4px; }
+.tab-subtitle {
+  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #7b7080;
+  border-bottom: 1px solid #473b46; padding: 10px 0 6px; margin-bottom: 2px;
+}
+
+/* Diagnosis tab: one row per flag, expandable to its evidence */
+.flag-head {
+  display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; color: #7b7080; padding: 8px 0 4px; border-bottom: 1px solid #473b46;
+}
+.flag-row {
+  width: 100%; display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 56px 32px;
+  align-items: center; column-gap: 8px; padding: 8px 0; background: none; border: 0;
+  border-bottom: 1px dashed #473b46; color: #f2eef1; font: inherit; font-size: 12.5px; text-align: left;
+}
+.flag-row:hover .flag-label { color: #fff; }
+.flag-chev { color: #7b7080; font-size: 10px; transition: transform .15s ease; }
+.flag-row.open .flag-chev { transform: rotate(90deg); }
+.flag-label { min-width: 0; overflow-wrap: anywhere; color: #e4dde2; }
+.flag-bar { height: 4px; border-radius: 2px; background: #3e333d; overflow: hidden; }
+.flag-bar > i { display: block; height: 100%; border-radius: 2px; }
+.flag-pct { font-size: 11px; color: #7b7080; text-align: right; }
+.flag-evidence { padding: 2px 0 8px 18px; border-bottom: 1px dashed #473b46; }
+.link-btn {
+  background: none; border: 0; padding: 6px 0 2px; color: #f7931d; font: inherit; font-size: 11.5px; cursor: pointer;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.callout {
+  border: 1px solid; border-radius: 6px; padding: 10px 12px; margin: 10px 0 4px;
+}
+.callout p { margin: 4px 0 0; font-size: 12px; color: #cfc6cd; }

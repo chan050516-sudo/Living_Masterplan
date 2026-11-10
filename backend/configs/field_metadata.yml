@@ -92,7 +92,8 @@ asset_metrics:
                                       authority_tiers: { sold: 3b, shared: 3b, public_transferred: 3b } }
   noi_yield:                        { tier: 2, source: derived, unit: ratio,
                                       authority_tiers: { sold: 3b, shared: 3b, public_transferred: 3b } }
-  maintenance_surge_rm:             { tier: 2, source: derived, unit: RM }
+  maintenance_surge_rm:             { tier: 2, source: derived, unit: RM,
+                                      authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
   rental_income_per_visit_proxy:    { tier: 2, source: derived, unit: "RM/person/day" }
 
   # Deprecated bridge — kept during Phase 4 transition
@@ -333,6 +334,8 @@ profile_fields:
   years_since_peak:             { tier: 2, source: derived_from_occupancy_history, unit: year }
   occupancy_trend_3yr:          { tier: 2, source: derived_from_occupancy_history, unit: ratio }
   vacancy_streak_months:        { tier: 2, source: derived_from_occupancy_history, unit: month }
+  years_below_benchmark:        { tier: 2, source: derived_from_occupancy_history, unit: year,
+                                  note: "Consecutive years below 85% of the subtype occupancy benchmark" }
 
   # Survival OPEX floor (B6 layer3_survival), sold commercial only.
   estimated_revenue_rm:         { tier: 3a, source: survival_floor_model, unit: RM,

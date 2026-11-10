@@ -75,7 +75,7 @@ Branch `mathaba-panel`, 2026-11-10. Scope: backend limited to the profile build 
   - Core metrics are left out of the pillar lists, and so are the fields the signals panel shows (`signalsPanel`), to avoid showing them twice.
 - **Files:** `frontend/src/config/metricConfig.ts` (new), `frontend/src/types.ts`.
 
-### D8. AssetPanel layout
+### D8. AssetPanel layout (superseded by D13–D15)
 - **Order:**
   1. Header: name, ID, subtype, and pills for status, authority group (from `authority.level` + `ownership_status`) and intervention mode.
   2. Core metrics (2×2 tiles).
@@ -128,6 +128,67 @@ Branch `mathaba-panel`, 2026-11-10. Scope: backend limited to the profile build 
 ### D12. Build fixes
 `DeadspaceList.tsx` was missing the `intervened` status colour, which broke `tsc -b` before any of this work. Fixed.
 
+## Panel restructure (second pass)
+
+### D13. Always-visible block plus four tabs
+- **Always visible:**
+  - The header: name, ID · type · subtype, and badges for authority group, intervention mode, and "Mixed use · N subtypes".
+  - One line naming the evaluation lens. It moved here from ExternalSignalsPanel because it applies to every asset.
+  - The core-metric cards.
+  - A one-line diagnosis: status plus the two highest-weighted flags, e.g. "Deadspace candidate · Negative NOI, Long vacancy".
+  - The status sits only in that line, not also as a header pill, so it appears once.
+- **Tabs:** Diagnosis | Metrics | Tenancy | Ask AI.
+  - The bar is a CSS grid of equal columns with an underline on the active tab and no left borders. It is sticky inside the scroll area and never scrolls sideways.
+  - The selected tab lives in `App` (`panelTab`), not localStorage, so it survives selecting another asset.
+  - Tenancy is hidden when no selected asset has a unit mix or external signals. A remembered Tenancy tab then falls back to Diagnosis without being forgotten.
+  - Asking a question or opening a history item switches to Ask AI, where the result appears.
+- **Ask AI** holds the multi-select hint, the analysis result, and the question box, which is pinned at the bottom only on this tab.
+- **Files:** `frontend/src/components/AssetPanel.tsx`, `frontend/src/App.tsx`, `frontend/src/styles.css`, `frontend/src/config/metricConfig.ts` (`PANEL_TABS`).
+
+### D14. Diagnosis tab: one list, with evidence values from the profile
+- **What.** The flag chips and percentage bars are now one list. Each row has a human label, the served flag tier (`flag_tiers`) and a weight bar (`contributing_factors`), sorted by weight. Clicking a row expands the profile values tied to that flag (`FLAG_EVIDENCE` in `metricConfig.ts`). The separate Supporting Evidence section is gone.
+- **Why profile values, not evidence strings.** The B6 evidence strings are a frozen snapshot of older metrics (D15) and raw text. Rendering them would contradict the core cards. They stay in the API for the LLM and are no longer parsed by the panel.
+- **Evidence values not tied to a flag** are ordinary profile metrics and live in the Metrics tab.
+- **Profile additions so that no evidence value is lost:** `social.median_walk_distance_m`, `trajectory.years_below_benchmark` (only when an occupancy record exists) and `financial.maintenance_surge_rm` (tier 2, 3a for non-owned). These were the only evidence values with no profile field.
+- **Overlapping flags.** When two flags share evidence (e.g. a parcel's "More supply planned than demand" and "Weak future demand"), the values sit under the higher-weight flag, and the other row says where they are. Subtype-mix flags link to the Tenancy tab, which holds the per-subtype table.
+
+### D15. One value, one home
+- **The rule.** `placeMetrics()` gives every value exactly one place below the core cards:
+  1. Evidence of a raised flag, highest weight first.
+  2. Otherwise, ExternalSignalsPanel (Tenancy tab) for signal fields.
+  3. Otherwise, its pillar (Metrics tab).
+- **Core metrics** are the only allowed repeat: each keeps its one home as well as its card.
+- **ExternalSignalsPanel** takes a `hidden` set and skips rows already shown under a flag.
+- **Checked:** across all 916 assets there are 0 duplicate placements, and every served metric has a home, except values hidden on purpose (zero floor area on parcels, unit counts outside residential).
+
+### D16. Metrics tab defaults
+- Pillars are collapsible `<details>`. Financial and Social open by default; for parcels, Physical opens instead (`DEFAULT_OPEN_PILLARS`).
+- The tier legend line is gone. Every TierBadge tooltip now ends with the legend.
+
+### D17. Human labels
+- `metricConfig.ts` holds the label maps: `ASSET_TYPE_LABELS`, `SUBTYPE_LABELS`, `STATUS_LABELS`, `MODE_LABELS`, `TRAJECTORY_LABELS`, and `FLAG_LABELS` (all 41 flags `tiers.py` can raise).
+- Anything unlisted goes through `humanize()`, which turns snake_case into sentence case and keeps acronyms upper-case (NOI, DSR, LBS, UHI, GFA, …).
+- **Applied to:** the header, flags, summary line, subtype table, trajectory values, the analysis card's spec and subtype rows, and the DeadspaceList cards (status and subtype; their subtype now comes from the register, not the evidence string).
+- **Checked:** no snake_case text reaches the screen for any of the 916 assets.
+
+### D18. Inconsistencies found and their causes
+1. **BLD-0037 DSR: 1.04 in Core Metrics vs 0.93 in evidence.**
+   - The core card reads `financial.dsr`, served from `asset_metrics_enriched.csv` `dsr` = 1.043 (the 2026 row).
+   - The evidence line "DSR: 0.93" is a string inside `deadspace_2026.json`. That file was last generated at commit `de87549`, when the metrics file still had `dsr` = 0.932 (`161dffb`). The metrics were regenerated at `6baa3b8` (1.043) without re-running B6, so every evidence string is a snapshot of older metrics.
+   - **Decision:** the panel uses the served profile value (1.04) everywhere and no longer shows evidence strings (D14). Re-running B6 is listed for the team lead.
+2. **Header "Mixed-Use Commercial" vs evidence subtype "supermarket".**
+   - `App.tsx` replaced the subtype with "Mixed-Use Commercial" whenever an asset had a unit mix. The register (`assets.csv`) says `supermarket`, and that is what B6 uses: the occupancy benchmark from `taxonomy.yml`, and the supermarket entry in `DRIVING_CRITICAL_SUBTYPES` that drives the driving-access flag.
+   - **Decision:** show the register subtype ("Supermarket") and show the unit mix separately as a "Mixed use · 7 subtypes" badge plus the Tenancy table. The subtype the user sees is then the one the diagnosis was computed for.
+   - Note: BLD-0037's unit mix does not contain a supermarket unit at all (team-lead item 12).
+3. **Flag tier vs metric tier (negative_noi T1 while noi_rm is T2).**
+   - Per `field_metadata.yml`, `noi_rm` is tier 2 (derived: rental − OPEX − maintenance), so a flag computed from it is tier 2. `deadspace/tiers.py` puts `negative_noi` in `tier_1_observed`. **The metric tier (T2) is correct; the flag tier is a backend issue.**
+   - The same audit finds more mismatches. Too high: `noi_yield_below` (noi_yield T2), `maintenance_surge_high` (maintenance_surge_rm T2), `rapid_decline` / `falling_from_healthy` / `chronic_stagnation` (trajectory_class T2), all listed as T1. Too low: `high_uhi_exposure` and `uhi_data_anomaly` are T2 while their input `surface_temp_delta_c` is T1 (observed Landsat).
+   - The panel shows the served `flag_tiers` unchanged, and the detector code is untouched (team-lead item 11).
+
+### D19. Files touched in this pass
+- **Backend:** `backend/scripts/build_profiles.py`, `backend/configs/field_metadata.yml`, the regenerated profile JSON.
+- **Frontend:** `AssetPanel.tsx`, `ExternalSignalsPanel.tsx`, `TierBadge.tsx`, `DeadspaceList.tsx`, `App.tsx`, `config/metricConfig.ts`, `styles.css`.
+
 ## How profiles were regenerated
 `py -3.14 backend/scripts/build_profiles.py`. The repo's `.venv` and the default Python 3.12 have no pandas on this machine; Python 3.14 has pandas 3.0.5 and PyYAML. The output was checked against the previous JSON (D6) and on five sample assets: `BLD-0037` owned shop, `BLD-0193` sold shop, `BLD-0086` sold home, `A-0002` public facility, `P-VAC-GOLD-01` parcel.
 
@@ -145,3 +206,12 @@ These need a decision or a change outside this task's scope. None were changed.
 8. **`shared` (JMB) authority exists in code and docs but not in data.** All non-owned assets are `advisory`. Decide whether to model it.
 9. **Sale profit formula.** `sale_price − capex_initial_rm` compares a (mock) sale price with total build cost; for multi-unit residential that may not be like-for-like. Confirm the definition before it's shown to judges.
 10. **Backend tests have failures I didn't cause.** `tests/test_normalize.py` fails to import (`ModuleNotFoundError: legacy`) and `tests/test_accessibility.py` errors at collection. `tests/test_accessibility_Profile.py::test_catchment_profile_partial` fails (`assert 0.0 == 100.0`). None of them touch the files changed here. With those two files excluded, the suite gives **21 failed, 81 passed** both on a clean checkout of `ed531e7` and with this change: the same 21 tests (e.g. `test_taxonomy.py::test_energy_intensity`). So the failures predate this work, and none of the tests read the profile build.
+11. **Flag tiers in `deadspace/tiers.py` disagree with `field_metadata.yml`** (D18.3).
+    - Tagged T1 although their input metric is T2: `negative_noi`, `noi_yield_below`, `maintenance_surge_high`, `rapid_decline`, `falling_from_healthy`, `chronic_stagnation`.
+    - Tagged T2 although their input is T1: `high_uhi_exposure`, `uhi_data_anomaly`.
+    - Suggest deriving a flag's tier from its input field's metadata tier instead of a hand-kept list.
+12. **`deadspace_2026.json` is stale against `asset_metrics_enriched.csv`** (D18.1).
+    - B6 was last run at `de87549`; the metrics were regenerated at `6baa3b8`. BLD-0037's evidence says DSR 0.93, but the metrics say 1.04.
+    - Re-run B6 (`deadspace/engine.py`), then `build_profiles.py`. Flags and statuses may change.
+    - Also: BLD-0037's register subtype is `supermarket`, but its unit mix has no supermarket unit. Confirm which is right.
+13. **`DeadspaceList` still shows occupancy and vacancy parsed from the evidence strings**, so it can show the same stale values. It should read the profile fields instead (logged in `docs/frontend_review.md`).

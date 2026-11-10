@@ -9,14 +9,19 @@ const TIER_CONFIG: Record<string, { label: string; color: string; title: string 
   U:    { label: 'U',  color: '#8a7f8c', title: 'Unknown: no defensible source for this asset' },
 }
 
+/** Shown in every badge's tooltip (replaces the legend line in the panel). */
+const TIER_LEGEND = 'Data tiers: T1 observed · T2 derived · 3A estimate (proxy) · 3B counterfactual · U unknown'
+
 export function TierBadge({ tier, source, mock }: { tier: DataTier | ServedTier['tier']; source?: string | null; mock?: boolean }) {
   const cfg = TIER_CONFIG[String(tier)]
   if (!cfg) return null
   const title = [
     cfg.title,
-    source ? `source: ${source.replace(/_/g, ' ')}` : null,
-    mock ? 'synthetic demo data on the real product schema' : null,
-  ].filter(Boolean).join(' · ')
+    source ? `Source: ${source.replace(/_/g, ' ')}` : null,
+    mock ? 'Synthetic demo data on the real product schema' : null,
+    '',
+    TIER_LEGEND,
+  ].filter((l) => l !== null).join('\n')
   return (
     <span
       className="tier-badge"

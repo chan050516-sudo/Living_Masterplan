@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { C, cap, mono } from '../theme'
 import type { Asset, AssetStatus, InterventionMode } from '../types'
+import { statusLabel, subtypeLabel } from '../config/metricConfig'
 
 /** Map each status enum to its colour. */
 const STATUS_COLOR: Record<AssetStatus, string> = {
@@ -47,10 +48,7 @@ const MODE_STYLE: Record<InterventionMode, {
   },
 }
 
-function prettyStatus(s: string) {
-  const t = s.replace(/_/g, ' ')
-  return t.charAt(0).toUpperCase() + t.slice(1)
-}
+const prettyStatus = statusLabel
 
 function findEvidence(evidence: string[], prefix: string) {
   const hit = evidence.find((e) => e.startsWith(prefix + ':'))
@@ -172,7 +170,8 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
 
         const occ = findEvidence(d.evidence, 'Occupancy')
         const vac = findEvidence(d.evidence, 'Vacancy')
-        const subtype = findEvidence(d.evidence, 'Subtype')
+        // Register subtype, human-labelled (evidence strings carry the raw key).
+        const subtype = subtypeLabel(a.profile?.identity.subtype)
 
         return (
           <button
