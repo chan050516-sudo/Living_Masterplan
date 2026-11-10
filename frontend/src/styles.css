@@ -70,16 +70,7 @@ body { font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing
 .core-tile-label { font-size: 11px; color: #99a5c0; line-height: 1.3; }
 .core-tile-value { font-size: 19px; line-height: 1.1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.pillar { margin-top: 14px; }
-.pillar > summary {
-  list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: #cfc6cd;
-  padding: 6px 0; border-bottom: 1px solid #473b46;
-}
-.pillar > summary::-webkit-details-marker { display: none; }
-.pillar > summary .pillar-count { color: #7b7080; font-weight: 400; letter-spacing: 0; text-transform: none; margin-left: auto; }
-.pillar > summary::before { content: '▸'; color: #7b7080; transition: transform .15s ease; }
-.pillar[open] > summary::before { transform: rotate(90deg); }
+
 
 .pill {
   display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; letter-spacing: .08em;
@@ -120,19 +111,7 @@ body { font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing
   display: flex; justify-content: space-between; font-size: 10px; letter-spacing: .08em;
   text-transform: uppercase; color: #7b7080; padding: 8px 0 4px; border-bottom: 1px solid #473b46;
 }
-.flag-row {
-  width: 100%; display: grid; grid-template-columns: 10px minmax(0, 1fr) auto 56px 32px;
-  align-items: center; column-gap: 8px; padding: 8px 0; background: none; border: 0;
-  border-bottom: 1px dashed #473b46; color: #f2eef1; font: inherit; font-size: 12.5px; text-align: left;
-}
-.flag-row:hover .flag-label { color: #fff; }
-.flag-chev { color: #7b7080; font-size: 10px; transition: transform .15s ease; }
-.flag-row.open .flag-chev { transform: rotate(90deg); }
-.flag-label { min-width: 0; overflow-wrap: anywhere; color: #e4dde2; }
-.flag-bar { height: 4px; border-radius: 2px; background: #3e333d; overflow: hidden; }
-.flag-bar > i { display: block; height: 100%; border-radius: 2px; }
-.flag-pct { font-size: 11px; color: #7b7080; text-align: right; }
-.flag-evidence { padding: 2px 0 8px 18px; border-bottom: 1px dashed #473b46; }
+
 .link-btn {
   background: none; border: 0; padding: 6px 0 2px; color: #f7931d; font: inherit; font-size: 11.5px; cursor: pointer;
 }
@@ -142,3 +121,82 @@ body { font-family: system-ui, -apple-system, sans-serif; -webkit-font-smoothing
   border: 1px solid; border-radius: 6px; padding: 10px 12px; margin: 10px 0 4px;
 }
 .callout p { margin: 4px 0 0; font-size: 12px; color: #cfc6cd; }
+
+/* ---------- Theme tokens (mirror src/theme.ts) ---------- */
+:root {
+  --panel: #332832;          /* C.panel */
+  --card: #271e26;           /* C.card */
+  --line: #473b46;           /* C.line */
+  --text: #f2eef1;           /* C.text */
+  --muted: #99a5c0;          /* C.muted */
+  --faint: #7b7080;          /* C.faint */
+  --accent: #f7931d;         /* C.accent */
+  --surface-raised: #3d3140; /* the .btn hover surface: one step lighter than --panel */
+  --surface-hover: #46394a;  /* one more step, for hover on raised surfaces */
+}
+
+/* ---------- Panel layout: scrolling content above a pinned ask bar ---------- */
+.panel-scroll {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  padding-right: 4px; padding-bottom: 16px;
+}
+.ask-bar {
+  flex: none; padding-top: 12px; margin-top: 4px;
+  border-top: 1px solid var(--line); background: var(--panel);
+}
+.ask-label {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px;
+  font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 600; color: var(--faint);
+}
+.ask-hint { letter-spacing: 0; text-transform: none; font-weight: 400; font-size: 11px; white-space: nowrap; }
+
+.ai-answer { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); scroll-margin-top: 8px; }
+.ai-answer-head {
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
+  color: var(--accent); margin-bottom: 10px;
+}
+
+/* ---------- Expandable rows: Metrics pillars and Diagnosis flags ---------- */
+.toggle-group { margin-top: 6px; }
+.toggle {
+  width: 100%; min-height: 40px; box-sizing: border-box; padding: 0 12px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface-raised); border: 0; border-radius: 8px;
+  color: var(--text); font: inherit; font-size: 13px; text-align: left;
+  cursor: pointer; list-style: none; transition: background .15s ease;
+}
+.toggle::-webkit-details-marker { display: none; }
+.toggle::marker { content: ''; }
+.toggle:hover { background: var(--surface-hover); }
+.toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.toggle.static { cursor: default; }
+.toggle.static:hover { background: var(--surface-raised); }
+.toggle-chev {
+  flex: none; width: 14px; font-size: 14px; line-height: 1; color: var(--text);
+  transition: transform .15s ease;
+}
+.toggle-group[open] > .toggle .toggle-chev,
+.toggle-group.open > .toggle .toggle-chev { transform: rotate(90deg); }
+.toggle-title { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.count-pill {
+  margin-left: auto; flex: none; font-size: 11px; font-weight: 500; color: var(--muted);
+  background: rgba(255,255,255,.07); border-radius: 999px; padding: 2px 9px;
+}
+/* Open: header and rows read as one block, rows directly under the header. */
+.toggle-group[open] > .toggle,
+.toggle-group.open > .toggle { border-radius: 8px 8px 0 0; }
+.toggle-body {
+  padding: 2px 12px 8px; background: var(--card);
+  border: 1px solid var(--surface-raised); border-top: 0; border-radius: 0 0 8px 8px;
+}
+
+/* Flag rows: same toggle, with tier badge + weight bar + percentage. */
+.toggle.flag-toggle {
+  display: grid; grid-template-columns: 14px minmax(0, 1fr) auto 52px 32px; column-gap: 8px;
+  padding: 8px 12px; font-size: 12.5px;
+}
+.flag-head { padding: 8px 12px 2px; border-bottom: 0; }
+
+.flag-bar { height: 4px; border-radius: 2px; background: var(--card); overflow: hidden; }
+.flag-bar > i { display: block; height: 100%; border-radius: 2px; }
+.flag-pct { font-size: 11px; color: var(--muted); text-align: right; }

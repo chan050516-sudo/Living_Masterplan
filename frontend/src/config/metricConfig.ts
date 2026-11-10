@@ -575,13 +575,13 @@ export function diagnosisSummary(placement: Placement): string[] {
 // Panel tabs and pillar defaults
 // ------------------------------------------------------------------
 
-export type PanelTab = 'diagnosis' | 'metrics' | 'tenancy' | 'ask'
+// Ask AI is not a tab: the ask bar is pinned under the panel (D20).
+export type PanelTab = 'diagnosis' | 'metrics' | 'tenancy'
 
 export const PANEL_TABS: Array<{ key: PanelTab; label: string }> = [
   { key: 'diagnosis', label: 'Diagnosis' },
   { key: 'metrics', label: 'Metrics' },
   { key: 'tenancy', label: 'Tenancy' },
-  { key: 'ask', label: 'Ask AI' },
 ]
 
 /** Pillars open by default in the Metrics tab. */

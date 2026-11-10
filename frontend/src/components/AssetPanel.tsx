@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { C, cap, mono, btn } from '../theme'
 import { TierBadge, ServedTierBadge } from './TierBadge'
 import { ExternalSignalsPanel, hasExternalSignals } from './ExternalSignalsPanel'
@@ -216,21 +216,20 @@ function DiagnosisTab({ asset, placement, open, onToggle, onTenancy, color }: {
         const isOpen = open.has(key)
         const hasDetail = f.evidence.length > 0 || f.seeTenancy || f.sharedWith.length > 0
         return (
-          <div key={f.flag}>
+          <div key={f.flag} className={`toggle-group${isOpen ? ' open' : ''}`}>
             <button
-              className={`flag-row${isOpen ? ' open' : ''}`}
+              className={`toggle flag-toggle${hasDetail ? '' : ' static'}`}
               onClick={() => hasDetail && onToggle(key)}
               aria-expanded={hasDetail ? isOpen : undefined}
-              style={{ cursor: hasDetail ? 'pointer' : 'default' }}
             >
-              <span className="flag-chev" style={{ visibility: hasDetail ? 'visible' : 'hidden' }}>▸</span>
-              <span className="flag-label">{f.label}</span>
+              <span className="toggle-chev" style={{ visibility: hasDetail ? 'visible' : 'hidden' }}>▸</span>
+              <span className="toggle-title flag-label">{f.label}</span>
               {f.tier ? <TierBadge tier={f.tier} /> : <span />}
               <span className="flag-bar"><i style={{ width: `${Math.round(f.weight * 100)}%`, background: color }} /></span>
               <span className="flag-pct" style={mono}>{Math.round(f.weight * 100)}%</span>
             </button>
             {isOpen && (
-              <div className="flag-evidence">
+              <div className="toggle-body">
                 {f.evidence.map((m) => <MetricRow key={m.key} m={m} />)}
                 {f.sharedWith.length > 0 && (
                   <div className="metric-note">
@@ -262,9 +261,13 @@ function MetricsTab({ asset, placement }: { asset: Asset; placement: Placement }
         const rows = placement.pillars[pillar]
         if (rows.length === 0) return null
         return (
-          <details key={`${asset.id}-${pillar}`} className="pillar" open={defaults.has(pillar)}>
-            <summary>{pillar}<span className="pillar-count">{rows.length}</span></summary>
-            <div>
+          <details key={`${asset.id}-${pillar}`} className="toggle-group" open={defaults.has(pillar)}>
+            <summary className="toggle">
+              <span className="toggle-chev">▸</span>
+              <span className="toggle-title">{pillar}</span>
+              <span className="count-pill">{rows.length} {rows.length === 1 ? 'metric' : 'metrics'}</span>
+            </summary>
+            <div className="toggle-body">
               {rows.map((m) => <MetricRow key={m.key} m={m} />)}
               {pillar === 'Environmental' && env && (env.surface_temp_provenance || env.surface_temp_source_catalog) && (
                 <div className="metric-note">
@@ -421,8 +424,15 @@ export function AssetPanel(props: {
   const placements = new Map(assets.map((a) => [a.id, placeMetrics(a)]))
   const showTenancy = assets.some(hasTenancy)
   const tabs = PANEL_TABS.filter((t) => t.key !== 'tenancy' || showTenancy)
-  // A remembered Tenancy tab falls back to Diagnosis (without forgetting it).
-  const tab: PanelTab = props.tab === 'tenancy' && !showTenancy ? 'diagnosis' : props.tab
+  // A remembered tab that is not available here (Tenancy without data, or the
+  // old "Ask AI" tab) falls back to Diagnosis, without forgetting the choice.
+  const tab: PanelTab = tabs.some((t) => t.key === props.tab) ? props.tab : 'diagnosis'
+
+  // Bring a new answer (or error) into view, since it sits below the tab content.
+  const answerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (analysis || error) answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [analysis, error])
 
   const perAsset = (render: (a: Asset, pl: Placement) => React.ReactNode, filter?: (a: Asset) => boolean) =>
     assets.filter(filter ?? (() => true)).map((a) => (
@@ -479,7 +489,7 @@ export function AssetPanel(props: {
         <button className="ctrl" onClick={props.onClose} style={{ background: 'none', border: 0, color: C.muted, fontSize: 20, cursor: 'pointer', width: 30, height: 30, borderRadius: 6, lineHeight: 1, flex: 'none' }}>×</button>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingRight: 4 }}>
+      <div className="panel-scroll">
         {assets.map((asset, idx) => (
           <div key={asset.id} style={{ marginTop: idx === 0 ? 2 : 26 }}>
             <AssetHeader asset={asset} placement={placements.get(asset.id)!} />
@@ -538,19 +548,12 @@ export function AssetPanel(props: {
             </>
           ), hasTenancy)}
 
-          {tab === 'ask' && (
-            <>
-              {!multi && !analysis && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, padding: '8px 11px', borderRadius: 7, background: C.card, border: `1px solid ${C.line}`, fontSize: 11.5, color: C.faint, lineHeight: 1.5 }}>
-                  <kbd style={{ ...mono, fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd' }}>Ctrl</kbd>
-                  click another asset to analyse them together
-                </div>
-              )}
-              {!analysis && !error && (
-                <p className="metric-note">
-                  Ask what to do with {multi ? 'these assets' : 'this asset'}. The AI proposes candidate plans, simulates them to 2033 and explains its choice.
-                </p>
-              )}
+        </div>
+
+        {/* AI answer: in the scroll area, below the tab content and right above the ask bar. */}
+        {(analysis || error) && (
+          <div ref={answerRef} className="ai-answer">
+            <div className="ai-answer-head">AI analysis</div>
 
         {error && (
           <div className="fade" style={{ padding: 14, marginBottom: 20, borderRadius: 8, background: 'rgba(215,25,32,0.1)', border: '1px solid rgba(215,25,32,0.3)', fontSize: 13, color: '#f0b8b8' }}>
@@ -867,17 +870,22 @@ export function AssetPanel(props: {
             </div>
           </div>
         )}
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
-      {tab === 'ask' && (
-      <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.line}` }}>
-        <label htmlFor="q" style={{ ...cap, fontSize: 10, display: 'block', marginBottom: 10, color: C.faint }}>
-          {analysis ? 'Ask a follow-up question' : multi ? `Ask about these ${assets.length} assets` : `Ask about ${assets[0].name}`}
+      {/* Ask bar: a flex sibling of the scroll area, so it is always visible and never covers content. */}
+      <div className="ask-bar">
+        <label htmlFor="q" className="ask-label">
+          <span>{analysis ? 'Ask a follow-up question' : multi ? `Ask AI about these ${assets.length} assets` : `Ask AI about ${assets[0].name}`}</span>
+          {!multi && !analysis && (
+            <span className="ask-hint">
+              <kbd style={{ ...mono, fontSize: 9.5, padding: '1px 5px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd' }}>Ctrl</kbd>
+              {' '}+ click to add assets
+            </span>
+          )}
         </label>
-        
+
         {files.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
             {files.map((f, i) => (
@@ -945,7 +953,6 @@ export function AssetPanel(props: {
           </button>
         </div>
       </div>
-      )}
     </div>
   )
 }

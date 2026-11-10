@@ -189,6 +189,29 @@ Branch `mathaba-panel`, 2026-11-10. Scope: backend limited to the profile build 
 - **Backend:** `backend/scripts/build_profiles.py`, `backend/configs/field_metadata.yml`, the regenerated profile JSON.
 - **Frontend:** `AssetPanel.tsx`, `ExternalSignalsPanel.tsx`, `TierBadge.tsx`, `DeadspaceList.tsx`, `App.tsx`, `config/metricConfig.ts`, `styles.css`.
 
+## Third pass
+
+### D20. Ask AI is a pinned bar, not a tab
+- **Tabs.** Now three: Diagnosis | Metrics | Tenancy. `PanelTab` no longer has `'ask'`. Any remembered tab that isn't available (Tenancy without data, or a stale "ask") falls back to Diagnosis.
+- **The ask bar** (label, file chips, input, Ask button) is pinned below the panel, always visible. It is a **flex sibling** of the scroll area (`.panel-scroll` then `.ask-bar`), not an overlay, so it can never cover content.
+  - The scroll area also gets 16 px bottom padding, so the last row isn't flush against the bar.
+  - The "Ctrl + click to add assets" hint moved into the bar's label line.
+- **For the bar to stay pinned, the sidebar had to change.** The `<aside>` in `App.tsx` used to scroll as a whole (search box + panel together), which would have scrolled the bar away.
+  - It is now a flex column: the search box is fixed, and the content below fills the rest.
+  - The AssetPanel scrolls internally. DeadspaceList and HistoryPanel scroll in a wrapper, as before.
+- **The AI answer** (or error) renders inside the scroll area, after the tab content and directly above the bar, under an "AI analysis" heading. It is no longer inside a tab, and it scrolls into view when a new one arrives.
+- **Files:** `AssetPanel.tsx`, `App.tsx`, `config/metricConfig.ts`, `styles.css`.
+
+### D21. Expandable rows share one toggle style
+- **Pillar headers** (Metrics tab) and **flag rows** (Diagnosis tab) use the same classes: `.toggle-group` > `.toggle` (+ `.toggle-body`).
+  - A full-width row, at least 40 px tall, with a filled background one step lighter than the panel, 8 px radius, and a lighter hover with a pointer cursor.
+  - A 14 px chevron on the left, in the title colour, rotating 90° in 0.15 s when open.
+  - A bold, normal-case title. The pillar count is a pill ("10 metrics").
+  - 6 px gaps between sections. The open body sits directly under its header as one block (header corners squared at the bottom, body on the card surface).
+- **Flag rows** keep their tier badge, weight bar and percentage in a grid inside the same toggle. Rows with nothing to expand keep the look but lose the chevron and hover.
+- **Tokens.** `styles.css` had no CSS variables, only hex values copied from `theme.ts`. I added a `:root` block that mirrors `theme.ts` (`--panel`, `--card`, `--line`, `--text`, `--muted`, `--faint`, `--accent`), plus two surface steps: `--surface-raised` (#3d3140, the existing `.btn:hover` surface) and `--surface-hover`. The new rules use these.
+- No left accent borders.
+
 ## How profiles were regenerated
 `py -3.14 backend/scripts/build_profiles.py`. The repo's `.venv` and the default Python 3.12 have no pandas on this machine; Python 3.14 has pandas 3.0.5 and PyYAML. The output was checked against the previous JSON (D6) and on five sample assets: `BLD-0037` owned shop, `BLD-0193` sold shop, `BLD-0086` sold home, `A-0002` public facility, `P-VAC-GOLD-01` parcel.
 

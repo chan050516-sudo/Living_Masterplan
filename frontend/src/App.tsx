@@ -289,7 +289,6 @@ export default function App() {
       // 2. Pass files to runAnalysis
       const res = await runAnalysis(q, selectedIds, files)
       setAnalysis(res)
-      setPanelTab('ask')
       setQuestion('')
       
       const newItem: AnalyzeHistoryItem = { id: res.run_id || Date.now().toString(), result: res, status: 'pending' }
@@ -318,7 +317,6 @@ export default function App() {
   const handleSelectHistory = (item: AnalyzeHistoryItem) => {
     setSelectedIds(item.result.assets_analysis.map(a => a.asset_id))
     setAnalysis(item.result)
-    setPanelTab('ask')
     setAsked(item.result.decision.reasoning || '')
     setShowHistory(false)
     setActiveRunId(item.status === 'accepted' ? item.id : undefined)
@@ -991,7 +989,10 @@ export default function App() {
           <MapControls bearing={bearing} tilted={tilted} onZoom={(d) => mapRef.current?.easeTo({ zoom: (mapRef.current.getZoom() ?? 14) + d })} onCompass={() => mapRef.current?.easeTo({ bearing: 0, pitch: 55 })} onTilt={() => mapRef.current?.easeTo({ pitch: mapRef.current.getPitch() > 10 ? 0 : 58 })} />
         </main>
 
-        <aside style={{ width: 440, flex: 'none', padding: 22, overflowY: 'auto', overflowX: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
+        {/* Flex column: the search box stays put and the content below fills the rest.
+            The AssetPanel scrolls internally so its ask bar stays pinned; the list and
+            history scroll in their wrapper. */}
+        <aside style={{ width: 440, flex: 'none', padding: '22px 22px 16px', display: 'flex', flexDirection: 'column', minHeight: 0, overflow: 'hidden', background: C.panel, borderLeft: `1px solid ${C.line}` }}>
           <input
             list="asset-ids"
             value={search}
@@ -1003,7 +1004,7 @@ export default function App() {
             onKeyDown={(e) => { if (e.key === 'Enter') runSearch(search) }}
             placeholder="Search assets, e.g. BLD-0141 or Residential 109"
             style={{
-              width: '100%', boxSizing: 'border-box', padding: '10px 14px', marginBottom: 18,
+              width: '100%', boxSizing: 'border-box', padding: '10px 14px', marginBottom: 18, flex: 'none',
               borderRadius: 8, fontSize: 13, fontFamily: 'inherit',
               border: `1px solid ${searchMiss ? C.bad : C.line}`, background: C.card, color: C.text, outline: 'none',
             }}
@@ -1012,6 +1013,7 @@ export default function App() {
             {assets.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </datalist>
           
+          <div style={{ flex: 1, minHeight: 0, overflowY: !showHistory && primary ? 'hidden' : 'auto', overflowX: 'hidden' }}>
           {showHistory ? (
             <HistoryPanel 
               history={history} 
@@ -1040,6 +1042,7 @@ export default function App() {
           ) : (
             <DeadspaceList assets={assets} onPick={(a) => selectOnly(a.id)} filter={listFilter} onFilter={setListFilter} />
           )}
+          </div>
         </aside>
       </div>
     </div>
