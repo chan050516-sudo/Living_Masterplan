@@ -160,6 +160,14 @@ def test_prompts_carry_soft_and_status_rules():
     assert "street survival" in writer.lower()
 
 
+def test_flow_island_points_to_soft_tactics_not_walkways():
+    gen = (PROMPTS / "candidate_generator.md").read_text(encoding="utf-8")
+    writer = (PROMPTS / "final_decision_writer.md").read_text(encoding="utf-8")
+    section = gen.split("## Flow-Island Assets", 1)[1].split("\n## ", 1)[0]
+    assert "tactical_placemaking" in section and "Do **not**" in section
+    assert "tactical_placemaking" in writer.split("is_flow_island", 1)[1][:400]
+
+
 # ------------------------------------------------------------------
 # Real data (skipped when the processed data is not present)
 # ------------------------------------------------------------------

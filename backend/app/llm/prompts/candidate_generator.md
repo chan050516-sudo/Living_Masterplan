@@ -44,7 +44,7 @@ Intervention types: `retrofit`, `renovation`, `repurpose`, `new_development`, `d
 
 ### 2. Spatial / Network Intervention (act on the walking network)
 
-Intervention types: `pedestrian_upgrade`, `green_corridor`. Set `parameters.new_link: true` when the asset is cut off by a barrier (flow island): the engine then also adds one short footway (crossing / footbridge, ≤ 150 m). Without it, these types only add shade to existing streets.
+Intervention types: `pedestrian_upgrade`, `green_corridor`. These add shade and comfort to existing streets. `parameters.new_link: true` also adds one short footway (≤ 150 m), but it is a costly civil work: do **not** use these types as the answer to a flow-island shop (see Flow-Island Assets).
 
 **Use when:**
 - The asset's `catchment.walk.reachable_population` is thin because of a network gap, not because of demand.
@@ -63,7 +63,8 @@ Most shoplots in the township are sold to individual investors. Each landlord le
 - **`tactical_placemaking`** — a weekend market, night market, food-truck park, pop-up sports court or event space on public or developer land next to the target (a park, a vacant parcel, or the target itself). It lifts the footfall of every shop within 400 m **while it runs** (default 3 years). It is a catalyst, not a permanent fix: pair it with tenant matching or an access fix.
 
 **Use soft interventions when:**
-- The target is sold (`advisory`) and its problem is the business, not the building or the network: low LBS visitors **and** low Google business presence (`business_presence_low`, `operating_hemorrhage`), with `flow_island` absent.
+- The target is sold (`advisory`) and its problem is the business, not the building: low LBS visitors **and** low Google business presence (`business_presence_low`, `operating_hemorrhage`).
+- The target is a flow island (see below): people live nearby but have no reason to come.
 - Several sold shops in the same street are failing at once: one placemaking event or one anchor tenant helps them all.
 
 For an advisory asset, soft interventions are listed under `authority.collaborative`: SDP runs them **with** the owner. Phrase them as "SDP offers the owner…" / "SDP partners with…", never "we will".
@@ -114,9 +115,10 @@ Cite them by source ("LBS shows…", "Google Places shows…"), never as "occupa
 ## Flow-Island Assets
 
 If an asset has the `flow_island` flag (`external_signals.lbs_foot_traffic.is_flow_island` is true, i.e. `flow_island_ratio` is below `flow_island_threshold`), this is a **network-isolation case, not an operating failure**: people are nearby, but streets, walls or drains stop them reaching the asset.
-- The correct intervention is `pedestrian_upgrade` or `green_corridor` with `parameters.new_link: true` on the network path leading to the asset, not `repurpose` on the asset itself.
-- Prefer `pedestrian_upgrade` unless the asset is also failing on several supply-side signals (e.g. `business_presence_low` and `business_turnover_high` together). In that case, pair the access fix with an on-target or catalytic change and say why.
-- A walkability fix for a flow-island asset can claim `verified` only if the simulation shows walking coverage rising **and** LBS foot traffic rising; otherwise it is `partially_verified`. How much a new link helps depends on where people live: if the numbers barely move, say so honestly rather than dropping the access fix.
+- Do **not** answer a flow island with `pedestrian_upgrade` / `green_corridor`. Building crossings or footbridges is slow and costly, and in the simulation it barely moves footfall because most homes already have some route.
+- Use the **soft** tactics instead: `tactical_placemaking` on public or developer land next to the asset (a market or event gives nearby people a reason to make the trip), paired with `tenant_matching` when the shop is empty or failing, so the visitors find a business worth coming back to.
+- Do not `repurpose` the asset only because it is a flow island: its building and its business may be fine.
+- Placemaking is temporary: say that the uplift lasts only while the event runs, and that tenant matching is what keeps the shop alive after it ends.
 
 ## What You Produce
 

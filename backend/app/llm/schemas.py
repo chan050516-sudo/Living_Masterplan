@@ -182,8 +182,8 @@ PROPOSAL_PARAMETERS_SCHEMA = {
             "type": "BOOLEAN",
             "description": (
                 "pedestrian_upgrade / green_corridor only. true adds one "
-                "new footway (crossing or footbridge, <= 150 m) for a "
-                "flow-island asset that a barrier cuts off."
+                "new footway (crossing or footbridge, <= 150 m). Not the "
+                "answer to a flow island: use tactical_placemaking."
             ),
         },
 

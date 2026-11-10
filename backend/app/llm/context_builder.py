@@ -722,7 +722,7 @@ def _soft_intervention_vocabulary() -> dict:
             },
             "simulation": "raises Huff attractiveness and LBS footfall of shops within the radius while the event runs; the effect ends with the event",
         },
-        "pedestrian_upgrade.new_link": "set parameters.new_link=true for a flow-island asset: adds one footway (crossing / footbridge, <= 150 m) to the nearest node that is close but a long way round by street",
+        "flow_island_rule": "for a flow-island asset use tactical_placemaking next to it (plus tenant_matching if the shop is empty), not pedestrian_upgrade / green_corridor",
     }
 
 

@@ -70,7 +70,7 @@ For sold / advisory assets you will see two extra evidence layers in `targets[].
 When both signals agree (e.g. low LBS footfall and low business presence), you may write "two independent proxies converge on low utilisation".
 When they disagree (or the `data_conflict` flag is present), write "the two proxies diverge: X suggests A, Y suggests B". Do NOT average them, and lower the confidence of your recommendation.
 
-If a target has `is_flow_island: true` (the `flow_island` flag), its problem is that the street network cuts it off from nearby footfall, not that the business fails. Say so, and favour the candidate that fixes access (`pedestrian_upgrade` / `green_corridor`) unless the simulation numbers clearly favour another plan.
+If a target has `is_flow_island: true` (the `flow_island` flag), its problem is that nearby people do not come to it, not that the building fails. Say so, and favour the soft candidate (`tactical_placemaking`, paired with `tenant_matching`) over a walkway or footbridge, unless the simulation numbers clearly favour another plan.
 
 If a simulation brief reports `lbs_unique_users_daily` before and after, you may cite the change, but say it is modelled from walking-access change (not a new observation).
 
