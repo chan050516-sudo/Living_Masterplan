@@ -1,7 +1,7 @@
 import type { AssetProfile, AnalyzeResult } from './types'
 import type { FeatureCollection } from 'geojson'
 
-import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3, MOCK_SCENARIO_4 } from '../../legacy/mockData'
+import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3, MOCK_SCENARIO_4 } from './mockData'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://living-masterplan-api-1071997994154.asia-southeast1.run.app'
 const USE_MOCK_LLM = false
