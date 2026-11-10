@@ -213,12 +213,6 @@ async def get_map_geometry(
     # Resolve scenario_id from run_id if present
     scenario_id = "SC-CURRENT"
     run_data = None
-    # Overlay LLM intervention status if run_id is provided
-    if run_data:
-        for asset in (
-            run_data.get("frontend", {}).get("assets_analysis", [])
-        ):
-            ds_dict[asset["asset_id"]] = "intervened"
 
     # ---- 1. Load the year's deadspace records ----
     diagnosis_year = year
@@ -316,9 +310,39 @@ async def get_map_geometry(
         if run_path.exists():
             with open(run_path, "r", encoding="utf-8") as f:
                 run_data = json.load(f)
-            for asset in (
-                run_data.get("frontend", {}).get("assets_analysis", [])
-            ):
+            
+            # --- Bug 4 Fix: Extract actual scenario_id from run_data before applying overlays ---
+            # If the run_data contains the LLM-generated scenario, use it to find the correct deadspace JSON files.
+            scenario_id = run_data.get("frontend", {}).get("scenario_id", "SC-CURRENT")
+            
+            # If scenario_id changed, we must re-evaluate the ds_path
+            if scenario_id != "SC-CURRENT" and year != 2026:
+                new_ds_path = (
+                    BASE_DIR / "business" / "scenarios"
+                    / f"deadspace_{scenario_id}_{year}.json"
+                )
+                if new_ds_path.exists():
+                    ds_path = new_ds_path
+                    diagnosis_year = year
+                    # Reload deadspace records since we found the correct file
+                    with open(ds_path, "r", encoding="utf-8") as f:
+                        ds_list = json.load(f)
+                    ds_dict = {d["asset_id"]: d.get("status") for d in ds_list}
+                    flags_dict = {d["asset_id"]: d.get("flags", []) for d in ds_list}
+                    urgency_dict = {d["asset_id"]: d.get("urgency_index", 0) for d in ds_list}
+                    evidence_dict = {
+                        d["asset_id"]: [
+                            line for line in d.get("evidence", [])
+                            if "UHI proxy" not in str(line)
+                            and "open-field baseline" not in str(line)
+                            and "Observed land surface temperature" not in str(line)
+                        ]
+                        for d in ds_list
+                    }
+                    factors_dict = {d["asset_id"]: d.get("contributing_factors", []) for d in ds_list}
+                    mode_dict = {d["asset_id"]: d.get("intervention_mode") for d in ds_list}
+
+            for asset in run_data.get("frontend", {}).get("assets_analysis", []):
                 ds_dict[asset["asset_id"]] = "intervened"
 
     # ---- 2. Load the geometry layers (unchanged) ----

@@ -269,7 +269,7 @@ mode_networks:
       - residential
       - service
       - living_street
-    speed_kmh: 30.0
+    speed_kmh: 18.0
     canopy_adjusted: false
     thresholds_min: [5, 10, 15]
 

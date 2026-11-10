@@ -443,7 +443,11 @@ def _prepare_mode_pipeline(
             demand_entries_map[key[3:]] = val
 
     # --- Distance matrix (one Dijkstra pass over the augmented graph) ---
-    distance_matrix = compute_distance_matrix(G_aug)
+    # Bug 1 Fix: Driving needs a much larger cutoff than walking to be meaningful.
+    # Walking 15 min @ 80m/min = 1200m. Driving 15 min @ 500m/min = 7500m.
+    # Set driving cutoff to 15000m to allow realistic driving coverage metrics.
+    cutoff = 15000.0 if mode == "driving" else 5000.0
+    distance_matrix = compute_distance_matrix(G_aug, cutoff_m=cutoff)
 
     # --- Demand entries with population and age structure ---
     demand_entries = []

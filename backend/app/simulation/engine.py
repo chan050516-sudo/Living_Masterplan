@@ -90,6 +90,7 @@ from .interventions import apply_intervention, apply_construction_state
 from .population import project_population
 from .occupancy import damped_occupancy, target_occupancy_from_dsr
 from .supply import active_projects_in_year
+from ..deadspace.layer3_survival import _rate, _DEFAULT_OPEX_PER_M2, _DEFAULT_CONVERSION, _DEFAULT_SPEND_RM, _DEFAULT_DAYS
 from .spatial import (
     spatial_interventions_for_year,
     network_version_tag,
@@ -577,15 +578,25 @@ def _recompute_commercial_financials(
                 metric_row["_noi_rm"] = cf_noi
                 _capex = float(eff.get("capex_initial_rm") or 1)
                 metric_row["_noi_yield"] = cf_noi / _capex if _capex > 0 else None
-                metric_row["_estimated_revenue_rm"] = (
-                    float(eff.get("lbs_unique_users_daily") or 0)
-                    * 0.05 * 25.0 * 365
-                )
-                metric_row["_survival_opex_floor_rm"] = (
-                    lettable * 200.0 * assumptions.get("survival_analysis", {}).get(
-                        "inflation_index", {}
-                    ).get(str(year), 1.0)
-                )
+                
+                # --- Bug 2 Fix: Use subtype-specific survival rates from assumptions.yml ---
+                # Previous implementation hardcoded 200.0 RM/m² which conflicted with B6.
+                _survival_cfg = assumptions.get("survival_analysis", {})
+                _subtype = eff.get("subtype")
+                
+                _conv = _rate(_survival_cfg, "conversion_rate_by_subtype", _subtype, _DEFAULT_CONVERSION)
+                _spend = _rate(_survival_cfg, "avg_spend_rm_by_subtype", _subtype, _DEFAULT_SPEND_RM)
+                _days = _rate(_survival_cfg, "operating_days_by_subtype", _subtype, _DEFAULT_DAYS)
+                _opex_per_m2 = _rate(_survival_cfg, "survival_opex_per_m2_by_subtype", _subtype, _DEFAULT_OPEX_PER_M2)
+                
+                # Dynamic inflation lookup
+                _inflation_idx = _survival_cfg.get("inflation_index", {})
+                _inflation = float(_inflation_idx.get(str(year), _inflation_idx.get(year, 1.0)))
+                
+                # Calculate expected revenue based on LBS footfall (if available) or fallback
+                _users = float(eff.get("lbs_unique_users_daily") or 0)
+                metric_row["_estimated_revenue_rm"] = _users * _conv * _spend * _days
+                metric_row["_survival_opex_floor_rm"] = lettable * _opex_per_m2 * _inflation
                 metric_row["_noi_source"] = "counterfactual_market_estimate"
         return
 

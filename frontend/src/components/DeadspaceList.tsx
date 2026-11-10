@@ -50,10 +50,10 @@ const MODE_STYLE: Record<InterventionMode, {
 
 const prettyStatus = statusLabel
 
-function findEvidence(evidence: string[], prefix: string) {
-  const hit = evidence.find((e) => e.startsWith(prefix + ':'))
-  return hit ? hit.slice(prefix.length + 1).trim() : null
-}
+// function findEvidence(evidence: string[], prefix: string) {
+//   const hit = evidence.find((e) => e.startsWith(prefix + ':'))
+//   return hit ? hit.slice(prefix.length + 1).trim() : null
+// }
 
 /** Filters combine the two orthogonal dimensions:
  *  - what is the diagnosis (status)
@@ -168,8 +168,15 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
         const mode = d.intervention_mode
         const modeStyle = mode ? MODE_STYLE[mode] : null
 
-        const occ = findEvidence(d.evidence, 'Occupancy')
-        const vac = findEvidence(d.evidence, 'Vacancy')
+        // --- Bug 3 Fix: Use structured data instead of parsing evidence strings ---
+        // For sold assets, occupancy_rate is null, so we fallback to proxied occupancy.
+        const soc = a.profile?.social
+        const occVal = soc?.occupancy_rate ?? soc?.proxied_occupancy
+        const occ = occVal != null ? `${(occVal * 100).toFixed(0)}%` : null
+        
+        const vacVal = soc?.vacancy_duration_months
+        const vac = vacVal != null ? `${Math.round(vacVal)} months` : null
+
         // Register subtype, human-labelled (evidence strings carry the raw key).
         const subtype = subtypeLabel(a.profile?.identity.subtype)
 
