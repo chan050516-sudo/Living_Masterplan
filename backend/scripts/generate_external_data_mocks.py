@@ -430,12 +430,12 @@ def _build_google_rows(assets: pd.DataFrame, occ: dict[str, float],
         aid = str(asset["asset_id"])
         occupancy = max(0.0, min(1.0, occ.get(aid, 0.5)))
         unit_mix = _unit_mix_for_asset(asset)
-        unit_specs = [
-            (subtype, unit)
-            for subtype, count in unit_mix
-            if subtype in CONSUMER_FACING_SUBTYPES
-            for unit in range(1, count + 1)
-        ]
+        unit_specs = []
+        global_unit_idx = 1
+        for subtype, count in unit_mix:
+            for _ in range(count):
+                unit_specs.append((subtype, global_unit_idx))
+                global_unit_idx += 1
         if not unit_specs:
             continue
 

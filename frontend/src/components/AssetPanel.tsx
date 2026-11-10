@@ -304,7 +304,11 @@ function SubtypeMix({ asset }: { asset: Asset }) {
       const v = s.occupancy
       return <span style={{ color: v != null && v < 0.4 ? C.bad : C.text }}>{formatValue(v, 'ratio').text}</span>
     }
-if (field === 'operational_count') {
+    if (field === 'operational_count') {
+      if (s.subtype === 'office') {
+        return <span style={{ color: C.faint }}>— / {s.design_count ?? '—'}</span>
+      }
+
       const dead = s.operational_count === 0
       const safeOperational = Math.min(s.operational_count ?? 0, s.design_count ?? 999)
       
@@ -314,7 +318,12 @@ if (field === 'operational_count') {
         </span>
       )
     }
-    return <span>{s.vitality_score != null ? formatValue(s.vitality_score, 'dec2').text : '—'}</span>
+    
+    if (field === 'vitality_score') {
+      return <span style={{ color: C.text }}>{s.vitality_score != null ? formatValue(s.vitality_score, 'dec2').text : '—'}</span>
+    }
+
+    return <span>—</span>
   }
 
   return (

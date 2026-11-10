@@ -147,6 +147,7 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
         "operational_place_count", "business_presence_ratio", "proxied_occupancy_google",
         "business_vitality_score", "proxied_vacancy_duration", "business_turnover_count",
         "google_place_ids_json", "business_subtype_counts_json",
+        "business_subtype_vitality_json",
         "tier", "source", "is_mock",
     ]
     if google.empty:
@@ -188,6 +189,7 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
 
         current = latest[latest["asset_id"].astype(str).eq(aid)]
         operational_consumer = current[(current["business_status"] == "OPERATIONAL")]
+        operational_consumer = operational_consumer.drop_duplicates(subset=["place_id"])
         operational = min(consumer_unit_count, int(operational_consumer["place_id"].nunique()))
 
         presence_ratio = min(1.0, operational / consumer_unit_count)
@@ -209,9 +211,21 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
         place_ids = sorted(current["place_id"].dropna().astype(str).unique())
         subtype_counts: dict[str, int] = {}
         operational_current = current[current["business_status"] == "OPERATIONAL"]
-        for place in current.itertuples(index=False):
+        operational_current = operational_current.drop_duplicates(subset=["place_id"])
+        subtype_vitality_raw: dict[str, list[float]] = {}
+
+        for place in operational_current.itertuples(index=False):
             subtype = resolve_subtype(_parse_types(place.types_json))
             subtype_counts[subtype] = subtype_counts.get(subtype, 0) + 1
+
+            if pd.notna(place.rating) and pd.notna(place.user_rating_count):
+                s_score = float(place.rating) * math.log1p(max(0, int(place.user_rating_count)))
+                subtype_vitality_raw.setdefault(subtype, []).append(s_score)
+
+        subtype_vitalities = {
+            st: round(sum(scores) / len(scores), 2) 
+            for st, scores in subtype_vitality_raw.items()
+        }
 
         rows_out.append({
             "asset_id": aid,
@@ -226,6 +240,7 @@ def build_business_presence(assets: pd.DataFrame, google: pd.DataFrame) -> pd.Da
             "business_turnover_count": turnover,
             "google_place_ids_json": json.dumps(place_ids, separators=(",", ":")),
             "business_subtype_counts_json": json.dumps(subtype_counts, separators=(",", ":")),
+            "business_subtype_vitality_json": json.dumps(subtype_vitalities, separators=(",", ":")), 
             "tier": "3a",
             "source": "derived_from_google_places_mock",
             "is_mock": True,

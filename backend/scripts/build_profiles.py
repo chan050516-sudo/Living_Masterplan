@@ -300,6 +300,14 @@ def build_profiles(year=2026):
             for st, info in unit_mix.items():
                 area = _safe_float(info.get("area_m2"))
                 design_count = int(info.get("count", 1))
+
+                if st == "office":
+                    operational_count = None
+                elif biz_counts is not None:
+                    operational_count = int(biz_counts.get(st, 0))
+                else:
+                    operational_count = None
+                
                 if biz_counts is not None:
                     operational_count = int(biz_counts.get(st, 0))
                 else:

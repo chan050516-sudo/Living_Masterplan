@@ -177,7 +177,11 @@ def main():
         cols_to_merge = ["asset_id", "business_subtype_counts_json", "business_subtype_vitality_json"]
         # Ensure only existing columns are merged to avoid KeyError
         cols_to_merge = [c for c in cols_to_merge if c in bp_df.columns]
-        
+
+        for col in cols_to_merge:
+            if col in merged.columns and col != "asset_id":
+                merged.drop(columns=[col], inplace=True)
+
         merged = merged.merge(
             bp_df[cols_to_merge], 
             on="asset_id", 
