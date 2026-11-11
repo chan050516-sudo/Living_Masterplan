@@ -29,7 +29,7 @@ DEFAULTS = {
     "occupancy_rate_below": 0.50,
     "vacancy_duration_above_months": 12.0,
     "utilisation_rate_below": 0.40,
-    "dsr_below": 0.80,
+    "dsr_below": 0.40,
     "demand_supply_gap_below": 0.0,
     "walking_coverage_5min_below": 0.20,
     "driving_coverage_10min_below": 0.50,
@@ -96,8 +96,16 @@ def evaluate(asset_type: str, metrics: dict, thresholds: dict = None) -> dict:
             reasons.append("long_vacancy")
 
         dsr = metrics.get("dsr")
-        if dsr is not None and dsr < t["dsr_below"]:
-            reasons.append("dsr_below_threshold")
+        if dsr is not None:
+            subtype = metrics.get("subtype") or ""
+            dsr_stats = t.get("dsr_stats_by_subtype", {})
+            
+            dynamic_threshold = dsr_stats.get(subtype)
+            
+            threshold = dynamic_threshold if dynamic_threshold is not None else t["dsr_below"]
+            
+            if dsr < threshold:
+                reasons.append("dsr_below_threshold")
 
         # M8 — walking / driving accessibility is judged only for
         # subtypes whose business model actually depends on it. A

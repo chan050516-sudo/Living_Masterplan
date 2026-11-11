@@ -1,8 +1,15 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { C, cap, mono, btn } from '../theme'
-import { Bar } from './ui'
-import { TierBadge } from './TierBadge'
-import type { Asset, AnalyzeResult, MainMetric, AssetStatus } from '../types'
+import { TierBadge, ServedTierBadge } from './TierBadge'
+import { ExternalSignalsPanel, hasExternalSignals } from './ExternalSignalsPanel'
+import {
+  PILLARS, PANEL_TABS, AUTHORITY_GROUP_LABEL, EVALUATION_TRACK, SUBUNIT_COLUMNS,
+  authorityGroup, coreMetricKeys, resolveMetric, placeMetrics, openPillars,
+  formatMetric, formatValue, isWarn, humanize,
+  assetTypeLabel, subtypeLabel, statusLabel, modeLabel, diagnosisSummary,
+  type ResolvedMetric, type Placement, type PanelTab,
+} from '../config/metricConfig'
+import type { Asset, AnalyzeResult, MainMetric, AssetStatus, InterventionMode, Subunit } from '../types'
 import type { AnalyzeHistoryItem } from '../App'
 
 const STATUS_COLOR: Record<AssetStatus, string> = {
@@ -17,24 +24,26 @@ const STATUS_COLOR: Record<AssetStatus, string> = {
   intervened: '#2196f3',
 }
 
-function pretty(s: string) {
-  const t = s.replace(/_/g, ' ')
-  return t.charAt(0).toUpperCase() + t.slice(1)
+const AUTHORITY_COLOR = { owned: '#3fb27f', sold: '#d71920', public: '#f7931d' } as const
+
+const MODE: Record<InterventionMode, { icon: string; color: string; title: string }> = {
+  direct: { icon: '●', color: '#d71920', title: 'Sime Darby owns this asset and can execute any intervention.' },
+  collaborative: { icon: '◐', color: '#a855f7', title: 'Not SDP-owned, but a collaboration path exists (JMB, council, or the walkway around it).' },
+  advisory: { icon: '○', color: '#7b7080', title: 'Not SDP-owned and no collaboration path. SDP can only recommend.' },
 }
 
+// Used by the analysis card below (its payload has its own units).
 function fmt(v: number | null | undefined, unit: string) {
-  if (v === null || v === undefined || Number.isNaN(v) || String(v).toLowerCase() === 'nan') {
-    return '—'
-  }
-  if (unit === 'ratio') return `${(v * 100).toFixed(1)}%`
-  if (unit === 'RM') return `RM ${Math.round(v).toLocaleString()}`
-  if (unit.startsWith('tCO2e')) return `${v.toLocaleString(undefined, { maximumFractionDigits: 1 })}`
-  return v.toLocaleString(undefined, { maximumFractionDigits: 2 })
+  if (v === null || v === undefined || Number.isNaN(v)) return '—'
+  if (unit === 'ratio') return formatValue(v, 'ratio').text
+  if (unit === 'RM') return formatValue(v, 'rm').text
+  if (unit.startsWith('tCO2e')) return formatValue(v, 'tco2e').text
+  return v.toLocaleString('en-US', { maximumFractionDigits: 2 })
 }
 
 function SectionTitle({ title, color = C.accent }: { title: string; color?: string }) {
   return (
-    <div style={{ ...cap, fontSize: 11, color, borderBottom: `1px solid ${C.line}`, paddingBottom: 6, marginBottom: 12, marginTop: 24, letterSpacing: '0.05em' }}>
+    <div style={{ ...cap, fontSize: 11, color, borderBottom: `1px solid ${C.line}`, paddingBottom: 6, marginBottom: 10, marginTop: 24, letterSpacing: '0.05em' }}>
       {title}
     </div>
   )
@@ -76,7 +85,290 @@ function MetricLine({ m, lowerIsBetter }: { m: MainMetric; lowerIsBetter?: boole
   )
 }
 
-// 2. Update the props definition of the component
+/* ---------- Metric display ---------- */
+
+function MetricRow({ m }: { m: ResolvedMetric }) {
+  const f = formatMetric(m)
+  return (
+    <div className="metric-row" title={m.def.hint}>
+      <span className="metric-label">{m.label}</span>
+      <span className="metric-value" style={{ ...mono, color: m.unknown ? C.faint : isWarn(m) ? C.bad : C.text }}>
+        {f.text}{f.unit && <span className="metric-unit">{f.unit}</span>}
+      </span>
+      <ServedTierBadge tier={m.tier} />
+    </div>
+  )
+}
+
+function CoreTile({ m }: { m: ResolvedMetric }) {
+  const f = formatMetric(m)
+  return (
+    <div className="core-tile" title={m.def.hint}>
+      <div className="core-tile-head">
+        <span className="core-tile-label">{m.label}</span>
+        <ServedTierBadge tier={m.tier} />
+      </div>
+      <div className="core-tile-value" style={{ ...mono, color: m.unknown ? C.faint : isWarn(m) ? C.bad : C.text }}>
+        {f.text}{f.unit && <span className="metric-unit">{f.unit}</span>}
+      </div>
+    </div>
+  )
+}
+
+function CoreMetrics({ asset }: { asset: Asset }) {
+  const keys = coreMetricKeys(asset.assetType, authorityGroup(asset.profile))
+  const metrics = keys.map((k) => resolveMetric(asset, k)).filter((m): m is ResolvedMetric => m !== null)
+  if (metrics.length === 0) return null
+  return <div className="core-grid">{metrics.map((m) => <CoreTile key={m.key} m={m} />)}</div>
+}
+
+/* ---------- Always visible: header + core + one-line diagnosis ---------- */
+
+function AssetHeader({ asset, placement }: { asset: Asset; placement: Placement }) {
+  const p = asset.profile
+  const d = asset.diagnosis
+  const group = authorityGroup(p)
+  const status = d?.status ?? (asset.mapStatus as AssetStatus)
+  const col = STATUS_COLOR[status] ?? C.muted
+  const mode = d?.intervention_mode ? MODE[d.intervention_mode] : null
+  const mix = p?.subunits?.length ?? 0
+  const track = EVALUATION_TRACK[group]
+  const top = diagnosisSummary(placement)
+  const overrides = Object.values(asset.metricOverrides ?? {})
+  const simYear = overrides[0]?.year
+  const displayId = asset.id.startsWith('A-') ? asset.id.replace('A-', 'FAC-')
+    : asset.id.startsWith('G-') ? asset.id.replace('G-', 'GRN-') : asset.id
+
+  return (
+    <div className="fade">
+      <h2 style={{ margin: 0, fontSize: 21, fontWeight: 600, letterSpacing: '-0.01em' }}>{asset.name}</h2>
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '0 8px', marginTop: 4, fontSize: 12.5, color: C.faint }}>
+        <span style={mono}>{displayId}</span>
+        <span>· {assetTypeLabel(asset.assetType)}</span>
+        {p?.identity.subtype && <span>· {subtypeLabel(p.identity.subtype)}</span>}
+      </div>
+
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+        {p?.authority && (
+          <span className="pill" style={{ color: AUTHORITY_COLOR[group] }} title={track.why}>
+            {AUTHORITY_GROUP_LABEL[group]}
+          </span>
+        )}
+        {mode && d?.intervention_mode && (
+          <span className="pill" style={{ color: mode.color }} title={mode.title}>
+            {mode.icon} {modeLabel(d.intervention_mode)}
+          </span>
+        )}
+        {mix > 1 && (
+          <span className="pill" style={{ color: C.muted }} title="Unit mix from the asset register; details in the Tenancy tab">
+            Mixed use · {mix} subtypes
+          </span>
+        )}
+      </div>
+      <div className="metric-note" style={{ marginTop: 6 }}>Evaluated on {track.label.toLowerCase()}</div>
+
+      <div style={{ marginTop: 14 }}>
+        <CoreMetrics asset={asset} />
+      </div>
+
+      <div className="diag-summary" title="Status, then the two highest-weighted flags">
+        <span className="diag-dot" style={{ background: col }} />
+        <span style={{ color: col, fontWeight: 600 }}>{statusLabel(status)}</span>
+        {top.length > 0
+          ? <span style={{ color: '#cfc6cd' }}>· {top.join(', ')}</span>
+          : <span style={{ color: C.faint }}>· no flags raised</span>}
+      </div>
+
+      {asset.selectedYear != null && asset.diagnosisYear != null && asset.diagnosisYear !== asset.selectedYear && (
+        <div className="metric-note" style={{ color: '#f7931d' }}>
+          Showing the {asset.diagnosisYear} diagnosis: {asset.selectedYear} was not generated for this scenario.
+        </div>
+      )}
+      {simYear != null && (
+        <div className="metric-note">
+          Values labelled simulated, estimated or assumed come from the {simYear} scenario; everything else is the 2026 baseline.
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ---------- Diagnosis tab: one list, flag + tier + weight, expandable ---------- */
+
+function DiagnosisTab({ asset, placement, open, onToggle, onTenancy, color }: {
+  asset: Asset
+  placement: Placement
+  open: Set<string>
+  onToggle: (key: string) => void
+  onTenancy: () => void
+  color: string
+}) {
+  if (placement.flags.length === 0) {
+    return <p className="metric-note">No flags raised for this asset in {asset.diagnosisYear ?? 2026}.</p>
+  }
+  return (
+    <div>
+      <div className="flag-head">
+        <span>Flag</span><span>Weight</span>
+      </div>
+      {placement.flags.map((f) => {
+        const key = `${asset.id}:${f.flag}`
+        const isOpen = open.has(key)
+        const hasDetail = f.evidence.length > 0 || f.seeTenancy || f.sharedWith.length > 0
+        return (
+          <div key={f.flag} className={`toggle-group${isOpen ? ' open' : ''}`}>
+            <button
+              className={`toggle flag-toggle${hasDetail ? '' : ' static'}`}
+              onClick={() => hasDetail && onToggle(key)}
+              aria-expanded={hasDetail ? isOpen : undefined}
+            >
+              <span className="toggle-chev" style={{ visibility: hasDetail ? 'visible' : 'hidden' }}>▸</span>
+              <span className="toggle-title flag-label">{f.label}</span>
+              {f.tier ? <TierBadge tier={f.tier} /> : <span />}
+              <span className="flag-bar"><i style={{ width: `${Math.round(f.weight * 100)}%`, background: color }} /></span>
+              <span className="flag-pct" style={mono}>{Math.round(f.weight * 100)}%</span>
+            </button>
+            {isOpen && (
+              <div className="toggle-body">
+                {f.evidence.map((m) => <MetricRow key={m.key} m={m} />)}
+                {f.sharedWith.length > 0 && (
+                  <div className="metric-note">
+                    {f.evidence.length > 0 ? 'Other values are' : 'Values are'} shown under {f.sharedWith.join(', ')}.
+                  </div>
+                )}
+                {f.seeTenancy && (
+                  <button className="link-btn" onClick={onTenancy}>Per-subtype occupancy is in the Tenancy tab →</button>
+                )}
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ---------- Metrics tab: four collapsible pillars ---------- */
+
+function MetricsTab({ asset, placement }: { asset: Asset; placement: Placement }) {
+  const env = asset.profile?.environmental
+  const defaults = openPillars(asset.assetType)
+  const any = PILLARS.some((p) => placement.pillars[p].length > 0)
+  if (!any) return <p className="metric-note">No further metrics for this asset.</p>
+  return (
+    <>
+      {PILLARS.map((pillar) => {
+        const rows = placement.pillars[pillar]
+        if (rows.length === 0) return null
+        return (
+          <details key={`${asset.id}-${pillar}`} className="toggle-group" open={defaults.has(pillar)}>
+            <summary className="toggle">
+              <span className="toggle-chev">▸</span>
+              <span className="toggle-title">{pillar}</span>
+              <span className="count-pill">{rows.length} {rows.length === 1 ? 'metric' : 'metrics'}</span>
+            </summary>
+            <div className="toggle-body">
+              {rows.map((m) => <MetricRow key={m.key} m={m} />)}
+              {pillar === 'Environmental' && env && (env.surface_temp_provenance || env.surface_temp_source_catalog) && (
+                <div className="metric-note">
+                  {[
+                    env.surface_temp_provenance,
+                    env.surface_temp_source_catalog,
+                    env.surface_temp_period_start && env.surface_temp_period_end
+                      ? `${env.surface_temp_period_start} to ${env.surface_temp_period_end}`
+                      : null,
+                  ].filter(Boolean).join(' · ')}
+                </div>
+              )}
+            </div>
+          </details>
+        )
+      })}
+    </>
+  )
+}
+
+/* ---------- Tenancy tab: subtype mix + external signals ---------- */
+
+function SubtypeMix({ asset }: { asset: Asset }) {
+  const subs = asset.profile?.subunits
+  if (!subs || subs.length === 0) return null
+  const tiers = asset.profile?.tiers
+  // A column appears when at least one row has data for it.
+  const cols = SUBUNIT_COLUMNS.filter((c) => subs.some((s) => s[c.field] != null))
+  const th: React.CSSProperties = { paddingBottom: 4, fontWeight: 500, textAlign: 'right' }
+  const td: React.CSSProperties = { padding: '5px 0', textAlign: 'right', ...mono }
+
+  const cell = (s: Subunit, field: (typeof cols)[number]['field']) => {
+    if (field === 'occupancy') {
+      const v = s.occupancy
+      return <span style={{ color: v != null && v < 0.4 ? C.bad : C.text }}>{formatValue(v, 'ratio').text}</span>
+    }
+    if (field === 'operational_count') {
+      if (s.subtype === 'office') {
+        return <span style={{ color: C.faint }}>— / {s.design_count ?? '—'}</span>
+      }
+
+      const dead = s.operational_count === 0
+      const safeOperational = Math.min(s.operational_count ?? 0, s.design_count ?? 999)
+      
+      return (
+        <span style={{ color: s.operational_count == null ? C.faint : dead ? C.bad : '#3fb27f' }}>
+          {s.operational_count != null ? safeOperational : '—'} / {s.design_count ?? '—'}
+        </span>
+      )
+    }
+    
+    if (field === 'vitality_score') {
+      return <span style={{ color: C.text }}>{s.vitality_score != null ? formatValue(s.vitality_score, 'dec2').text : '—'}</span>
+    }
+
+    return <span>—</span>
+  }
+
+  return (
+    <>
+      <div className="tab-subtitle">Subtype tenancy mix</div>
+      <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ borderBottom: `1px solid ${C.line}`, color: C.muted, textAlign: 'left' }}>
+            <th style={{ paddingBottom: 4, fontWeight: 500 }}>Subtype</th>
+            <th style={th}>Area</th>
+            {cols.map((c) => (
+              <th key={c.field} style={th}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                  {c.label}
+                  <ServedTierBadge tier={tiers?.[`subunits.${c.field}`]} />
+                </span>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {subs.map((s) => (
+            <tr key={s.subtype} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <td style={{ padding: '5px 0', color: C.text }}>{subtypeLabel(s.subtype)}</td>
+              <td style={{ ...td, color: C.muted }}>
+                {formatValue(s.area_m2, 'area').text}<span className="metric-unit">m²</span>
+              </td>
+              {cols.map((c) => <td key={c.field} style={td}>{cell(s, c.field)}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div className="metric-note" style={{ fontStyle: 'italic' }}>
+        {cols.map((c) => `${c.label}: ${c.note}`).join(' · ')}
+      </div>
+    </>
+  )
+}
+
+function hasTenancy(asset: Asset): boolean {
+  return (asset.profile?.subunits?.length ?? 0) > 0 || hasExternalSignals(asset)
+}
+
+/* ---------- Panel ---------- */
+
 export function AssetPanel(props: {
   assets: Asset[]
   question: string
@@ -85,23 +377,26 @@ export function AssetPanel(props: {
   analysis: AnalyzeResult | null
   loading: boolean
   error: string | null
-  onAsk: (files: File[]) => void // UPDATE: now accepts files
+  onAsk: (files: File[]) => void
   previewing: boolean
   onPreview: () => void
   onClearPreview: () => void
   onSimulate: () => void
   onClose: () => void
   history: AnalyzeHistoryItem[]
+  /** Selected tab; owned by App so it survives selecting another asset. */
+  tab: PanelTab
+  onTab: (t: PanelTab) => void
+  /** Mobile collapsed sheet: header + core metrics only (no tabs, answer or ask bar). */
+  compact?: boolean
 }) {
   const { assets, analysis, asked, error, previewing, history } = props
   const multi = assets.length > 1
 
-  // 3. Add file upload state
   const [files, setFiles] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // 🆕 ADDED: State to hold the current PDF preview URL
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [openFlags, setOpenFlags] = useState<Set<string>>(new Set())
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -116,18 +411,14 @@ export function AssetPanel(props: {
     setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
-  // 🆕 ADDED: Open the PDF preview
   const handlePreviewFile = (file: File) => {
     if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-      const url = URL.createObjectURL(file)
-      setPreviewUrl(url)
+      setPreviewUrl(URL.createObjectURL(file))
     } else {
-      // Optional: Handle non-PDF previews or just alert
-      alert("Preview is currently optimized for PDF files.")
+      alert('Preview is currently optimized for PDF files.')
     }
   }
 
-  // 🆕 ADDED: Close and cleanup memory
   const handleClosePreview = () => {
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
@@ -135,396 +426,148 @@ export function AssetPanel(props: {
     }
   }
 
+  const toggleFlag = (key: string) =>
+    setOpenFlags((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+
+  const placements = new Map(assets.map((a) => [a.id, placeMetrics(a)]))
+  const showTenancy = assets.some(hasTenancy)
+  const tabs = PANEL_TABS.filter((t) => t.key !== 'tenancy' || showTenancy)
+  // A remembered tab that is not available here (Tenancy without data, or the
+  // old "Ask AI" tab) falls back to Diagnosis, without forgetting the choice.
+  const tab: PanelTab = tabs.some((t) => t.key === props.tab) ? props.tab : 'diagnosis'
+
+  // Bring a new answer (or error) into view, since it sits below the tab content.
+  const answerRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (analysis || error) answerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [analysis, error])
+
+  const perAsset = (render: (a: Asset, pl: Placement) => React.ReactNode, filter?: (a: Asset) => boolean) =>
+    assets.filter(filter ?? (() => true)).map((a) => (
+      <div key={a.id} className="tab-asset">
+        {multi && <div className="tab-asset-name">{a.name}</div>}
+        {render(a, placements.get(a.id)!)}
+      </div>
+    ))
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      {/* 🆕 ADDED: A4 PDF Preview Modal Overlay */}
+    <div className={`asset-panel${props.compact ? ' compact' : ''}`} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       {previewUrl && (
-        <div 
+        <div
           onClick={handleClosePreview}
           style={{
             position: 'fixed', inset: 0, zIndex: 9999,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             background: 'rgba(20, 14, 19, 0.25)', backdropFilter: 'blur(1px)',
-            padding: 40
+            padding: 40,
           }}
         >
-          <div 
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the A4 page
+          <div
+            onClick={(e) => e.stopPropagation()}
             className="pop"
             style={{
-              position: 'relative',
-              background: '#fff', // Standard A4 paper color
-              width: '100%', maxWidth: '650px', // A4 ratio approx
-              aspectRatio: '1 / 1.414', // Perfect A4 proportion
-              maxHeight: '90vh',
-              borderRadius: 4,
-              boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
-              overflow: 'hidden',
-              display: 'flex', flexDirection: 'column'
+              position: 'relative', background: '#fff',
+              width: '100%', maxWidth: '650px', aspectRatio: '1 / 1.414', maxHeight: '90vh',
+              borderRadius: 4, boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+              overflow: 'hidden', display: 'flex', flexDirection: 'column',
             }}
           >
-            {/* Top Control Bar for the Preview */}
-            <div style={{ 
-              background: '#241c23', color: '#fff', padding: '10px 16px', 
+            <div style={{
+              background: '#241c23', color: '#fff', padding: '10px 16px',
               display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              borderBottom: '1px solid #3d3140'
+              borderBottom: '1px solid #3d3140',
             }}>
               <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '.05em' }}>📄 Document Preview</span>
-              <button 
-                onClick={handleClosePreview}
-                style={{ background: 'none', border: 0, color: '#cfc6cd', fontSize: 20, cursor: 'pointer' }}
-              >
-                ×
-              </button>
+              <button onClick={handleClosePreview} style={{ background: 'none', border: 0, color: '#cfc6cd', fontSize: 20, cursor: 'pointer' }}>×</button>
             </div>
-            
-            {/* Native Browser PDF Renderer */}
-            <iframe 
-              src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`} 
-              style={{ flex: 1, border: 'none', width: '100%', height: '100%' }} 
+            <iframe
+              src={`${previewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+              style={{ flex: 1, border: 'none', width: '100%', height: '100%' }}
               title="PDF Preview"
             />
           </div>
         </div>
       )}
 
-      <div className="fade" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+      <div className="fade" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <span style={{ ...cap, fontSize: 10 }}>
           {multi ? `${assets.length} assets selected` : 'Selected asset'}
         </span>
         <span style={{ flex: 1 }} />
-        <button className="ctrl" onClick={props.onClose} style={{ background: 'none', border: 0, color: C.muted, fontSize: 20, cursor: 'pointer', width: 30, height: 30, borderRadius: 6, lineHeight: 1, flex: 'none' }}>×</button>
+        <button className="ctrl panel-close" aria-label="Close" onClick={props.onClose} style={{ background: 'none', border: 0, color: C.muted, fontSize: 20, cursor: 'pointer', width: 30, height: 30, borderRadius: 6, lineHeight: 1, flex: 'none' }}>×</button>
       </div>
 
-      {!multi && !analysis && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: '8px 11px', borderRadius: 7, background: C.card, border: `1px solid ${C.line}`, fontSize: 11.5, color: C.faint, lineHeight: 1.5 }}>
-          <kbd style={{ ...mono, fontSize: 10, padding: '2px 6px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd' }}>Ctrl</kbd>
-          click another asset to analyse them together
+      <div className="panel-scroll">
+        {assets.map((asset, idx) => (
+          <div key={asset.id} style={{ marginTop: idx === 0 ? 2 : 26 }}>
+            <AssetHeader asset={asset} placement={placements.get(asset.id)!} />
+          </div>
+        ))}
+
+        {!props.compact && <>
+        <div className="tabs" role="tablist" style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}>
+          {tabs.map((t) => (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={tab === t.key}
+              className={`tab${tab === t.key ? ' on' : ''}`}
+              onClick={() => props.onTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
-      )}
 
-      <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
-        {assets.map((asset, idx) => {
-          const d = asset.diagnosis
-          const p = asset.profile
-          const col = d 
-            ? STATUS_COLOR[d.status as AssetStatus] ?? C.muted 
-            : STATUS_COLOR[asset.mapStatus as AssetStatus] ?? C.muted
-
-          // Check if this asset has a globally accepted intervention
-          const acceptedItem = history.find(h => h.status === 'accepted')
-          const isPrimaryIntervened = acceptedItem?.result.interventions?.some(i => i.target_asset_id === asset.id && i.role === 'primary')
-          
-          // Check current analysis for catalytic links
-          const isCatalyticBeneficiary = analysis?.interventions?.some(i => i.beneficiary_asset_id === asset.id)
-          const catalyticTargetId = analysis?.interventions?.find(i => i.beneficiary_asset_id === asset.id)?.target_asset_id
-
-          return (
-            <div key={asset.id} style={{ marginTop: idx === 0 ? 6 : 36 }}>
-              
-              <h2 className="fade" style={{ margin: 0, fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>{asset.name}</h2>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-              {asset.diagnosisYear != null && asset.diagnosisYear !== 2026 && (
-                <div style={{
-                  display: 'inline-block', marginTop: 8,
-                  padding: '4px 10px', borderRadius: 4,
-                  fontSize: 10.5, letterSpacing: '.08em',
-                  background: 'rgba(247,147,29,.12)',
-                  border: '1px solid rgba(247,147,29,.35)',
-                  color: '#f7931d', fontWeight: 600,
-                }}>
-                  ⚠ Showing {asset.diagnosisYear} diagnosis (this year not generated)
-                </div>
-              )}
-                <span style={{ ...mono, fontSize: 12, color: C.faint }}>
-                  {asset.id.startsWith('A-') ? asset.id.replace('A-', 'FAC-') : 
-                   asset.id.startsWith('G-') ? asset.id.replace('G-', 'GRN-') : 
-                   asset.id}
-                </span>
-                <span style={{ fontSize: 13, color: C.faint }}>
-                  · {asset.subtype ? asset.subtype.replace(/_/g, ' ') : asset.assetType}
-                </span>
-              </div>
-
-              <div className="fade" style={{ display: 'inline-block', fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', color: col, fontWeight: 700, marginTop: 12, border: `1px solid ${col}`, borderRadius: 4, padding: '3px 8px', background: `${col}15` }}>
-                {pretty(d?.status ?? asset.mapStatus)}
-
-                  {p?.authority && (
-                    <div style={{ 
-                      fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase', 
-                      color: p.authority.level === 'full_control' ? '#3fb27f' : p.authority.level === 'shared' ? '#f7931d' : '#d71920', 
-                      fontWeight: 700, border: `1px solid currentColor`, borderRadius: 4, 
-                      padding: '3px 8px', background: 'rgba(255,255,255,0.05)' 
-                    }}>
-                      🔒 {p.authority.level.replace('_', ' ')}
-                    </div>
-                  )}
-
-                  {d?.intervention_mode && (
-                    <div
-                      title={
-                        d.intervention_mode === 'direct'
-                          ? 'Sime Darby owns this asset and can execute any intervention.'
-                          : d.intervention_mode === 'collaborative'
-                            ? 'Sold / strata asset. SDP can collaborate via JMB or walkway improvement.'
-                            : 'Sold asset with no collaboration path. SDP can only recommend.'
-                      }
-                      style={{
-                        fontSize: 11, letterSpacing: '.1em', textTransform: 'uppercase',
-                        color:
-                          d.intervention_mode === 'direct' ? '#d71920'
-                            : d.intervention_mode === 'collaborative' ? '#a855f7'
-                              : '#7b7080',
-                        fontWeight: 700, border: `1px solid currentColor`, borderRadius: 4,
-                        padding: '3px 8px', background: 'rgba(255,255,255,0.05)',
-                      }}
-                    >
-                      {d.intervention_mode === 'direct' ? '●' : d.intervention_mode === 'collaborative' ? '◐' : '○'}{' '}
-                      {d.intervention_mode.replace(/_/g, ' ')}
-                    </div>
-                  )}
-              </div>
-
-              {/* 1. Key Figures */}
-              {p && (
-                <>
-                  <SectionTitle title="Core Metrics" />
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px', fontSize: 13 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>
-                        {p.social.occupancy_rate != null || p.social.utilisation_rate != null
-                          ? 'Occupancy'
-                          : p.social.proxied_occupancy != null
-                            ? 'Proxied occupancy'
-                            : 'Occupancy'}
-                      </span>
-                      <span style={{ ...mono, fontWeight: 500 }}>
-                        {fmt(
-                          p.social.occupancy_rate
-                            ?? p.social.utilisation_rate
-                            ?? p.social.proxied_occupancy,
-                          'ratio',
-                        )}
-                        {p.social.occupancy_rate == null
-                          && p.social.utilisation_rate == null
-                          && p.social.proxied_occupancy != null && (
-                          <span style={{ fontSize: 9, color: '#f7931d', marginLeft: 6 }}>3a</span>
-                        )}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Stranded Carbon</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.environmental.stranded_carbon_ratio ?? 0) > 0.5 ? '#d71920' : C.text }}>
-                        {p.environmental.stranded_carbon_ratio != null
-                          ? fmt(p.environmental.stranded_carbon_ratio, 'ratio')
-                          : p.social.proxied_occupancy != null
-                            ? <span style={{ color: C.faint }}>≈ {((1 - p.social.proxied_occupancy) * 100).toFixed(0)}% <span style={{ fontSize: 9, color: '#f7931d' }}>3a</span></span>
-                            : '—'}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Annual NOI</span>
-                      <span style={{ ...mono, fontWeight: 500, color: (p.financial.noi_rm ?? 0) < 0 ? '#d71920' : C.text }}>
-                        {fmt(p.financial.noi_rm, 'RM')}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Walk Coverage</span>
-                      <span style={{ ...mono, fontWeight: 500 }}>{fmt(p.social.coverage_ratio_10min_walk, 'ratio')}</span>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'baseline', gap: 8, borderBottom: `1px dashed ${C.line}`, paddingBottom: 6 }}>
-                      <span style={{ color: C.muted }}>Observed surface temp</span>
-                      <span style={{ ...mono, marginLeft: 'auto', textAlign: 'right' }}>
-                        {fmt(p.environmental.t_asset_c, 'number')} °C parcel · {fmt(p.environmental.t_township_c, 'number')} °C township · Δ {fmt(p.environmental.surface_temp_delta_c, 'number')} °C
-                      </span>
-                    </div>
-                    <div style={{ gridColumn: '1 / -1', color: C.faint, fontSize: 10.5, marginTop: -6 }}>
-                      {p.environmental.surface_temp_provenance ?? 'No Landsat observation available'}
-                      {p.environmental.surface_temp_source_catalog
-                        ? ` · ${p.environmental.surface_temp_source_catalog}`
-                        : ''}
-                      {p.environmental.surface_temp_period_start && p.environmental.surface_temp_period_end
-                        ? ` · ${p.environmental.surface_temp_period_start} to ${p.environmental.surface_temp_period_end}`
-                        : ''}
-                    </div>
+        <div className="tab-body">
+          {tab === 'diagnosis' && perAsset((a, pl) => {
+            const d = a.diagnosis
+            const col = STATUS_COLOR[(d?.status ?? a.mapStatus) as AssetStatus] ?? C.muted
+            const acceptedItem = history.find((h) => h.status === 'accepted')
+            const isPrimaryIntervened = acceptedItem?.result.interventions?.some((i) => i.target_asset_id === a.id && i.role === 'primary')
+            const catalyticTargetId = analysis?.interventions?.find((i) => i.beneficiary_asset_id === a.id)?.target_asset_id
+            return (
+              <>
+                {isPrimaryIntervened && (
+                  <div className="callout" style={{ background: 'rgba(0,210,255,0.08)', borderColor: 'rgba(0,210,255,0.3)' }}>
+                    <span style={{ fontSize: 11, color: '#00d2ff', fontWeight: 600 }}>Primary intervention active</span>
+                    <p>This asset is undergoing the accepted plan's primary intervention.</p>
                   </div>
-                                    
-                  {/* Subtype Mix Section */}
-                  {p.subunits && p.subunits.length > 0 && (
-                    <div style={{ marginTop: 16 }}>
-                      <SectionTitle title="Subtype Tenancy Mix" color={C.muted} />
-                      <table style={{ width: '100%', fontSize: 11.5, borderCollapse: 'collapse' }}>
-                        <thead>
-                          <tr style={{ borderBottom: `1px solid ${C.line}`, color: C.muted, textAlign: 'left' }}>
-                            <th style={{ paddingBottom: 4, fontWeight: 500 }}>Subtype</th>
-                            <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Area</th>
-                            
-                            {/* Conditional Headers: Full Control shows Occupancy, Others show Operating & Vitality */}
-                            {p.authority.level === 'full_control' ? (
-                              <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Occupancy</th>
-                            ) : (
-                              <>
-                                <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Operating</th>
-                                <th style={{ paddingBottom: 4, fontWeight: 500, textAlign: 'right' }}>Vitality</th>
-                              </>
-                            )}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {p.subunits.map((sub: any) => {
-                            const isFullControl = p.authority.level === 'full_control';
-                            
-                            // For Sold/Advisory assets (Tier 3a proxies)
-                            const hasProxy = sub.operational_count !== undefined && sub.operational_count !== null
-                            const opText = hasProxy ? `${sub.operational_count} / ${sub.design_count}` : `— / ${sub.design_count}`
-                            const vitText = sub.vitality_score != null ? sub.vitality_score.toFixed(1) : '—'
-                            const isDead = hasProxy && sub.operational_count === 0
-
-                            // For Full Control assets (Tier 1 observed)
-                            const occText = sub.occupancy != null ? `${(sub.occupancy * 100).toFixed(0)}%` : '—'
-                            const isOccLow = sub.occupancy != null && sub.occupancy < 0.4
-
-                            return (
-                              <tr key={sub.subtype} style={{ borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                                <td style={{ padding: '6px 0', textTransform: 'capitalize', color: C.text }}>
-                                  {sub.subtype.replace(/_/g, ' ')}
-                                </td>
-                                <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: C.muted }}>
-                                  {sub.area_m2} m²
-                                </td>
-                                
-                                {/* Conditional Data Columns */}
-                                {isFullControl ? (
-                                  <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: isOccLow ? '#d71920' : C.text }}>
-                                    {occText}
-                                  </td>
-                                ) : (
-                                  <>
-                                    <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: isDead ? '#d71920' : (hasProxy ? '#3fb27f' : C.muted) }}>
-                                      {opText}
-                                    </td>
-                                    <td style={{ padding: '6px 0', textAlign: 'right', ...mono }}>
-                                      {vitText}
-                                    </td>
-                                  </>
-                                )}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                      <div style={{ fontSize: 10, color: C.faint, marginTop: 6, fontStyle: 'italic', lineHeight: 1.4 }}>
-                        {p.authority.level === 'full_control' ? (
-                          <><strong>Occupancy</strong>: Observed per-subtype occupancy (Tier 1).</>
-                        ) : (
-                          <>
-                            <strong>Operating</strong>: Active businesses / Designed units (Google Places).<br/>
-                            <strong>Vitality</strong>: Rating × log(reviews) proxy. — means no Places data.
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* 2. Intervention Alerts */}
-              {isPrimaryIntervened && (
-                <div style={{ marginTop: 16, padding: 12, background: 'rgba(0,210,255,0.1)', border: '1px solid rgba(0,210,255,0.3)', borderRadius: 6 }}>
-                  <span style={{ fontSize: 11, color: '#00d2ff', fontWeight: 600 }}>🚧 PRIMARY INTERVENTION ACTIVE</span>
-                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#cfc6cd' }}>
-                    This asset is currently undergoing primary structural intervention.
-                  </p>
-                </div>
-              )}
-
-              {isCatalyticBeneficiary && (
-                <div style={{ marginTop: 16, padding: 12, background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 6 }}>
-                  <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>✨ CATALYTIC BENEFICIARY</span>
-                  <p style={{ margin: '4px 0 0', fontSize: 12, color: '#cfc6cd' }}>
-                    This asset benefits from nearby intervention at <b>{catalyticTargetId}</b>.
-                  </p>
-                </div>
-              )}
-
-              {/* 3. Diagnosis */}
-              {d && (d.flags.length > 0 || d.contributing_factors.length > 0) && (
-                <>
-                  <SectionTitle title="Diagnosis" />
-                  {d.flags.length > 0 && (
-                    <div className="fade d1" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-                      {d.flags.map((f) => (
-                        <span key={f} style={{ fontSize: 11, padding: '4px 10px', borderRadius: 6, background: C.card, border: `1px solid ${C.line}`, color: '#cfc6cd' }}>
-                          {pretty(f)}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {d.contributing_factors.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
-                      {d.contributing_factors.map((f) => (
-                        <Bar key={f.factor} label={pretty(f.factor)} value={Math.round(f.contribution * 100)} color={col} suffix="%" />
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* 4. Evidence */}
-              {d && d.evidence.length > 0 && (
-                <>
-                  <SectionTitle title="Supporting Evidence" color="#cfc6cd" />
-                  <p style={{ fontSize: 10, color: C.faint, marginTop: -8, marginBottom: 8, fontStyle: 'italic' }}>
-                    (Baseline diagnostic evidence from 2026)
-                  </p>
-                  <div className="fade d2" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 8, padding: '4px 12px', border: `1px solid ${C.line}` }}>
-                    {d.evidence.map((line, i) => {
-                      const splitIdx = line.indexOf(':')
-                      const isMultiLine = line.includes('\n')
-                      const isThermalEvidence = line.startsWith('Observed land surface temperature')
-                      if (splitIdx !== -1 && !isMultiLine && !isThermalEvidence) {
-                        const label = line.slice(0, splitIdx).trim()
-                        let value = line.slice(splitIdx + 1).trim()
-                          value = value.replace(/nan/gi, '—')
-                        return (
-                          <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 12, fontSize: 12.5, padding: '10px 0', borderBottom: i === d.evidence.length - 1 ? 'none' : `1px dashed ${C.line}` }}>
-                            <span style={{ color: C.muted, flex: 1, lineHeight: 1.4 }}>{label}</span>
-                            <span style={{ ...mono, color: C.text, textAlign: 'right', flexShrink: 0, fontWeight: 500 }}>{value}</span>
-                          </div>
-                        )
-                      }
-                      
-                      let safeLine = splitIdx !== -1 ? line.slice(splitIdx + 1).trim() : line;
-                      safeLine = safeLine.replace(/nan/gi, '—');
-                      return (
-                        <div key={i} style={{ padding: '10px 0', borderBottom: i === d.evidence.length - 1 ? 'none' : `1px dashed ${C.line}` }}>
-                          {splitIdx !== -1 && (
-                            <div style={{ fontSize: 12, fontWeight: 600, color: C.accent, marginBottom: 4 }}>
-                              {line.slice(0, splitIdx).trim()}
-                            </div>
-                          )}
-                          <div style={{
-                            fontSize: 12.5,
-                            color: '#cfc6cd',
-                            whiteSpace: 'pre-wrap',
-                            overflowWrap: 'anywhere',
-                            wordBreak: 'break-word',
-                            lineHeight: 1.5,
-                            fontFamily: mono.fontFamily,
-                          }}>
-                            {safeLine}
-                          </div>
-                        </div>
-                      )
-                    })}
+                )}
+                {catalyticTargetId && (
+                  <div className="callout" style={{ background: 'rgba(168,85,247,0.08)', borderColor: 'rgba(168,85,247,0.3)' }}>
+                    <span style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>Catalytic beneficiary</span>
+                    <p>This asset benefits from the intervention at <b>{catalyticTargetId}</b>.</p>
                   </div>
-                </>
-              )}
-            </div>
-          )
-        })}
+                )}
+                <DiagnosisTab
+                  asset={a} placement={pl} open={openFlags} onToggle={toggleFlag}
+                  onTenancy={() => props.onTab('tenancy')} color={col}
+                />
+              </>
+            )
+          })}
 
-        <hr style={{ border: 0, borderTop: `1px solid ${C.line}`, margin: '28px 0' }} />
+          {tab === 'metrics' && perAsset((a, pl) => <MetricsTab asset={a} placement={pl} />)}
+
+          {tab === 'tenancy' && perAsset((a, pl) => (
+            <>
+              <SubtypeMix asset={a} />
+              <ExternalSignalsPanel asset={a} hidden={pl.claimed} />
+            </>
+          ), hasTenancy)}
+
+        </div>
+
+        {/* AI answer: in the scroll area, below the tab content and right above the ask bar. */}
+        {(analysis || error) && (
+          <div ref={answerRef} className="ai-answer">
+            <div className="ai-answer-head">AI analysis</div>
 
         {error && (
           <div className="fade" style={{ padding: 14, marginBottom: 20, borderRadius: 8, background: 'rgba(215,25,32,0.1)', border: '1px solid rgba(215,25,32,0.3)', fontSize: 13, color: '#f0b8b8' }}>
@@ -604,7 +647,7 @@ export function AssetPanel(props: {
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
                               <span style={{ color: C.muted }}>Primary material</span>
                               <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
-                                {spec.primary_material.replace(/_/g, ' ')}
+                                {humanize(spec.primary_material)}
                               </span>
                             </div>
                           )}
@@ -612,7 +655,7 @@ export function AssetPanel(props: {
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
                               <span style={{ color: C.muted }}>Facade</span>
                               <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
-                                {spec.facade_action.replace(/_/g, ' ')}
+                                {humanize(spec.facade_action)}
                               </span>
                             </div>
                           )}
@@ -620,7 +663,7 @@ export function AssetPanel(props: {
                             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `1px dashed ${C.line}`, paddingBottom: 4 }}>
                               <span style={{ color: C.muted }}>Roof</span>
                               <span style={{ ...mono, color: '#fff', fontWeight: 600 }}>
-                                {spec.roof_intervention.replace(/_/g, ' ')}
+                                {humanize(spec.roof_intervention)}
                               </span>
                             </div>
                           )}
@@ -669,7 +712,7 @@ export function AssetPanel(props: {
                           <MetricLine m={m} lowerIsBetter />
                           {m.cooling_source && m.cooling_source !== 'none' && (
                             <div style={{ fontSize: 10.5, color: C.faint, paddingLeft: 8, marginTop: -2, marginBottom: 4, fontStyle: 'italic' }}>
-                              cooling source: {m.cooling_source.replace(/_/g, ' ')}
+                              Cooling source: {humanize(m.cooling_source).toLowerCase()}
                               {m.cooling_from_roof_c != null && m.cooling_from_roof_c > 0 && (
                                 <> · roof −{m.cooling_from_roof_c.toFixed(2)} °C</>
                               )}
@@ -697,8 +740,8 @@ export function AssetPanel(props: {
                               const isDead = sub.occupancy_intervention === 0;
                               return (
                                 <tr key={sub.subtype} style={{ borderBottom: `1px solid rgba(255,255,255,0.05)` }}>
-                                  <td style={{ padding: '6px 0', textTransform: 'capitalize', color: isDead ? C.faint : C.text }}>
-                                    {sub.subtype.replace(/_/g, ' ')}
+                                  <td style={{ padding: '6px 0', color: isDead ? C.faint : C.text }}>
+                                    {subtypeLabel(sub.subtype)}
                                   </td>
                                   <td style={{ padding: '6px 0', textAlign: 'right', ...mono, color: C.muted }}>
                                     {sub.area_m2} m²
@@ -841,14 +884,24 @@ export function AssetPanel(props: {
             </div>
           </div>
         )}
+          </div>
+        )}
+        </>}
       </div>
 
-      {/* Bottom Input Area (With File Chips) */}
-      <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${C.line}` }}>
-        <label htmlFor="q" style={{ ...cap, fontSize: 10, display: 'block', marginBottom: 10, color: C.faint }}>
-          {analysis ? 'Ask a follow-up question' : multi ? `Ask about these ${assets.length} assets` : `Ask about ${assets[0].name}`}
+      {/* Ask bar: a flex sibling of the scroll area, so it is always visible and never covers content. */}
+      {!props.compact && (
+      <div className="ask-bar">
+        <label htmlFor="q" className="ask-label">
+          <span>{analysis ? 'Ask a follow-up question' : multi ? `Ask AI about these ${assets.length} assets` : `Ask AI about ${assets[0].name}`}</span>
+          {!multi && !analysis && (
+            <span className="ask-hint">
+              <kbd style={{ ...mono, fontSize: 9.5, padding: '1px 5px', borderRadius: 4, background: '#2b212a', border: `1px solid ${C.line}`, color: '#cfc6cd' }}>Ctrl</kbd>
+              {' '}+ click to add assets
+            </span>
+          )}
         </label>
-        
+
         {files.length > 0 && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
             {files.map((f, i) => (
@@ -916,6 +969,7 @@ export function AssetPanel(props: {
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

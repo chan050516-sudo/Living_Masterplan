@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { C, cap, mono } from '../theme'
 import type { Asset, AssetStatus, InterventionMode } from '../types'
+import { statusLabel, subtypeLabel } from '../config/metricConfig'
 
 /** Map each status enum to its colour. */
 const STATUS_COLOR: Record<AssetStatus, string> = {
@@ -17,6 +18,7 @@ const STATUS_COLOR: Record<AssetStatus, string> = {
   // actually be done.
   community_value_gap: '#d71920',
   strategic_learning: '#f15c22',
+  intervened: '#2196f3',
 }
 
 /** Map intervention mode to a border colour and a badge label. */
@@ -46,15 +48,12 @@ const MODE_STYLE: Record<InterventionMode, {
   },
 }
 
-function prettyStatus(s: string) {
-  const t = s.replace(/_/g, ' ')
-  return t.charAt(0).toUpperCase() + t.slice(1)
-}
+const prettyStatus = statusLabel
 
-function findEvidence(evidence: string[], prefix: string) {
-  const hit = evidence.find((e) => e.startsWith(prefix + ':'))
-  return hit ? hit.slice(prefix.length + 1).trim() : null
-}
+// function findEvidence(evidence: string[], prefix: string) {
+//   const hit = evidence.find((e) => e.startsWith(prefix + ':'))
+//   return hit ? hit.slice(prefix.length + 1).trim() : null
+// }
 
 /** Filters combine the two orthogonal dimensions:
  *  - what is the diagnosis (status)
@@ -169,15 +168,17 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
         const mode = d.intervention_mode
         const modeStyle = mode ? MODE_STYLE[mode] : null
 
-        const occ = findEvidence(d.evidence, 'Occupancy')
-        const vac = findEvidence(d.evidence, 'Vacancy')
-        const subtype = findEvidence(d.evidence, 'Subtype')
+        // --- Bug 3 Fix: Use structured data instead of parsing evidence strings ---
+        // For sold assets, occupancy_rate is null, so we fallback to proxied occupancy.
+        const soc = a.profile?.social
+        const occVal = soc?.occupancy_rate ?? soc?.proxied_occupancy
+        const occ = occVal != null ? `${(occVal * 100).toFixed(0)}%` : null
+        
+        const vacVal = soc?.vacancy_duration_months
+        const vac = vacVal != null ? `${Math.round(vacVal)} months` : null
 
-        // Use a border left as an accent that encodes the mode
-        // without overpowering the status colour.
-        const borderLeft = modeStyle
-          ? `3px solid ${modeStyle.border}`
-          : `1px solid ${C.line}`
+        // Register subtype, human-labelled (evidence strings carry the raw key).
+        const subtype = subtypeLabel(a.profile?.identity.subtype)
 
         return (
           <button
@@ -188,7 +189,6 @@ export function DeadspaceList({ assets, onPick, filter, onFilter }: {
               display: 'block', width: '100%', textAlign: 'left', marginBottom: 10, padding: 14,
               background: C.card,
               border: `1px solid ${C.line}`,
-              borderLeft,
               borderRadius: 8, cursor: 'pointer', color: C.text, font: 'inherit',
             }}
           >

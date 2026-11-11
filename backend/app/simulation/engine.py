@@ -90,6 +90,7 @@ from .interventions import apply_intervention, apply_construction_state
 from .population import project_population
 from .occupancy import damped_occupancy, target_occupancy_from_dsr
 from .supply import active_projects_in_year
+from ..deadspace.layer3_survival import _rate, _DEFAULT_OPEX_PER_M2, _DEFAULT_CONVERSION, _DEFAULT_SPEND_RM, _DEFAULT_DAYS
 from .spatial import (
     spatial_interventions_for_year,
     network_version_tag,
@@ -542,22 +543,36 @@ def _recompute_commercial_financials(
     """
     Mutates `metric_row` in place to reflect the current occupancy.
 
-    If an intervention is active (post-activation), rental income is
-    computed using market pricing + location factor instead of the
-    baseline pro-rata scaling.
-    Otherwise, the legacy pro-rata scaling is retained to preserve
-    the baseline behavior.
+    Three branches:
+      1. Post-intervention with market pricing — a repurpose or renovation
+         moves the asset to a new subtype with its own market rent. That
+         branch runs even when the base-year occupancy was 0 or None,
+         because the new tenant does not inherit the old vacancy.
+      2. Sold/advisory counterfactual — when the developer cannot see the
+         asset's income, a counterfactual NOI is written to the
+         underscore-prefixed fields for the LLM narrative. The visible
+         `noi_rm` stays None to preserve the authority gate.
+      3. Legacy pro-rata scaling — baseline behaviour for a
+         developer-held asset whose base-year occupancy was recorded.
     """
     baseline = state_by_year.get(base_year, {}).get(aid, {})
     base_occ = baseline.get("occupancy_rate")
     base_rental = baseline.get("rental_income_rm")
     base_footfall = baseline.get("footfall_daily")
 
-    # Sold asset with no observed baseline. Write a counterfactual
-    # NOI to the underscore-prefixed fields so the LLM selection stage
-    # can reason about "if SDP had retained this asset". The main
-    # `noi_rm` field stays None to preserve the authority gate.
-    if not _is_valid_number(base_occ) or float(base_occ) <= 0:
+    # A repurpose or renovation changes what the asset IS. The new
+    # subtype carries its own market rate, so NOI must be recomputed
+    # even when the base-year occupancy was 0 or hidden by the gate.
+    _is_function_change = (
+        activated is not None
+        and activated.get("intervention_type") in ("repurpose", "renovation")
+    )
+
+    # ---- Counterfactual NOI for gate-hidden assets ----
+    if (
+        not _is_function_change
+        and (not _is_valid_number(base_occ) or float(base_occ) <= 0)
+    ):
         if activated is None or activated.get("intervention_type") == "tenant_matching":
             from ..taxonomy import get_market_rent_per_m2
             market_rate = get_market_rent_per_m2(eff.get("subtype"), default=200.0)
@@ -568,7 +583,9 @@ def _recompute_commercial_financials(
                 lettable = 0.0
             if lettable > 0 and new_occ > 0:
                 cov15 = baseline.get("coverage_ratio_15min_walk")
-                loc_factor = 0.6 + 0.8 * (float(cov15) if _is_valid_number(cov15) else 0.0)
+                loc_factor = 0.6 + 0.8 * (
+                    float(cov15) if _is_valid_number(cov15) else 0.0
+                )
                 cf_rental = market_rate * lettable * float(new_occ) * loc_factor
                 cf_opex = _estimate_opex(eff, year)
                 cf_maint = _estimate_maintenance(eff, year)
@@ -577,29 +594,54 @@ def _recompute_commercial_financials(
                 metric_row["_noi_rm"] = cf_noi
                 _capex = float(eff.get("capex_initial_rm") or 1)
                 metric_row["_noi_yield"] = cf_noi / _capex if _capex > 0 else None
+
+                _survival_cfg = assumptions.get("survival_analysis", {})
+                _subtype = eff.get("subtype")
+
+                _conv = _rate(
+                    _survival_cfg, "conversion_rate_by_subtype",
+                    _subtype, _DEFAULT_CONVERSION,
+                )
+                _spend = _rate(
+                    _survival_cfg, "avg_spend_rm_by_subtype",
+                    _subtype, _DEFAULT_SPEND_RM,
+                )
+                _days = _rate(
+                    _survival_cfg, "operating_days_by_subtype",
+                    _subtype, _DEFAULT_DAYS,
+                )
+                _opex_per_m2 = _rate(
+                    _survival_cfg, "survival_opex_per_m2_by_subtype",
+                    _subtype, _DEFAULT_OPEX_PER_M2,
+                )
+
+                _inflation_idx = _survival_cfg.get("inflation_index", {})
+                _inflation = float(
+                    _inflation_idx.get(
+                        str(year), _inflation_idx.get(year, 1.0),
+                    )
+                )
+
+                _users = float(eff.get("lbs_unique_users_daily") or 0)
                 metric_row["_estimated_revenue_rm"] = (
-                    float(eff.get("lbs_unique_users_daily") or 0)
-                    * 0.05 * 25.0 * 365
+                    _users * _conv * _spend * _days
                 )
                 metric_row["_survival_opex_floor_rm"] = (
-                    lettable * 200.0 * assumptions.get("survival_analysis", {}).get(
-                        "inflation_index", {}
-                    ).get(str(year), 1.0)
+                    lettable * _opex_per_m2 * _inflation
                 )
                 metric_row["_noi_source"] = "counterfactual_market_estimate"
         return
 
+    # ---- Rental income ----
     if activated is not None:
-        # ---- Market pricing for post-intervention assets ----
-        # Uses the subtype's market rent plus a location factor.
-        # This ensures the NOI reflects the new asset class, not the old one.
-        from ..taxonomy import get_market_rent_per_m2  # Local import to avoid cycles
+        # Post-intervention: use market rent for the new subtype.
+        # Location factor rewards a well-connected site and discounts a
+        # dead-end one.
+        from ..taxonomy import get_market_rent_per_m2
 
         new_subtype = eff.get("subtype")
         market_rate = get_market_rent_per_m2(new_subtype, default=200.0)
 
-        # Location factor: 0.6 + 0.8 * coverage_ratio_15min_walk.
-        # A high-coverage parcel commands a premium; a dead-end parcel discounts.
         cov15 = baseline.get("coverage_ratio_15min_walk")
         cov15 = float(cov15) if _is_valid_number(cov15) else 0.0
         loc_factor = 0.6 + 0.8 * cov15
@@ -609,10 +651,8 @@ def _recompute_commercial_financials(
 
         scaled_rental = market_rate * lettable * new_occ * loc_factor
         metric_row["rental_income_rm"] = scaled_rental
-
     else:
         # ---- Legacy pro-rata scaling ----
-        # Baseline behavior: scale rental income proportionally to occupancy.
         if not _is_valid_number(base_rental):
             return
 
@@ -621,7 +661,15 @@ def _recompute_commercial_financials(
         metric_row["rental_income_rm"] = scaled_rental
 
     # ---- Footfall ----
-    if _is_valid_number(base_footfall):
+    # Only scale footfall when a baseline exists. A vacant asset
+    # (base_occ == 0) that just received a repurpose has no historical
+    # footfall to scale from; the Huff model has already assigned it
+    # the new occupancy.
+    if (
+        _is_valid_number(base_occ)
+        and float(base_occ) > 0
+        and _is_valid_number(base_footfall)
+    ):
         ratio = float(new_occ) / float(base_occ)
         scaled_footfall = float(base_footfall) * ratio
         metric_row["footfall_daily"] = scaled_footfall
@@ -631,6 +679,11 @@ def _recompute_commercial_financials(
             )
         else:
             metric_row["rental_income_per_visit_proxy"] = None
+    elif activated is not None:
+        # Post-intervention: clear stale footfall rather than carry
+        # last year's figure forward for a business that no longer exists.
+        metric_row["footfall_daily"] = None
+        metric_row["rental_income_per_visit_proxy"] = None
 
     # ---- Maintenance ----
     maintenance_base = eff.get("maintenance_annual_rm")
@@ -1999,6 +2052,20 @@ def simulate_scenario(
             metric_row["floor_area_m2"] = eff.get("floor_area_m2")   # P1-3 fix
             metric_row["land_area_m2"] = eff.get("land_area_m2")     # sequestration
             metric_row["unit_mix_json"] = eff.get("unit_mix_json")
+
+            # P1 — roof intervention attribution. `_cooling_from_roof_c`
+            # is written by `_apply_engineering_spec` in interventions.py
+            # and used inside the HVAC load calculation. Writing it to the
+            # metric row lets the frontend panel display the roof's
+            # contribution to surface-temperature reduction, not just the
+            # canopy's. The `pop` prevents a previous year's value from
+            # leaking through when the roof intervention is removed.
+            _roof_relief = eff.get("_cooling_from_roof_c")
+            if _is_valid_number(_roof_relief) and float(_roof_relief) > 0:
+                metric_row["cooling_from_roof_c"] = float(_roof_relief)
+            else:
+                metric_row.pop("cooling_from_roof_c", None)
+
             # Set every year: the row starts from last year's state, so
             # an event that has ended must clear its boost.
             if year_boosts.get(aid, 1.0) > 1.0:
@@ -2072,11 +2139,45 @@ def simulate_scenario(
     )
 
     # ---- Phase 4c — per-year deadspace diagnostics ----
-    # Recompute for all assets (baseline) or only intervened assets (candidates).
+    # Recompute for all assets (baseline) or only the assets whose state
+    # actually changed (candidate scenarios).
+    #
+    # Every asset the plan physically touches must be re-diagnosed, plus
+    # every catalytic beneficiary (whose occupancy and footfall move even
+    # though the intervention acts elsewhere). Spatial upgrades, new
+    # supply, footfall injections and subtype changes additionally
+    # reshuffle Huff demand for assets the plan never named — in those
+    # cases the baseline-reuse optimization is unsafe, so we fall back
+    # to a full per-year re-diagnosis.
     intervened_ids = None
     if scenario_id != BASELINE_SCENARIO_ID and not scenario_interventions.empty:
-        intervened_ids = set(scenario_interventions["target_asset_id"].dropna().unique())
-        
+        touched_ids = set(
+            scenario_interventions["target_asset_id"].dropna().astype(str)
+        )
+
+        for _, _intv in scenario_interventions.iterrows():
+            try:
+                _params = json.loads(_intv.get("parameters_json") or "{}")
+            except (json.JSONDecodeError, TypeError):
+                _params = {}
+            _benef = (_params.get("_catalytic") or {}).get("beneficiary_asset_id")
+            if _benef:
+                touched_ids.add(str(_benef))
+
+        _HUFF_RESHUFFLING_TYPES = {
+            "pedestrian_upgrade", "green_corridor",
+            "tactical_placemaking", "new_development",
+            "tenant_matching", "repurpose", "renovation",
+            "delay_development", "cancel_development",
+        }
+        _present_types = set(
+            scenario_interventions["intervention_type"].dropna().astype(str)
+        )
+        if _present_types & _HUFF_RESHUFFLING_TYPES:
+            intervened_ids = None  # full re-diagnosis
+        else:
+            intervened_ids = touched_ids
+
     deadspace_by_year = _build_deadspace_by_year(
         state_by_year=state_by_year,
         assets_df=assets_df,

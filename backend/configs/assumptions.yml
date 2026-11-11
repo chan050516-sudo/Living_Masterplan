@@ -174,7 +174,7 @@ deadspace:
     occupancy_rate_below: 0.50
     vacancy_duration_above_months: 12.0
     utilisation_rate_below: 0.40
-    dsr_below: 0.80
+    dsr_below: 0.40
     demand_supply_gap_below: 0.0
     # Phase 11 — stranded carbon diagnostic
     stranded_carbon_ratio_above: 0.50
@@ -269,7 +269,7 @@ mode_networks:
       - residential
       - service
       - living_street
-    speed_kmh: 30.0
+    speed_kmh: 18.0
     canopy_adjusted: false
     thresholds_min: [5, 10, 15]
 

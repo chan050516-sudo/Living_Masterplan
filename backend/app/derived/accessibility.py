@@ -141,6 +141,9 @@ def catchment_profile(
     covered = {t: 0.0 for t in thresholds_min}
     reachable_pop = 0.0
     distances_weighted = []
+    
+    # Find the maximum threshold to bound reachable_population (e.g., 15 mins)
+    max_threshold = max(thresholds_min)
 
     for d in demand_entries:
         d_vn = d["virtual_node"]
@@ -154,10 +157,14 @@ def catchment_profile(
             continue
 
         d_total = asset_off + d_network + d_off
-        reachable_pop += pop
+        
+        # Bug 1 Fix: Only count as reachable if it's within the max threshold (15 mins)
+        walk_time = d_total / speed_m_per_min
+        if walk_time <= max_threshold:
+            reachable_pop += pop
+            
         distances_weighted.append((d_total, pop))
 
-        walk_time = d_total / speed_m_per_min
         for t in thresholds_min:
             if walk_time <= t:
                 covered[t] += pop

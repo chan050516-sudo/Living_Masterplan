@@ -152,12 +152,17 @@ def detect_deadspace_for_asset(
 
 def _drop_operational(layer1: dict, layer2: dict):
     """Remove flags built on operational data the developer cannot see."""
+    _MACRO_FLAGS = {"dsr_below_threshold"}
+    
     suppressed = []
 
     def keep(layer):
         kept = []
         for f in layer.get("reasons", []):
-            (suppressed if f in OPERATIONAL_FLAGS else kept).append(f)
+            if f in OPERATIONAL_FLAGS or f in _MACRO_FLAGS:
+                suppressed.append(f)
+            else:
+                kept.append(f)
         return {**layer, "reasons": kept, "triggered": len(kept) > 0}
 
     return keep(layer1), keep(layer2), suppressed

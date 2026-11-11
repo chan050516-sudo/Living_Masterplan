@@ -92,7 +92,8 @@ asset_metrics:
                                       authority_tiers: { sold: 3b, shared: 3b, public_transferred: 3b } }
   noi_yield:                        { tier: 2, source: derived, unit: ratio,
                                       authority_tiers: { sold: 3b, shared: 3b, public_transferred: 3b } }
-  maintenance_surge_rm:             { tier: 2, source: derived, unit: RM }
+  maintenance_surge_rm:             { tier: 2, source: derived, unit: RM,
+                                      authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
   rental_income_per_visit_proxy:    { tier: 2, source: derived, unit: "RM/person/day" }
 
   # Deprecated bridge — kept during Phase 4 transition
@@ -291,6 +292,86 @@ external_data:
 unknown_fields:
   lease_schedule: { tier: 4, source: unavailable_private_lease_terms, unit: date_range }
 
+# Fields served by GET /api/assets/profiles that are not raw columns of the
+# tables above: values the profile builder renames, derives at build time, or
+# serves per subunit. Read only by backend/scripts/build_profiles.py, which
+# resolves every served metric's tier and source against this file.
+# Kept out of `asset_metrics` on purpose: generate_mock_data.py uses that
+# section's keys as its CSV column list.
+profile_fields:
+  consumer_facing_unit_count:
+    tier: 1
+    source: asset_register_unit_mix
+    unit: count
+  capacity_users:
+    tier: 2
+    source: derived_from_area_and_density
+    unit: count
+    
+  proxied_occupancy:            { tier: 3a, source: lbs_then_google_places, unit: ratio,
+                                  note: "LBS proxied_occupancy_lbs first, Google Places fallback (B6 layer3a)",
+                                  is_mock: true }
+  operational_place_count:      { tier: 3a, source: google_places_mock, unit: count, is_mock: true }
+  unit_mix_unit_count:          { tier: 1, source: asset_register, unit: count }
+  occupied_units:               { tier: 1, source: inventory_register, unit: count,
+                                  authority_scope: full_control, is_mock: true }
+
+  # Energy end-use split follows the total's authority rule.
+  energy_kwh_hvac:              { tier: 2, source: end_use_split_model, unit: kWh,
+                                  authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+  energy_kwh_lighting_equipment: { tier: 2, source: end_use_split_model, unit: kWh,
+                                  authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+  energy_kwh_base_load:         { tier: 2, source: end_use_split_model, unit: kWh,
+                                  authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+
+  # Occupancy-dependent carbon: derived from observed occupancy when owned,
+  # from proxy occupancy otherwise (only populated for simulated years).
+  carbon_productive_tco2e:      { tier: 2, source: derived_from_occupancy, unit: tCO2e,
+                                  authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+  carbon_stranded_tco2e:        { tier: 2, source: derived_from_occupancy, unit: tCO2e,
+                                  authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+  stranded_carbon_ratio:        { tier: 2, source: derived_from_occupancy, unit: ratio,
+                                  authority_tiers: { sold: 3a, shared: 3a, public_transferred: 3a } }
+
+  apparent_temp_c:              { tier: 2, source: derived_from_landsat_lst, unit: degC,
+                                  formula: "LST -> 1.5 m air temp (LCZ damping) -> Steadman apparent temp" }
+
+  # Trajectory needs an occupancy history, which only owned assets have.
+  trajectory_class:             { tier: 2, source: derived_from_occupancy_history, unit: enum,
+                                  authority_tiers: { sold: 4, shared: 4, public_transferred: 4 } }
+  peak_occupancy:               { tier: 2, source: derived_from_occupancy_history, unit: ratio }
+  years_since_peak:             { tier: 2, source: derived_from_occupancy_history, unit: year }
+  occupancy_trend_3yr:          { tier: 2, source: derived_from_occupancy_history, unit: ratio }
+  vacancy_streak_months:        { tier: 2, source: derived_from_occupancy_history, unit: month }
+  years_below_benchmark:        { tier: 2, source: derived_from_occupancy_history, unit: year,
+                                  note: "Consecutive years below 85% of the subtype occupancy benchmark" }
+
+  # Survival OPEX floor (B6 layer3_survival), sold commercial only.
+  estimated_revenue_rm:         { tier: 3a, source: survival_floor_model, unit: RM,
+                                  formula: "lbs_users_daily x conversion x avg_spend x operating_days",
+                                  is_mock: true }
+  survival_opex_floor_rm:       { tier: 3a, source: survival_floor_model, unit: RM,
+                                  formula: "lettable_area_m2 x survival_opex_per_m2 x inflation_index" }
+  hemorrhage_ratio:             { tier: 3a, source: survival_floor_model, unit: ratio,
+                                  formula: "estimated_revenue_rm / survival_opex_floor_rm", is_mock: true }
+
+  # Developer realisation, sold assets only.
+  sale_profit_rm:               { tier: 2, source: derived_from_sale_price, unit: RM,
+                                  formula: "sale_price_rm - capex_initial_rm", is_mock: true }
+  sale_return_ratio:            { tier: 2, source: derived_from_sale_price, unit: ratio,
+                                  formula: "(sale_price_rm - capex_initial_rm) / capex_initial_rm", is_mock: true }
+
+  # Per-subunit fields (profile.subunits[]).
+  subunit_area_m2:              { tier: 1, source: asset_register_unit_mix, unit: m2 }
+  subunit_design_count:         { tier: 1, source: asset_register_unit_mix, unit: count }
+  subunit_occupancy:            { tier: 1, source: internal_occupancy_record, unit: ratio,
+                                  authority_scope: full_control, is_mock: true }
+  subunit_operational_count:    { tier: 3a, source: google_places_mock, unit: count, is_mock: true }
+  subunit_presence_ratio:       { tier: 3a, source: google_places_mock, unit: ratio, is_mock: true }
+  subunit_vitality_score:       { tier: 3a, source: google_places_mock, unit: ratio, is_mock: true }
+  subunit_allocated_carbon_tco2e: { tier: 2, source: derived_area_share, unit: tCO2e }
+  subunit_allocated_noi_rm:     { tier: 2, source: derived_area_share, unit: RM }
+
 network:
   canopy_coverage_ratio: { tier: 1, source: observed, unit: ratio }
 
@@ -342,7 +423,7 @@ ui:
     2: "Derived"
     3a: "Operational estimate"
     3b: "Counterfactual"
-    4: "Unknown"
+    4: "Unknown"   # served to the frontend as "U"
   tier_colors:
     1: "blue"
     2: "green"

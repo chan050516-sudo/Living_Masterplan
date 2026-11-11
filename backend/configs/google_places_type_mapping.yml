@@ -7,6 +7,7 @@ source: "Google Places API (New) Place type values; project subtype targets use 
 direct_match:
   restaurant: restaurant
   cafe: cafe
+  coffee_shop: kopitiam
   supermarket: supermarket
   convenience_store: convenience_retail
   pharmacy: medical_retail

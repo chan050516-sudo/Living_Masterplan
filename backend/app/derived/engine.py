@@ -177,7 +177,22 @@ def compute_derived_metrics(
         log.info("B3: Loading baked walking pipeline from %s", walk_pkl)
         with open(walk_pkl, "rb") as f:
             walking_pipeline = pickle.load(f)
-        supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
+
+        # The baked pickle was generated without per-asset metrics, so
+        # its supply nodes carry the 0.85 default occupancy. Rebuild
+        # them with this year's actual occupancy so the pkl fast-path
+        # is numerically identical to the construction path. Without
+        # this, DSR and effective_demand_m2 differ depending on whether
+        # the pkl exists on disk.
+        base_year_metrics = business["asset_metrics"]
+        if "year" in base_year_metrics.columns:
+            base_year_metrics = base_year_metrics[
+                base_year_metrics["year"] == year
+            ]
+
+        supply_nodes_huff = _build_huff_supply_nodes(
+            business["assets"], walking_pipeline, base_year_metrics,
+        )
         demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
         walking_pipeline["supply_nodes"] = supply_nodes_huff
         walking_pipeline["demand_nodes"] = demand_nodes_huff
@@ -443,7 +458,11 @@ def _prepare_mode_pipeline(
             demand_entries_map[key[3:]] = val
 
     # --- Distance matrix (one Dijkstra pass over the augmented graph) ---
-    distance_matrix = compute_distance_matrix(G_aug)
+    # Bug 1 Fix: Driving needs a much larger cutoff than walking to be meaningful.
+    # Walking 15 min @ 80m/min = 1200m. Driving 15 min @ 500m/min = 7500m.
+    # Set driving cutoff to 15000m to allow realistic driving coverage metrics.
+    cutoff = 15000.0 if mode == "driving" else 5000.0
+    distance_matrix = compute_distance_matrix(G_aug, cutoff_m=cutoff)
 
     # --- Demand entries with population and age structure ---
     demand_entries = []

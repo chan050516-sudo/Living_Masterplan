@@ -1202,3 +1202,114 @@ Under a balanced mandate, Catalytic Community Anchor & Core Retrofit outperforms
 ✅ MOCK DATA EXPORTED to: C:\Users\chan0\Personal Project\Living_Masterplan\frontend\src\mock_scenario_2.json
    You can directly copy the contents of this file into your frontend 'mockData.ts'
 ================================================================================
+
+
+
+
+
+11/11
+
+(.venv) PS C:\Users\chan0\Personal Project\Living_Masterplan> python backend/scripts/run_llm_real2.py --scenario 1
+Start:    03:05:31
+Model:    gemini-3.8-flash
+Targets:  ['BLD-0037']
+Query:    Review the attached feasibility summary for BLD-0037. We need to stop the financial bleeding immediately. Generate the best intervention plan that com... (truncated for console)
+
+
+================================================================================
+ 🚀 Scenario 1: Precision Medicine (Subunit Repurpose w/ PDF Context)
+================================================================================
+
+03:05:31 INFO app.llm.orchestrator: [LLM-53fd6bc6] Stage 0 — Parsing user intent and constraints
+03:05:31 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+03:05:43 INFO httpx: HTTP Request: POST https://aiplatform.googleapis.com/v1beta1/projects/living-masterplan/locations/global/publishers/google/models/gemini-3.8-flash:generateContent "HTTP/1.1 200 OK"
+03:05:43 INFO app.llm.orchestrator: [LLM-53fd6bc6] Stage 1 — context assembly
+03:05:44 INFO app.llm.orchestrator: [LLM-53fd6bc6] context pack: 1 targets, 1 asset classes
+03:05:44 INFO app.llm.orchestrator: [LLM-53fd6bc6] Stage 2 — candidate generation (attempt 1)
+>>> STAGE 2 PROMPT SIZE: 46018 chars
+03:05:44 INFO app.llm.vertex_client: Stage 2: sending structured-via-prompt request (2 messages)
+03:05:44 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+03:05:59 INFO httpx: HTTP Request: POST https://aiplatform.googleapis.com/v1beta1/projects/living-masterplan/locations/global/publishers/google/models/gemini-3.8-flash:generateContent "HTTP/1.1 200 OK"
+03:05:59 INFO app.llm.vertex_client: Stage 2: returned in 15.55s
+03:05:59 INFO app.llm.vertex_client: Stage 2: received 7774 chars
+03:05:59 INFO app.llm.orchestrator: Stage 2 attempt 1: candidates returned in 15.56s
+03:05:59 INFO app.llm.orchestrator: [LLM-53fd6bc6] Stage 2.5a — validating 2 candidates
+03:05:59 INFO app.llm.orchestrator: Wrote 1 interventions to C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\interventions_llm.csv as scenario SC-LLM-53fd6bc6-C1
+03:05:59 INFO app.llm.orchestrator: [LLM-53fd6bc6] candidate 'Targeted Partial Repurpose to F&B Hub' written as SC-LLM-53fd6bc6-C1
+03:05:59 INFO app.llm.orchestrator: Wrote 1 interventions to C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\interventions_llm.csv as scenario SC-LLM-53fd6bc6-C2
+03:05:59 INFO app.llm.orchestrator: [LLM-53fd6bc6] candidate 'Rapid Cashflow Rescue & MEP Retrofit' written as SC-LLM-53fd6bc6-C2
+03:05:59 INFO app.llm.orchestrator: [LLM-53fd6bc6] Stage 2.5b — simulating 2 candidates with shared setup
+03:05:59 INFO app.llm.orchestrator: [shared] simulating BASELINE (SC-CURRENT)
+03:06:00 INFO app.simulation.engine: Loading B3 derived metrics from C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\asset_metrics_enriched.csv (fast path)
+03:06:00 INFO app.derived.engine: B3: Loading baked walking pipeline from C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\cache\walking_pipeline_base.pkl
+03:06:01 INFO app.derived.engine: B3: Loading baked driving pipeline from C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\cache\driving_pipeline_base.pkl
+03:06:13 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2027 -> deadspace_SC-CURRENT_2027.json
+03:06:13 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2028 -> deadspace_SC-CURRENT_2028.json
+03:06:13 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2030 -> deadspace_SC-CURRENT_2030.json
+03:06:13 INFO app.simulation.engine: Wrote 916 deadspace records for SC-CURRENT year 2033 -> deadspace_SC-CURRENT_2033.json
+03:06:13 INFO app.llm.orchestrator: [shared] baseline trimmed to 1 asset ids (from 916)
+03:06:13 INFO app.llm.orchestrator: [shared] simulating candidate 1/2: Targeted Partial Repurpose to F&B Hub (SC-LLM-53fd6bc6-C1)
+03:06:16 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C1 year 2027 -> deadspace_SC-LLM-53fd6bc6-C1_2027.json
+03:06:17 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C1 year 2028 -> deadspace_SC-LLM-53fd6bc6-C1_2028.json
+03:06:17 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C1 year 2030 -> deadspace_SC-LLM-53fd6bc6-C1_2030.json
+03:06:17 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C1 year 2033 -> deadspace_SC-LLM-53fd6bc6-C1_2033.json
+03:06:18 INFO app.llm.orchestrator: [shared] candidate 1/2 finished in 4.6s
+03:06:18 INFO app.llm.orchestrator: [shared] simulating candidate 2/2: Rapid Cashflow Rescue & MEP Retrofit (SC-LLM-53fd6bc6-C2)
+03:06:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C2 year 2027 -> deadspace_SC-LLM-53fd6bc6-C2_2027.json
+03:06:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C2 year 2028 -> deadspace_SC-LLM-53fd6bc6-C2_2028.json
+03:06:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C2 year 2030 -> deadspace_SC-LLM-53fd6bc6-C2_2030.json
+03:06:22 INFO app.simulation.engine: Wrote 916 deadspace records for SC-LLM-53fd6bc6-C2 year 2033 -> deadspace_SC-LLM-53fd6bc6-C2_2033.json
+03:06:23 INFO app.llm.orchestrator: [shared] candidate 2/2 finished in 5.2s
+03:06:23 INFO app.llm.orchestrator: [LLM-53fd6bc6] Stage 2.7 — final selection and justification
+03:06:23 INFO app.llm.orchestrator: Stage 2.7: Sending 12861 chars to LLM for final decision
+03:06:23 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+03:06:44 INFO httpx: HTTP Request: POST https://aiplatform.googleapis.com/v1beta1/projects/living-masterplan/locations/global/publishers/google/models/gemini-3.8-flash:generateContent "HTTP/1.1 200 OK"
+03:06:44 INFO app.llm.orchestrator: Stage 2.7: final decision returned in 21.33s
+03:06:46 INFO app.llm.orchestrator: Wrote orchestration result to C:\Users\chan0\Personal Project\Living_Masterplan\bukit_jelutong\processed\business\llm_runs\LLM-53fd6bc6.json
+
+PIPELINE FINISHED in 75.7s
+PIPELINE COMPLETE.
+
+--- 1. LLM Strategic Reasoning (Internal) ---
+Targeted Partial Repurpose to F&B Hub wins on the primary financial objective by delivering an annual NOI recovery of RM 396,139 (reducing net operating loss from -RM 2,011,730 to -RM 1,615,591) by activating dead space and lifting occupancy from 10.8% to 73.7%. In contrast, Rapid Cashflow Rescue & MEP Retrofit merely trims utility expenses, recovering just RM 13,372 in NOI to -RM 1,998,358 while leaving 89.2% of the building vacant. Although the retrofit achieves a deeper operational carbon reduction (-74.8% vs. -59.8% for the repurpose), it completely fails to stem ongoing financial bleeding or address structural vacancy.
+
+--- 2. Candidates Summary ---
+  [Targeted Partial Repurpose to F&B Hub] 👑 [WINNER] -> BLD-0037(repurpose)
+  [Rapid Cashflow Rescue & MEP Retrofit] -> BLD-0037(retrofit)
+
+--- 3. Asset Summary Cards (From Simulation) ---
+  Asset: BLD-0037
+    NOI (Annual): RM -2,202,638.3 -> RM -1,615,591.2
+    Counterfactual CAPEX Saved: RM 14,982,130.0
+    Space Utilization: 10.8% -> 73.7%
+    Operational Carbon: 865.4 -> 347.7 tCO2e/yr
+    Carbon Averted: 124.7 tCO2e
+    [!! SUBUNITS !!] 6 specific retail zones detailed.
+      - restaurant (817.6m2): Occ 15% -> 100%
+      - kopitiam (1430.8m2): Occ 11% -> 76%
+      - services (613.2m2): Occ 13% -> 90%
+      - medical_retail (408.8m2): Occ 12% -> 83%
+      - office (408.8m2): Occ 15% -> 100%
+      - f_and_b (408.8m2): Occ 11% -> 100%
+
+--- 4. Executive Justification ---
+
+  [summary]
+  We propose repurposing failing retail and office space at BLD-0037 into an integrated F&B dining hub. This capital intervention arrests operational bleeding by recovering RM 396,139 annually in net operating income and expanding occupancy from 10.8% to 73.7%. Concurrently, rooftop solar integration slashes asset operational carbon by 59.8% (saving 517.7 tCO2e annually) and avoids 124.7 tCO2e in embodied carbon, revitalising a stranded developer-held asset while strictly maintaining continuous operations.
+
+  [why_this_plan]
+  The financial mandate requires halting cash haemorrhaging, not merely trimming building overhead. The alternative, Rapid Cashflow Rescue & MEP Retrofit, was rejected because it leaves occupancy frozen at 10.8%, clawing back an insignificant RM 13,372 annually and prolonging insolvency. Repurposing directly addresses the core failure mode—dead subtype mix—by capturing RM 6,859 m² of unserved catchment F&B demand. We trade off RM 190,909 in higher operational maintenance surge for an immediate RM 396,139 net operating income recovery and structural commercial viability.
+
+  [what_simulation_shows]
+  At the asset level, repurposing BLD-0037 raises occupancy from 10.8% to 73.7% and cuts net operating losses from -RM 2,011,730 to -RM 1,615,591 annually. Asset operational carbon falls 59.8% from 865.4 to 347.7 tCO2e/year, supported by 265,409 kWh of solar PV offset, while stranded carbon drops from 89.2% to 26.3%. However, higher patron intensity increases asset maintenance surges by RM 190,909 annually. At the township level, operational carbon expands slightly by 1.98% to 131,568 tCO2e/year due to wider baseline growth, while 15-minute walking coverage remains unchanged at 19.8%.
+
+  [beyond_the_model]
+  F&B conversions demand robust exhaust infrastructure, grease management, and delivery logistics that require phased installation to prevent tenant disruption during trading hours.
+
+  [recommendation]
+  Proceed immediately provided tenant pre-commitments secure at least 40% of planned F&B GLA and total conversion capex remains strictly within the RM 2,000,000 ceiling.
+
+================================================================================
+✅ MOCK DATA EXPORTED to: C:\Users\chan0\Personal Project\Living_Masterplan\frontend\src\mock_scenario_1.json
+   You can directly copy the contents of this file into your frontend 'mockData.ts'
+================================================================================

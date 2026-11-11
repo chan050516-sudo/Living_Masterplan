@@ -71,7 +71,7 @@ export function Stat({ label, value, unit, tier }: { label: string; value: strin
   )
 }
 
-export function MapLegend({ preview }: { preview: boolean }) {
+export function MapLegend({ preview, style }: { preview: boolean; style?: React.CSSProperties }) {
   const items: Array<[string, string]> = [
     ['#3fb27f', 'Healthy'],
     ['#f7931d', 'Monitor / opportunity'],
@@ -86,6 +86,7 @@ export function MapLegend({ preview }: { preview: boolean }) {
       position: 'absolute', left: 20, bottom: 20, padding: '14px 18px', borderRadius: 10,
       background: 'rgba(31,24,30,.94)', border: `1px solid ${C.line}`,
       backdropFilter: 'blur(6px)', minWidth: 236,
+      ...style,
     }}>
       <div style={{ ...cap, fontSize: 10, marginBottom: 12 }}>Asset status</div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px 14px' }}>
@@ -114,7 +115,7 @@ export function MapControls({ bearing, tilted, onZoom, onCompass, onTilt }: {
   const div = <div style={{ height: 1, background: C.line }} />
 
   return (
-    <div style={{
+    <div className="map-controls" style={{
       position: 'absolute', right: 20, top: 20, borderRadius: 11, overflow: 'hidden',
       background: 'rgba(31,24,30,.94)', border: `1px solid ${C.line}`, backdropFilter: 'blur(6px)',
       display: 'flex', flexDirection: 'column', boxShadow: '0 6px 18px rgba(0,0,0,.3)',
