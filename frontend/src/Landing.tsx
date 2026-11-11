@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react'
 import type { Scene3D } from './township3d'
 import { fetchProfiles } from './api'
 import { Evidence } from './Evidence'
+import { Progress } from './Progress'
 import './landing.css'
 
 const DEMO_HREF = '#/demo'
@@ -234,6 +235,7 @@ export function Landing() {
       <nav className="lp-nav" aria-label="Main">
         <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
         <div className="lp-links">
+          <a href="#progress">Progress</a>
           <a href="#how">How it works</a>
           <a href="#concepts">Concepts</a>
           <a href="#trust">Evidence</a>
@@ -293,6 +295,8 @@ export function Landing() {
         </section>
 
         <div className="lp-sheet">
+        <Progress />
+
         <section className="lp-section lp-tinted" id="concepts">
           <div className="lp-inner">
             <p className="lp-kicker">Key concepts</p>
