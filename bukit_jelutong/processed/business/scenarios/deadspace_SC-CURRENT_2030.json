@@ -366,12 +366,11 @@
   {
     "asset_id": "BLD-0183",
     "year": 2030,
-    "status": "monitor",
+    "status": "community_value_gap",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
-      "business_presence_low",
-      "data_conflict"
+      "business_turnover_high"
     ],
     "urgency_index": 2.0,
     "layer1": {
@@ -399,8 +398,7 @@
     "layer3a": {
       "triggered": true,
       "reasons": [
-        "business_presence_low",
-        "data_conflict"
+        "business_turnover_high"
       ],
       "proxied_occupancy": 0.5892,
       "proxied_occupancy_source": "kido_dynamics_mock",
@@ -414,8 +412,7 @@
     },
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "business_turnover_high": "tier_3a_proxied"
     },
     "suppressed_flags": [
       "below_benchmark_occupancy",
@@ -429,12 +426,8 @@
         "contribution": 0.5
       },
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 0.5
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -444,13 +437,13 @@
       "Productive carbon (serving users, proxy estimate): 978.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 2,130 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.7 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.3 \u00b0C",
-      "Google Places business presence (mock): 3 of 18 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.66",
+      "Google Places business presence (mock): 12 of 18 units have an operating business",
+      "Google Places business turnover (mock): 10 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.68",
       "LBS foot traffic (mock): 468.0 daily visitors, average dwell 35.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 5,052,348/yr vs minimum operating cost RM 2,850,967/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 1.13",
+      "DSR: 1.14",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.98",
       "Walk 5-min coverage: 1.6%",
@@ -913,12 +906,11 @@
   {
     "asset_id": "BLD-0182",
     "year": 2030,
-    "status": "monitor",
+    "status": "community_value_gap",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
-      "business_presence_low",
-      "data_conflict"
+      "business_turnover_high"
     ],
     "urgency_index": 2.0,
     "layer1": {
@@ -946,8 +938,7 @@
     "layer3a": {
       "triggered": true,
       "reasons": [
-        "business_presence_low",
-        "data_conflict"
+        "business_turnover_high"
       ],
       "proxied_occupancy": 0.9223,
       "proxied_occupancy_source": "kido_dynamics_mock",
@@ -961,8 +952,7 @@
     },
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "business_turnover_high": "tier_3a_proxied"
     },
     "suppressed_flags": [
       "dsr_below_threshold",
@@ -975,12 +965,8 @@
         "contribution": 0.5
       },
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 0.5
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -990,13 +976,13 @@
       "Productive carbon (serving users, proxy estimate): 981.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,667 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 38.5 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.9 \u00b0C",
-      "Google Places business presence (mock): 5 of 25 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.65",
+      "Google Places business presence (mock): 19 of 25 units have an operating business",
+      "Google Places business turnover (mock): 6 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.61",
       "LBS foot traffic (mock): 2,586 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 13,453,568/yr vs minimum operating cost RM 3,400,528/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.19",
+      "DSR: 0.2",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 4.7%",
@@ -1502,14 +1488,13 @@
   {
     "asset_id": "BLD-0171",
     "year": 2030,
-    "status": "monitor",
+    "status": "community_value_gap",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
       "demographic_mismatch",
       "low_neighborhood_diversity",
-      "business_presence_low",
-      "data_conflict"
+      "business_turnover_high"
     ],
     "urgency_index": 4.0,
     "layer1": {
@@ -1538,8 +1523,7 @@
     "layer3a": {
       "triggered": true,
       "reasons": [
-        "business_presence_low",
-        "data_conflict"
+        "business_turnover_high"
       ],
       "proxied_occupancy": 0.7512,
       "proxied_occupancy_source": "kido_dynamics_mock",
@@ -1555,8 +1539,7 @@
       "walking_accessibility_deficit": "tier_2_derived",
       "demographic_mismatch": "tier_2_derived",
       "low_neighborhood_diversity": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "business_turnover_high": "tier_3a_proxied"
     },
     "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
@@ -1574,12 +1557,8 @@
         "contribution": 0.25
       },
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 0.25
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -1589,13 +1568,13 @@
       "Productive carbon (serving users, proxy estimate): 766.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,705 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.4 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.0 \u00b0C",
-      "Google Places business presence (mock): 5 of 24 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.62",
+      "Google Places business presence (mock): 17 of 24 units have an operating business",
+      "Google Places business turnover (mock): 8 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.61",
       "LBS foot traffic (mock): 1,196 daily visitors, average dwell 50.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 7,159,078/yr vs minimum operating cost RM 3,517,652/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.58",
+      "DSR: 0.6",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.0",
       "Walk 5-min coverage: 6.1%",
@@ -6597,12 +6576,12 @@
       "Productive carbon (serving users, proxy estimate): 30.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,378 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.9 \u00b0C",
-      "Google Places business presence (mock): 0 of 15 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.2",
+      "Google Places business presence (mock): 1 of 15 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.19",
       "LBS foot traffic (mock): 46.0 daily visitors, average dwell 15.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 822,780/yr vs minimum operating cost RM 1,898,949/yr",
-      "DSR: 0.12",
+      "DSR: 0.14",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 0.0%",
@@ -9031,13 +9010,12 @@
   {
     "asset_id": "BLD-0227",
     "year": 2030,
-    "status": "monitor",
+    "status": "community_value_gap",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
       "demographic_mismatch",
-      "business_presence_low",
-      "data_conflict"
+      "business_turnover_high"
     ],
     "urgency_index": 3.0,
     "layer1": {
@@ -9065,8 +9043,7 @@
     "layer3a": {
       "triggered": true,
       "reasons": [
-        "business_presence_low",
-        "data_conflict"
+        "business_turnover_high"
       ],
       "proxied_occupancy": 1.0,
       "proxied_occupancy_source": "kido_dynamics_mock",
@@ -9081,12 +9058,9 @@
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
       "demographic_mismatch": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "business_turnover_high": "tier_3a_proxied"
     },
-    "suppressed_flags": [
-      "dsr_below_threshold"
-    ],
+    "suppressed_flags": [],
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
@@ -9098,12 +9072,8 @@
         "contribution": 0.3333
       },
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 0.3333
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -9113,13 +9083,13 @@
       "Productive carbon (serving users, proxy estimate): 536.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 898.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 42.1 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.8 \u00b0C",
-      "Google Places business presence (mock): 2 of 13 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.69",
+      "Google Places business presence (mock): 9 of 13 units have an operating business",
+      "Google Places business turnover (mock): 5 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.62",
       "LBS foot traffic (mock): 883.0 daily visitors, average dwell 50.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 5,285,488/yr vs minimum operating cost RM 1,851,901/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.38",
+      "DSR: 0.4",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 4.7%",
@@ -12863,11 +12833,9 @@
     "status": "monitor",
     "intervention_mode": "collaborative",
     "flags": [
-      "walking_accessibility_deficit",
-      "business_presence_low",
-      "data_conflict"
+      "walking_accessibility_deficit"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -12890,11 +12858,8 @@
       "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 1.0,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -12906,9 +12871,7 @@
       "hemorrhage_ratio": 4.22
     },
     "flag_tiers": {
-      "walking_accessibility_deficit": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
       "dsr_below_threshold"
@@ -12917,15 +12880,7 @@
     "contributing_factors": [
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
-      },
-      {
-        "factor": "business_presence_low",
-        "contribution": 0.5
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -12934,13 +12889,12 @@
       "Stranded carbon (unused capacity, proxy estimate): 0.0 tCO2e/yr (0.0%)",
       "Productive carbon (serving users, proxy estimate): 212.6 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 352.0 tCO2e",
-      "Google Places business presence (mock): 1 of 5 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.6",
+      "Google Places business presence (mock): 3 of 5 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.62",
       "LBS foot traffic (mock): 582.0 daily visitors, average dwell 46.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.95",
       "Survival check (estimate): footfall revenue RM 3,028,084/yr vs minimum operating cost RM 717,770/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.18",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -14110,11 +14064,11 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,083 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.6 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.3 \u00b0C",
       "Google Places business presence (mock): 2 of 15 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.21",
+      "Google Places vitality score (mock, 0-1): 0.17",
       "LBS foot traffic (mock): 196.0 daily visitors, average dwell 50.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.71",
       "Survival check (estimate): footfall revenue RM 1,175,138/yr vs minimum operating cost RM 2,234,341/yr",
-      "DSR: 0.13",
+      "DSR: 0.14",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 0.0%",
@@ -14532,11 +14486,10 @@
   {
     "asset_id": "BLD-0649",
     "year": 2030,
-    "status": "monitor",
+    "status": "strategic_learning",
     "intervention_mode": "advisory",
     "flags": [
-      "business_presence_low",
-      "data_conflict"
+      "business_turnover_high"
     ],
     "urgency_index": 1.0,
     "layer1": {
@@ -14559,8 +14512,7 @@
     "layer3a": {
       "triggered": true,
       "reasons": [
-        "business_presence_low",
-        "data_conflict"
+        "business_turnover_high"
       ],
       "proxied_occupancy": 0.9104,
       "proxied_occupancy_source": "kido_dynamics_mock",
@@ -14573,8 +14525,7 @@
       "hemorrhage_ratio": 4.5
     },
     "flag_tiers": {
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "business_turnover_high": "tier_3a_proxied"
     },
     "suppressed_flags": [
       "dsr_below_threshold"
@@ -14582,12 +14533,8 @@
     "evaluation_mode": "developer_realization",
     "contributing_factors": [
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 1.0
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -14596,13 +14543,13 @@
       "Stranded carbon (unused capacity, proxy estimate): 17.8 tCO2e/yr (9.0%)",
       "Productive carbon (serving users, proxy estimate): 181.2 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 376.0 tCO2e",
-      "Google Places business presence (mock): 1 of 5 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.6",
+      "Google Places business presence (mock): 3 of 5 units have an operating business",
+      "Google Places business turnover (mock): 3 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.55",
       "LBS foot traffic (mock): 256.0 daily visitors, average dwell 70.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.95",
       "Survival check (estimate): footfall revenue RM 3,529,940/yr vs minimum operating cost RM 783,937/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.18",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -16413,7 +16360,7 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 378.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.9 \u00b0C",
       "Google Places business presence (mock): 0 of 5 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.04",
+      "Google Places vitality score (mock, 0-1): 0.16",
       "LBS foot traffic (mock): 12.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.37",
       "Survival check (estimate): footfall revenue RM 74,529/yr vs minimum operating cost RM 462,274/yr",
@@ -16700,12 +16647,11 @@
   {
     "asset_id": "BLD-0536",
     "year": 2030,
-    "status": "monitor",
+    "status": "community_value_gap",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
-      "business_presence_low",
-      "data_conflict"
+      "business_turnover_high"
     ],
     "urgency_index": 2.0,
     "layer1": {
@@ -16733,8 +16679,7 @@
     "layer3a": {
       "triggered": true,
       "reasons": [
-        "business_presence_low",
-        "data_conflict"
+        "business_turnover_high"
       ],
       "proxied_occupancy": 0.8159,
       "proxied_occupancy_source": "kido_dynamics_mock",
@@ -16748,8 +16693,7 @@
     },
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "business_turnover_high": "tier_3a_proxied"
     },
     "suppressed_flags": [
       "dsr_below_threshold",
@@ -16762,12 +16706,8 @@
         "contribution": 0.5
       },
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 0.5
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -16777,13 +16717,13 @@
       "Productive carbon (serving users, proxy estimate): 464.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 888.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.6 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.3 \u00b0C",
-      "Google Places business presence (mock): 2 of 13 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.59",
+      "Google Places business presence (mock): 7 of 13 units have an operating business",
+      "Google Places business turnover (mock): 5 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.58",
       "LBS foot traffic (mock): 1,205 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.93",
       "Survival check (estimate): footfall revenue RM 6,269,034/yr vs minimum operating cost RM 1,812,317/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.19",
+      "DSR: 0.2",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 0.0%",
@@ -17008,8 +16948,8 @@
       "Productive carbon (serving users, proxy estimate): 96.7 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 1,106 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.0 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.7 \u00b0C",
-      "Google Places business presence (mock): 1 of 13 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.11",
+      "Google Places business presence (mock): 2 of 13 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.14",
       "LBS foot traffic (mock): 190.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.93",
       "Survival check (estimate): footfall revenue RM 1,196,055/yr vs minimum operating cost RM 1,354,072/yr",
@@ -17357,11 +17297,9 @@
     "status": "monitor",
     "intervention_mode": "collaborative",
     "flags": [
-      "walking_accessibility_deficit",
-      "business_presence_low",
-      "data_conflict"
+      "walking_accessibility_deficit"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -17384,11 +17322,8 @@
       "reason": "diagnosis triggered by layer1; filtered to 3 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 1.0,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -17400,9 +17335,7 @@
       "hemorrhage_ratio": 4.93
     },
     "flag_tiers": {
-      "walking_accessibility_deficit": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
       "dsr_below_threshold"
@@ -17411,15 +17344,7 @@
     "contributing_factors": [
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
-      },
-      {
-        "factor": "business_presence_low",
-        "contribution": 0.5
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -17429,13 +17354,13 @@
       "Productive carbon (serving users, proxy estimate): 175.1 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 290.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.5 \u00b0C",
-      "Google Places business presence (mock): 1 of 5 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.73",
+      "Google Places business presence (mock): 4 of 5 units have an operating business",
+      "Google Places business turnover (mock): 1 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.71",
       "LBS foot traffic (mock): 560.0 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.71",
       "Survival check (estimate): footfall revenue RM 2,915,045/yr vs minimum operating cost RM 591,172/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.18",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -17447,13 +17372,10 @@
   {
     "asset_id": "BLD-0647",
     "year": 2030,
-    "status": "monitor",
+    "status": "healthy",
     "intervention_mode": "advisory",
-    "flags": [
-      "business_presence_low",
-      "data_conflict"
-    ],
-    "urgency_index": 1.0,
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
       "reasons": []
@@ -17472,11 +17394,8 @@
       "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 0.7303,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -17487,37 +17406,24 @@
       "survival_opex_floor_rm": 2061818.0,
       "hemorrhage_ratio": 3.6
     },
-    "flag_tiers": {
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
-    },
+    "flag_tiers": {},
     "suppressed_flags": [
       "dsr_below_threshold"
     ],
     "evaluation_mode": "developer_realization",
-    "contributing_factors": [
-      {
-        "factor": "business_presence_low",
-        "contribution": 1.0
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: restaurant",
       "Operational carbon: 554.6 tCO2e/yr",
       "Stranded carbon (unused capacity, proxy estimate): 149.6 tCO2e/yr (27.0%)",
       "Productive carbon (serving users, proxy estimate): 405.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 990.0 tCO2e",
-      "Google Places business presence (mock): 2 of 13 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.7",
+      "Google Places business presence (mock): 7 of 13 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.59",
       "LBS foot traffic (mock): 539.0 daily visitors, average dwell 70.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.95",
       "Survival check (estimate): footfall revenue RM 7,420,240/yr vs minimum operating cost RM 2,061,818/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.22",
+      "DSR: 0.23",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -17677,16 +17583,16 @@
   {
     "asset_id": "BLD-0741",
     "year": 2030,
-    "status": "deadspace_candidate",
+    "status": "community_value_gap",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
       "low_occupancy_proxied",
-      "business_presence_low",
+      "business_turnover_high",
       "business_vitality_low",
       "operating_hemorrhage"
     ],
-    "urgency_index": 5.0,
+    "urgency_index": 6.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -17713,7 +17619,7 @@
       "triggered": true,
       "reasons": [
         "low_occupancy_proxied",
-        "business_presence_low",
+        "business_turnover_high",
         "business_vitality_low",
         "operating_hemorrhage"
       ],
@@ -17730,7 +17636,7 @@
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
       "low_occupancy_proxied": "tier_3a_proxied",
-      "business_presence_low": "tier_3a_proxied",
+      "business_turnover_high": "tier_3a_proxied",
       "business_vitality_low": "tier_3a_proxied",
       "operating_hemorrhage": "tier_3a_proxied"
     },
@@ -17754,7 +17660,7 @@
         "contribution": 0.1667
       },
       {
-        "factor": "business_presence_low",
+        "factor": "business_turnover_high",
         "contribution": 0.1667
       },
       {
@@ -17769,12 +17675,13 @@
       "Productive carbon (serving users, proxy estimate): 18.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 357.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.3 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = -0.0 \u00b0C",
-      "Google Places business presence (mock): 1 of 5 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.14",
+      "Google Places business presence (mock): 4 of 5 units have an operating business",
+      "Google Places business turnover (mock): 2 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.09",
       "LBS foot traffic (mock): 38.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.94",
       "Survival check (estimate): footfall revenue RM 239,526/yr vs minimum operating cost RM 436,892/yr",
-      "DSR: 0.64",
+      "DSR: 0.65",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.9",
       "Walk 5-min coverage: 1.6%",
@@ -18565,11 +18472,9 @@
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
-      "high_uhi_exposure",
-      "business_presence_low",
-      "data_conflict"
+      "high_uhi_exposure"
     ],
-    "urgency_index": 3.0,
+    "urgency_index": 2.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -18594,11 +18499,8 @@
       "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 0.6226,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -18611,9 +18513,7 @@
     },
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
-      "high_uhi_exposure": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "high_uhi_exposure": "tier_2_derived"
     },
     "suppressed_flags": [
       "below_benchmark_occupancy",
@@ -18624,19 +18524,11 @@
     "contributing_factors": [
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.3333
+        "contribution": 0.5
       },
       {
         "factor": "high_uhi_exposure",
-        "contribution": 0.3333
-      },
-      {
-        "factor": "business_presence_low",
-        "contribution": 0.3333
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
+        "contribution": 0.5
       }
     ],
     "evidence": [
@@ -18646,13 +18538,13 @@
       "Productive carbon (serving users, proxy estimate): 218.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 720.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 42.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +3.4 \u00b0C",
-      "Google Places business presence (mock): 1 of 8 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.67",
+      "Google Places business presence (mock): 5 of 8 units have an operating business",
+      "Google Places business turnover (mock): 1 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.55",
       "LBS foot traffic (mock): 335.0 daily visitors, average dwell 15.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 6,030,000/yr vs minimum operating cost RM 991,815/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.42",
+      "DSR: 0.44",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.92",
       "Walk 5-min coverage: 4.7%",
@@ -19654,12 +19546,12 @@
       "Stranded carbon (unused capacity, proxy estimate): 409.9 tCO2e/yr (83.5%)",
       "Productive carbon (serving users, proxy estimate): 80.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 851.0 tCO2e",
-      "Google Places business presence (mock): 0 of 11 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.16",
+      "Google Places business presence (mock): 2 of 11 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.17",
       "LBS foot traffic (mock): 106.0 daily visitors, average dwell 70.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.71",
       "Survival check (estimate): footfall revenue RM 1,454,525/yr vs minimum operating cost RM 1,771,887/yr",
-      "DSR: 0.2",
+      "DSR: 0.21",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -20400,7 +20292,7 @@
       "LBS foot traffic (mock): 234.0 daily visitors, average dwell 44.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,217,268/yr vs minimum operating cost RM 487,966/yr",
-      "DSR: 0.3",
+      "DSR: 0.35",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 2.8%",
@@ -20587,12 +20479,12 @@
       "Stranded carbon (unused capacity, proxy estimate): 295.1 tCO2e/yr (91.8%)",
       "Productive carbon (serving users, proxy estimate): 26.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 510.0 tCO2e",
-      "Google Places business presence (mock): 0 of 7 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.23",
+      "Google Places business presence (mock): 1 of 7 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.15",
       "LBS foot traffic (mock): 39.0 daily visitors, average dwell 50.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 234,094/yr vs minimum operating cost RM 1,052,732/yr",
-      "DSR: 0.75",
+      "DSR: 1.36",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 2.8%",
@@ -22556,7 +22448,8 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 544.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Google Places business presence (mock): 1 of 7 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.18",
+      "Google Places business turnover (mock): 1 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.19",
       "LBS foot traffic (mock): 83.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 519,876/yr vs minimum operating cost RM 665,970/yr",
@@ -23106,7 +22999,7 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 784.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
       "Google Places business presence (mock): 1 of 10 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.19",
+      "Google Places vitality score (mock, 0-1): 0.17",
       "LBS foot traffic (mock): 19.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 117,747/yr vs minimum operating cost RM 959,092/yr",
@@ -23216,12 +23109,12 @@
       "Productive carbon (serving users, proxy estimate): 68.8 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 710.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.5 \u00b0C",
-      "Google Places business presence (mock): 1 of 9 units have an operating business",
+      "Google Places business presence (mock): 2 of 9 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.14",
       "LBS foot traffic (mock): 44.0 daily visitors, average dwell 35.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.81",
       "Survival check (estimate): footfall revenue RM 479,520/yr vs minimum operating cost RM 950,312/yr",
-      "DSR: 0.16",
+      "DSR: 0.17",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -23521,11 +23414,11 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 410.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.8 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.5 \u00b0C",
       "Google Places business presence (mock): 0 of 6 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.17",
+      "Google Places vitality score (mock, 0-1): 0.12",
       "LBS foot traffic (mock): 79.0 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 408,877/yr vs minimum operating cost RM 836,512/yr",
-      "DSR: 0.2",
+      "DSR: 0.21",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -23888,8 +23781,8 @@
       "Productive carbon (serving users, proxy estimate): 51.9 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 742.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 39.5 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +0.2 \u00b0C",
-      "Google Places business presence (mock): 1 of 9 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.29",
+      "Google Places business presence (mock): 2 of 9 units have an operating business",
+      "Google Places vitality score (mock, 0-1): 0.27",
       "LBS foot traffic (mock): 95.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 600,579/yr vs minimum operating cost RM 908,652/yr",
@@ -24510,11 +24403,11 @@
       "Embodied carbon locked in structure (subtype benchmark estimate): 614.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.2 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.9 \u00b0C",
       "Google Places business presence (mock): 1 of 9 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.09",
+      "Google Places vitality score (mock, 0-1): 0.15",
       "LBS foot traffic (mock): 137.0 daily visitors, average dwell 50.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 820,287/yr vs minimum operating cost RM 1,267,441/yr",
-      "DSR: 0.16",
+      "DSR: 0.17",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.99",
       "Walk 5-min coverage: 6.0%",
@@ -25810,11 +25703,9 @@
     "status": "monitor",
     "intervention_mode": "collaborative",
     "flags": [
-      "walking_accessibility_deficit",
-      "business_presence_low",
-      "data_conflict"
+      "walking_accessibility_deficit"
     ],
-    "urgency_index": 2.0,
+    "urgency_index": 1.0,
     "layer1": {
       "triggered": true,
       "reasons": [
@@ -25838,11 +25729,8 @@
       "reason": "diagnosis triggered by layer1+layer2; filtered to 4 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 0.6606,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -25854,9 +25742,7 @@
       "hemorrhage_ratio": 3.35
     },
     "flag_tiers": {
-      "walking_accessibility_deficit": "tier_2_derived",
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
+      "walking_accessibility_deficit": "tier_2_derived"
     },
     "suppressed_flags": [
       "below_benchmark_occupancy",
@@ -25868,15 +25754,7 @@
     "contributing_factors": [
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.5
-      },
-      {
-        "factor": "business_presence_low",
-        "contribution": 0.5
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
+        "contribution": 1.0
       }
     ],
     "evidence": [
@@ -25886,12 +25764,12 @@
       "Productive carbon (serving users, proxy estimate): 222.3 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 635.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 41.4 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +2.0 \u00b0C",
-      "Google Places business presence (mock): 1 of 8 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.52",
+      "Google Places business presence (mock): 5 of 8 units have an operating business",
+      "Google Places business turnover (mock): 1 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.61",
       "LBS foot traffic (mock): 414.0 daily visitors, average dwell 12.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 2,605,176/yr vs minimum operating cost RM 777,047/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
       "DSR: 0.25",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.99",
@@ -26915,7 +26793,7 @@
       "LBS foot traffic (mock): 404.0 daily visitors, average dwell 46.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 2,103,013/yr vs minimum operating cost RM 507,051/yr",
-      "DSR: 0.15",
+      "DSR: 0.17",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 11.4%",
@@ -27198,14 +27076,14 @@
   {
     "asset_id": "BLD-0012",
     "year": 2030,
-    "status": "deadspace_candidate",
+    "status": "monitor",
     "intervention_mode": "collaborative",
     "flags": [
       "walking_accessibility_deficit",
       "low_occupancy_proxied",
-      "business_presence_low",
       "business_vitality_low",
       "low_footfall_lbs",
+      "data_conflict",
       "operating_hemorrhage"
     ],
     "urgency_index": 5.0,
@@ -27235,9 +27113,9 @@
       "triggered": true,
       "reasons": [
         "low_occupancy_proxied",
-        "business_presence_low",
         "business_vitality_low",
         "low_footfall_lbs",
+        "data_conflict",
         "operating_hemorrhage"
       ],
       "proxied_occupancy": 0.069,
@@ -27253,9 +27131,9 @@
     "flag_tiers": {
       "walking_accessibility_deficit": "tier_2_derived",
       "low_occupancy_proxied": "tier_3a_proxied",
-      "business_presence_low": "tier_3a_proxied",
       "business_vitality_low": "tier_3a_proxied",
       "low_footfall_lbs": "tier_3a_proxied",
+      "data_conflict": "tier_3a_proxied",
       "operating_hemorrhage": "tier_3a_proxied"
     },
     "suppressed_flags": [
@@ -27267,27 +27145,27 @@
     "contributing_factors": [
       {
         "factor": "operating_hemorrhage",
-        "contribution": 0.2857
+        "contribution": 0.3333
       },
       {
         "factor": "walking_accessibility_deficit",
-        "contribution": 0.1429
+        "contribution": 0.1667
       },
       {
         "factor": "low_occupancy_proxied",
-        "contribution": 0.1429
-      },
-      {
-        "factor": "business_presence_low",
-        "contribution": 0.1429
+        "contribution": 0.1667
       },
       {
         "factor": "business_vitality_low",
-        "contribution": 0.1429
+        "contribution": 0.1667
       },
       {
         "factor": "low_footfall_lbs",
-        "contribution": 0.1429
+        "contribution": 0.1667
+      },
+      {
+        "factor": "data_conflict",
+        "contribution": 0.0
       }
     ],
     "evidence": [
@@ -27296,12 +27174,13 @@
       "Stranded carbon (unused capacity, proxy estimate): 194.5 tCO2e/yr (93.1%)",
       "Productive carbon (serving users, proxy estimate): 14.4 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 346.0 tCO2e",
-      "Google Places business presence (mock): 0 of 5 units have an operating business",
+      "Google Places business presence (mock): 3 of 5 units have an operating business",
       "Google Places vitality score (mock, 0-1): 0.12",
       "LBS foot traffic (mock): 40.0 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 208,600/yr vs minimum operating cost RM 705,432/yr",
-      "DSR: 1.41",
+      "Google Places and LBS disagree; proxies not conclusive",
+      "DSR: 2.37",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 13.5%",
@@ -36224,7 +36103,7 @@
       "LBS foot traffic (mock): 5.0 daily visitors, average dwell 15.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 98,640/yr vs minimum operating cost RM 119,332/yr",
-      "DSR: 1.16",
+      "DSR: 1.69",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.93",
       "Walk 5-min coverage: 11.4%",
@@ -36714,6 +36593,7 @@
     "flags": [
       "low_occupancy",
       "long_vacancy",
+      "dsr_below_threshold",
       "high_stranded_carbon",
       "subtype_mix_dead",
       "chronic_stagnation",
@@ -36726,6 +36606,7 @@
       "reasons": [
         "low_occupancy",
         "long_vacancy",
+        "dsr_below_threshold",
         "high_stranded_carbon",
         "subtype_mix_dead",
         "chronic_stagnation"
@@ -36755,6 +36636,7 @@
     "flag_tiers": {
       "low_occupancy": "tier_1_observed",
       "long_vacancy": "tier_1_observed",
+      "dsr_below_threshold": "tier_2_derived",
       "high_stranded_carbon": "tier_2_derived",
       "subtype_mix_dead": "tier_1_observed",
       "chronic_stagnation": "tier_1_observed",
@@ -36766,31 +36648,35 @@
     "contributing_factors": [
       {
         "factor": "subtype_mix_dead",
-        "contribution": 0.2143
+        "contribution": 0.2
       },
       {
         "factor": "negative_noi",
-        "contribution": 0.2143
+        "contribution": 0.2
       },
       {
         "factor": "low_occupancy",
-        "contribution": 0.1429
+        "contribution": 0.1333
       },
       {
         "factor": "long_vacancy",
-        "contribution": 0.1429
+        "contribution": 0.1333
       },
       {
         "factor": "high_stranded_carbon",
-        "contribution": 0.1429
+        "contribution": 0.1333
+      },
+      {
+        "factor": "dsr_below_threshold",
+        "contribution": 0.0667
       },
       {
         "factor": "chronic_stagnation",
-        "contribution": 0.0714
+        "contribution": 0.0667
       },
       {
         "factor": "maintenance_surge_high",
-        "contribution": 0.0714
+        "contribution": 0.0667
       }
     ],
     "evidence": [
@@ -36803,7 +36689,7 @@
       "Vacancy: 28 months",
       "NOI (RM, annual): -2,115,964",
       "NOI yield (annual): -0.1257",
-      "DSR: 1.04",
+      "DSR: 0.31",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 16.8%",
@@ -38331,13 +38217,10 @@
   {
     "asset_id": "A-0003",
     "year": 2030,
-    "status": "monitor",
+    "status": "healthy",
     "intervention_mode": "advisory",
-    "flags": [
-      "business_presence_low",
-      "data_conflict"
-    ],
-    "urgency_index": 1.0,
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
       "reasons": []
@@ -38356,11 +38239,8 @@
       "reason": "diagnosis triggered by layer1; filtered to 1 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 0.7095,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -38371,24 +38251,12 @@
       "survival_opex_floor_rm": 1066240.0,
       "hemorrhage_ratio": 3.54
     },
-    "flag_tiers": {
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
-    },
+    "flag_tiers": {},
     "suppressed_flags": [
       "dsr_below_threshold"
     ],
     "evaluation_mode": "developer_realization",
-    "contributing_factors": [
-      {
-        "factor": "business_presence_low",
-        "contribution": 1.0
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: restaurant",
       "Operational carbon: 302.3 tCO2e/yr",
@@ -38396,13 +38264,13 @@
       "Productive carbon (serving users, proxy estimate): 214.5 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 512.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
-      "Google Places business presence (mock): 1 of 7 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.64",
+      "Google Places business presence (mock): 3 of 7 units have an operating business",
+      "Google Places business turnover (mock): 1 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.59",
       "LBS foot traffic (mock): 274.0 daily visitors, average dwell 70.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 3,774,632/yr vs minimum operating cost RM 1,066,240/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.18",
+      "DSR: 0.2",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 4.7%",
@@ -38570,7 +38438,7 @@
       "LBS foot traffic (mock): 82.0 daily visitors, average dwell 69.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 1,133,684/yr vs minimum operating cost RM 533,120/yr",
-      "DSR: 0.25",
+      "DSR: 0.26",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 4.7%",
@@ -38582,13 +38450,10 @@
   {
     "asset_id": "A-0007",
     "year": 2030,
-    "status": "monitor",
+    "status": "healthy",
     "intervention_mode": "advisory",
-    "flags": [
-      "business_presence_low",
-      "data_conflict"
-    ],
-    "urgency_index": 1.0,
+    "flags": [],
+    "urgency_index": 0.0,
     "layer1": {
       "triggered": false,
       "reasons": []
@@ -38608,11 +38473,8 @@
       "reason": "diagnosis triggered by layer1+layer2; filtered to 2 of 7 legal interventions based on fired flags"
     },
     "layer3a": {
-      "triggered": true,
-      "reasons": [
-        "business_presence_low",
-        "data_conflict"
-      ],
+      "triggered": false,
+      "reasons": [],
       "proxied_occupancy": 0.7707,
       "proxied_occupancy_source": "kido_dynamics_mock",
       "flow_island_threshold": 0.6
@@ -38623,25 +38485,13 @@
       "survival_opex_floor_rm": 1066240.0,
       "hemorrhage_ratio": 3.86
     },
-    "flag_tiers": {
-      "business_presence_low": "tier_3a_proxied",
-      "data_conflict": "tier_3a_proxied"
-    },
+    "flag_tiers": {},
     "suppressed_flags": [
       "dsr_below_threshold",
       "maintenance_surge_high"
     ],
     "evaluation_mode": "developer_realization",
-    "contributing_factors": [
-      {
-        "factor": "business_presence_low",
-        "contribution": 1.0
-      },
-      {
-        "factor": "data_conflict",
-        "contribution": 0.0
-      }
-    ],
+    "contributing_factors": [],
     "evidence": [
       "Subtype: restaurant",
       "Operational carbon: 302.3 tCO2e/yr",
@@ -38649,13 +38499,13 @@
       "Productive carbon (serving users, proxy estimate): 233.0 tCO2e/yr",
       "Embodied carbon locked in structure (subtype benchmark estimate): 512.0 tCO2e",
       "Observed land surface temperature [Observed (Landsat 8 L2)]: parcel 40.9 \u00b0C; township baseline 39.3 \u00b0C; T = Tasset \u2212 Ttownship = +1.6 \u00b0C",
-      "Google Places business presence (mock): 1 of 7 units have an operating business",
-      "Google Places vitality score (mock, 0-1): 0.66",
+      "Google Places business presence (mock): 5 of 7 units have an operating business",
+      "Google Places business turnover (mock): 1 change(s) this year",
+      "Google Places vitality score (mock, 0-1): 0.61",
       "LBS foot traffic (mock): 299.0 daily visitors, average dwell 69.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 4,119,296/yr vs minimum operating cost RM 1,066,240/yr",
-      "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.27",
+      "DSR: 0.28",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 4.7%",
@@ -38722,7 +38572,7 @@
       "LBS foot traffic (mock): 159.0 daily visitors, average dwell 71.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 2,194,249/yr vs minimum operating cost RM 533,120/yr",
-      "DSR: 0.27",
+      "DSR: 0.28",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 4.7%",
@@ -38788,7 +38638,7 @@
       "LBS foot traffic (mock): 165.0 daily visitors, average dwell 70.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.9",
       "Survival check (estimate): footfall revenue RM 2,265,440/yr vs minimum operating cost RM 533,120/yr",
-      "DSR: 0.31",
+      "DSR: 0.32",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.91",
       "Walk 5-min coverage: 4.7%",
@@ -39363,7 +39213,7 @@
       "LBS foot traffic (mock): 41.0 daily visitors, average dwell 50.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 0.99",
       "Survival check (estimate): footfall revenue RM 246,242/yr vs minimum operating cost RM 123,760/yr",
-      "DSR: 1.23",
+      "DSR: 1.61",
       "Demographic mismatch: 0.5",
       "Neighborhood diversity: 0.94",
       "Walk 5-min coverage: 13.5%",
@@ -39442,7 +39292,7 @@
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 783,513/yr vs minimum operating cost RM 184,922/yr",
       "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.76",
+      "DSR: 0.93",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",
@@ -39602,7 +39452,7 @@
       "LBS foot traffic (mock): 306.0 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,589,315/yr vs minimum operating cost RM 342,720/yr",
-      "DSR: 0.17",
+      "DSR: 0.19",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 11.4%",
@@ -39684,7 +39534,7 @@
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,624,860/yr vs minimum operating cost RM 347,853/yr",
       "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.86",
+      "DSR: 1.06",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 11.4%",
@@ -39769,7 +39619,7 @@
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 324,972/yr vs minimum operating cost RM 73,147/yr",
       "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 1.42",
+      "DSR: 1.75",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",
@@ -39828,7 +39678,7 @@
       "LBS foot traffic (mock): 48.0 daily visitors, average dwell 71.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 654,075/yr vs minimum operating cost RM 171,280/yr",
-      "DSR: 0.83",
+      "DSR: 1.01",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",
@@ -39907,7 +39757,7 @@
       "LBS foot traffic (mock): 215.0 daily visitors, average dwell 45.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 1,118,222/yr vs minimum operating cost RM 281,985/yr",
-      "DSR: 0.22",
+      "DSR: 0.24",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",
@@ -39985,7 +39835,7 @@
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 602,713/yr vs minimum operating cost RM 181,465/yr",
       "Google Places and LBS disagree; proxies not conclusive",
-      "DSR: 0.76",
+      "DSR: 0.92",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",
@@ -40072,7 +39922,7 @@
       "LBS foot traffic (mock): 36.0 daily visitors, average dwell 70.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 489,386/yr vs minimum operating cost RM 211,727/yr",
-      "DSR: 0.84",
+      "DSR: 1.03",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",
@@ -40148,7 +39998,7 @@
       "LBS foot traffic (mock): 190.0 daily visitors, average dwell 44.0 min",
       "LBS flow-island ratio (mock, share of nearby footfall the street network connects to the asset; below 0.6 = isolated): 1.0",
       "Survival check (estimate): footfall revenue RM 989,368/yr vs minimum operating cost RM 283,235/yr",
-      "DSR: 0.3",
+      "DSR: 0.33",
       "Demographic mismatch: 0.0",
       "Neighborhood diversity: 0.95",
       "Walk 5-min coverage: 13.5%",

@@ -1031,8 +1031,12 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
 
         # --- 4. Surface temp with cooling attribution ---
         baseline_lst = _get_baseline_lst()
-        base_lst_delta = _get(base_final_state, "surface_temp_delta_c", default=None)
-        intv_lst_delta = _get(final_state, "surface_temp_delta_c", default=None)
+        base_lst_delta = _get(
+            base_final_state, "surface_temp_delta_c", default=None,
+        )
+        intv_lst_delta = _get(
+            final_state, "surface_temp_delta_c", default=None,
+        )
 
         surface_temp_metric = {
             "label": "Surface Temp ΔT",
@@ -1040,13 +1044,40 @@ def _build_frontend_payload(simulation, comparison, intent, final_decision):
             "intervention": intv_lst_delta,
             "unit": "°C",
         }
+
+        # Canopy cooling: the difference between baseline and intervention
+        # surface temperature. Canopy changes the ground surface directly.
+        canopy_delta = None
         if base_lst_delta is not None and intv_lst_delta is not None:
-            delta_change = intv_lst_delta - base_lst_delta
-            if abs(delta_change) > 0.01:
-                surface_temp_metric["cooling_source"] = "canopy"
-                surface_temp_metric["cooling_from_canopy_c"] = round(delta_change, 3)
-            else:
-                surface_temp_metric["cooling_source"] = "none"
+            d = intv_lst_delta - base_lst_delta
+            if abs(d) > 0.01:
+                canopy_delta = round(d, 3)
+
+        # Roof cooling: equivalent ambient relief contributed by a roof
+        # intervention (cool roof / green roof / solar canopy), written
+        # to the metric row by the simulation engine. This is the
+        # contribution to the HVAC cooling load, not to the ground
+        # surface temperature directly.
+        roof_relief = final_state.get("cooling_from_roof_c")
+        if roof_relief is not None:
+            try:
+                roof_relief = float(roof_relief)
+            except (TypeError, ValueError):
+                roof_relief = None
+        if roof_relief is not None and roof_relief <= 0:
+            roof_relief = None
+
+        cooling_sources = []
+        if canopy_delta is not None:
+            cooling_sources.append("canopy")
+            surface_temp_metric["cooling_from_canopy_c"] = canopy_delta
+        if roof_relief is not None:
+            cooling_sources.append("roof")
+            surface_temp_metric["cooling_from_roof_c"] = round(roof_relief, 2)
+
+        surface_temp_metric["cooling_source"] = (
+            "+".join(cooling_sources) if cooling_sources else "none"
+        )
 
         # 2026 observed baseline (blue chip)
         observed_2026 = None

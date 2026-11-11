@@ -177,7 +177,22 @@ def compute_derived_metrics(
         log.info("B3: Loading baked walking pipeline from %s", walk_pkl)
         with open(walk_pkl, "rb") as f:
             walking_pipeline = pickle.load(f)
-        supply_nodes_huff = _build_huff_supply_nodes(business["assets"], walking_pipeline)
+
+        # The baked pickle was generated without per-asset metrics, so
+        # its supply nodes carry the 0.85 default occupancy. Rebuild
+        # them with this year's actual occupancy so the pkl fast-path
+        # is numerically identical to the construction path. Without
+        # this, DSR and effective_demand_m2 differ depending on whether
+        # the pkl exists on disk.
+        base_year_metrics = business["asset_metrics"]
+        if "year" in base_year_metrics.columns:
+            base_year_metrics = base_year_metrics[
+                base_year_metrics["year"] == year
+            ]
+
+        supply_nodes_huff = _build_huff_supply_nodes(
+            business["assets"], walking_pipeline, base_year_metrics,
+        )
         demand_nodes_huff = _build_huff_demand_nodes(walking_pipeline)
         walking_pipeline["supply_nodes"] = supply_nodes_huff
         walking_pipeline["demand_nodes"] = demand_nodes_huff
