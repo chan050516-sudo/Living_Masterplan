@@ -73,6 +73,9 @@ const FAKE_DELTA_T: Record<string, number> = {
   interim_solar_farm: -0.4,
   new_development: 0,
   delay_development: 0,
+  // Soft interventions do not change the microclimate
+  tenant_matching: 0,
+  tactical_placemaking: 0,
 }
 const FAKE_DELTA_T_DEFAULT = -0.5
 
@@ -393,6 +396,7 @@ export function createThreeLayer(origin: [number, number]) {
   const skyEnv = makeSkyEnv()
   const gltfLoader = new GLTFLoader()
   const haloTime = { value: 0 }
+  const animTime = { value: 0 } // New: drives the crowd and neon animations
 
   let shadowDirty = true
   function redraw() {
@@ -900,6 +904,218 @@ export function createThreeLayer(origin: [number, number]) {
     hero.add(border)
   }
 
+// ==========================================
+  // Soft Interventions (Macro-Optimized)
+  // ==========================================
+
+  function addPlacemaking(outer: THREE.Vector2[]) {
+    const f = frameOf(outer)
+    const centerX = f.toX((f.minU + f.maxU) / 2, (f.minV + f.maxV) / 2)
+    const centerZ = -f.toY((f.minU + f.maxU) / 2, (f.minV + f.maxV) / 2)
+    
+    // Increased offset to push elements outward, avoiding central clutter
+    const offset = 14 
+    const spots: Array<{ x: number; z: number; color: string; yaw: number }> = []
+    const colors = ['#ff2a2a', '#ffcf00', '#00d2ff', '#ff00ff']
+    
+    // Sparse distribution: 4 corners + 2 midpoints
+    const corners = [
+      [f.minU - offset, f.minV - offset], [f.maxU + offset, f.minV - offset],
+      [f.maxU + offset, f.maxV + offset], [f.minU - offset, f.maxV + offset],
+      [f.minU - offset, (f.minV + f.maxV) / 2], [f.maxU + offset, (f.minV + f.maxV) / 2]
+    ]
+    corners.forEach(([u, v], i) => {
+      spots.push({ 
+        x: f.toX(u, v) + (Math.random() - 0.5) * 6, 
+        z: -f.toY(u, v) + (Math.random() - 0.5) * 6, 
+        color: colors[i % colors.length], yaw: Math.random() * Math.PI 
+      })
+    })
+
+    const m = new THREE.Matrix4()
+    const q = new THREE.Quaternion()
+    const up = new THREE.Vector3(0, 1, 0)
+    const col = new THREE.Color()
+
+    // 1. Luminous Base Stations (Tents) - Slightly scaled up for macro visibility
+    const tentBodies = new THREE.InstancedMesh(new THREE.BoxGeometry(4, 4, 4), new THREE.MeshStandardMaterial({ roughness: 0.3, metalness: 0.6 }), spots.length)
+    const tentTops = new THREE.InstancedMesh(new THREE.ConeGeometry(3.5, 2.5, 4), new THREE.MeshBasicMaterial({ color: '#ffffff', wireframe: true, transparent: true, opacity: 0.6 }), spots.length)
+    
+    spots.forEach((s, i) => {
+      q.setFromAxisAngle(up, s.yaw)
+      m.compose(new THREE.Vector3(s.x, 2.0, s.z), q, new THREE.Vector3(1, 1, 1))
+      tentBodies.setMatrixAt(i, m); tentBodies.setColorAt(i, col.set(s.color))
+      m.compose(new THREE.Vector3(s.x, 5.25, s.z), q.setFromAxisAngle(up, s.yaw + Math.PI/4), new THREE.Vector3(1, 1, 1))
+      tentTops.setMatrixAt(i, m); tentTops.setColorAt(i, col.set(s.color))
+    })
+    tentBodies.castShadow = true
+    hero.add(tentBodies, tentTops)
+
+    // 2. Ground Holographic Pulse Ring - Scaled 2x to wrap the whole block smoothly
+    const pulseMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: animTime },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `
+        uniform float uTime; varying vec2 vUv;
+        void main() {
+          float dist = length(vUv - 0.5) * 2.0;
+          if(dist > 1.0) discard;
+          // Lowered frequency (15.0) to prevent moiré patterns from afar
+          float wave = sin(dist * 15.0 - uTime * 4.0);
+          float alpha = smoothstep(0.9, 1.0, wave) * (1.0 - dist);
+          gl_FragColor = vec4(1.0, 0.2, 0.6, alpha * 0.4); // Reduced opacity
+        }
+      `
+    })
+    const pulseRing = new THREE.Mesh(new THREE.PlaneGeometry(80, 80).rotateX(-Math.PI/2), pulseMat)
+    pulseRing.position.set(centerX, 0.2, centerZ)
+    hero.add(pulseRing)
+
+    // 3. Dynamic Swaying Laser Beams - Reduced count, increased scale
+    const numLasers = 4
+    const laserGeo = new THREE.CylinderGeometry(0.8, 6.0, 40, 8, 1, true)
+    laserGeo.translate(0, 20.0, 0) // Shift origin to base
+    const laserMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: animTime },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      vertexShader: `
+        uniform float uTime; attribute float phase; varying vec2 vUv;
+        void main() {
+          vUv = uv; vec3 p = position;
+          float angle = sin(uTime * 1.5 + phase) * 0.6;
+          p.x += sin(angle) * p.y * 0.4;
+          p.z += cos(angle * 1.2) * p.y * 0.4;
+          gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragmentShader: `varying vec2 vUv; void main() { float alpha = pow(1.0 - vUv.y, 3.0) * 0.3; gl_FragColor = vec4(0.0, 0.8, 1.0, alpha); }`
+    })
+    const laserInst = new THREE.InstancedMesh(laserGeo, laserMat, numLasers)
+    const phases = new Float32Array(numLasers)
+    for (let i = 0; i < numLasers; i++) {
+      const angle = (i / numLasers) * Math.PI * 2
+      // Spread lasers further out
+      m.makeTranslation(centerX + Math.cos(angle) * 16, 0.1, centerZ + Math.sin(angle) * 16)
+      laserInst.setMatrixAt(i, m)
+      phases[i] = Math.random() * Math.PI * 2
+    }
+    laserGeo.setAttribute('phase', new THREE.InstancedBufferAttribute(phases, 1))
+    hero.add(laserInst)
+
+    // 4. Glowing Crowd Particles - Drastically reduced count, wider radius
+    const crowdGeo = new THREE.BufferGeometry()
+    const crowdCount = 40 // Reduced from 200
+    const positions = new Float32Array(crowdCount * 3), seeds = new Float32Array(crowdCount)
+    for (let i = 0; i < crowdCount; i++) {
+      const angle = Math.random() * Math.PI * 2, radius = 6 + Math.random() * 22
+      positions[i * 3] = centerX + Math.cos(angle) * radius
+      positions[i * 3 + 1] = 0.8
+      positions[i * 3 + 2] = centerZ + Math.sin(angle) * radius
+      seeds[i] = Math.random() * 100
+    }
+    crowdGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+    crowdGeo.setAttribute('seed', new THREE.BufferAttribute(seeds, 1))
+    const crowdMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: animTime }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        attribute float seed; uniform float uTime; varying float vHighlight;
+        void main() {
+          vec3 p = position;
+          float speed = 0.1 + fract(seed) * 0.2;
+          float angle = atan(p.z, p.x) + uTime * speed;
+          p.y += sin(uTime * 5.0 + seed * 5.0) * 0.15;
+          vHighlight = fract(seed * 2.0);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          // Reduced point size to avoid massive blobs
+          gl_PointSize = 3.0 + fract(seed) * 2.0; 
+        }
+      `,
+      fragmentShader: `varying float vHighlight; void main() { vec2 c = gl_PointCoord - vec2(0.5); if (length(c) > 0.5) discard; gl_FragColor = vec4(mix(vec3(0.0, 1.0, 0.8), vec3(1.0, 0.8, 0.1), vHighlight), 0.7); }`
+    })
+    hero.add(new THREE.Points(crowdGeo, crowdMat))
+  }
+
+  function addTenantMatch(outer: THREE.Vector2[]) {
+    const f = frameOf(outer)
+    const w = f.maxU - f.minU, d = f.maxV - f.minV
+    const centerX = f.toX((f.minU + f.maxU) / 2, (f.minV + f.maxV) / 2)
+    const centerZ = -f.toY((f.minU + f.maxU) / 2, (f.minV + f.maxV) / 2)
+    const SCAN_H = 12.0 // Taller to stand out above neighboring buildings
+
+    // 1. Structural Wireframe Box - Thinner opacity
+    const holoFrame = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(w + 3.0, SCAN_H, d + 3.0)), // Wider bounds
+      new THREE.LineBasicMaterial({ color: '#00ffcc', transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending })
+    )
+    holoFrame.position.set(centerX, SCAN_H / 2, centerZ)
+    holoFrame.rotation.y = -f.theta
+    hero.add(holoFrame)
+
+    // 2. Vertically Floating Holographic Scanner Plane - Coarser grid
+    const scanGeo = new THREE.PlaneGeometry(w + 4, d + 4).rotateX(-Math.PI / 2)
+    const scanMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: animTime },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+      vertexShader: `
+        uniform float uTime; varying vec2 vUv;
+        void main() {
+          vUv = uv; vec3 p = position;
+          p.y += (sin(uTime * 1.5) * 0.5 + 0.5) * ${SCAN_H.toFixed(1)};
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+        }
+      `,
+      fragmentShader: `
+        varying vec2 vUv;
+        void main() {
+          float border = max(step(0.02, vUv.x)*step(vUv.x, 0.98), step(0.02, vUv.y)*step(vUv.y, 0.98));
+          // Reduced grid frequency (5.0 instead of 20.0) for clear blocks from afar
+          float grid = step(0.92, fract(vUv.x * 5.0)) + step(0.92, fract(vUv.y * 5.0));
+          float fade = sin(vUv.x * 3.1415) * sin(vUv.y * 3.1415);
+          gl_FragColor = vec4(0.0, 1.0, 0.7, max(1.0 - border, grid * 0.4) * fade * 0.6);
+        }
+      `
+    })
+    const scanner = new THREE.Mesh(scanGeo, scanMat)
+    scanner.position.set(centerX, 0, centerZ)
+    scanner.rotation.y = -f.theta
+    hero.add(scanner)
+
+    // 3. Internal Matrix Data Stream Particles - Less density, slower fall
+    const dataCount = 40 // Reduced from 300 to prevent bright clusters
+    const dataGeo = new THREE.BufferGeometry()
+    const dPos = new Float32Array(dataCount * 3), dSeeds = new Float32Array(dataCount)
+    for (let i = 0; i < dataCount; i++) {
+      dPos[i * 3] = (Math.random() - 0.5) * (w + 1)
+      dPos[i * 3 + 1] = Math.random() * SCAN_H
+      dPos[i * 3 + 2] = (Math.random() - 0.5) * (d + 1)
+      dSeeds[i] = Math.random()
+    }
+    dataGeo.setAttribute('position', new THREE.BufferAttribute(dPos, 3))
+    dataGeo.setAttribute('seed', new THREE.BufferAttribute(dSeeds, 1))
+    const dataMat = new THREE.ShaderMaterial({
+      uniforms: { uTime: animTime },
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+      vertexShader: `
+        uniform float uTime; attribute float seed; varying float vAlpha;
+        void main() {
+          vec3 p = position;
+          // Slower downward cascade
+          p.y = mod(p.y - uTime * (0.5 + seed * 1.5), ${SCAN_H.toFixed(1)});
+          if(p.y < 0.0) p.y += ${SCAN_H.toFixed(1)};
+          vAlpha = (sin(uTime * 3.0 + seed * 100.0) * 0.5 + 0.5) * (p.y / ${SCAN_H.toFixed(1)});
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+          gl_PointSize = 3.0 + seed * 3.0; // Smaller points
+        }
+      `,
+      fragmentShader: `varying float vAlpha; void main() { vec2 c = gl_PointCoord - vec2(0.5); if (length(c) > 0.5) discard; gl_FragColor = vec4(0.1, 0.9, 1.0, vAlpha * 0.6); }`
+    })
+    const dataPoints = new THREE.Points(dataGeo, dataMat)
+    dataPoints.position.set(centerX, 0, centerZ)
+    dataPoints.rotation.y = -f.theta
+    hero.add(dataPoints)
+  }
+
   function buildHero(c: Cached, type: string) {
     const isSel = selected.has(c.id)
     const colour = isSel ? selectedColour : (STATUS_HEX[c.status] ?? STATUS_FALLBACK)
@@ -920,10 +1136,15 @@ export function createThreeLayer(origin: [number, number]) {
       if (!shape) continue
       const outer = ringToPoints(rings[0])
       switch (type) {
-        case 'renovation': addScaffold(outer, c.height); break
-        case 'repurpose': addTerrace(shape, outer, roofY); break
-        case 'green_corridor': addGreenCorridor(shape, outer, roofY); break
-        case 'pedestrian_upgrade': addForecourt(outer); break
+        case 'renovation': addScaffold(outer, c.height); break;
+        case 'repurpose': addTerrace(shape, outer, roofY); break;
+        case 'green_corridor': addGreenCorridor(shape, outer, roofY); break;
+        case 'pedestrian_upgrade': addForecourt(outer); break;
+        
+        // --- Soft Interventions ---
+        case 'tactical_placemaking': addPlacemaking(outer); break;
+        case 'tenant_matching': addTenantMatch(outer); break;
+        
         case 'retrofit':
         default: addSolar(outer, roofY)
       }
@@ -1176,8 +1397,12 @@ export function createThreeLayer(origin: [number, number]) {
       }
       renderer.render(scene, camera)
 
-      if (halos.children.length) {
-        haloTime.value = performance.now() / 1000
+      // Update animations for halos, crowds, and neon lights
+      const now = performance.now() / 1000
+      haloTime.value = now
+      animTime.value = now
+      
+      if (halos.children.length || heroes.size > 0) {
         map?.triggerRepaint()
       }
     },

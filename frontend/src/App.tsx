@@ -151,6 +151,8 @@ export default function App() {
   const markersRef = useRef<maplibregl.Marker[]>([])
   const assetsRef = useRef<Asset[]>([])
 
+  const lastClickRef = useRef<{ id: string; time: number } | null>(null)
+
   const buildingsRef = useRef<FeatureCollection>(EMPTY)
   const areaRef = useRef<FeatureCollection>(EMPTY)
   const pointsRef = useRef<FeatureCollection>(EMPTY)
@@ -242,6 +244,10 @@ export default function App() {
   }
 
   function selectOnly(id: string) {
+    const now = Date.now()
+    if (lastClickRef.current?.id === id && now - lastClickRef.current.time < 150) return
+    lastClickRef.current = { id, time: now }
+
     setSelectedIds([id]); setQuestion(''); reset()
     setSheetExpanded(false); setDrawerOpen(false)
     playClick()
@@ -282,6 +288,10 @@ export default function App() {
   }
 
   function toggleSelect(id: string) {
+    const now = Date.now()
+    if (lastClickRef.current?.id === id && now - lastClickRef.current.time < 150) return
+    lastClickRef.current = { id, time: now }
+
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id])
     playClick()
     reset()
@@ -335,6 +345,14 @@ export default function App() {
   const clearHistory = () => {
     if (window.confirm("Are you sure you want to clear all analysis history?")) {
       setHistory([]); setActiveRunId(undefined); setPreviewing(false); localStorage.removeItem('lm_history')
+    }
+  }
+
+  const deleteHistoryItem = (id: string) => {
+    setHistory(prev => prev.filter(h => h.id !== id))
+    if (activeRunId === id) {
+      setActiveRunId(undefined)
+      setPreviewing(false)
     }
   }
 
@@ -925,12 +943,12 @@ export default function App() {
     }
   }, [selectedIds, assets, mapReady])
 
-  // Side-panel contents, shared by the desktop aside and the mobile sheet / drawer.
   const historyEl = (
     <HistoryPanel
       history={history}
       onClose={() => { setShowHistory(false); setDrawerOpen(false) }}
       onUpdateStatus={updateHistoryStatus}
+      onDelete={deleteHistoryItem}
       onPreview={(id) => {
         setActiveRunId(id);
         setShowHistory(false);

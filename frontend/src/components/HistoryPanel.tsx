@@ -2,11 +2,12 @@ import { C, mono } from '../theme'
 import type { AnalyzeHistoryItem } from '../App'
 
 export function HistoryPanel({
-  history, onClose, onUpdateStatus, onPreview, activeRunId, onSelectHistory, onClear
+  history, onClose, onUpdateStatus, onPreview, activeRunId, onSelectHistory, onClear, onDelete
 }: {
   history: AnalyzeHistoryItem[]
   onClose: () => void
   onUpdateStatus: (id: string, status: 'accepted' | 'declined') => void
+  onDelete: (id: string) => void
   onPreview: (id: string) => void
   activeRunId?: string
   onSelectHistory: (item: AnalyzeHistoryItem) => void
@@ -101,6 +102,15 @@ export function HistoryPanel({
                   Declined
                 </button>
               )}
+
+              <button 
+                className="btn" 
+                onClick={(e) => { e.stopPropagation(); onDelete(item.id) }}
+                style={{ padding: '0 12px', background: 'transparent', color: C.faint, borderColor: C.line }}
+                title="Delete this run"
+              >
+                ×
+              </button>            
             </div>
           </div>
         ))}
