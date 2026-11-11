@@ -1,5 +1,10 @@
 import type { AnalyzeResult } from './types'
 
+import { MOCK_SCENARIO_CASE1 } from './mockData_case1'
+import { MOCK_SCENARIO_CASE2 } from './mockData_case2'
+
+export { MOCK_SCENARIO_CASE1, MOCK_SCENARIO_CASE2 }
+
 export const MOCK_SCENARIO_1: AnalyzeResult = {
   run_id: "LLM-demo-1",
   scenario_id: "SC-demo-1",

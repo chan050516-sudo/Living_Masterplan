@@ -308,7 +308,7 @@ export type CounterfactualBlock = {
 export type SummaryCard = {
   financial?: {
     main_metric?: MainMetric
-    counterfactual?: Record<string, number>
+    counterfactual?: Record<string, number> | null // 允许 null
   }
   social?: {
     main_metric?: MainMetric
@@ -317,7 +317,7 @@ export type SummaryCard = {
   environmental?: {
     observed_2026?: Observed2026
     main_metrics?: MainMetric[]
-    counterfactual?: Record<string, number>
+    counterfactual?: Record<string, number> | null // 允许 null
   }
   subunits?: Array<{
     subtype: string
@@ -326,7 +326,9 @@ export type SummaryCard = {
     operational_count?: number
     presence_ratio?: number
     vitality_score?: number | null
-    occupancy?: number | null // Keep for backward compatibility if needed
+    occupancy?: number | null
+    occupancy_baseline?: number | null
+    occupancy_intervention?: number | null
     allocated_carbon_tco2e?: number
     allocated_noi_rm?: number
   }> | null
@@ -342,27 +344,30 @@ export type AssetAnalysis = {
   summary_card: SummaryCard
   timeline?: {
     years: string[]
-    metrics: Record<string, { baseline: number[]; intervention: number[] }>
+    metrics: Record<string, {
+      baseline: (number | null)[]
+      intervention: (number | null)[]
+    }>
   }
 }
 
 export type TownshipMetrics = {
-  walk_15min_avg_coverage_before: number | null
-  walk_15min_avg_coverage_after: number | null
-  walk_15min_coverage_delta: number | null
-  total_carbon_before_tco2e: number | null
-  total_carbon_after_tco2e: number | null
-  carbon_delta_pct: number | null
-  project_carbon_after_tco2e: number | null
-  project_carbon_cumulative_tco2e: number | null
-  sequestration_by_year_tco2e_year: Record<string, number>
-  sequestration_before_tco2e_year: number | null
-  sequestration_after_tco2e_year: number | null
-  sequestration_delta_tco2e_year: number | null
-  sequestration_cumulative_tco2e: number | null
-  canopy_uptake_rate_tco2e_per_m2_year: number | null
-  operational_carbon_by_year_tco2e_year: Record<string, number | null>
-  net_carbon_by_year_tco2e_year: Record<string, number | null>
+  walk_15min_avg_coverage_before?: number | null
+  walk_15min_avg_coverage_after?: number | null
+  walk_15min_coverage_delta?: number | null
+  total_carbon_before_tco2e?: number | null
+  total_carbon_after_tco2e?: number | null
+  carbon_delta_pct?: number | null
+  project_carbon_after_tco2e?: number | null
+  project_carbon_cumulative_tco2e?: number | null
+  sequestration_by_year_tco2e_year?: Record<string, number | null> | null
+  sequestration_before_tco2e_year?: number | null
+  sequestration_after_tco2e_year?: number | null
+  sequestration_delta_tco2e_year?: number | null
+  sequestration_cumulative_tco2e?: number | null
+  canopy_uptake_rate_tco2e_per_m2_year?: number | null
+  operational_carbon_by_year_tco2e_year?: Record<string, number | null> | null
+  net_carbon_by_year_tco2e_year?: Record<string, number | null> | null
 }
 
 export type CandidateSummary = {

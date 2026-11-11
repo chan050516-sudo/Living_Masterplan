@@ -1,11 +1,13 @@
 import { C, mono } from '../theme'
 
-type Series = { label: string; values: number[]; color: string; dashed?: boolean }
+type Series = { label: string; values: (number | null)[]; color: string; dashed?: boolean }
 
 /**
  * Two-line comparison chart drawn as inline SVG.
  * The shaded band between the lines is the effect of the intervention:
  * green where it improves the metric, red where it worsens it.
+ * Nulls are treated as gaps (not zero) so a baseline-missing asset
+ * does not incorrectly suggest a drop to 0.
  */
 export function LineChart({ years, series, format, lowerIsBetter = false }: {
   years: string[]
@@ -20,11 +22,14 @@ export function LineChart({ years, series, format, lowerIsBetter = false }: {
   const padT = 12
   const padB = 24
 
-  const all = series.flatMap((s) => s.values).filter((v) => Number.isFinite(v))
-  if (all.length === 0 || years.length === 0) return null
+  // Only numeric values are used for min/max scaling.
+  const numeric = series
+    .flatMap((s) => s.values)
+    .filter((v): v is number => v !== null && Number.isFinite(v))
+  if (numeric.length === 0 || years.length === 0) return null
 
-  let min = Math.min(...all)
-  let max = Math.max(...all)
+  let min = Math.min(...numeric)
+  let max = Math.max(...numeric)
   const allPositive = min >= 0
 
   if (min === max) {
@@ -47,29 +52,45 @@ export function LineChart({ years, series, format, lowerIsBetter = false }: {
   const baseline = series[0]
   const plan = series[1]
 
-  // Is the final state an improvement? Decides the band colour.
+  // Compare the last *finite* value of each series, skipping nulls.
+  const lastFinite = (values: (number | null)[]): number | null => {
+    for (let i = values.length - 1; i >= 0; i--) {
+      const v = values[i]
+      if (v !== null && Number.isFinite(v)) return v
+    }
+    return null
+  }
+
   let bandColour: string | null = null
   if (baseline && plan) {
-    const b = baseline.values[baseline.values.length - 1]
-    const p = plan.values[plan.values.length - 1]
-    if (Number.isFinite(b) && Number.isFinite(p) && Math.abs(p - b) > 1e-9) {
+    const b = lastFinite(baseline.values)
+    const p = lastFinite(plan.values)
+    if (b !== null && p !== null && Math.abs(p - b) > 1e-9) {
       const better = lowerIsBetter ? p < b : p > b
       bandColour = better ? '#3fb27f' : '#d71920'
     }
   }
 
-  // Closed path: forward along the plan, back along the baseline.
-  const band =
-    baseline && plan && baseline.values.length === plan.values.length
-      ? [
-          ...plan.values.map((v, i) => `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`),
-          ...baseline.values
-            .map((v, i) => ({ v, i }))
-            .reverse()
-            .map(({ v, i }) => `L${x(i)},${y(v)}`),
-          'Z',
-        ].join(' ')
-      : null
+  // The band is only drawn on segments where BOTH series have a number.
+  const bandSegments: string[] = []
+  if (baseline && plan && baseline.values.length === plan.values.length) {
+    let opened = false
+    for (let i = 0; i < plan.values.length; i++) {
+      const pv = plan.values[i]
+      const bv = baseline.values[i]
+      if (pv === null || bv === null || !Number.isFinite(pv) || !Number.isFinite(bv)) {
+        if (opened) { bandSegments.push('Z'); opened = false }
+        continue
+      }
+      if (!opened) {
+        bandSegments.push(`M${x(i)},${y(bv)}`)
+        opened = true
+      }
+      // Trace forward along the plan, we close the band backwards in a second pass
+      bandSegments.push(`L${x(i)},${y(pv)}`)
+    }
+    if (opened) bandSegments.push('Z')
+  }
 
   const ticks = [max, (max + min) / 2, min]
 
@@ -86,8 +107,23 @@ export function LineChart({ years, series, format, lowerIsBetter = false }: {
         </g>
       ))}
 
-      {band && bandColour && (
-        <path d={band} fill={bandColour} fillOpacity="0.12" stroke="none" />
+      {bandColour && (
+        <path
+          d={[
+            ...plan.values.map((v, i) =>
+              v === null || !Number.isFinite(v) ? '' : `${i === 0 ? 'M' : 'L'}${x(i)},${y(v)}`
+            ).filter(Boolean),
+            ...baseline.values
+              .map((v, i) => ({ v, i }))
+              .reverse()
+              .map(({ v, i }) => v === null || !Number.isFinite(v) ? '' : `L${x(i)},${y(v)}`)
+              .filter(Boolean),
+            'Z',
+          ].filter(Boolean).join(' ')}
+          fill={bandColour}
+          fillOpacity="0.12"
+          stroke="none"
+        />
       )}
 
       {years.map((yr, i) => (
@@ -98,10 +134,10 @@ export function LineChart({ years, series, format, lowerIsBetter = false }: {
 
       {series.map((s) => {
         const pts = s.values
-          .map((v, i) => (Number.isFinite(v) ? `${x(i)},${y(v)}` : null))
-          .filter(Boolean)
+          .map((v, i) => (v === null || !Number.isFinite(v) ? null : `${x(i)},${y(v)}`))
+          .filter((p): p is string => p !== null)
           .join(' ')
-        const last = s.values[s.values.length - 1]
+        const last = lastFinite(s.values)
         return (
           <g key={s.label}>
             <polyline
@@ -114,11 +150,11 @@ export function LineChart({ years, series, format, lowerIsBetter = false }: {
               strokeDasharray={s.dashed ? '5 4' : undefined}
             />
             {s.values.map((v, i) =>
-              Number.isFinite(v) ? (
+              v !== null && Number.isFinite(v) ? (
                 <circle key={i} cx={x(i)} cy={y(v)} r="2.6" fill={C.bg} stroke={s.color} strokeWidth="1.5" />
               ) : null,
             )}
-            {Number.isFinite(last) && (
+            {last !== null && (
               <text
                 x={W - padR + 7}
                 y={y(last) + 3.5}

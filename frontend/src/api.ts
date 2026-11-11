@@ -1,10 +1,13 @@
 import type { AssetProfile, AnalyzeResult } from './types'
 import type { FeatureCollection } from 'geojson'
 
-import { MOCK_SCENARIO_1, MOCK_SCENARIO_2, MOCK_SCENARIO_3, MOCK_SCENARIO_4 } from './mockData'
+import {
+  MOCK_SCENARIO_CASE1,
+  MOCK_SCENARIO_CASE2,
+} from './mockData'
 
 const BASE = import.meta.env.VITE_API_URL || 'https://living-masterplan-api-1071997994154.asia-southeast1.run.app'
-const USE_MOCK_LLM = false
+const USE_MOCK_LLM = true
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, init)
@@ -35,32 +38,35 @@ export function fetchGeometry(runId?: string, year: number = 2026) {
 
 /** Runs the LLM pipeline over the selected assets. */
 export function runAnalysis(userQuery: string, selectedAssets: string[], files: File[] = []) {
-  
-
   if (USE_MOCK_LLM) {
     console.log("🚀 [MOCK MODE] Routing to correct scenario based on inputs...");
     return new Promise<AnalyzeResult>((resolve) => {
       setTimeout(() => {
-        // Scenario 1
-        if (userQuery.includes('feasibility') || userQuery.includes('BLD-0183') || selectedAssets.includes('BLD-0183')) {
-          resolve(MOCK_SCENARIO_1)
-        } 
-        // Scenario 4
-        else if (userQuery.includes('blueprint') || userQuery.includes('P-VAC-08') || selectedAssets.includes('P-VAC-08')) {
-          resolve(MOCK_SCENARIO_4)
+        // Case 1: BLD-0037 in the selected set OR PDF attached OR budget mentioned
+        const isCase1 =
+          selectedAssets.includes("BLD-0037") ||
+          selectedAssets.includes("BLD-0260") ||
+          files.some((f) => f.name.toLowerCase().endsWith(".pdf")) ||
+          /BLD-0037|feasibility|budget|engineering spec|retrofit/i.test(userQuery)
+
+        // Case 2: BLD-0736 or BLD-0067 mentioned, or tenant matching / soft keywords
+        const isCase2 =
+          selectedAssets.includes("BLD-0736") ||
+          selectedAssets.includes("BLD-0067") ||
+          /tenant|shoplot|flow island|kopitiam|landlord|owner/i.test(userQuery)
+
+        if (isCase1) {
+          resolve(MOCK_SCENARIO_CASE1)
+        } else if (isCase2) {
+          resolve(MOCK_SCENARIO_CASE2)
+        } else {
+          // Fallback: keep existing behaviour for any old demo scenarios.
+          resolve(MOCK_SCENARIO_CASE1)
         }
-        // Scenario 3
-        else if (selectedAssets.length > 1) {
-          resolve(MOCK_SCENARIO_3)
-        } 
-        // Scenario 2
-        else {
-          resolve(MOCK_SCENARIO_2)
-        }
-      }, 2000); 
-    });
+      }, 1500)
+    })
   }
-  
+
   const form = new FormData()
   form.append('user_query', userQuery)
   form.append('selected_assets', selectedAssets.join(','))
