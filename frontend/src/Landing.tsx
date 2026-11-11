@@ -3,7 +3,8 @@ import type { CSSProperties } from 'react'
 import type { Scene3D } from './township3d'
 import { fetchProfiles } from './api'
 import { Evidence } from './Evidence'
-import { Progress } from './Progress'
+import { DataSection, AuthoritySection, SoftSection } from './System'
+import { ProblemSection, DifferentSection, FeasibilitySection, ImpactSection, ClosingSection } from './Pitch'
 import './landing.css'
 
 const DEMO_HREF = '#/demo'
@@ -11,35 +12,35 @@ const DEMO_HREF = '#/demo'
 // Shown until GET /api/assets/profiles answers, and kept if it fails.
 const HEADLINE = [
   { value: '916', label: 'assets analysed' },
-  { value: '81', label: 'deadspace candidates' },
-  { value: '31,011', label: 'tCO₂e a year stranded' },
-  { value: '5 years', label: 'simulated for every plan' },
+  { value: '61', label: 'deadspace candidates' },
+  { value: '8,880', label: 'tCO₂e a year spent on empty space' },
+  { value: '2033', label: 'every plan simulated out to' },
 ]
 
 const STEPS = [
   {
     name: 'Audit',
-    what: 'Reads every asset’s occupancy, leases, finances, carbon and walking access.',
-    example: 'A 4,809 m² supermarket loses RM 1.19M a year. 36% of its operational carbon, 312 tCO₂e a year, is stranded.',
+    what: 'Reads every asset. Buildings Sime Darby owns use its own records. Sold shops use outside signals: phone-location foot traffic and Google Maps listings.',
+    example: 'A 4,809 m² supermarket loses RM 1.19M a year. 36% of its operational carbon, 312 tCO₂e a year, is spent on empty space.',
   },
   {
     name: 'Diagnose',
-    what: 'Clear rules raise named flags. There is no single black-box score.',
-    example: 'Flagged as a deadspace candidate: five years below benchmark, negative income and 14 months of vacancy.',
+    what: 'Two questions: is it used, and does it give value back? Both bad means deadspace. Each flag also says who can act.',
+    example: 'Deadspace candidate: five years below benchmark, negative income and 14 months empty. Developer-owned, so Sime Darby can act directly.',
   },
   {
     name: 'Generate',
-    what: 'The AI proposes 2–3 plans inside the budget, leases and rules.',
+    what: 'The AI proposes 2–3 plans inside the budget, leases and rules, including soft options like tenant matching and placemaking.',
     example: 'With RM 3M and no demolition, it tries an office hub, an energy retrofit and a showroom with walkway upgrades.',
   },
   {
     name: 'Simulate',
-    what: 'Every valid plan runs through the same five-year model.',
+    what: 'Every valid plan runs through the same model, year by year out to 2033: money, carbon, foot traffic and how many nearby shops stay open.',
     example: 'The reuse plans avoid about 2,020 tCO₂e of embodied carbon compared with building new.',
   },
   {
     name: 'Decide',
-    what: 'The AI reads the simulated results, picks a plan and states the trade-offs.',
+    what: 'The AI reads the simulated results, picks a plan, states the trade-offs and names the source behind every number.',
     example: 'It picks the office hub, and states that the showroom would cut more carbon.',
   },
 ]
@@ -47,36 +48,39 @@ const STEPS = [
 const CONCEPTS = [
   { term: 'Deadspace', text: 'A building or space that cost money and carbon to create, but no longer gives enough value back.' },
   { term: 'Stranded carbon', text: 'The operational carbon spent on capacity nobody is using, such as cooling an empty floor.' },
-  { term: 'Embodied carbon', text: 'The carbon already locked into a building by making and moving its materials.' },
-  { term: 'Avoided embodied carbon', text: 'The carbon saved by reusing a structure: the new-build figure minus the reuse figure.' },
-  { term: 'Urban heat island', text: 'Built-up areas become hotter than their surroundings. Tree canopy helps cool them.' },
-  { term: 'Huff model', text: 'Estimates where people will choose to shop, based on how large each place is and how far away it is.' },
-  { term: 'Catalytic project', text: 'A project on one asset that also lifts the assets around it.' },
+  { term: 'Avoided embodied carbon', text: 'Making and moving a building’s materials already released carbon. Reusing the structure avoids releasing it again: the new-build figure minus the reuse figure.' },
   { term: 'Adaptive reuse', text: 'Changing how an existing building is used, instead of demolishing it and building again.' },
+  { term: 'Outside signals', text: 'Data anyone can buy or see, like phone-location foot traffic and Google Maps listings. Used for shops Sime Darby has sold.' },
+  { term: 'Flow island', text: 'A shop with people living nearby who can’t easily walk to it, because a highway, wall or drain is in the way.' },
+  { term: 'Soft intervention', text: 'A low-cost action the owner only has to agree to, like matching a better tenant or running a market nearby.' },
+  { term: 'Street survival', text: 'The share of nearby shops that stay open. One dying shop can pull its neighbours down with it.' },
+  { term: 'Catalytic project', text: 'A project on one asset that also lifts the assets around it.' },
+  { term: 'Urban heat island', text: 'Built-up areas become hotter than their surroundings. Tree canopy and cool roofs help bring them down.' },
 ]
 
+// Same five tiers and colours as the app's TierBadge.
 const TIERS = [
-  { name: 'Observed', tier: 'observed', text: 'Comes directly from the township’s data.' },
-  { name: 'Estimated', tier: 'estimated', text: 'Calculated from that data using a model or benchmark.' },
-  { name: 'Scenario', tier: 'scenario', text: 'A simulated future, not a promise.' },
+  { name: 'Observed', tier: 'observed', text: 'Sime Darby records and satellite measurements.' },
+  { name: 'Derived', tier: 'derived', text: 'Calculated from observed data with physics or economics formulas.' },
+  { name: 'Estimate', tier: 'estimate', text: 'From outside signals like foot traffic and business listings, for assets Sime Darby no longer runs.' },
+  { name: 'Counterfactual', tier: 'counterfactual', text: 'What an asset would earn if Sime Darby had kept it. Used only inside simulations.' },
+  { name: 'Unknown', tier: 'unknown', text: 'No defensible source, so it is shown as a gap instead of guessed.' },
 ]
 
 const RULES = [
   'The AI never calculates the numbers. It reads them from the tools.',
+  'It names the source: “phone data shows 12 visitors a day”, never “occupancy is 12%” for a shop it can’t see.',
+  'If two sources disagree, it says so and never averages them.',
   'A plan that breaks the budget or lease rules is rejected before simulation.',
   'If a claimed benefit does not appear in the simulation, the claim is downgraded automatically.',
 ]
 
-const BRING_YOUR_OWN = [
-  { name: 'Connect your data', text: 'Add the township’s buildings, leases and occupancy in the standard format.' },
-  { name: 'Run the analysis', text: 'The same rules and models find what needs attention.' },
-  { name: 'Compare the plans', text: 'Test reuse, improve and build options before committing capital.' },
-]
-
-const IMPACT = [
-  { who: 'Planet', text: 'Keeps embodied carbon in existing structures, reduces material extraction and finds carbon wasted on unused space.' },
-  { who: 'SDP', text: 'Compares reuse, improve and build options before capital is committed, with the reasoning written down.' },
-  { who: 'Residents', text: 'Turns idle space into what the neighbourhood needs, closer to home and easier to reach on foot.' },
+const CHECKS = [
+  { name: 'Published models', text: 'Shopper choice (Huff, 1964), how access changes use (Ewing & Cervero, 2010), and Malaysian carbon factors (CIDB, Energy Commission).' },
+  { name: 'A real map', text: 'Building shapes and streets come from Microsoft building footprints and OpenStreetMap.' },
+  { name: 'Test data checked against an answer key', text: 'We hid the true occupancy of every shop, then checked that phone-visitor counts follow it closely, as real data does.' },
+  { name: '31 automated tests', text: 'They guard the rules, the simulation and what the AI is allowed to see.' },
+  { name: 'An honest limit', text: 'Business data is simulated today. The next step is a real sample from Sime Darby, in the same format.' },
 ]
 
 // Plays once per page load, so coming back from the demo does not repeat it.
@@ -156,7 +160,8 @@ function CountUp({ value }: { value: string }) {
       const tick = (t: number) => {
         const p = Math.min((t - start) / 1600, 1)
         const n = Math.round(end * (1 - Math.pow(1 - p, 3)))
-        setShown(value.replace(match[0], n.toLocaleString('en-US')))
+        // Keep the original style: "8,880" gets commas, a year like "2033" does not.
+        setShown(value.replace(match[0], match[0].includes(',') ? n.toLocaleString('en-US') : String(n)))
         if (p < 1) raf = requestAnimationFrame(tick)
       }
       raf = requestAnimationFrame(tick)
@@ -235,11 +240,12 @@ export function Landing() {
       <nav className="lp-nav" aria-label="Main">
         <a className="lp-brand" href="#top">LIVING MASTERPLAN</a>
         <div className="lp-links">
-          <a href="#progress">Progress</a>
-          <a href="#how">How it works</a>
-          <a href="#concepts">Concepts</a>
+          <a href="#problem">Problem</a>
+          <a href="#how">Solution</a>
+          <a href="#demo">Prototype</a>
+          <a href="#feasibility">Feasibility</a>
+          <a href="#impact">Impact</a>
           <a href="#trust">Evidence</a>
-          <a href="#references">References</a>
         </div>
         <a className="lp-cta small" href={DEMO_HREF}>Launch demo</a>
       </nav>
@@ -248,12 +254,12 @@ export function Landing() {
         <div className="lp-hero-text">
           <h1 className="rise">Don’t just build greener. <em>Build only what the future still needs.</em></h1>
           <p className="lp-lede rise">
-            Works for any township. Connect your own data, find the assets that have stopped giving
-            value back, then test whether to reuse, improve or build, five years ahead.
+            Works for any township. Find the assets that have stopped giving value back, even the ones
+            you’ve sold, then test whether to reuse, improve, rebuild or gently revive them, out to 2033.
           </p>
           <div className="lp-hero-actions rise">
             <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
-            <a className="lp-quiet" href="#how">See how it works</a>
+            <a className="lp-quiet" href="#problem">See the problem</a>
           </div>
         </div>
         <figure className="lp-hero-map">
@@ -277,11 +283,13 @@ export function Landing() {
       </header>
 
       <main>
+        <ProblemSection />
+
         <section className="lp-story lp-open" id="how">
           <div className="lp-story-head" data-step="0">
-            <p className="lp-kicker">How it works</p>
+            <p className="lp-kicker"><span className="pt-num">02</span>The solution</p>
             <h2>Five steps from a flagged building to a decision</h2>
-            <p className="lp-body">One saved prototype run on a real building footprint, using simulated business data. Keep scrolling.</p>
+            <p className="lp-body">Living Masterplan checks every asset, explains what is wrong and who can act, then tests the options. One saved run on a real building footprint. Keep scrolling.</p>
           </div>
           <ol className="lp-steps">
             {STEPS.map((s, i) => (
@@ -295,27 +303,32 @@ export function Landing() {
         </section>
 
         <div className="lp-sheet">
-        <Progress />
+        <DataSection />
+        <AuthoritySection />
+        <SoftSection />
+        <DifferentSection />
 
-        <section className="lp-section lp-tinted" id="concepts">
-          <div className="lp-inner">
-            <p className="lp-kicker">Key concepts</p>
-            <h2>The ideas behind it, in plain words</h2>
-            <dl className="lp-concepts rv">
-              {CONCEPTS.map((c) => (
-                <div key={c.term}>
-                  <dt>{c.term}</dt>
-                  <dd>{c.text}</dd>
-                </div>
-              ))}
-            </dl>
+        <section className="lp-section lp-see rv" id="demo">
+          <div>
+            <p className="lp-kicker"><span className="pt-num">03</span>Prototype</p>
+            <h2>Start with the township. End with a plan.</h2>
+            <p className="lp-body">
+              Explore the 3D map, open the flagged list, select an asset and ask a question.
+              A full AI analysis can take a couple of minutes because every plan is simulated.
+            </p>
+            <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
           </div>
+          <img src="/landing/app-screenshot.jpg" width="1600" height="900" alt="Living Masterplan app showing a 3D map of the example township, Bukit Jelutong, beside a list of flagged assets." />
         </section>
+
+        <FeasibilitySection />
+        <ImpactSection />
 
         <section className="lp-trust" id="trust">
           <div className="lp-inner">
-            <p className="lp-kicker">Why you can check it</p>
+            <p className="lp-kicker">Evidence</p>
             <h2>Tools calculate the world. AI reasons about it.</h2>
+            <p className="lp-body">Every number carries a tier, so you always know how far to trust it.</p>
             <div className="lp-trust-grid rv">
               <div>
                 <h3>Every number shows where it came from</h3>
@@ -332,51 +345,33 @@ export function Landing() {
                 </ul>
               </div>
             </div>
+            <h3 className="lp-checks-title">How we checked our assumptions</h3>
+            <ol className="lp-checks rv">
+              {CHECKS.map((c, i) => (
+                <li key={c.name} style={{ '--d': `${i * 90}ms` } as CSSProperties}><b>{c.name}</b><span>{c.text}</span></li>
+              ))}
+            </ol>
           </div>
-        </section>
-
-        <section className="lp-section">
-          <p className="lp-kicker">Any township</p>
-          <h2>Any township. Your data. Tested on Bukit Jelutong.</h2>
-          <p className="lp-body">There is no fixed database. Each township or project connects its own data through one standard format, without rebuilding the system.</p>
-          <ol className="lp-byo rv">
-            {BRING_YOUR_OWN.map((b, i) => (
-              <li key={b.name}>
-                <span>{i + 1}</span>
-                <h3>{b.name}</h3>
-                <p>{b.text}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section className="lp-section">
-          <p className="lp-kicker">Impact</p>
-          <h2>One decision, three kinds of value</h2>
-          <div className="lp-impact rv">
-            {IMPACT.map((v) => (
-              <article key={v.who}>
-                <h3>{v.who}</h3>
-                <p>{v.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="lp-section lp-see rv">
-          <div>
-            <p className="lp-kicker">See it working</p>
-            <h2>Start with the township. End with a plan.</h2>
-            <p className="lp-body">
-              Explore the 3D map, open the flagged list, select an asset and ask a question.
-              A full AI analysis can take a couple of minutes because every plan is simulated.
-            </p>
-            <a className="lp-cta" href={DEMO_HREF}>Launch demo</a>
-          </div>
-          <img src="/landing/app-screenshot.jpg" width="1600" height="900" alt="Living Masterplan app showing a 3D map of the example township, Bukit Jelutong, beside a list of flagged assets." />
         </section>
 
         <Evidence />
+
+        <section className="lp-section lp-tinted" id="concepts">
+          <div className="lp-inner">
+            <p className="lp-kicker">Glossary</p>
+            <h2>The ideas behind it, in plain words</h2>
+            <dl className="lp-concepts rv">
+              {CONCEPTS.map((c) => (
+                <div key={c.term}>
+                  <dt>{c.term}</dt>
+                  <dd>{c.text}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        <ClosingSection />
         </div>
       </main>
 
