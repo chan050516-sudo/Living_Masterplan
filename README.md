@@ -18,8 +18,6 @@ The project supports three connected tasks:
 
 The configured backend dataset is Bukit Jelutong. The repository also includes Elmina geometry and frontend demonstration fixtures. Model outputs depend on supplied data and assumptions and should be reviewed before informing real development decisions.
 
-The configured backend dataset is Bukit Jelutong. The repository also includes Elmina geometry and frontend demonstration fixtures. Model outputs depend on supplied data and assumptions and should be reviewed before informing real development decisions.
-
 ## Architecture
 
 ```text
@@ -137,7 +135,21 @@ VITE_API_URL=[https://living-masterplan-api-1071997994154.asia-southeast1.run.ap
 
 > **Base Map Authentication:** The default map layer uses Stadia Maps raster tiles (`alidade_smooth_dark`). When deploying to new custom domains or production environments on Vercel, ensure your deployment domain (e.g., `living-masterplan-beta.vercel.app`) is added to your Stadia Maps Allowed Domains list to prevent `401 Unauthorized` map loading errors.
 
-The analysis button is currently in live mode: `USE_MOCK_LLM` is set to `false` in `frontend/src/api.ts`, so it sends analysis requests to the backend. Set it to `true` to return local demonstration scenarios instead of calling `POST /api/analyze`.
+### Demo vs. Live Analysis
+
+`frontend/src/api.ts` exports `routeAnalysis(selectedAssets, userQuery, files)` which decides whether an analysis is served from a **frozen demo scenario** or the **live `/api/analyze`** endpoint.
+
+| Selection | Route | Latency |
+|---|---|---|
+| Every asset in `{BLD-0037, BLD-0260, BLD-0004}` + case1 query hints | mock case1 | ~1.5 s |
+| Every asset in `{BLD-0736, BLD-0734, BLD-0067}` + case2 query hints | mock case2 | ~1.5 s |
+| Anything else (mixed selection, non-demo asset, cross-case query) | live | **~1-3 min** |
+
+Case1 hints: `BLD-0037 | feasibility | budget | engineering spec | retrofit`, or any PDF upload. Case2 hints: `tenant | shoplot | flow island | kopitiam | landlord | owner`.
+
+The mock scenarios live in `frontend/src/mockData_case1.ts` and `mockData_case2.ts`. They are frozen B7 outputs from a real run and contain full `summary_card`, `timeline`, and `decision` payloads — no schema divergence from a live response.
+
+Live calls take **1-3 minutes** (2-3 for multi-asset selections, up to 5 if the Vertex API retries on transient errors). The Ask button shows "Analyzing (~1-2 min)…" or "Analyzing (~2-3 min)…" based on asset count.
 
 Frontend checks and production build:
 
@@ -146,6 +158,27 @@ cd frontend
 npm run lint
 npm run build
 ```
+
+## Before the demo (checklist)
+
+```powershell
+# 1. Verify the live API endpoint is up (2-3 min round-trip expected)
+curl.exe -X POST "https://living-masterplan-api-1071997994154.asia-southeast1.run.app/api/analyze" `
+  -F "user_query=test" -F "selected_assets=BLD-0037" --max-time 400
+
+# 2. Verify the six demo asset IDs actually exist in assets.csv
+Select-String -Path bukit_jelutong/processed/business/assets.csv `
+  -Pattern "BLD-0037|BLD-0260|BLD-0004|BLD-0736|BLD-0734|BLD-0067"
+
+# 3. Confirm BLD-0037 is the designated community centre (largest lettable commercial)
+python -c "import pandas as pd; df = pd.read_csv('bukit_jelutong/processed/business/assets.csv'); \
+  print(df[df.asset_type=='commercial'].nlargest(3,'lettable_area_m2')[['asset_id','subtype','lettable_area_m2']])"
+
+# 4. Warm up Vertex AI (first call is slow; subsequent calls are 30-60% faster)
+python backend\scripts\run_llm_real2.py --scenario 1
+```
+
+If any of these fail, demo the mock scenarios only — the six demo asset IDs are the only selection that returns instantly.
 
 ## Use real Gemini analysis
 
@@ -167,9 +200,19 @@ macOS or Linux:
 export GOOGLE_CLOUD_PROJECT="your-project-id"
 ```
 
-The location can optionally be set with `GOOGLE_CLOUD_LOCATION`; the client defaults to `global`. The frontend must also be switched out of mock mode to use the real API analysis route.
+The location can optionally be set with `GOOGLE_CLOUD_LOCATION`; the client defaults to `global`.
 
 For command-line demos, run `python backend/scripts/run_llm_real2.py --scenario 1`, `--scenario 2`, or `--scenario 3`. The stub-backed `python backend/scripts/run_llm_demo.py` exercises the reasoning flow without calling Gemini. LLM runs append intervention records to the configured processed business data, so preserve or restore that file if you want to discard demo changes.
+
+## Frontend Landing Page
+
+The `#/` route renders a marketing landing page built on the same data:
+- `Landing.tsx` — hero, problem framing, five-step pipeline, evidence, glossary.
+- `township3d.ts` — a scroll-driven Three.js scene (`township.json`) with five camera "beats" matching the pipeline stages. Buildings rise as the page loads, dead assets pulse orange smoke, the focus building lights up green as the simulated year rings expand.
+- `Evidence.tsx` — five cited source layers (Microsoft Footprints, OSM, CIDB + Energy Commission, Huff + Ewing & Cervero + Cervero, UNEP GlobalABC).
+- `Pitch.tsx` / `System.tsx` — problem, feasibility, impact, closing sections.
+
+The demo app is at `#/demo` (App.tsx). No backend calls are made by the landing page beyond `fetchProfiles()` for the headline counts.
 
 ## Data
 
@@ -182,6 +225,8 @@ The active data paths are defined in `backend/configs/paths.yml`:
 - `frontend/public/data/` and `frontend/src/mockData.ts` contain frontend demonstration data. [`frontend/MOCK_DATA.md`](frontend/MOCK_DATA.md) describes known mock fields and caveats.
 
 The configured spatial layers are parcels, buildings, network edges, green/blue features, amenities, and population. Business tables join to spatial features using stable IDs. Geometry is analyzed in EPSG:32647 and returned to EPSG:4326 where needed for map display.
+
+**Dataset scale (Bukit Jelutong, current):** 916 assets across 5 asset types; 61 flagged `deadspace_candidate`; ~130,900 tCO₂e/yr operational carbon baseline; 312 tCO₂e/yr canopy sequestration. These counts come from `GET /api/assets/profiles` and are refreshed live by `Landing.tsx`.
 
 Review `backend/configs/assumptions.yml`, `taxonomy.yml`, `peer_benchmarks.yml`, and `field_metadata.yml` alongside the data. These settings affect accessibility, demand, carbon, benchmarks, and deadspace results. JSON data contracts are in [`contracts/schemas/`](contracts/schemas/).
 
