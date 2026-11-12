@@ -59,6 +59,14 @@ class VertexGeminiClient:
             vertexai=True,
             project=self.project,
             location=self.location,
+            http_options=types.HttpOptions(
+                timeout=60_000,
+                retry_options=types.HttpRetryOptions(
+                    attempts=3,
+                    initial_delay=2.0,
+                    max_delay=30.0,
+                ),
+            ),
         )
 
     # ------------------------------------------------------------------

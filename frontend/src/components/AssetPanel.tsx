@@ -367,6 +367,12 @@ function hasTenancy(asset: Asset): boolean {
   return (asset.profile?.subunits?.length ?? 0) > 0 || hasExternalSignals(asset)
 }
 
+function liveEstimate(assetCount: number): string {
+  if (assetCount <= 1) return '~1-2 min'
+  if (assetCount <= 3) return '~2-3 min'
+  return '~3-5 min'
+}
+
 /* ---------- Panel ---------- */
 
 export function AssetPanel(props: {
@@ -375,7 +381,7 @@ export function AssetPanel(props: {
   setQuestion: (v: string) => void
   asked: string
   analysis: AnalyzeResult | null
-  loading: boolean
+  loading: null | 'mock' | 'live'
   error: string | null
   onAsk: (files: File[]) => void
   previewing: boolean
@@ -962,12 +968,21 @@ export function AssetPanel(props: {
           <button 
             className={`btn primary${props.loading ? ' thinking' : ''}`} 
             onClick={() => props.onAsk(files)} 
-            disabled={props.loading} 
+            disabled={!!props.loading} 
             style={{ ...btn(true), padding: '0 20px' }}
           >
-            {props.loading ? 'Thinking…' : 'Ask'}
+            {props.loading === 'live'
+              ? `Analyzing (${liveEstimate(props.assets.length)})…`
+              : props.loading === 'mock'
+                ? 'Thinking…'
+                : 'Ask'}
           </button>
         </div>
+        {props.loading === 'live' && (
+          <div style={{ fontSize: 11, color: C.faint, marginTop: 6, fontStyle: 'italic' }}>
+            Live LLM analysis — if the model is congested, retries can add 2-3 min.
+          </div>
+        )}
       </div>
       )}
     </div>

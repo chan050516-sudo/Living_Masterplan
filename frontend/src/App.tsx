@@ -11,7 +11,7 @@ import { HistoryPanel } from './components/HistoryPanel'
 import { PanelResizer, usePanelWidth } from './components/PanelResizer'
 import { MobileSheet, MobileDrawer } from './components/MobileSheet'
 import { useIsMobile, isMobileViewport, MOBILE_PERF } from './mobile'
-import { fetchProfiles, fetchGeometry, runAnalysis } from './api'
+import { fetchProfiles, fetchGeometry, runAnalysis, routeAnalysis } from './api'
 import { createThreeLayer } from './threeLayer'
 import { applyYearMetrics, subtypeLabel, assetTypeLabel, type PanelTab } from './config/metricConfig'
 import type { Asset, AssetProfile, AnalyzeResult } from './types'
@@ -176,7 +176,7 @@ export default function App() {
   const [question, setQuestion] = useState('')
   const [analysis, setAnalysis] = useState<AnalyzeResult | null>(null)
   const [asked, setAsked] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState<null | 'mock' | 'live'>(null)
   const [error, setError] = useState<string | null>(null)
   const [previewing, setPreviewing] = useState(false)
   const [showComparison, setShowComparison] = useState(false)
@@ -194,7 +194,7 @@ export default function App() {
   const [legendOpen, setLegendOpen] = useState(false)
   // An AI answer only shows in the expanded sheet, so open it when one arrives.
   useEffect(() => {
-    if (isMobile && (analysis || error || loading)) setSheetExpanded(true)
+    if (isMobile && (analysis || error || loading !== null)) setSheetExpanded(true)
   }, [isMobile, analysis, error, loading])
   // Switching between the mobile and desktop layouts changes the map's size.
   useEffect(() => {
@@ -344,12 +344,13 @@ export default function App() {
     if (!bounds.isEmpty()) m.fitBounds(bounds, { padding: 160, pitch: 55, maxZoom: 17, duration: 900 })
   }
 
-  async function ask(files: File[] = []) { // 1. Add files parameter
+  async function ask(files: File[] = []) {
     if (selectedAssets.length === 0) return
     const q = question.trim() || 'What should we do with these assets?'
-    setLoading(true); setError(null); setAsked(q)
+    const route = routeAnalysis(selectedIds, q, files)
+    setLoading(route.kind === 'mock' ? 'mock' : 'live')
+    setError(null); setAsked(q)
     try {
-      // 2. Pass files to runAnalysis
       const res = await runAnalysis(q, selectedIds, files)
       setAnalysis(res)
       setQuestion('')
@@ -359,7 +360,7 @@ export default function App() {
       setActiveRunId(undefined)
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
-    } finally { setLoading(false) }
+    } finally { setLoading(null) }
   }
 
   const updateHistoryStatus = (id: string, status: 'accepted' | 'declined') => {
