@@ -266,9 +266,9 @@ export function ComparisonModal({ data, onClose }: { data: AnalyzeResult; onClos
                     const b = series.baseline[series.baseline.length - 1]
                     const p = series.intervention[series.intervention.length - 1]
                     const lower = /carbon|stranded|vacancy|maintenance|temp/i.test(name)
-                    const moved = Number.isFinite(b) && Number.isFinite(p) && Math.abs(p - b) > 1e-9
-                    const better = moved ? (lower ? p < b : p > b) : null
-                    const pct = moved && b !== 0 ? ((p - b) / Math.abs(b)) * 100 : null
+                    const moved = b !== null && p !== null && Number.isFinite(b) && Number.isFinite(p) && Math.abs(p - b) > 1e-9
+                    const better = moved && b !== null && p !== null ? (lower ? p < b : p > b) : null
+                    const pct = moved && b !== null && p !== null && b !== 0 ? ((p - b) / Math.abs(b)) * 100 : null
 
                     return (
                       <div style={{
