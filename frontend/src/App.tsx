@@ -303,16 +303,45 @@ export default function App() {
   const [searchMiss, setSearchMiss] = useState(false)
 
   // Exact ID first, then any ID or name containing the text.
-  function runSearch(q: string) {
-    const s = q.trim().toLowerCase()
-    if (!s) return
-    const hit =
+  // Several numbers separated by commas or spaces ("0067, 0734, 0736") select them all.
+  function findAsset(token: string) {
+    const s = token.trim().toLowerCase()
+    if (!s) return undefined
+    return (
       assets.find((a) => a.id.toLowerCase() === s) ??
+      assets.find((a) => a.id.toLowerCase().endsWith('-' + s)) ??
       assets.find((a) => a.id.toLowerCase().includes(s) || a.name.toLowerCase().includes(s))
-    if (!hit) { setSearchMiss(true); return }
-    setSearchMiss(false)
+    )
+  }
+
+  function runSearch(q: string) {
+    const tokens = q.split(/[,\s]+/).map((t) => t.trim()).filter(Boolean)
+    if (tokens.length === 0) return
+
+    // One term: same behaviour as before (select it and fly to it)
+    if (tokens.length === 1) {
+      const hit = findAsset(tokens[0])
+      if (!hit) { setSearchMiss(true); return }
+      setSearchMiss(false)
+      setShowHistory(false)
+      selectOnly(hit.id)
+      return
+    }
+
+    // Several terms: select every match and frame them all
+    const hits = tokens.map(findAsset).filter((a): a is NonNullable<typeof a> => !!a)
+    const ids = [...new Set(hits.map((a) => a.id))]
+    if (ids.length === 0) { setSearchMiss(true); return }
+    setSearchMiss(ids.length < tokens.length) // red border if any number wasn't found
     setShowHistory(false)
-    selectOnly(hit.id)
+    setSelectedIds(ids); setQuestion(''); reset()
+    playClick()
+
+    const m = mapRef.current
+    if (!m) return
+    const bounds = new maplibregl.LngLatBounds()
+    for (const a of hits) if (Number.isFinite(a.center[0]) && a.center[0] !== 0) bounds.extend(a.center)
+    if (!bounds.isEmpty()) m.fitBounds(bounds, { padding: 160, pitch: 55, maxZoom: 17, duration: 900 })
   }
 
   async function ask(files: File[] = []) { // 1. Add files parameter

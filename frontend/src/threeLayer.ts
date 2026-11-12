@@ -1239,7 +1239,14 @@ export function createThreeLayer(origin: [number, number]) {
   }
 
   function setInterventions(list: HeroIntervention[]) {
-    const next = new Map(list.map((h) => [h.id, h.type]))
+    // One effect per building: keep the most visual one, not just the last in the list
+    const PRIORITY = ['retrofit', 'repurpose', 'renovation', 'tactical_placemaking', 'tenant_matching', 'green_corridor', 'pedestrian_upgrade']
+    const rank = (t: string) => { const i = PRIORITY.indexOf(t); return i === -1 ? 0 : i }
+    const next = new Map<string, string>()
+    for (const h of list) {
+      const cur = next.get(h.id)
+      if (cur === undefined || rank(h.type) < rank(cur)) next.set(h.id, h.type)
+    }
     const nextDeltas = new Map<string, number>()
     for (const h of list) if (typeof h.deltaT === 'number') nextDeltas.set(h.id, h.deltaT)
     const same =
